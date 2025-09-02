@@ -1,19 +1,9 @@
 openapi: 3.0.3
 info:
-  title: DialTestCenter 用户管理 API
+  title: DialTestCenter User Management API
   description: |
-    DialTestCenter 项目的用户管理接口文档
-    提供完整的用户增删改查功能，支持真实数据库操作
-    
-    ## 主要功能
-    - 用户创建、查询、更新、删除
-    - 用户搜索和统计
-    - 数据验证和错误处理
-    - 跨域支持
-    
-    ## 技术栈
-    - 后端：Spring Boot 3.4.5 + JPA + PostgreSQL
-    - 前端：React + Ant Design
+    DialTestCenter project user management interface documentation
+    Provides complete user CRUD functionality with real database operations
   version: 1.0.0
   contact:
     name: DialTestCenter Team
@@ -24,162 +14,82 @@ info:
 
 servers:
   - url: http://localhost:8080/api
-    description: 本地开发环境
-  - url: https://api.dialtestcenter.com/api
-    description: 生产环境
+    description: Local Development Environment
 
 tags:
-  - name: 用户管理
-    description: 用户相关的所有操作接口
+  - name: User Management
+    description: All user-related operation interfaces
 
 paths:
   /users:
     get:
       tags:
-        - 用户管理
-      summary: 获取所有用户
-      description: 分页获取系统中的所有用户列表
-      parameters:
-        - name: page
-          in: query
-          description: 页码（从0开始）
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-        - name: size
-          in: query
-          description: 每页大小
-          required: false
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 100
+        - User Management
+      summary: Get All Users
+      description: Get paginated list of all users in the system
       responses:
         '200':
-          description: 成功获取用户列表
+          description: Successfully retrieved user list
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-              example:
-                - id: 1
-                  username: "admin"
-                  email: "admin@example.com"
-                  password: "******"
-                  createdAt: "2024-01-01T00:00:00"
-                  updatedAt: "2024-01-01T00:00:00"
-                - id: 2
-                  username: "user1"
-                  email: "user1@example.com"
-                  password: "******"
-                  createdAt: "2024-01-02T00:00:00"
-                  updatedAt: "2024-01-02T00:00:00"
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
     
     post:
       tags:
-        - 用户管理
-      summary: 创建新用户
-      description: 创建新的用户账户
+        - User Management
+      summary: Create New User
+      description: Create a new user account
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateUserRequest'
-            example:
-              username: "newuser"
-              email: "newuser@example.com"
-              password: "password123"
       responses:
         '201':
-          description: 用户创建成功
+          description: User created successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-              example:
-                id: 3
-                username: "newuser"
-                email: "newuser@example.com"
-                password: "******"
-                createdAt: "2024-01-01T00:00:00"
-                updatedAt: "2024-01-01T00:00:00"
-        '400':
-          description: 请求参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: "用户名已存在: newuser"
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /users/{id}:
     get:
       tags:
-        - 用户管理
-      summary: 根据ID获取用户
-      description: 根据用户ID获取用户详细信息
+        - User Management
+      summary: Get User by ID
+      description: Get user details by user ID
       parameters:
         - name: id
           in: path
           required: true
-          description: 用户ID
+          description: User ID
           schema:
             type: integer
             minimum: 1
       responses:
         '200':
-          description: 成功获取用户信息
+          description: Successfully retrieved user information
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    
+          description: User not found
+
     put:
       tags:
-        - 用户管理
-      summary: 更新用户信息
-      description: 根据用户ID更新用户信息
+        - User Management
+      summary: Update User
+      description: Update user information by user ID
       parameters:
         - name: id
           in: path
           required: true
-          description: 用户ID
+          description: User ID
           schema:
             type: integer
             minimum: 1
@@ -189,127 +99,77 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateUserRequest'
-            example:
-              username: "updateduser"
-              email: "updateduser@example.com"
-              password: "newpassword123"
       responses:
         '200':
-          description: 用户信息更新成功
+          description: User updated successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          description: 请求参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    
+
     delete:
       tags:
-        - 用户管理
-      summary: 删除用户
-      description: 根据用户ID删除用户
+        - User Management
+      summary: Delete User
+      description: Delete user by user ID
       parameters:
         - name: id
           in: path
           required: true
-          description: 用户ID
+          description: User ID
           schema:
             type: integer
             minimum: 1
       responses:
         '200':
-          description: 用户删除成功
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: User deleted successfully
 
   /users/search:
     get:
       tags:
-        - 用户管理
-      summary: 搜索用户
-      description: 根据关键词搜索用户（用户名或邮箱模糊匹配）
+        - User Management
+      summary: Search Users
+      description: Search users by keyword
       parameters:
         - name: keyword
           in: query
-          description: 搜索关键词
+          description: Search keyword
           required: false
           schema:
             type: string
-            minLength: 1
-            maxLength: 100
       responses:
         '200':
-          description: 搜索成功
+          description: Search successful
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /users/count:
     get:
       tags:
-        - 用户管理
-      summary: 获取用户总数
-      description: 获取系统中用户的总数量
+        - User Management
+      summary: Get User Count
+      description: Get total number of users
       responses:
         '200':
-          description: 成功获取用户总数
+          description: Successfully retrieved user count
           content:
             application/json:
               schema:
                 type: integer
-                minimum: 0
-              example: 150
-        '500':
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /users/health:
     get:
       tags:
-        - 用户管理
-      summary: 健康检查
-      description: 检查用户服务是否正常运行
+        - User Management
+      summary: Health Check
+      description: Check if user service is running
       responses:
         '200':
-          description: 服务正常运行
+          description: Service running normally
           content:
             application/json:
               schema:
@@ -326,44 +186,28 @@ components:
       properties:
         id:
           type: integer
-          description: 用户唯一标识
-          example: 1
+          description: User unique identifier
         username:
           type: string
-          description: 用户名
+          description: Username
           minLength: 3
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
-          example: "admin"
         email:
           type: string
-          description: 用户邮箱
+          description: User email
           format: email
-          maxLength: 100
-          example: "admin@example.com"
         password:
           type: string
-          description: 用户密码（加密后）
+          description: User password
           minLength: 6
-          maxLength: 100
-          example: "******"
         createdAt:
           type: string
           format: date-time
-          description: 用户创建时间
-          example: "2024-01-01T00:00:00"
+          description: Creation time
         updatedAt:
           type: string
           format: date-time
-          description: 用户最后更新时间
-          example: "2024-01-01T00:00:00"
-      example:
-        id: 1
-        username: "admin"
-        email: "admin@example.com"
-        password: "******"
-        createdAt: "2024-01-01T00:00:00"
-        updatedAt: "2024-01-01T00:00:00"
+          description: Last update time
 
     CreateUserRequest:
       type: object
@@ -374,88 +218,25 @@ components:
       properties:
         username:
           type: string
-          description: 用户名
           minLength: 3
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
-          example: "newuser"
         email:
           type: string
-          description: 用户邮箱
           format: email
-          maxLength: 100
-          example: "newuser@example.com"
         password:
           type: string
-          description: 用户密码
           minLength: 6
-          maxLength: 100
-          example: "password123"
 
     UpdateUserRequest:
       type: object
       properties:
         username:
           type: string
-          description: 用户名
           minLength: 3
           maxLength: 50
-          pattern: '^[a-zA-Z0-9_]+$'
-          example: "updateduser"
         email:
           type: string
-          description: 用户邮箱
           format: email
-          maxLength: 100
-          example: "updateduser@example.com"
         password:
           type: string
-          description: 用户密码（可选）
           minLength: 6
-          maxLength: 100
-          example: "newpassword123"
-
-    ErrorResponse:
-      type: object
-      properties:
-        timestamp:
-          type: string
-          format: date-time
-          description: 错误发生时间
-          example: "2024-01-01T00:00:00"
-        status:
-          type: integer
-          description: HTTP状态码
-          example: 400
-        error:
-          type: string
-          description: 错误类型
-          example: "Bad Request"
-        message:
-          type: string
-          description: 错误详细信息
-          example: "用户名已存在"
-        path:
-          type: string
-          description: 请求路径
-          example: "/api/users"
-      example:
-        timestamp: "2024-01-01T00:00:00"
-        status: 400
-        error: "Bad Request"
-        message: "用户名已存在: newuser"
-        path: "/api/users"
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: JWT认证令牌
-
-security:
-  - BearerAuth: []
-
-externalDocs:
-  description: 更多信息请查看项目文档
-  url: https://github.com/dialtestcenter/docs
