@@ -69,13 +69,13 @@ psql -d dialtestcenter -f database/init.sql
 
 - **前端应用**: http://localhost:3000
 - **后端API**: http://localhost:8080/api
-- **健康检查**: http://localhost:8080/api/users/health
+- **健康检查**: http://localhost:8080/actuator/health
 
 ## 📱 功能特性
 
 ### 前端功能
 - ✅ 响应式布局设计
-- ✅ 用户管理界面
+- ✅ 拨测任务管理
 - ✅ 数据统计展示
 - ✅ 现代化UI组件
 

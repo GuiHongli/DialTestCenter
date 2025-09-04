@@ -1,6 +1,6 @@
+import { CheckCircleOutlined, DashboardOutlined, SettingOutlined } from '@ant-design/icons'
+import { Card, Col, Row, Space, Statistic, Typography } from 'antd'
 import React from 'react'
-import { Card, Row, Col, Statistic, Typography, Space } from 'antd'
-import { UserOutlined, DashboardOutlined, SettingOutlined, CheckCircleOutlined } from '@ant-design/icons'
 
 const { Title, Paragraph } = Typography
 
@@ -9,25 +9,15 @@ const Home: React.FC = () => {
     <div>
       <Title level={2}>欢迎使用 Dial Test Center</Title>
       <Paragraph>
-        这是一个集成了前台页面和后台实现的全栈服务系统，提供用户管理、数据统计等功能。
+        这是一个集成了前台页面和后台实现的全栈服务系统，提供数据统计等功能。
       </Paragraph>
       
       <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="总用户数"
-              value={1128}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="活跃用户"
-              value={93}
+              title="拨测任务"
+              value={25}
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />

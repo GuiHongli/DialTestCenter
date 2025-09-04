@@ -50,7 +50,7 @@ echo "⏳ 等待后端服务启动..."
 sleep 10
 
 # 检查后端是否启动成功
-if curl -s http://localhost:8080/api/users/health > /dev/null; then
+if curl -s http://localhost:8080/actuator/health > /dev/null; then
     echo "✅ 后端服务启动成功!"
 else
     echo "❌ 后端服务启动失败"
@@ -87,7 +87,7 @@ echo "🎉 Dial Test Center 启动完成!"
 echo ""
 echo "📱 前端地址: http://localhost:3000"
 echo "🔧 后端地址: http://localhost:8080/api"
-echo "📊 健康检查: http://localhost:8080/api/users/health"
+echo "📊 健康检查: http://localhost:8080/actuator/health"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 

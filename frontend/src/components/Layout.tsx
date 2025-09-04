@@ -3,7 +3,6 @@ import {
     HomeOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    UserOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, theme } from 'antd'
 import React, { useState } from 'react'
@@ -20,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken()
 
   const menuItems = [
@@ -28,11 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/',
       icon: <HomeOutlined />,
       label: '首页',
-    },
-    {
-      key: '/users',
-      icon: <UserOutlined />,
-      label: '用户管理',
     },
     {
       key: '/dashboard',
