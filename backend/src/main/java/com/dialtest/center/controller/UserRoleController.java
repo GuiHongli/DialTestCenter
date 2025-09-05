@@ -2,6 +2,9 @@ package com.dialtest.center.controller;
 
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dialtest.center.entity.Role;
 import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.service.UserRoleService;
-
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 
 /**
  * 用户角色管理控制器

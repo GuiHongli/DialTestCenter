@@ -18,6 +18,7 @@ import {
   Statistic,
   Table,
   Tag,
+  Tooltip,
   Typography
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -253,14 +254,13 @@ export const UserRoleManagement: React.FC = () => {
       width: 120,
       render: (_: any, record: UserRole) => (
         <Space size="small">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          >
-            编辑
-          </Button>
+          <Tooltip title="编辑">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
           <Popconfirm
             title="确定要删除这个用户角色吗？"
             description="此操作不可撤销"
@@ -268,14 +268,13 @@ export const UserRoleManagement: React.FC = () => {
             okText="确定"
             cancelText="取消"
           >
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-            >
-              删除
-            </Button>
+            <Tooltip title="删除">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),

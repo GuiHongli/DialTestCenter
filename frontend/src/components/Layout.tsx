@@ -1,8 +1,10 @@
 import {
     DashboardOutlined,
+    FileZipOutlined,
     HomeOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
+    SettingOutlined,
     UserOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, theme } from 'antd'
@@ -38,6 +40,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/user-roles',
       icon: <UserOutlined />,
       label: '用户角色管理',
+    },
+    {
+      key: 'config',
+      icon: <SettingOutlined />,
+      label: '配置管理',
+      children: [
+        {
+          key: '/test-case-sets',
+          icon: <FileZipOutlined />,
+          label: '用例集管理',
+        },
+      ],
     },
   ]
 
