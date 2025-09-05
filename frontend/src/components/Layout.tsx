@@ -3,6 +3,7 @@ import {
     HomeOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
+    UserOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, theme } from 'antd'
 import React, { useState } from 'react'
@@ -32,6 +33,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/dashboard',
       icon: <DashboardOutlined />,
       label: '仪表板',
+    },
+    {
+      key: '/user-roles',
+      icon: <UserOutlined />,
+      label: '用户角色管理',
     },
   ]
 
