@@ -1,0 +1,210 @@
+package com.dialtest.center.entity;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.time.LocalDateTime;
+
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * 用例集实体测试类
+ */
+public class TestCaseSetTest {
+
+    private TestCaseSet testCaseSet1;
+    private TestCaseSet testCaseSet2;
+    private TestCaseSet testCaseSet3;
+
+    @Before
+    public void setUp() {
+        testCaseSet1 = new TestCaseSet();
+        testCaseSet1.setId(1L);
+        testCaseSet1.setName("test");
+        testCaseSet1.setVersion("v1");
+        testCaseSet1.setZipFile("test content".getBytes());
+        testCaseSet1.setCreator("admin");
+        testCaseSet1.setFileSize(179L);
+        testCaseSet1.setDescription("Test description");
+        testCaseSet1.setCreatedTime(LocalDateTime.now());
+        testCaseSet1.setUpdatedTime(LocalDateTime.now());
+
+        testCaseSet2 = new TestCaseSet();
+        testCaseSet2.setId(1L);
+        testCaseSet2.setName("test");
+        testCaseSet2.setVersion("v1");
+        testCaseSet2.setZipFile("test content".getBytes());
+        testCaseSet2.setCreator("admin");
+        testCaseSet2.setFileSize(179L);
+        testCaseSet2.setDescription("Test description");
+        testCaseSet2.setCreatedTime(LocalDateTime.now());
+        testCaseSet2.setUpdatedTime(LocalDateTime.now());
+
+        testCaseSet3 = new TestCaseSet();
+        testCaseSet3.setId(2L);
+        testCaseSet3.setName("test2");
+        testCaseSet3.setVersion("v2");
+        testCaseSet3.setZipFile("test content 2".getBytes());
+        testCaseSet3.setCreator("user");
+        testCaseSet3.setFileSize(200L);
+        testCaseSet3.setDescription("Test description 2");
+        testCaseSet3.setCreatedTime(LocalDateTime.now());
+        testCaseSet3.setUpdatedTime(LocalDateTime.now());
+    }
+
+    @Test
+    public void testDefaultConstructor() {
+        TestCaseSet testCaseSet = new TestCaseSet();
+        assertNotNull(testCaseSet);
+        assertNull(testCaseSet.getId());
+        assertNull(testCaseSet.getName());
+        assertNull(testCaseSet.getVersion());
+        assertNull(testCaseSet.getZipFile());
+        assertNull(testCaseSet.getCreator());
+        assertNull(testCaseSet.getFileSize());
+        assertNull(testCaseSet.getDescription());
+        assertNull(testCaseSet.getCreatedTime());
+        assertNull(testCaseSet.getUpdatedTime());
+    }
+
+    @Test
+    public void testParameterizedConstructor() {
+        TestCaseSet testCaseSet = new TestCaseSet("test", "v1", "test content".getBytes(), "admin", 179L);
+        assertNotNull(testCaseSet);
+        assertEquals("test", testCaseSet.getName());
+        assertEquals("v1", testCaseSet.getVersion());
+        assertArrayEquals("test content".getBytes(), testCaseSet.getZipFile());
+        assertEquals("admin", testCaseSet.getCreator());
+        assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
+    }
+
+    @Test
+    public void testGettersAndSetters() {
+        TestCaseSet testCaseSet = new TestCaseSet();
+        
+        // Test ID
+        testCaseSet.setId(1L);
+        assertEquals(Long.valueOf(1L), testCaseSet.getId());
+        
+        // Test Name
+        testCaseSet.setName("test");
+        assertEquals("test", testCaseSet.getName());
+        
+        // Test Version
+        testCaseSet.setVersion("v1");
+        assertEquals("v1", testCaseSet.getVersion());
+        
+        // Test ZipFile
+        byte[] zipFile = "test content".getBytes();
+        testCaseSet.setZipFile(zipFile);
+        assertArrayEquals(zipFile, testCaseSet.getZipFile());
+        
+        // Test Creator
+        testCaseSet.setCreator("admin");
+        assertEquals("admin", testCaseSet.getCreator());
+        
+        // Test FileSize
+        testCaseSet.setFileSize(179L);
+        assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
+        
+        // Test Description
+        testCaseSet.setDescription("Test description");
+        assertEquals("Test description", testCaseSet.getDescription());
+        
+        // Test CreatedTime
+        LocalDateTime now = LocalDateTime.now();
+        testCaseSet.setCreatedTime(now);
+        assertEquals(now, testCaseSet.getCreatedTime());
+        
+        // Test UpdatedTime
+        testCaseSet.setUpdatedTime(now);
+        assertEquals(now, testCaseSet.getUpdatedTime());
+    }
+
+    @Test
+    public void testEquals() {
+        // Same object
+        assertTrue(testCaseSet1.equals(testCaseSet1));
+        
+        // Equal objects (same id, name, version)
+        assertTrue(testCaseSet1.equals(testCaseSet2));
+        
+        // Different objects (different id)
+        assertFalse(testCaseSet1.equals(testCaseSet3));
+        
+        // Null object
+        assertFalse(testCaseSet1.equals(null));
+        
+        // Different class
+        assertFalse(testCaseSet1.equals("string"));
+    }
+
+    @Test
+    public void testHashCode() {
+        // Equal objects should have same hash code
+        assertEquals(testCaseSet1.hashCode(), testCaseSet2.hashCode());
+        
+        // Different objects should have different hash codes
+        assertNotEquals(testCaseSet1.hashCode(), testCaseSet3.hashCode());
+    }
+
+    @Test
+    public void testToString() {
+        String toString = testCaseSet1.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("TestCaseSet"));
+        assertTrue(toString.contains("id=1"));
+        assertTrue(toString.contains("name='test'"));
+        assertTrue(toString.contains("version='v1'"));
+        assertTrue(toString.contains("creator='admin'"));
+        assertTrue(toString.contains("fileSize=179"));
+        assertTrue(toString.contains("description='Test description'"));
+    }
+
+    @Test
+    public void testToStringWithNullZipFile() {
+        TestCaseSet testCaseSet = new TestCaseSet();
+        testCaseSet.setId(1L);
+        testCaseSet.setName("test");
+        testCaseSet.setVersion("v1");
+        testCaseSet.setZipFile(null);
+        testCaseSet.setCreator("admin");
+        testCaseSet.setFileSize(179L);
+        testCaseSet.setDescription("Test description");
+        testCaseSet.setCreatedTime(LocalDateTime.now());
+        testCaseSet.setUpdatedTime(LocalDateTime.now());
+        
+        String toString = testCaseSet.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("zipFileSize=0"));
+    }
+
+    @Test
+    public void testEqualsWithNullFields() {
+        TestCaseSet testCaseSet1 = new TestCaseSet();
+        TestCaseSet testCaseSet2 = new TestCaseSet();
+        
+        // Both have null id, name, version
+        assertTrue(testCaseSet1.equals(testCaseSet2));
+        
+        // One has id, other doesn't
+        testCaseSet1.setId(1L);
+        assertFalse(testCaseSet1.equals(testCaseSet2));
+        
+        // Reset and test name
+        testCaseSet1.setId(null);
+        testCaseSet1.setName("test");
+        assertFalse(testCaseSet1.equals(testCaseSet2));
+        
+        // Reset and test version
+        testCaseSet1.setName(null);
+        testCaseSet1.setVersion("v1");
+        assertFalse(testCaseSet1.equals(testCaseSet2));
+    }
+}
