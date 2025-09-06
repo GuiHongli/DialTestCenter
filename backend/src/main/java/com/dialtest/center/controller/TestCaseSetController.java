@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.controller;
 
 import java.util.HashMap;
@@ -29,7 +33,12 @@ import com.dialtest.center.entity.TestCaseSet;
 import com.dialtest.center.service.TestCaseSetService;
 
 /**
- * 用例集管理控制器
+ * 用例集控制器，提供用例集管理的REST API接口
+ * 支持用例集的上传、下载、查询、删除等操作
+ * 处理ZIP和TAR.GZ格式的文件上传和下载
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @RestController
 @RequestMapping("/api/test-case-sets")

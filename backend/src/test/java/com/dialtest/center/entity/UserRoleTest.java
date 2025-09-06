@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.entity;
 
 import static org.junit.Assert.assertEquals;
@@ -12,7 +16,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * UserRole实体测试类
+ * 用户角色实体测试类，测试UserRole实体的各种功能
+ * 包括构造函数、getter/setter、equals/hashCode、toString等方法
+ * 验证用户角色关系的数据完整性和业务逻辑正确性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 public class UserRoleTest {
 

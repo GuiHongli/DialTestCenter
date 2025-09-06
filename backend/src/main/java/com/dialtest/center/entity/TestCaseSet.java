@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.entity;
 
 import java.time.LocalDateTime;
@@ -14,7 +18,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * 用例集实体类
+ * 用例集实体类，用于存储和管理测试用例集信息
+ * 支持ZIP和TAR.GZ格式的文件存储，包含文件内容、格式、大小等元数据
+ * 提供完整的CRUD操作支持，包括文件上传、下载、查询等功能
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @Entity
 @Table(name = "test_case_set")
@@ -53,10 +62,26 @@ public class TestCaseSet {
     @Column(name = "updated_time")
     private LocalDateTime updatedTime;
     
-    // 默认构造函数
+    /**
+     * 默认构造函数
+     * 
+     * @author g00940940
+     * @since 2025-09-06
+     */
     public TestCaseSet() {}
     
-    // 带参数构造函数
+    /**
+     * 带参数构造函数，用于创建新的用例集实例
+     * 
+     * @param name 用例集名称
+     * @param version 用例集版本
+     * @param zipFile 文件内容字节数组
+     * @param fileFormat 文件格式（zip或tar.gz）
+     * @param creator 创建者
+     * @param fileSize 文件大小
+     * @author g00940940
+     * @since 2025-09-06
+     */
     public TestCaseSet(String name, String version, byte[] zipFile, String fileFormat, String creator, Long fileSize) {
         this.name = name;
         this.version = version;

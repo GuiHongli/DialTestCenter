@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.entity;
 
 import static org.junit.Assert.assertEquals;
@@ -7,7 +11,12 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
- * Role枚举测试类
+ * 角色枚举测试类，测试Role枚举的各种功能
+ * 包括枚举值、权限检查方法、角色描述等功能
+ * 验证角色权限逻辑的正确性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 public class RoleTest {
 

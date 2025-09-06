@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.controller;
 
 import static org.junit.Assert.assertEquals;
@@ -26,7 +30,12 @@ import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.service.UserRoleService;
 
 /**
- * UserRoleController测试类
+ * 用户角色控制器测试类，测试UserRoleController的REST API接口
+ * 包括用户角色创建、更新、删除、查询等HTTP端点的测试
+ * 使用Mockito模拟服务层依赖，验证控制器层的正确性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @RunWith(MockitoJUnitRunner.class)
 public class UserRoleControllerTest {

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.service;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +31,12 @@ import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.repository.UserRoleRepository;
 
 /**
- * UserRoleService测试类
+ * 用户角色服务测试类，测试UserRoleService的业务逻辑
+ * 包括用户角色分配、权限检查、角色查询等功能的测试
+ * 使用Mockito模拟依赖，验证服务层的正确性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @RunWith(MockitoJUnitRunner.class)
 public class UserRoleServiceTest {

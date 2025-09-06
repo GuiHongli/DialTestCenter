@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.controller;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +38,12 @@ import com.dialtest.center.entity.TestCaseSet;
 import com.dialtest.center.service.TestCaseSetService;
 
 /**
- * 用例集管理控制器测试类
+ * 用例集控制器测试类，测试TestCaseSetController的REST API接口
+ * 包括文件上传、下载、查询、删除等HTTP端点的测试
+ * 使用Mockito模拟服务层依赖，验证控制器层的正确性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TestCaseSetControllerTest {

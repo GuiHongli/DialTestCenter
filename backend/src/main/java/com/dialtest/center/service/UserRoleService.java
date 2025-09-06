@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.service;
 
 import java.util.List;
@@ -14,7 +18,12 @@ import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.repository.UserRoleRepository;
 
 /**
- * 用户角色服务类
+ * 用户角色服务类，提供用户角色管理的业务逻辑处理
+ * 包括用户角色分配、权限检查、角色查询等功能
+ * 支持事务管理，确保数据一致性
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @Service
 @Transactional

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.service;
 
 import java.io.IOException;
@@ -16,7 +20,12 @@ import com.dialtest.center.entity.TestCaseSet;
 import com.dialtest.center.repository.TestCaseSetRepository;
 
 /**
- * 用例集服务类
+ * 用例集服务类，提供用例集的业务逻辑处理
+ * 包括上传、下载、删除、查询等操作
+ * 支持ZIP和TAR.GZ格式的文件处理
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @Service
 public class TestCaseSetService {

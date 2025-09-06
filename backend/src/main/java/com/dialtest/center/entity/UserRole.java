@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.entity;
 
 import java.time.LocalDateTime;
@@ -18,7 +22,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * 用户角色关系实体
+ * 用户角色关系实体类，用于管理用户与角色的关联关系
+ * 支持用户角色分配、权限管理等功能
+ * 包含用户名、角色类型、创建时间、更新时间等字段
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @Entity
 @Table(name = "user_role", 
@@ -48,10 +57,22 @@ public class UserRole {
     @Column(name = "updated_time")
     private LocalDateTime updatedTime;
     
-    // 默认构造函数
+    /**
+     * 默认构造函数
+     * 
+     * @author g00940940
+     * @since 2025-09-06
+     */
     public UserRole() {}
     
-    // 带参数构造函数
+    /**
+     * 带参数构造函数，用于创建新的用户角色关系实例
+     * 
+     * @param username 用户名
+     * @param role 角色类型
+     * @author g00940940
+     * @since 2025-09-06
+     */
     public UserRole(String username, Role role) {
         this.username = username;
         this.role = role;

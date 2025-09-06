@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
 package com.dialtest.center.controller;
 
 import java.util.List;
@@ -25,7 +29,12 @@ import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.service.UserRoleService;
 
 /**
- * 用户角色管理控制器
+ * 用户角色控制器，提供用户角色管理的REST API接口
+ * 支持用户角色的创建、更新、删除、查询等操作
+ * 提供权限检查和执行机用户统计功能
+ * 
+ * @author g00940940
+ * @since 2025-09-06
  */
 @RestController
 @RequestMapping("/api/user-roles")
