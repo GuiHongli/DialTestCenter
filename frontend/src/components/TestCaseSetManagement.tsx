@@ -18,6 +18,7 @@ import {
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from '../hooks/useTranslation'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
 import TestCaseSetUpload from './TestCaseSetUpload'
@@ -34,6 +35,8 @@ const TestCaseSetManagement: React.FC = () => {
     total: 0,
   })
 
+  const { translateTestCaseSet, translateCommon } = useTranslation()
+
   // 加载用例集列表
   const loadTestCaseSets = async (page: number = 1, pageSize: number = 10) => {
     try {
@@ -46,7 +49,7 @@ const TestCaseSetManagement: React.FC = () => {
         total: response.total,
       })
     } catch (error) {
-      message.error('获取用例集列表失败')
+      message.error(translateTestCaseSet('loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -73,26 +76,26 @@ const TestCaseSetManagement: React.FC = () => {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      message.success('下载成功')
+      message.success(translateTestCaseSet('downloadSuccess'))
     } catch (error) {
-      message.error('下载失败')
+      message.error(translateTestCaseSet('downloadFailed'))
     }
   }
 
   // 删除用例集
   const handleDelete = (record: TestCaseSet) => {
     Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除用例集"${record.name}_${record.version}"吗？`,
-      okText: '确定',
-      cancelText: '取消',
+      title: translateTestCaseSet('confirmDelete'),
+      content: translateTestCaseSet('deleteDescription', { name: record.name, version: record.version }),
+      okText: translateCommon('confirm'),
+      cancelText: translateCommon('cancel'),
       onOk: async () => {
         try {
           await testCaseSetService.deleteTestCaseSet(record.id)
-          message.success('删除成功')
+          message.success(translateTestCaseSet('deleteSuccess'))
           loadTestCaseSets(pagination.current, pagination.pageSize)
         } catch (error) {
-          message.error('删除失败')
+          message.error(translateTestCaseSet('deleteFailed'))
         }
       },
     })
@@ -110,7 +113,7 @@ const TestCaseSetManagement: React.FC = () => {
   // 表格列定义
   const columns: ColumnsType<TestCaseSet> = [
     {
-      title: '用例集名称',
+      title: translateTestCaseSet('table.name'),
       dataIndex: 'name',
       key: 'name',
       width: 200,
@@ -123,53 +126,53 @@ const TestCaseSetManagement: React.FC = () => {
       ),
     },
     {
-      title: '创建人',
+      title: translateTestCaseSet('table.creator'),
       dataIndex: 'creator',
       key: 'creator',
       width: 120,
     },
     {
-      title: '文件大小',
+      title: translateTestCaseSet('table.fileSize'),
       dataIndex: 'fileSize',
       key: 'fileSize',
       width: 100,
       render: (size: number) => formatFileSize(size),
     },
     {
-      title: '创建时间',
+      title: translateTestCaseSet('table.createdTime'),
       dataIndex: 'createdTime',
       key: 'createdTime',
       width: 180,
       render: (time: string) => new Date(time).toLocaleString(),
     },
     {
-      title: '更新时间',
+      title: translateTestCaseSet('table.updatedTime'),
       dataIndex: 'updatedTime',
       key: 'updatedTime',
       width: 180,
       render: (time: string) => new Date(time).toLocaleString(),
     },
     {
-      title: '操作',
+      title: translateTestCaseSet('table.actions'),
       key: 'action',
       width: 150,
       render: (_, record: TestCaseSet) => (
         <Space size="small">
-          <Tooltip title="下载">
+          <Tooltip title={translateTestCaseSet('table.download')}>
             <Button
               type="text"
               icon={<DownloadOutlined />}
               onClick={() => handleDownload(record)}
             />
           </Tooltip>
-          <Tooltip title="编辑">
+          <Tooltip title={translateTestCaseSet('table.edit')}>
             <Button
               type="text"
               icon={<EditOutlined />}
-              onClick={() => message.info('编辑功能待开发')}
+              onClick={() => message.info(translateTestCaseSet('editFeaturePending'))}
             />
           </Tooltip>
-          <Tooltip title="删除">
+          <Tooltip title={translateTestCaseSet('table.delete')}>
             <Button
               type="text"
               danger
@@ -194,7 +197,7 @@ const TestCaseSetManagement: React.FC = () => {
         <div>
           <Title level={2} style={{ margin: 0 }}>
             <FileZipOutlined style={{ marginRight: '8px' }} />
-            用例集管理
+            {translateTestCaseSet('title')}
           </Title>
         </div>
         <Space>
@@ -203,7 +206,7 @@ const TestCaseSetManagement: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => setUploadVisible(true)}
           >
-            上传用例集
+            {translateTestCaseSet('uploadTestCaseSet')}
           </Button>
           <Button
             icon={<ReloadOutlined />}
@@ -211,7 +214,7 @@ const TestCaseSetManagement: React.FC = () => {
               loadTestCaseSets(pagination.current, pagination.pageSize)
             }}
           >
-            刷新
+            {translateCommon('refresh')}
           </Button>
         </Space>
       </div>
@@ -227,7 +230,7 @@ const TestCaseSetManagement: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total, range) =>
-            `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+            translateTestCaseSet('table.pagination', { start: range[0], end: range[1], total }),
         }}
         onChange={handleTableChange}
       />

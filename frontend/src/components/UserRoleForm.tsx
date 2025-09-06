@@ -1,5 +1,6 @@
 import { Button, Form, Input, Select, Space } from 'antd';
 import React from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { ROLE_DESCRIPTIONS, UserRoleFormData } from '../types/userRole';
 
 const { Option } = Select;
@@ -21,6 +22,7 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
   isLoading = false
 }) => {
   const [form] = Form.useForm();
+  const { translateUserRole, translateCommon } = useTranslation();
 
   const handleSubmit = (values: UserRoleFormData) => {
     onSubmit(values);
@@ -35,22 +37,22 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
       autoComplete="off"
     >
       <Form.Item
-        label="用户名"
+        label={translateUserRole('form.username')}
         name="username"
         rules={[
-          { required: true, message: '请输入用户名' },
+          { required: true, message: translateUserRole('form.usernamePlaceholder') },
           { max: 100, message: '用户名长度不能超过100个字符' }
         ]}
       >
-        <Input placeholder="请输入用户名" disabled={isLoading} />
+        <Input placeholder={translateUserRole('form.usernamePlaceholder')} disabled={isLoading} />
       </Form.Item>
 
       <Form.Item
-        label="角色"
+        label={translateUserRole('form.role')}
         name="role"
-        rules={[{ required: true, message: '请选择角色' }]}
+        rules={[{ required: true, message: translateUserRole('form.rolePlaceholder') }]}
       >
-        <Select placeholder="请选择角色" disabled={isLoading}>
+        <Select placeholder={translateUserRole('form.rolePlaceholder')} disabled={isLoading}>
           {Object.entries(ROLE_DESCRIPTIONS).map(([role, description]) => (
             <Option key={role} value={role}>
               {role} - {description}
@@ -62,10 +64,10 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
       <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
         <Space>
           <Button onClick={onCancel} disabled={isLoading}>
-            取消
+            {translateCommon('cancel')}
           </Button>
           <Button type="primary" htmlType="submit" loading={isLoading}>
-            保存
+            {translateCommon('save')}
           </Button>
         </Space>
       </Form.Item>

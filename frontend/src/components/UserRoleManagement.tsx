@@ -24,6 +24,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
 import { usePermission } from '../hooks/usePermission';
+import { useTranslation } from '../hooks/useTranslation';
 import { UserRoleService } from '../services/userRoleService';
 import { Role, ROLE_DESCRIPTIONS, UserRole, UserRoleFormData } from '../types/userRole';
 import { UserRoleForm } from './UserRoleForm';
@@ -44,6 +45,7 @@ export const UserRoleManagement: React.FC = () => {
   const [executorCount, setExecutorCount] = useState<number>(0);
 
   const { canManageUsers } = usePermission();
+  const { translateUserRole, translateCommon } = useTranslation();
 
   const canManage = canManageUsers(currentUserRoles);
 
@@ -71,7 +73,7 @@ export const UserRoleManagement: React.FC = () => {
       // 加载执行机数量
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '获取用户角色失败');
+      message.error(err instanceof Error ? err.message : translateUserRole('getUserRolesFailed'));
       // 如果获取用户角色失败，默认设置为非管理员权限
       setCurrentUserRoles([]);
     } finally {
@@ -85,7 +87,7 @@ export const UserRoleManagement: React.FC = () => {
       const data = await UserRoleService.getUserRoles();
       setUserRoles(data);
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '加载用户角色列表失败');
+      message.error(err instanceof Error ? err.message : translateUserRole('loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -108,11 +110,11 @@ export const UserRoleManagement: React.FC = () => {
       setFormLoading(true);
       await UserRoleService.createUserRole(formData);
       setModalVisible(false);
-      message.success('用户角色创建成功');
+      message.success(translateUserRole('createSuccess'));
       await loadUserRoles();
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '创建用户角色失败');
+      message.error(err instanceof Error ? err.message : translateUserRole('createFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -126,11 +128,11 @@ export const UserRoleManagement: React.FC = () => {
       await UserRoleService.updateUserRole(editingUserRole.id, formData);
       setEditingUserRole(null);
       setModalVisible(false);
-      message.success('用户角色更新成功');
+      message.success(translateUserRole('updateSuccess'));
       await loadUserRoles();
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '更新用户角色失败');
+      message.error(err instanceof Error ? err.message : translateUserRole('updateFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -139,11 +141,11 @@ export const UserRoleManagement: React.FC = () => {
   const handleDeleteUserRole = async (id: number) => {
     try {
       await UserRoleService.deleteUserRole(id);
-      message.success('用户角色删除成功');
+      message.success(translateUserRole('deleteSuccess'));
       await loadUserRoles();
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : '删除用户角色失败');
+      message.error(err instanceof Error ? err.message : translateUserRole('deleteFailed'));
     }
   };
 
@@ -193,14 +195,14 @@ export const UserRoleManagement: React.FC = () => {
   // 表格列配置
   const columns: ColumnsType<UserRole> = [
     {
-      title: 'ID',
+      title: translateUserRole('table.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
       sorter: (a: UserRole, b: UserRole) => a.id - b.id,
     },
     {
-      title: '用户名',
+      title: translateUserRole('table.username'),
       dataIndex: 'username',
       key: 'username',
       width: 150,
@@ -213,15 +215,15 @@ export const UserRoleManagement: React.FC = () => {
       ),
     },
     {
-      title: '角色',
+      title: translateUserRole('table.role'),
       dataIndex: 'role',
       key: 'role',
       width: 200,
       filters: [
-        { text: '管理员', value: 'ADMIN' },
-        { text: '操作员', value: 'OPERATOR' },
-        { text: '浏览者', value: 'BROWSER' },
-        { text: '执行机', value: 'EXECUTOR' },
+        { text: translateUserRole('table.filters.admin'), value: 'ADMIN' },
+        { text: translateUserRole('table.filters.operator'), value: 'OPERATOR' },
+        { text: translateUserRole('table.filters.browser'), value: 'BROWSER' },
+        { text: translateUserRole('table.filters.executor'), value: 'EXECUTOR' },
       ],
       onFilter: (value: any, record: UserRole) => record.role === value,
       render: (role: Role) => (
@@ -231,7 +233,7 @@ export const UserRoleManagement: React.FC = () => {
       ),
     },
     {
-      title: '创建时间',
+      title: translateUserRole('table.createdTime'),
       dataIndex: 'createdTime',
       key: 'createdTime',
       width: 180,
@@ -240,7 +242,7 @@ export const UserRoleManagement: React.FC = () => {
       render: (text: string) => formatDateTime(text),
     },
     {
-      title: '更新时间',
+      title: translateUserRole('table.updatedTime'),
       dataIndex: 'updatedTime',
       key: 'updatedTime',
       width: 180,
@@ -249,12 +251,12 @@ export const UserRoleManagement: React.FC = () => {
       render: (text: string) => formatDateTime(text),
     },
     ...(canManage ? [{
-      title: '操作',
+      title: translateUserRole('table.actions'),
       key: 'action',
       width: 120,
       render: (_: any, record: UserRole) => (
         <Space size="small">
-          <Tooltip title="编辑">
+          <Tooltip title={translateUserRole('table.edit')}>
             <Button
               type="text"
               icon={<EditOutlined />}
@@ -262,13 +264,13 @@ export const UserRoleManagement: React.FC = () => {
             />
           </Tooltip>
           <Popconfirm
-            title="确定要删除这个用户角色吗？"
-            description="此操作不可撤销"
+            title={translateUserRole('confirmDelete')}
+            description={translateUserRole('deleteDescription')}
             onConfirm={() => handleDeleteUserRole(record.id)}
-            okText="确定"
-            cancelText="取消"
+            okText={translateCommon('confirm')}
+            cancelText={translateCommon('cancel')}
           >
-            <Tooltip title="删除">
+            <Tooltip title={translateUserRole('table.delete')}>
               <Button
                 type="text"
                 danger
@@ -293,7 +295,7 @@ export const UserRoleManagement: React.FC = () => {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '16px', color: '#666', marginBottom: '16px' }}>
-            正在获取用户权限信息...
+            {translateUserRole('gettingUserPermission')}
           </div>
         </div>
       </div>
@@ -312,15 +314,15 @@ export const UserRoleManagement: React.FC = () => {
         <div>
           <Title level={2} style={{ margin: 0 }}>
             <TeamOutlined style={{ marginRight: '8px' }} />
-            用户角色管理
+            {translateUserRole('title')}
           </Title>
           <Text type="secondary" style={{ fontSize: '14px' }}>
-            当前用户角色: {currentUserRoles.length > 0 ? currentUserRoles.join(', ') : '无权限'}
+            {translateUserRole('currentUserRoles')}: {currentUserRoles.length > 0 ? currentUserRoles.join(', ') : translateUserRole('noPermission')}
           </Text>
           {/* 测试用角色切换按钮 */}
           <div style={{ marginTop: '8px' }}>
             <Space size="small">
-              <Text type="secondary" style={{ fontSize: '12px' }}>测试切换用户:</Text>
+              <Text type="secondary" style={{ fontSize: '12px' }}>{translateUserRole('testSwitchUser')}:</Text>
               <Button 
                 size="small" 
                 type={currentUserRoles.includes('ADMIN') ? 'primary' : 'default'}
@@ -352,13 +354,13 @@ export const UserRoleManagement: React.FC = () => {
               icon={<PlusOutlined />}
               onClick={handleAdd}
             >
-              新增用户角色
+              {translateUserRole('addUserRole')}
             </Button>
             <Button
               icon={<ReloadOutlined />}
               onClick={loadUserRoles}
             >
-              刷新
+              {translateCommon('refresh')}
             </Button>
           </Space>
         )}
@@ -370,7 +372,7 @@ export const UserRoleManagement: React.FC = () => {
           <Col span={6}>
             <Card>
               <Statistic
-                title="总用户数"
+                title={translateUserRole('statistics.totalUsers')}
                 value={statistics.totalUsers}
                 prefix={<UserOutlined />}
                 valueStyle={{ color: '#1890ff' }}
@@ -380,7 +382,7 @@ export const UserRoleManagement: React.FC = () => {
           <Col span={6}>
             <Card>
               <Statistic
-                title="总执行机数"
+                title={translateUserRole('statistics.totalExecutors')}
                 value={statistics.executorCount}
                 prefix={<TeamOutlined />}
                 valueStyle={{ color: '#fa8c16' }}
@@ -390,7 +392,7 @@ export const UserRoleManagement: React.FC = () => {
           <Col span={6}>
             <Card>
               <Statistic
-                title="管理员数"
+                title={translateUserRole('statistics.adminCount')}
                 value={statistics.adminCount}
                 valueStyle={{ color: '#f5222d' }}
               />
@@ -399,7 +401,7 @@ export const UserRoleManagement: React.FC = () => {
           <Col span={6}>
             <Card>
               <Statistic
-                title="操作员数"
+                title={translateUserRole('statistics.operatorCount')}
                 value={statistics.operatorCount}
                 valueStyle={{ color: '#722ed1' }}
               />
@@ -421,7 +423,7 @@ export const UserRoleManagement: React.FC = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
-              `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+              translateUserRole('table.pagination', { start: range[0], end: range[1], total }),
           }}
           scroll={{ x: 800 }}
           size="middle"
@@ -430,7 +432,7 @@ export const UserRoleManagement: React.FC = () => {
 
       {/* 新增/编辑表单对话框 */}
       <Modal
-        title={editingUserRole ? '编辑用户角色' : '新增用户角色'}
+        title={editingUserRole ? translateUserRole('editUserRole') : translateUserRole('addUserRole')}
         open={modalVisible}
         onCancel={handleModalCancel}
         footer={null}

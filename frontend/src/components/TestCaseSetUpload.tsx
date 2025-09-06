@@ -2,6 +2,7 @@ import { InboxOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd'
 import { Button, Form, Input, message, Modal, Upload } from 'antd'
 import React, { useState } from 'react'
+import { useTranslation } from '../hooks/useTranslation'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSetUploadData } from '../types/testCaseSet'
 
@@ -22,6 +23,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
   const [form] = Form.useForm()
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
+  const { translateTestCaseSet, translateCommon } = useTranslation()
 
   const handleUpload = async () => {
     try {
@@ -37,7 +39,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
       }
 
       // 验证文件
-      const validation = testCaseSetService.validateTestCaseSetFile(file)
+      const validation = testCaseSetService.validateTestCaseSetFile(file as File)
       if (!validation.valid) {
         message.error(validation.message)
         return
@@ -46,23 +48,23 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
       setUploading(true)
 
       const uploadData: TestCaseSetUploadData = {
-        file,
+        file: file as File,
         description: form.getFieldValue('description'),
       }
 
       const result = await testCaseSetService.uploadTestCaseSet(uploadData)
 
       if (result.success) {
-        message.success('用例集上传成功')
+        message.success(translateTestCaseSet('upload.uploadSuccess'))
         form.resetFields()
         setFileList([])
         onSuccess()
         onCancel()
       } else {
-        message.error(result.message || '上传失败')
+        message.error(result.message || translateTestCaseSet('upload.uploadFailed'))
       }
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '上传失败')
+      message.error(error instanceof Error ? error.message : translateTestCaseSet('upload.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -106,12 +108,12 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
 
   return (
     <Modal
-      title="上传用例集"
+      title={translateTestCaseSet('upload.title')}
       open={visible}
       onCancel={handleCancel}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
-          取消
+          {translateCommon('cancel')}
         </Button>,
         <Button
           key="upload"
@@ -119,28 +121,28 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
           loading={uploading}
           onClick={handleUpload}
         >
-          上传
+          {translateCommon('upload')}
         </Button>,
       ]}
       width={600}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="选择文件">
+        <Form.Item label={translateTestCaseSet('upload.selectFile')}>
           <Dragger {...uploadProps}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
-            <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
+            <p className="ant-upload-text">{translateTestCaseSet('upload.dragTip')}</p>
             <p className="ant-upload-hint">
-              支持ZIP格式，文件大小不超过100MB
+              {translateTestCaseSet('upload.supportFormat')}
               <br />
-              文件名格式：用例集名称_版本号.zip
+              {translateTestCaseSet('upload.fileSizeLimit')}
             </p>
           </Dragger>
         </Form.Item>
 
         <Form.Item
-          label="用例集名称"
+          label={translateTestCaseSet('table.name')}
           name="name"
           rules={[{ required: true, message: '请输入用例集名称' }]}
         >
@@ -148,14 +150,14 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         </Form.Item>
 
         <Form.Item
-          label="版本号"
+          label={translateCommon('version')}
           name="version"
           rules={[{ required: true, message: '请输入版本号' }]}
         >
           <Input placeholder="从文件名自动解析" readOnly />
         </Form.Item>
 
-        <Form.Item label="描述" name="description">
+        <Form.Item label={translateCommon('description')} name="description">
           <TextArea
             rows={3}
             placeholder="请输入用例集描述（可选）"
