@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.entity;
+package com.huawei.dialtest.center.entity;
 
 /**
  * 用户角色枚举类，定义系统中的用户角色类型和权限

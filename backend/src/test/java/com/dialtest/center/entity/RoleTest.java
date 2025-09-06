@@ -10,6 +10,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.huawei.dialtest.center.entity.Role;
+
 /**
  * 角色枚举测试类，测试Role枚举的各种功能
  * 包括枚举值、权限检查方法、角色描述等功能

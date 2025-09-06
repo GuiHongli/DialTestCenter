@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.controller;
+package com.huawei.dialtest.center.controller;
 
 import java.util.List;
 
@@ -12,6 +12,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,9 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
-import com.dialtest.center.service.UserRoleService;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 
 /**
  * 用户角色控制器，提供用户角色管理的REST API接口
@@ -61,15 +62,17 @@ public class UserRoleController {
             } else {
                 userRoles = userRoleService.getAllUserRoles();
             }
-            
             logger.debug("Successfully retrieved user roles: {}", userRoles.size());
             return ResponseEntity.ok(userRoles);
             
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to get user roles: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database access failed while getting user roles: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalStateException e) {
+            logger.error("Service state error while getting user roles: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -88,17 +91,18 @@ public class UserRoleController {
             UserRole userRole = new UserRole();
             userRole.setUsername(request.getUsername());
             userRole.setRole(request.getRole());
-            
             UserRole savedUserRole = userRoleService.save(userRole);
-            
             logger.info("User role created successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUserRole);
             
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to create user role: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database access failed while creating user role: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalStateException e) {
+            logger.error("Service state error while creating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -120,12 +124,9 @@ public class UserRoleController {
         try {
             UserRole userRole = userRoleService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User role does not exist"));
-            
             userRole.setUsername(request.getUsername());
             userRole.setRole(request.getRole());
-            
             UserRole updatedUserRole = userRoleService.save(userRole);
-            
             logger.info("User role updated successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.ok(updatedUserRole);
             
@@ -135,8 +136,11 @@ public class UserRoleController {
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to update user role: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database access failed while updating user role: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalStateException e) {
+            logger.error("Service state error while updating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -153,15 +157,17 @@ public class UserRoleController {
         logger.info("Deleting user role with ID: {}", id);
         try {
             userRoleService.deleteById(id);
-            
             logger.info("User role deleted successfully: {}", id);
             return ResponseEntity.noContent().build();
             
         } catch (IllegalArgumentException e) {
             logger.warn("User role not found for deletion: {}", id);
             return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to delete user role: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database access failed while deleting user role: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalStateException e) {
+            logger.error("Service state error while deleting user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -178,8 +184,11 @@ public class UserRoleController {
             long count = userRoleService.getExecutorUserCount();
             logger.debug("Executor user count: {}", count);
             return ResponseEntity.ok(count);
-        } catch (RuntimeException e) {
-            logger.error("Failed to get executor user count: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database access failed while getting executor user count: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (IllegalStateException e) {
+            logger.error("Service state error while getting executor user count: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

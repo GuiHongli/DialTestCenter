@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.huawei.dialtest.center.entity.TestCaseSet;
+
 /**
  * 用例集实体测试类，测试TestCaseSet实体的各种功能
  * 包括构造函数、getter/setter、equals/hashCode、toString等方法

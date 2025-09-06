@@ -26,9 +26,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
-import com.dialtest.center.repository.UserRoleRepository;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.repository.UserRoleRepository;
+import com.huawei.dialtest.center.service.UserRoleService;
 
 /**
  * 用户角色服务测试类，测试UserRoleService的业务逻辑

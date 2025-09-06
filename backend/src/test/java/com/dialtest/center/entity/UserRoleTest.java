@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+
 /**
  * 用户角色实体测试类，测试UserRole实体的各种功能
  * 包括构造函数、getter/setter、equals/hashCode、toString等方法

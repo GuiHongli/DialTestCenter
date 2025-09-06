@@ -25,9 +25,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
-import com.dialtest.center.service.UserRoleService;
+import com.huawei.dialtest.center.controller.UserRoleController;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 
 /**
  * 用户角色控制器测试类，测试UserRoleController的REST API接口

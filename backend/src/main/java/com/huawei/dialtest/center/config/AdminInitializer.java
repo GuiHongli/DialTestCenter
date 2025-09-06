@@ -1,4 +1,4 @@
-package com.dialtest.center.config;
+package com.huawei.dialtest.center.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,9 +8,9 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
-import com.dialtest.center.service.UserRoleService;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 
 /**
  * 管理员初始化器

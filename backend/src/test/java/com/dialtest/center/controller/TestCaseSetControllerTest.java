@@ -34,8 +34,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dialtest.center.entity.TestCaseSet;
-import com.dialtest.center.service.TestCaseSetService;
+import com.huawei.dialtest.center.controller.TestCaseSetController;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.service.TestCaseSetService;
 
 /**
  * 用例集控制器测试类，测试TestCaseSetController的REST API接口

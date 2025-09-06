@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.service;
+package com.huawei.dialtest.center.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
-import com.dialtest.center.repository.UserRoleRepository;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.repository.UserRoleRepository;
 
 /**
  * 用户角色服务类，提供用户角色管理的业务逻辑处理

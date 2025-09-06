@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.service;
+package com.huawei.dialtest.center.service;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -16,8 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dialtest.center.entity.TestCaseSet;
-import com.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.repository.TestCaseSetRepository;
 
 /**
  * 用例集服务类，提供用例集的业务逻辑处理

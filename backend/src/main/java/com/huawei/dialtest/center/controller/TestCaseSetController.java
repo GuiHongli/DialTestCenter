@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.controller;
+package com.huawei.dialtest.center.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dialtest.center.entity.TestCaseSet;
-import com.dialtest.center.service.TestCaseSetService;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.service.TestCaseSetService;
 
 /**
  * 用例集控制器，提供用例集管理的REST API接口

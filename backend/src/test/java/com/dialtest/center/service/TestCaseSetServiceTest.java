@@ -31,8 +31,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dialtest.center.entity.TestCaseSet;
-import com.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.service.TestCaseSetService;
 
 /**
  * 用例集服务测试类，测试TestCaseSetService的业务逻辑

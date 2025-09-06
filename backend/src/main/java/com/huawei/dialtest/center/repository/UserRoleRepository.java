@@ -1,4 +1,4 @@
-package com.dialtest.center.repository;
+package com.huawei.dialtest.center.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.dialtest.center.entity.Role;
-import com.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
 
 /**
  * 用户角色关系数据访问层
