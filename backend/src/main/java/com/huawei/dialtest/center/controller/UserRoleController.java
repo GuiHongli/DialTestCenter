@@ -4,10 +4,9 @@
 
 package com.huawei.dialtest.center.controller;
 
-import java.util.List;
-
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
-import com.huawei.dialtest.center.service.UserRoleService;
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 /**
  * 用户角色控制器，提供用户角色管理的REST API接口

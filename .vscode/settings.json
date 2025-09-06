@@ -1,0 +1,19 @@
+{
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": false
+  },
+  "java.format.enabled": false,
+  "java.saveActions.organizeImports": false,
+  "java.completion.importOrder": [
+    "com.huawei.*",
+    "org.springframework.*",
+    "org.slf4j.*",
+    "java.*",
+    "javax.*"
+  ],
+  "java.format.settings.url": "",
+  "java.format.settings.profile": ""
+}
