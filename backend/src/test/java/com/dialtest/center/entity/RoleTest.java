@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
 package com.dialtest.center.entity;

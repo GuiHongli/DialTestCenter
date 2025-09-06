@@ -13,7 +13,7 @@ description: Javadoc documentation requirements for Java classes and methods
 ## Copyright Header Format
 ```java
 /*
- * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
 package com.example.package;
@@ -66,7 +66,7 @@ public ReturnType methodName(ParamType paramName) throws ExceptionType {
 ## Complete File Example
 ```java
 /*
- * Copyright (c) Huawei Telchnologies Co., Ltd. 2020-2020. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
 package com.dialtest.center.entity;
