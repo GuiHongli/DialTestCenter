@@ -19,6 +19,52 @@ description: Javadoc documentation requirements for Java classes and methods
 package com.example.package;
 ```
 
+## MANDATORY Import Package Rules
+- **Import packages must be sorted in specific order**
+- **Each group must be separated by one empty line**
+- **Use alphabetical order within each group**
+
+## Import Package Order
+1. **Android packages** (android.*)
+2. **Huawei company packages** (com.huawei.*)
+3. **Other commercial organizations** (com.company.*)
+4. **Other open source organizations** (org.apache.*, org.springframework.*, etc.)
+5. **Other open source third-party** (com.fasterxml.*, com.google.*, etc.)
+6. **Net/Org open source organizations** (net.sourceforge.*, org.junit.*, etc.)
+7. **Java standard packages** (java.*, javax.*)
+
+## Import Package Example
+```java
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
+package com.dialtest.center.entity;
+
+import android.content.Context;
+
+import com.huawei.agconnect.AGConnectInstance;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+```
+
 ## MANDATORY Javadoc Rules
 - **All public classes must have Javadoc comments**
 - **All public methods must have Javadoc comments**
