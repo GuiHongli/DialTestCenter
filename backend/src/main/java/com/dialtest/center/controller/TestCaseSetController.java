@@ -4,6 +4,11 @@
 
 package com.dialtest.center.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.dialtest.center.entity.TestCaseSet;
 import com.dialtest.center.service.TestCaseSetService;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * 用例集控制器，提供用例集管理的REST API接口
@@ -67,8 +68,11 @@ public class TestCaseSetController {
             response.put("pageSize", pageSize);
             
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("获取用例集列表失败: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Failed to get test case sets: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -85,8 +89,11 @@ public class TestCaseSetController {
             } else {
                 return ResponseEntity.notFound().build();
             }
-        } catch (Exception e) {
-            logger.error("获取用例集详情失败: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Failed to get test case set details: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -112,16 +119,22 @@ public class TestCaseSetController {
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            logger.warn("上传用例集失败: {}", e.getMessage());
+            logger.warn("Test case set upload failed: {}", e.getMessage());
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
-        } catch (Exception e) {
-            logger.error("上传用例集失败: {}", e.getMessage(), e);
+        } catch (IOException e) {
+            logger.error("File I/O error during upload: {}", e.getMessage(), e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "上传失败");
+            response.put("message", "File processing failed");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (RuntimeException e) {
+            logger.error("Test case set upload failed: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Upload failed");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

@@ -62,11 +62,14 @@ public class UserRoleController {
                 userRoles = userRoleService.getAllUserRoles();
             }
             
-            logger.debug("获取用户角色列表成功: {}", userRoles.size());
+            logger.debug("Successfully retrieved user roles: {}", userRoles.size());
             return ResponseEntity.ok(userRoles);
             
-        } catch (Exception e) {
-            logger.error("获取用户角色列表失败: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Failed to get user roles: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

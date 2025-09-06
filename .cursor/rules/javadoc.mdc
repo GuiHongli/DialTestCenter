@@ -85,29 +85,80 @@ public class ClassName {
 ```
 
 ## Method Javadoc Requirements
+- **Function Description**: Provide clear description of method functionality
+- **Empty Line**: One empty line between description and tags
+- **Tags Order**: Use @param, @return, @throws in order as needed
+- **@param**: Document all parameters with clear descriptions
+- **@return**: Document return value with clear descriptions
+- **@throws**: Document all thrown exceptions with clear descriptions
+
+## Method Javadoc Format
 ```java
 /**
- * 方法功能描述
+ * 方法功能描述，详细说明方法的作用和功能
+ * 可以包含多行描述，说明方法的主要用途和实现逻辑
  * 
- * @param paramName 参数描述
- * @return 返回值描述
- * @throws ExceptionType 异常描述
- * @author g00940940
- * @since 2025-09-06
+ * @param paramName 参数描述，说明参数的作用和约束条件
+ * @param anotherParam 另一个参数的描述
+ * @return 返回值描述，说明返回值的类型和含义
+ * @throws ExceptionType 异常描述，说明什么情况下会抛出此异常
  */
-public ReturnType methodName(ParamType paramName) throws ExceptionType {
+public ReturnType methodName(ParamType paramName, AnotherType anotherParam) throws ExceptionType {
+    // method implementation
+}
+```
+
+## Method Javadoc Examples
+
+### Simple Method
+```java
+/**
+ * 获取用例集名称
+ * 
+ * @return 用例集名称字符串
+ */
+public String getName() {
+    return name;
+}
+```
+
+### Method with Parameters
+```java
+/**
+ * 设置用例集名称
+ * 
+ * @param name 用例集名称，不能为空
+ */
+public void setName(String name) {
+    this.name = name;
+}
+```
+
+### Method with Parameters and Return Value
+```java
+/**
+ * 上传用例集文件
+ * 
+ * @param file 用例集文件，支持.zip和.tar.gz格式
+ * @param description 用例集描述信息
+ * @return 保存后的用例集实体对象
+ * @throws IOException 文件读取失败时抛出
+ */
+public TestCaseSet uploadTestCaseSet(MultipartFile file, String description) throws IOException {
     // method implementation
 }
 ```
 
 ## Javadoc Standards
-- **@author**: Always use "g00940940"
-- **@since**: Use ISO_DATE format (YYYY-MM-DD) from Java 8 time package
+- **Class Level**: Use @author "g00940940" and @since "YYYY-MM-DD" format
+- **Method Level**: Only use @param, @return, @throws tags as needed
 - **Language**: Use Chinese for descriptions
 - **Content**: Provide clear, concise descriptions
 - **Parameters**: Document all parameters with @param
 - **Return Values**: Document return values with @return
 - **Exceptions**: Document thrown exceptions with @throws
+- **Empty Line**: One empty line between description and tags
+
 
 ## Complete File Example
 ```java
@@ -130,7 +181,39 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "test_case_set")
 public class TestCaseSet {
-    // entity implementation
+    
+    /**
+     * 获取用例集名称
+     * 
+     * @return 用例集名称字符串
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * 设置用例集名称
+     * 
+     * @param name 用例集名称，不能为空
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    /**
+     * 上传用例集文件
+     * 
+     * @param file 用例集文件，支持.zip和.tar.gz格式
+     * @return 保存后的用例集实体对象
+     * @throws IOException 文件读取失败时抛出
+     */
+    public TestCaseSet uploadTestCaseSet(MultipartFile file) throws IOException {
+        // 处理文件上传逻辑
+        TestCaseSet result = processFile(file);
+        return result;
+    }
+    
+    // other methods...
 }
 ```
 
@@ -145,7 +228,23 @@ public class TestCaseSet {
  */
 @Service
 public class TestCaseSetService {
-    // service implementation
+    
+    /**
+     * 上传用例集文件
+     * 
+     * @param file 用例集文件，支持.zip和.tar.gz格式
+     * @param description 用例集描述信息
+     * @return 保存后的用例集实体对象
+     * @throws IOException 文件读取失败时抛出
+     */
+    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description) throws IOException {
+        // 验证文件格式
+        validateFileFormat(file);
+        
+        // 保存文件
+        TestCaseSet result = saveTestCaseSet(file, description);
+        return result;
+    }
 }
 ```
 
@@ -161,7 +260,20 @@ public class TestCaseSetService {
 @RestController
 @RequestMapping("/api/test-case-sets")
 public class TestCaseSetController {
-    // controller implementation
+    
+    /**
+     * 获取用例集列表
+     * 
+     * @param page 页码，从0开始
+     * @param size 每页大小
+     * @return 用例集分页数据
+     */
+    @GetMapping
+    public ResponseEntity<Page<TestCaseSet>> getTestCaseSets(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        Page<TestCaseSet> result = testCaseSetService.getTestCaseSets(page, size);
+        return ResponseEntity.ok(result);
+    }
 }
 ```
 
@@ -175,6 +287,14 @@ public class TestCaseSetController {
  * @since 2025-09-06
  */
 public class TestCaseSetTest {
-    // test implementation
+    
+    /**
+     * 测试默认构造函数
+     */
+    @Test
+    public void testDefaultConstructor() {
+        TestCaseSet testCaseSet = new TestCaseSet();
+        assertNotNull(testCaseSet);
+    }
 }
 ```

@@ -30,6 +30,12 @@ description: Backend Java development guidelines for Spring Boot application
 ## Javadoc Requirements
 - **Note**: See javadoc.mdc for detailed Javadoc documentation requirements
 
+## Logging Requirements
+- **Note**: See logging.mdc for detailed logging standards and best practices
+
+## Exception Handling Requirements
+- **Note**: See exception-handling.mdc for detailed exception handling standards
+
 ## Testing & Documentation
 - **Note**: See llt-generation.mdc for testing requirements
 - **Note**: See yaml-documentation.mdc for API documentation requirements

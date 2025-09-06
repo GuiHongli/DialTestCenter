@@ -12,10 +12,7 @@ description: LLT (Unit Testing) generation requirements and guidelines
 - **EXCLUDE: Repository layer (no tests needed)**
 
 ## MANDATORY Documentation Rules
-- **Generate YAML documentation for ALL new API endpoints**
-- **Create YAML files simultaneously with controller implementation**
-- **File location: backend/src/main/resources/yaml/**
-- **Documentation format: OpenAPI/Swagger 3.0 specification**
+- **Note**: See yaml-documentation.mdc for YAML API documentation requirements
 
 ## Test File Structure
 ```

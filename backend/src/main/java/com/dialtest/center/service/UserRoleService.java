@@ -4,6 +4,9 @@
 
 package com.dialtest.center.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dialtest.center.entity.Role;
 import com.dialtest.center.entity.UserRole;
 import com.dialtest.center.repository.UserRoleRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * 用户角色服务类，提供用户角色管理的业务逻辑处理
@@ -36,60 +36,67 @@ public class UserRoleService {
     
     /**
      * 根据用户名获取用户角色列表
-     * @param username 用户名
+     * 
+     * @param username 用户名，不能为空
      * @return 用户角色列表
+     * @throws IllegalArgumentException 当用户名为空时抛出
      */
     @Transactional(readOnly = true)
     public List<UserRole> getUserRoles(String username) {
         if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("用户名不能为空");
+            throw new IllegalArgumentException("Username cannot be empty");
         }
         
-        logger.debug("查询用户角色: {}", username);
+        logger.debug("Querying user roles for: {}", username);
         return userRoleRepository.findByUsernameOrderByCreatedTimeDesc(username.trim());
     }
     
     /**
      * 根据用户名获取角色枚举列表
-     * @param username 用户名
+     * 
+     * @param username 用户名，不能为空
      * @return 角色枚举列表
+     * @throws IllegalArgumentException 当用户名为空时抛出
      */
     @Transactional(readOnly = true)
     public List<Role> getUserRoleEnums(String username) {
         if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("用户名不能为空");
+            throw new IllegalArgumentException("Username cannot be empty");
         }
         
-        logger.debug("查询用户角色枚举: {}", username);
+        logger.debug("Querying user role enums for: {}", username);
         return userRoleRepository.findRolesByUsername(username.trim());
     }
     
     /**
      * 获取所有用户角色关系
+     * 
      * @return 所有用户角色关系列表
      */
     @Transactional(readOnly = true)
     public List<UserRole> getAllUserRoles() {
-        logger.debug("查询所有用户角色关系");
+        logger.debug("Querying all user role relationships");
         return userRoleRepository.findAllOrderByCreatedTimeDesc();
     }
     
     /**
      * 保存用户角色关系
-     * @param userRole 用户角色关系
+     * 
+     * @param userRole 用户角色关系，不能为空
      * @return 保存后的用户角色关系
+     * @throws IllegalArgumentException 当用户角色为空时抛出
      */
     public UserRole save(UserRole userRole) {
         if (userRole == null) {
-            throw new IllegalArgumentException("用户角色关系不能为空");
+            throw new IllegalArgumentException("User role cannot be null");
         }
         
         if (userRole.getUsername() == null || userRole.getUsername().trim().isEmpty()) {
-            throw new IllegalArgumentException("用户名不能为空");
+            throw new IllegalArgumentException("Username cannot be empty");
         }
         
         if (userRole.getRole() == null) {
-            throw new IllegalArgumentException("角色不能为空");
+            throw new IllegalArgumentException("Role cannot be null");
         }
         
         userRole.setUsername(userRole.getUsername().trim());
@@ -99,48 +106,52 @@ public class UserRoleService {
             Optional<UserRole> existingUserRole = userRoleRepository.findByUsernameAndRole(
                 userRole.getUsername(), userRole.getRole());
             if (existingUserRole.isPresent() && !existingUserRole.get().getId().equals(userRole.getId())) {
-                throw new IllegalArgumentException("用户角色关系已存在: " + userRole.getUsername() + " - " + userRole.getRole());
+                throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
             }
         } else {
             // 如果是新建操作（无ID），检查是否已存在相同的用户名和角色组合
             if (userRoleRepository.existsByUsernameAndRole(userRole.getUsername(), userRole.getRole())) {
-                throw new IllegalArgumentException("用户角色关系已存在: " + userRole.getUsername() + " - " + userRole.getRole());
+                throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
             }
         }
         
-        logger.info("保存用户角色关系: {} - {}", userRole.getUsername(), userRole.getRole());
+        logger.info("Saving user role relationship: {} - {}", userRole.getUsername(), userRole.getRole());
         return userRoleRepository.save(userRole);
     }
     
     /**
      * 根据ID查找用户角色关系
-     * @param id ID
+     * 
+     * @param id ID，不能为空
      * @return 用户角色关系
+     * @throws IllegalArgumentException 当ID为空时抛出
      */
     @Transactional(readOnly = true)
     public Optional<UserRole> findById(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("ID不能为空");
+            throw new IllegalArgumentException("ID cannot be null");
         }
         
-        logger.debug("根据ID查询用户角色关系: {}", id);
+        logger.debug("Finding user role by ID: {}", id);
         return userRoleRepository.findById(id);
     }
     
     /**
      * 根据ID删除用户角色关系
-     * @param id ID
+     * 
+     * @param id ID，不能为空
+     * @throws IllegalArgumentException 当ID为空或用户角色关系不存在时抛出
      */
     public void deleteById(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("ID不能为空");
+            throw new IllegalArgumentException("ID cannot be null");
         }
         
         if (!userRoleRepository.existsById(id)) {
-            throw new IllegalArgumentException("用户角色关系不存在: " + id);
+            throw new IllegalArgumentException("User role relationship does not exist: " + id);
         }
         
-        logger.info("删除用户角色关系: {}", id);
+        logger.info("Deleting user role relationship: {}", id);
         userRoleRepository.deleteById(id);
     }
     
@@ -155,7 +166,7 @@ public class UserRoleService {
         }
         
         if (role == null) {
-            throw new IllegalArgumentException("角色不能为空");
+            throw new IllegalArgumentException("Role cannot be null");
         }
         
         logger.info("删除用户角色关系: {} - {}", username, role);
@@ -180,7 +191,7 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public long getAdminUserCount() {
         long count = userRoleRepository.countByRole(Role.ADMIN);
-        logger.debug("管理员用户数量: {}", count);
+        logger.debug("Admin user count: {}", count);
         return count;
     }
     
@@ -192,10 +203,10 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public List<UserRole> getUserRolesByRole(Role role) {
         if (role == null) {
-            throw new IllegalArgumentException("角色不能为空");
+            throw new IllegalArgumentException("Role cannot be null");
         }
         
-        logger.debug("根据角色查询用户角色关系: {}", role);
+        logger.debug("Querying user roles by role: {}", role);
         return userRoleRepository.findByRole(role);
     }
     
@@ -216,7 +227,7 @@ public class UserRoleService {
         }
         
         boolean hasRole = userRoleRepository.existsByUsernameAndRole(username.trim(), role);
-        logger.debug("检查用户角色: {} - {} = {}", username, role, hasRole);
+        logger.debug("Checking user role: {} - {} = {}", username, role, hasRole);
         return hasRole;
     }
     
@@ -227,7 +238,7 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public long getExecutorUserCount() {
         long count = userRoleRepository.countByRole(Role.EXECUTOR);
-        logger.debug("执行机用户数量: {}", count);
+        logger.debug("Executor user count: {}", count);
         return count;
     }
 }
