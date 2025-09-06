@@ -29,6 +29,7 @@ public class TestCaseSetTest {
         testCaseSet1.setName("test");
         testCaseSet1.setVersion("v1");
         testCaseSet1.setZipFile("test content".getBytes());
+        testCaseSet1.setFileFormat("zip");
         testCaseSet1.setCreator("admin");
         testCaseSet1.setFileSize(179L);
         testCaseSet1.setDescription("Test description");
@@ -40,6 +41,7 @@ public class TestCaseSetTest {
         testCaseSet2.setName("test");
         testCaseSet2.setVersion("v1");
         testCaseSet2.setZipFile("test content".getBytes());
+        testCaseSet2.setFileFormat("zip");
         testCaseSet2.setCreator("admin");
         testCaseSet2.setFileSize(179L);
         testCaseSet2.setDescription("Test description");
@@ -51,6 +53,7 @@ public class TestCaseSetTest {
         testCaseSet3.setName("test2");
         testCaseSet3.setVersion("v2");
         testCaseSet3.setZipFile("test content 2".getBytes());
+        testCaseSet3.setFileFormat("tar.gz");
         testCaseSet3.setCreator("user");
         testCaseSet3.setFileSize(200L);
         testCaseSet3.setDescription("Test description 2");
@@ -66,6 +69,7 @@ public class TestCaseSetTest {
         assertNull(testCaseSet.getName());
         assertNull(testCaseSet.getVersion());
         assertNull(testCaseSet.getZipFile());
+        assertNull(testCaseSet.getFileFormat());
         assertNull(testCaseSet.getCreator());
         assertNull(testCaseSet.getFileSize());
         assertNull(testCaseSet.getDescription());
@@ -75,11 +79,12 @@ public class TestCaseSetTest {
 
     @Test
     public void testParameterizedConstructor() {
-        TestCaseSet testCaseSet = new TestCaseSet("test", "v1", "test content".getBytes(), "admin", 179L);
+        TestCaseSet testCaseSet = new TestCaseSet("test", "v1", "test content".getBytes(), "zip", "admin", 179L);
         assertNotNull(testCaseSet);
         assertEquals("test", testCaseSet.getName());
         assertEquals("v1", testCaseSet.getVersion());
         assertArrayEquals("test content".getBytes(), testCaseSet.getZipFile());
+        assertEquals("zip", testCaseSet.getFileFormat());
         assertEquals("admin", testCaseSet.getCreator());
         assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
     }
@@ -104,6 +109,10 @@ public class TestCaseSetTest {
         byte[] zipFile = "test content".getBytes();
         testCaseSet.setZipFile(zipFile);
         assertArrayEquals(zipFile, testCaseSet.getZipFile());
+        
+        // Test FileFormat
+        testCaseSet.setFileFormat("zip");
+        assertEquals("zip", testCaseSet.getFileFormat());
         
         // Test Creator
         testCaseSet.setCreator("admin");
@@ -162,6 +171,7 @@ public class TestCaseSetTest {
         assertTrue(toString.contains("id=1"));
         assertTrue(toString.contains("name='test'"));
         assertTrue(toString.contains("version='v1'"));
+        assertTrue(toString.contains("fileFormat='zip'"));
         assertTrue(toString.contains("creator='admin'"));
         assertTrue(toString.contains("fileSize=179"));
         assertTrue(toString.contains("description='Test description'"));
@@ -206,5 +216,22 @@ public class TestCaseSetTest {
         testCaseSet1.setName(null);
         testCaseSet1.setVersion("v1");
         assertFalse(testCaseSet1.equals(testCaseSet2));
+    }
+
+    @Test
+    public void testFileFormat() {
+        TestCaseSet testCaseSet = new TestCaseSet();
+        
+        // Test ZIP format
+        testCaseSet.setFileFormat("zip");
+        assertEquals("zip", testCaseSet.getFileFormat());
+        
+        // Test TAR.GZ format
+        testCaseSet.setFileFormat("tar.gz");
+        assertEquals("tar.gz", testCaseSet.getFileFormat());
+        
+        // Test null format
+        testCaseSet.setFileFormat(null);
+        assertNull(testCaseSet.getFileFormat());
     }
 }
