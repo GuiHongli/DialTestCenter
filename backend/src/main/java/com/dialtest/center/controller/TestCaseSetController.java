@@ -52,12 +52,16 @@ public class TestCaseSetController {
     
     /**
      * 获取用例集列表
+     * 
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 用例集分页数据
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getTestCaseSets(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
-        
+        logger.info("Getting test case sets - page: {}, size: {}", page, pageSize);
         try {
             Page<TestCaseSet> testCaseSets = testCaseSetService.getTestCaseSets(page, pageSize);
             
@@ -79,9 +83,13 @@ public class TestCaseSetController {
     
     /**
      * 获取用例集详情
+     * 
+     * @param id 用例集ID
+     * @return 用例集详情
      */
     @GetMapping("/{id}")
     public ResponseEntity<TestCaseSet> getTestCaseSet(@PathVariable Long id) {
+        logger.info("Getting test case set details for ID: {}", id);
         try {
             Optional<TestCaseSet> testCaseSet = testCaseSetService.getTestCaseSetById(id);
             if (testCaseSet.isPresent()) {
@@ -100,12 +108,18 @@ public class TestCaseSetController {
     
     /**
      * 上传用例集
+     * 
+     * @param file 用例集文件，支持.zip和.tar.gz格式
+     * @param description 用例集描述信息（可选）
+     * @return 上传结果
+     * @throws IOException 文件读取失败时抛出
+     * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadTestCaseSet(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "description", required = false) String description) {
-        
+        logger.info("Uploading test case set: {}", file.getOriginalFilename());
         try {
             // 模拟当前用户（实际应该从认证信息中获取）
             String creator = "admin";
@@ -114,7 +128,7 @@ public class TestCaseSetController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "上传成功");
+            response.put("message", "Upload successful");
             response.put("data", testCaseSet);
             
             return ResponseEntity.ok(response);
@@ -141,9 +155,13 @@ public class TestCaseSetController {
     
     /**
      * 下载用例集
+     * 
+     * @param id 用例集ID
+     * @return 用例集文件资源
      */
     @GetMapping("/{id}/download")
     public ResponseEntity<Resource> downloadTestCaseSet(@PathVariable Long id) {
+        logger.info("Downloading test case set with ID: {}", id);
         try {
             Optional<TestCaseSet> testCaseSetOpt = testCaseSetService.getTestCaseSetById(id);
             if (!testCaseSetOpt.isPresent()) {
@@ -177,49 +195,64 @@ public class TestCaseSetController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, 
                             "attachment; filename=\"" + testCaseSet.getName() + "_" + testCaseSet.getVersion() + fileExtension + "\"")
                     .body(resource);
-        } catch (Exception e) {
-            logger.error("下载用例集失败: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            logger.error("Failed to download test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
     /**
      * 删除用例集
+     * 
+     * @param id 用例集ID
+     * @return 删除结果
+     * @throws IllegalArgumentException 当用例集不存在时抛出
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTestCaseSet(@PathVariable Long id) {
+        logger.info("Deleting test case set with ID: {}", id);
         try {
             testCaseSetService.deleteTestCaseSet(id);
+            logger.info("Test case set deleted successfully: {}", id);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
-            logger.warn("删除用例集失败: {}", e.getMessage());
+            logger.warn("Test case set not found for deletion: {}", id);
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            logger.error("删除用例集失败: {}", e.getMessage(), e);
+        } catch (RuntimeException e) {
+            logger.error("Failed to delete test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
     /**
      * 更新用例集信息
+     * 
+     * @param id 用例集ID
+     * @param request 更新请求数据，包含name、version、description字段
+     * @return 更新后的用例集对象
+     * @throws IllegalArgumentException 当用例集不存在或参数无效时抛出
      */
     @PutMapping("/{id}")
     public ResponseEntity<TestCaseSet> updateTestCaseSet(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
-        
+        logger.info("Updating test case set with ID: {}", id);
         try {
             String name = request.get("name");
             String version = request.get("version");
             String description = request.get("description");
             
             TestCaseSet updated = testCaseSetService.updateTestCaseSet(id, name, version, description);
+            logger.info("Test case set updated successfully: {} - {}", name, version);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
-            logger.warn("更新用例集失败: {}", e.getMessage());
+            logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            logger.error("更新用例集失败: {}", e.getMessage(), e);
+        } catch (RuntimeException e) {
+            logger.error("Failed to update test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

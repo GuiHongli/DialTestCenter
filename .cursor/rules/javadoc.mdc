@@ -24,6 +24,11 @@ package com.example.package;
 - **Each group must be separated by one empty line**
 - **Use alphabetical order within each group**
 
+## MANDATORY Method Declaration Rules
+- **Method declaration and implementation must be adjacent**
+- **No empty lines between method signature and opening brace**
+- **No empty lines between Javadoc and method signature**
+
 ## Import Package Order
 1. **Android packages** (android.*)
 2. **Huawei company packages** (com.huawei.*)
@@ -108,6 +113,11 @@ public ReturnType methodName(ParamType paramName, AnotherType anotherParam) thro
 }
 ```
 
+## Method Declaration Rules
+- **Javadoc注释和方法声明之间不能有空行**
+- **方法声明和左大括号之间不能有空行**
+- **方法声明和实现必须紧挨在一起**
+
 ## Method Javadoc Examples
 
 ### Simple Method
@@ -158,6 +168,8 @@ public TestCaseSet uploadTestCaseSet(MultipartFile file, String description) thr
 - **Return Values**: Document return values with @return
 - **Exceptions**: Document thrown exceptions with @throws
 - **Empty Line**: One empty line between description and tags
+- **Method Declaration**: No empty lines between Javadoc and method signature
+- **Method Implementation**: No empty lines between method signature and opening brace
 
 
 ## Complete File Example
