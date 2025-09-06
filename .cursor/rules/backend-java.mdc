@@ -1,0 +1,43 @@
+---
+globs: *.java
+description: Backend Java development guidelines for Spring Boot application
+---
+
+# Backend Java Development Guidelines
+
+## Code Structure
+- **Entities**: Located in [backend/src/main/java/com/dialtest/center/entity/](mdc:backend/src/main/java/com/dialtest/center/entity/)
+- **Controllers**: Located in [backend/src/main/java/com/dialtest/center/controller/](mdc:backend/src/main/java/com/dialtest/center/controller/)
+- **Services**: Located in [backend/src/main/java/com/dialtest/center/service/](mdc:backend/src/main/java/com/dialtest/center/service/)
+- **Repositories**: Located in [backend/src/main/java/com/dialtest/center/repository/](mdc:backend/src/main/java/com/dialtest/center/repository/)
+
+## Key Entities
+- [TestCaseSet.java](mdc:backend/src/main/java/com/dialtest/center/entity/TestCaseSet.java) - Test case set with file format support (zip/tar.gz)
+- [UserRole.java](mdc:backend/src/main/java/com/dialtest/center/entity/UserRole.java) - User role management
+- [Role.java](mdc:backend/src/main/java/com/dialtest/center/entity/Role.java) - Role enumeration
+
+## Development Rules
+- Functions must not exceed 50 lines
+- Files must not exceed 200 lines
+- Use proper JPA annotations (@Entity, @Table, @Column)
+- Implement proper error handling with try-catch blocks
+- Use SLF4J logging with appropriate log levels
+- Follow RESTful API conventions (GET, POST, PUT, DELETE)
+- Validate input parameters and file uploads
+- Use Optional for nullable return values
+- Implement proper exception handling in controllers
+
+## Javadoc Requirements
+- **Note**: See javadoc.mdc for detailed Javadoc documentation requirements
+
+## Testing & Documentation
+- **Note**: See llt-generation.mdc for testing requirements
+- **Note**: See yaml-documentation.mdc for API documentation requirements
+
+## File Upload Handling
+- Support both .zip and .tar.gz formats
+- Validate file size (max 100MB)
+- Parse filename format: `name_version.extension`
+- Store file format in database for proper download handling
+- Use MultipartFile for file uploads
+- Set appropriate Content-Type headers for downloads

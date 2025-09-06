@@ -1,6 +1,0 @@
----
-description: 生成接口时，同时生成接口yaml说明文件
-globs:
-alwaysApply: true
-
----

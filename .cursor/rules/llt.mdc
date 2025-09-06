@@ -1,5 +1,0 @@
----
-description: 生成代码时，同时生成LLT
-globs:
-alwaysApply: true
----
