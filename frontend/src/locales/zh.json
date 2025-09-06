@@ -184,7 +184,7 @@
       "title": "上传用例集",
       "selectFile": "选择文件",
       "dragTip": "点击或拖拽文件到此区域上传",
-      "supportFormat": "支持 .zip 格式",
+      "supportFormat": "支持 .zip 和 .tar.gz 格式",
       "fileSizeLimit": "文件大小不超过 100MB",
       "uploading": "上传中...",
       "uploadSuccess": "上传成功",

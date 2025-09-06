@@ -137,10 +137,23 @@ public class TestCaseSetController {
             
             Resource resource = new ByteArrayResource(fileContent);
             
+            // 根据文件格式确定下载文件名和Content-Type
+            String fileFormat = testCaseSet.getFileFormat();
+            String fileExtension = ".zip"; // 默认扩展名
+            MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
+            
+            if ("tar.gz".equals(fileFormat)) {
+                fileExtension = ".tar.gz";
+                contentType = MediaType.parseMediaType("application/gzip");
+            } else if ("zip".equals(fileFormat)) {
+                fileExtension = ".zip";
+                contentType = MediaType.parseMediaType("application/zip");
+            }
+            
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(contentType)
                     .header(HttpHeaders.CONTENT_DISPOSITION, 
-                            "attachment; filename=\"" + testCaseSet.getName() + "_" + testCaseSet.getVersion() + ".zip\"")
+                            "attachment; filename=\"" + testCaseSet.getName() + "_" + testCaseSet.getVersion() + fileExtension + "\"")
                     .body(resource);
         } catch (Exception e) {
             logger.error("下载用例集失败: {}", e.getMessage(), e);

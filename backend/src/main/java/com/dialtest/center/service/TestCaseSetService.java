@@ -49,16 +49,28 @@ public class TestCaseSetService {
         // 验证文件
         validateFile(file);
         
-        // 解析文件名
+        // 解析文件名和格式
         String fileName = file.getOriginalFilename();
-        if (fileName == null || !fileName.endsWith(".zip")) {
-            throw new IllegalArgumentException("只支持ZIP格式文件");
+        if (fileName == null) {
+            throw new IllegalArgumentException("文件名不能为空");
         }
         
-        String nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".zip"));
+        String fileFormat;
+        String nameWithoutExt;
+        
+        if (fileName.toLowerCase().endsWith(".tar.gz")) {
+            fileFormat = "tar.gz";
+            nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".tar.gz"));
+        } else if (fileName.toLowerCase().endsWith(".zip")) {
+            fileFormat = "zip";
+            nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".zip"));
+        } else {
+            throw new IllegalArgumentException("只支持ZIP和TAR.GZ格式文件");
+        }
+        
         int lastUnderscoreIndex = nameWithoutExt.lastIndexOf("_");
         if (lastUnderscoreIndex == -1) {
-            throw new IllegalArgumentException("文件名格式错误，应为：用例集名称_版本号.zip");
+            throw new IllegalArgumentException("文件名格式错误，应为：用例集名称_版本号." + fileFormat);
         }
         
         String name = nameWithoutExt.substring(0, lastUnderscoreIndex);
@@ -77,12 +89,13 @@ public class TestCaseSetService {
         testCaseSet.setName(name);
         testCaseSet.setVersion(version);
         testCaseSet.setZipFile(fileContent);
+        testCaseSet.setFileFormat(fileFormat);
         testCaseSet.setCreator(creator);
         testCaseSet.setFileSize(file.getSize());
         testCaseSet.setDescription(description);
         
         TestCaseSet saved = testCaseSetRepository.save(testCaseSet);
-        logger.info("用例集上传成功: {} - {}, 文件大小: {} bytes", name, version, fileContent.length);
+        logger.info("用例集上传成功: {} - {}, 格式: {}, 文件大小: {} bytes", name, version, fileFormat, fileContent.length);
         
         return saved;
     }
@@ -143,10 +156,15 @@ public class TestCaseSetService {
             throw new IllegalArgumentException("文件大小不能超过100MB");
         }
         
-        // 检查文件类型
+        // 检查文件类型 - 支持 .zip 和 .tar.gz
         String fileName = file.getOriginalFilename();
-        if (fileName == null || !fileName.toLowerCase().endsWith(".zip")) {
-            throw new IllegalArgumentException("只支持ZIP格式文件");
+        if (fileName == null) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+        
+        String lowerFileName = fileName.toLowerCase();
+        if (!lowerFileName.endsWith(".zip") && !lowerFileName.endsWith(".tar.gz")) {
+            throw new IllegalArgumentException("只支持ZIP和TAR.GZ格式文件");
         }
     }
     

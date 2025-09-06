@@ -95,9 +95,14 @@ class TestCaseSetService {
    * 验证用例集文件
    */
   validateTestCaseSetFile(file: File): { valid: boolean; message?: string } {
-    // 检查文件类型
-    if (!file.name.toLowerCase().endsWith('.zip')) {
-      return { valid: false, message: '只支持ZIP格式文件' }
+    const fileName = file.name.toLowerCase()
+    
+    // 检查文件类型 - 支持 .zip 和 .tar.gz
+    const supportedExtensions = ['.zip', '.tar.gz']
+    const isValidExtension = supportedExtensions.some(ext => fileName.endsWith(ext))
+    
+    if (!isValidExtension) {
+      return { valid: false, message: '只支持 ZIP 和 TAR.GZ 格式文件' }
     }
 
     // 检查文件大小 (100MB)
@@ -106,11 +111,13 @@ class TestCaseSetService {
       return { valid: false, message: '文件大小不能超过100MB' }
     }
 
-    // 检查文件命名格式: 用例集名称_用例集版本.zip
-    const fileName = file.name.replace('.zip', '')
-    const lastUnderscoreIndex = fileName.lastIndexOf('_')
+    // 检查文件命名格式: 用例集名称_用例集版本.[zip|tar.gz]
+    const fileExtension = fileName.endsWith('.tar.gz') ? '.tar.gz' : '.zip'
+    const nameWithoutExt = file.name.replace(fileExtension, '')
+    const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
+    
     if (lastUnderscoreIndex === -1) {
-      return { valid: false, message: '文件名格式错误，应为：用例集名称_版本号.zip' }
+      return { valid: false, message: `文件名格式错误，应为：用例集名称_版本号${fileExtension}` }
     }
 
     return { valid: true }
@@ -120,7 +127,9 @@ class TestCaseSetService {
    * 解析文件名获取用例集名称和版本
    */
   parseFileName(fileName: string): { name: string; version: string } | null {
-    const nameWithoutExt = fileName.replace('.zip', '')
+    const lowerFileName = fileName.toLowerCase()
+    const fileExtension = lowerFileName.endsWith('.tar.gz') ? '.tar.gz' : '.zip'
+    const nameWithoutExt = fileName.replace(fileExtension, '')
     const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
     
     if (lastUnderscoreIndex === -1) {

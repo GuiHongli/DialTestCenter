@@ -73,10 +73,10 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
   const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
-    accept: '.zip',
+    accept: '.zip,.tar.gz',
     fileList,
     beforeUpload: (file) => {
-      const validation = testCaseSetService.validateTestCaseSetFile(file)
+      const validation = testCaseSetService.validateTestCaseSetFile(file as File)
       if (!validation.valid) {
         message.error(validation.message)
         return false

@@ -71,7 +71,23 @@ const TestCaseSetManagement: React.FC = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${record.name}_${record.version}.zip`
+      
+      // 根据文件格式确定下载文件扩展名
+      let fileExtension = '.zip' // 默认扩展名
+      
+      if (record.fileFormat === 'tar.gz') {
+        fileExtension = '.tar.gz'
+      } else if (record.fileFormat === 'zip') {
+        fileExtension = '.zip'
+      } else {
+        // 如果没有fileFormat字段，尝试从Content-Type判断
+        const contentType = blob.type
+        if (contentType.includes('gzip') || contentType.includes('tar')) {
+          fileExtension = '.tar.gz'
+        }
+      }
+      
+      a.download = `${record.name}_${record.version}${fileExtension}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -122,6 +138,11 @@ const TestCaseSetManagement: React.FC = () => {
           <FileZipOutlined />
           <span>{text}</span>
           <Tag color="blue">{record.version}</Tag>
+          {record.fileFormat && (
+            <Tag color={record.fileFormat === 'tar.gz' ? 'green' : 'blue'}>
+              {record.fileFormat.toUpperCase()}
+            </Tag>
+          )}
         </Space>
       ),
     },

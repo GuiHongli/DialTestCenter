@@ -4,12 +4,13 @@ export interface TestCaseSet {
   id: number
   name: string
   version: string
-  zipPath: string
+  zipPath: string // 文件路径，支持 .zip 和 .tar.gz 格式
   creator: string
   createdTime: string
   updatedTime: string
   fileSize: number
   description?: string
+  fileFormat?: 'zip' | 'tar.gz' // 可选的文件格式字段
 }
 
 export interface TestCaseSetFormData {

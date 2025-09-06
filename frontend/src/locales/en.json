@@ -184,7 +184,7 @@
       "title": "Upload Test Case Set",
       "selectFile": "Select File",
       "dragTip": "Click or drag file to this area to upload",
-      "supportFormat": "Support .zip format",
+      "supportFormat": "Support .zip and .tar.gz formats",
       "fileSizeLimit": "File size should not exceed 100MB",
       "uploading": "Uploading...",
       "uploadSuccess": "Upload successful",

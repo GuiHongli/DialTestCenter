@@ -33,6 +33,9 @@ public class TestCaseSet {
     @Column(name = "zip_file", nullable = false, columnDefinition = "bytea")
     private byte[] zipFile;
     
+    @Column(name = "file_format", nullable = false, length = 10)
+    private String fileFormat; // 文件格式：zip 或 tar.gz
+    
     @Column(name = "creator", nullable = false, length = 100)
     private String creator;
     
@@ -54,10 +57,11 @@ public class TestCaseSet {
     public TestCaseSet() {}
     
     // 带参数构造函数
-    public TestCaseSet(String name, String version, byte[] zipFile, String creator, Long fileSize) {
+    public TestCaseSet(String name, String version, byte[] zipFile, String fileFormat, String creator, Long fileSize) {
         this.name = name;
         this.version = version;
         this.zipFile = zipFile;
+        this.fileFormat = fileFormat;
         this.creator = creator;
         this.fileSize = fileSize;
     }
@@ -93,6 +97,14 @@ public class TestCaseSet {
     
     public void setZipFile(byte[] zipFile) {
         this.zipFile = zipFile;
+    }
+    
+    public String getFileFormat() {
+        return fileFormat;
+    }
+    
+    public void setFileFormat(String fileFormat) {
+        this.fileFormat = fileFormat;
     }
     
     public String getCreator() {
@@ -157,6 +169,7 @@ public class TestCaseSet {
                ", name='" + name + '\'' +
                ", version='" + version + '\'' +
                ", zipFileSize=" + (zipFile != null ? zipFile.length : 0) +
+               ", fileFormat='" + fileFormat + '\'' +
                ", creator='" + creator + '\'' +
                ", fileSize=" + fileSize +
                ", description='" + description + '\'' +
