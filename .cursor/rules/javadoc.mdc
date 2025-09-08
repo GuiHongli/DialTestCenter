@@ -85,6 +85,7 @@ public class UserRoleController {
 - **Provide clear description of method functionality**
 - **Use @param, @return, @throws tags as needed**
 - **One empty line between description and tags**
+- **Description与tags之间的空行必须完全为空，不能包含任何字符（如空格、tab等）**
 
 #### Method Javadoc Format
 ```java
@@ -132,6 +133,7 @@ public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRoleReque
 - **空行必须保持字符为空，不能存在任何字符**
 - **空行不能包含空格、tab、或其他空白字符**
 - **空行必须完全为空**
+- **Javadoc中description与tags之间的空行也必须完全为空**
 
 #### Correct Formatting Examples
 
@@ -184,6 +186,31 @@ public class ExampleClass {
 }
 ```
 
+**Javadoc Empty Line Format:**
+```java
+// Correct - Empty line between description and tags contains no characters
+/**
+ * 获取用户角色列表
+ *
+ * @param username 用户名
+ * @return 用户角色列表
+ */
+public List<UserRole> getUserRoles(String username) {
+    // method implementation
+}
+
+// Incorrect - Empty line between description and tags contains spaces
+/**
+ * 获取用户角色列表
+ * 
+ * @param username 用户名
+ * @return 用户角色列表
+ */
+public List<UserRole> getUserRoles(String username) {
+    // method implementation
+}
+```
+
 ## Javadoc Standards Summary
 
 ### Class Level
@@ -197,6 +224,7 @@ public class ExampleClass {
 - Document return values with @return
 - Document thrown exceptions with @throws
 - One empty line between description and tags
+- Description与tags之间的空行必须完全为空，不能包含任何字符
 
 ### Formatting
 - No empty lines between Javadoc and method signature

@@ -8,7 +8,7 @@ package com.huawei.dialtest.center.entity;
  * 用户角色枚举类，定义系统中的用户角色类型和权限
  * 角色与权限强绑定，不进行拆分处理
  * 包含管理员、操作员、浏览者、执行机四种角色类型
- * 
+ *
  * @author g00940940
  * @since 2025-09-06
  */

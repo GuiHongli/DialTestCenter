@@ -4,6 +4,9 @@
 
 package com.huawei.dialtest.center.entity;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -14,21 +17,17 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 /**
  * 用例集实体类，用于存储和管理测试用例集信息
  * 支持ZIP和TAR.GZ格式的文件存储，包含文件内容、格式、大小等元数据
  * 提供完整的CRUD操作支持，包括文件上传、下载、查询等功能
- * 
+ *
  * @author g00940940
  * @since 2025-09-06
  */
 @Entity
 @Table(name = "test_case_set")
 public class TestCaseSet {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

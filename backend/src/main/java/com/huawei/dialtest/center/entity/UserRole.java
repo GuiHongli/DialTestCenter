@@ -4,6 +4,9 @@
 
 package com.huawei.dialtest.center.entity;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -18,14 +21,11 @@ import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 /**
  * 用户角色关系实体类，用于管理用户与角色的关联关系
  * 支持用户角色分配、权限管理等功能
  * 包含用户名、角色类型、创建时间、更新时间等字段
- * 
+ *
  * @author g00940940
  * @since 2025-09-06
  */
@@ -37,7 +37,6 @@ import org.hibernate.annotations.UpdateTimestamp;
            @Index(name = "idx_role", columnList = "role")
        })
 public class UserRole {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

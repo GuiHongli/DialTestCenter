@@ -4,16 +4,15 @@
 
 package com.huawei.dialtest.center.controller;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.service.TestCaseSetService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,21 +29,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.huawei.dialtest.center.entity.TestCaseSet;
-import com.huawei.dialtest.center.service.TestCaseSetService;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 用例集控制器，提供用例集管理的REST API接口
  * 支持用例集的上传、下载、查询、删除等操作
  * 处理ZIP和TAR.GZ格式的文件上传和下载
- * 
+ *
  * @author g00940940
  * @since 2025-09-06
  */
 @RestController
 @RequestMapping("/api/test-case-sets")
 public class TestCaseSetController {
-
     private static final Logger logger = LoggerFactory.getLogger(TestCaseSetController.class);
 
     @Autowired
@@ -75,8 +75,8 @@ public class TestCaseSetController {
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to get test case sets: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error while getting test case sets: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -100,8 +100,8 @@ public class TestCaseSetController {
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to get test case set details: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error while getting test case set details: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -144,8 +144,8 @@ public class TestCaseSetController {
             response.put("success", false);
             response.put("message", "File processing failed");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        } catch (RuntimeException e) {
-            logger.error("Test case set upload failed: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error during test case set upload: {}", e.getMessage(), e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Upload failed");
@@ -198,8 +198,8 @@ public class TestCaseSetController {
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to download test case set: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error while downloading test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -221,8 +221,8 @@ public class TestCaseSetController {
         } catch (IllegalArgumentException e) {
             logger.warn("Test case set not found for deletion: {}", id);
             return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to delete test case set: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error while deleting test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -251,8 +251,8 @@ public class TestCaseSetController {
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (RuntimeException e) {
-            logger.error("Failed to update test case set: {}", e.getMessage(), e);
+        } catch (DataAccessException e) {
+            logger.error("Database error while updating test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
