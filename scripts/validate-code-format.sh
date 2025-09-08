@@ -84,6 +84,12 @@ else
     echo "✅ Exception handling complies with standards"
 fi
 
+# 8. Check conditional statements
+echo ""
+echo "8. Checking conditional statements..."
+echo "Note: All if-else if chains must have a final else branch"
+echo "Manual review recommended for if-else if statements"
+
 echo ""
 echo "=== Validation Complete ==="
 echo "Recommendation: Run this script regularly to ensure code format compliance"

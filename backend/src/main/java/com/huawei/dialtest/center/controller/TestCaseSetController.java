@@ -188,6 +188,9 @@ public class TestCaseSetController {
             } else if ("zip".equals(fileFormat)) {
                 fileExtension = ".zip";
                 contentType = MediaType.parseMediaType("application/zip");
+            } else {
+                logger.warn("Unsupported file format: {}", fileFormat);
+                throw new IllegalArgumentException("Unsupported file format: " + fileFormat);
             }
 
             return ResponseEntity.ok()

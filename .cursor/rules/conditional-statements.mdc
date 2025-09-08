@@ -1,0 +1,172 @@
+---
+globs: *.java
+description: Conditional statement requirements for Java code
+---
+
+# Conditional Statement Requirements
+
+## Overview
+This rule defines mandatory requirements for conditional statements in Java code, specifically requiring that all if-else if chains must include a final else branch.
+
+## Conditional Statement Rules (MANDATORY)
+
+### If-Else If Chain Requirements
+- **All if-else if chains must end with an else branch**
+- **The else branch must handle unexpected or default cases**
+- **The else branch should log warnings or throw appropriate exceptions**
+- **No if-else if chains without a final else branch are allowed**
+
+### Correct Conditional Statement Format
+
+#### ✅ CORRECT - With else branch
+```java
+if ("tar.gz".equals(fileFormat)) {
+    fileExtension = ".tar.gz";
+    contentType = MediaType.parseMediaType("application/gzip");
+} else if ("zip".equals(fileFormat)) {
+    fileExtension = ".zip";
+    contentType = MediaType.parseMediaType("application/zip");
+} else {
+    logger.warn("Unsupported file format: {}", fileFormat);
+    throw new IllegalArgumentException("Unsupported file format: " + fileFormat);
+}
+```
+
+#### ✅ CORRECT - With else branch and logging
+```java
+if (userRole == Role.ADMIN) {
+    return adminService.getAllUsers();
+} else if (userRole == Role.USER) {
+    return userService.getCurrentUser();
+} else {
+    logger.warn("Unknown user role: {}", userRole);
+    throw new IllegalArgumentException("Unknown user role: " + userRole);
+}
+```
+
+#### ✅ CORRECT - With else branch for default behavior
+```java
+if (status == Status.ACTIVE) {
+    return processActiveItem(item);
+} else if (status == Status.INACTIVE) {
+    return processInactiveItem(item);
+} else {
+    logger.info("Using default processing for status: {}", status);
+    return processDefaultItem(item);
+}
+```
+
+### Incorrect Conditional Statement Format
+
+#### ❌ INCORRECT - Missing else branch
+```java
+if ("tar.gz".equals(fileFormat)) {
+    fileExtension = ".tar.gz";
+    contentType = MediaType.parseMediaType("application/gzip");
+} else if ("zip".equals(fileFormat)) {
+    fileExtension = ".zip";
+    contentType = MediaType.parseMediaType("application/zip");
+}
+// Missing else branch - this is not allowed
+```
+
+#### ❌ INCORRECT - Incomplete handling
+```java
+if (userRole == Role.ADMIN) {
+    return adminService.getAllUsers();
+} else if (userRole == Role.USER) {
+    return userService.getCurrentUser();
+}
+// Missing else branch - what happens for other roles?
+```
+
+## Exception Cases
+
+### Switch Statements
+Switch statements are exempt from this rule as they have their own default handling:
+```java
+switch (fileFormat) {
+    case "tar.gz":
+        fileExtension = ".tar.gz";
+        contentType = MediaType.parseMediaType("application/gzip");
+        break;
+    case "zip":
+        fileExtension = ".zip";
+        contentType = MediaType.parseMediaType("application/zip");
+        break;
+    default:
+        logger.warn("Unsupported file format: {}", fileFormat);
+        throw new IllegalArgumentException("Unsupported file format: " + fileFormat);
+}
+```
+
+### Simple If Statements
+Simple if statements without else if are exempt:
+```java
+if (user != null) {
+    logger.info("User found: {}", user.getUsername());
+}
+```
+
+## Best Practices
+
+### 1. Error Handling in Else Branch
+```java
+if (fileFormat.equals("zip")) {
+    return processZipFile(file);
+} else if (fileFormat.equals("tar.gz")) {
+    return processTarGzFile(file);
+} else {
+    logger.error("Unsupported file format: {}", fileFormat);
+    throw new UnsupportedOperationException("File format not supported: " + fileFormat);
+}
+```
+
+### 2. Default Behavior in Else Branch
+```java
+if (priority == Priority.HIGH) {
+    return processImmediately(task);
+} else if (priority == Priority.MEDIUM) {
+    return processWithDelay(task, 1000);
+} else {
+    logger.debug("Using default processing for priority: {}", priority);
+    return processWithDelay(task, 5000);
+}
+```
+
+### 3. Validation in Else Branch
+```java
+if (age >= 18) {
+    return "Adult";
+} else if (age >= 13) {
+    return "Teenager";
+} else if (age >= 0) {
+    return "Child";
+} else {
+    logger.warn("Invalid age value: {}", age);
+    throw new IllegalArgumentException("Age cannot be negative: " + age);
+}
+```
+
+## Validation Requirements
+
+### Code Review Checklist
+- [ ] All if-else if chains have a final else branch
+- [ ] The else branch handles unexpected cases appropriately
+- [ ] The else branch includes appropriate logging
+- [ ] The else branch throws appropriate exceptions or provides default behavior
+
+### Automated Validation
+Use the following grep command to find if-else if chains without else branches:
+```bash
+# Find if-else if chains that might be missing else branches
+grep -n "} else if" *.java -A 5 | grep -B 5 -A 5 "} else if"
+```
+
+## Summary
+
+- **Mandatory**: All if-else if chains must end with an else branch
+- **Purpose**: Ensure complete handling of all possible conditions
+- **Implementation**: Use logging and appropriate exceptions in else branches
+- **Exemptions**: Switch statements and simple if statements are exempt
+- **Best Practice**: Always consider what happens when none of the conditions match
