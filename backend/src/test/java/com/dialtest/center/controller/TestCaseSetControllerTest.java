@@ -67,6 +67,7 @@ public class TestCaseSetControllerTest {
         testCaseSet.setFileContent("test content".getBytes());
         testCaseSet.setCreator("admin");
         testCaseSet.setFileSize(179L);
+        testCaseSet.setFileFormat("zip");
         testCaseSet.setSha512("sha512_hash_test");
         testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
@@ -99,7 +100,7 @@ public class TestCaseSetControllerTest {
     @Test
     public void testGetTestCaseSetsWithException() {
         // Given
-        when(testCaseSetService.getTestCaseSets(1, 10)).thenThrow(new RuntimeException("Database error"));
+        when(testCaseSetService.getTestCaseSets(1, 10)).thenThrow(new org.springframework.dao.DataAccessException("Database error") {});
 
         // When
         ResponseEntity<Map<String, Object>> response = testCaseSetController.getTestCaseSets(1, 10);
@@ -140,7 +141,7 @@ public class TestCaseSetControllerTest {
     @Test
     public void testGetTestCaseSetWithException() {
         // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new RuntimeException("Database error"));
+        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new org.springframework.dao.DataAccessException("Database error") {});
 
         // When
         ResponseEntity<TestCaseSet> response = testCaseSetController.getTestCaseSet(1L);
@@ -153,30 +154,30 @@ public class TestCaseSetControllerTest {
     @Test
     public void testUploadTestCaseSetSuccess() throws Exception {
         // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString()))
+        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
                 .thenReturn(testCaseSet);
 
         // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description");
+        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         Map<String, Object> body = response.getBody();
         assertEquals(true, body.get("success"));
-        assertEquals("上传成功", body.get("message"));
+        assertEquals("Upload successful", body.get("message"));
         assertNotNull(body.get("data"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin");
+        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
     }
 
     @Test
     public void testUploadTestCaseSetWithIllegalArgumentException() throws Exception {
         // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString()))
+        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
                 .thenThrow(new IllegalArgumentException("文件格式错误"));
 
         // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description");
+        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -184,25 +185,25 @@ public class TestCaseSetControllerTest {
         Map<String, Object> body = response.getBody();
         assertEquals(false, body.get("success"));
         assertEquals("文件格式错误", body.get("message"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin");
+        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
     }
 
     @Test
     public void testUploadTestCaseSetWithException() throws Exception {
         // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString()))
-                .thenThrow(new RuntimeException("Upload failed"));
+        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
+                .thenThrow(new org.springframework.dao.DataAccessException("Upload failed") {});
 
         // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description");
+        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
 
         // Then
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         Map<String, Object> body = response.getBody();
         assertEquals(false, body.get("success"));
-        assertEquals("上传失败", body.get("message"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin");
+        assertEquals("Upload failed", body.get("message"));
+        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
     }
 
     @Test
@@ -256,7 +257,7 @@ public class TestCaseSetControllerTest {
     @Test
     public void testDownloadTestCaseSetWithException() {
         // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new RuntimeException("Download failed"));
+        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new org.springframework.dao.DataAccessException("Download failed") {});
 
         // When
         ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
@@ -295,7 +296,7 @@ public class TestCaseSetControllerTest {
     @Test
     public void testDeleteTestCaseSetWithException() {
         // Given
-        doThrow(new RuntimeException("Delete failed")).when(testCaseSetService).deleteTestCaseSet(1L);
+        doThrow(new org.springframework.dao.DataAccessException("Delete failed") {}).when(testCaseSetService).deleteTestCaseSet(1L);
 
         // When
         ResponseEntity<Void> response = testCaseSetController.deleteTestCaseSet(1L);
@@ -354,7 +355,7 @@ public class TestCaseSetControllerTest {
         request.put("description", "Updated description");
 
         when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
-                .thenThrow(new RuntimeException("Update failed"));
+                .thenThrow(new org.springframework.dao.DataAccessException("Update failed") {});
 
         // When
         ResponseEntity<TestCaseSet> response = testCaseSetController.updateTestCaseSet(1L, request);

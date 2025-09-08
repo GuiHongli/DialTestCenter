@@ -121,7 +121,7 @@ public class UserRoleControllerTest {
     public void testGetUserRoles_ServiceException() {
         // Given
         String username = "testuser";
-        when(userRoleService.getUserRoles(username)).thenThrow(new RuntimeException("Service error"));
+        when(userRoleService.getUserRoles(username)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
 
         // When
         ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles(username);
@@ -153,7 +153,7 @@ public class UserRoleControllerTest {
     @Test
     public void testCreateUserRole_ServiceException() {
         // Given
-        when(userRoleService.save(any(UserRole.class))).thenThrow(new RuntimeException("Service error"));
+        when(userRoleService.save(any(UserRole.class))).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
 
         // When
         ResponseEntity<UserRole> response = userRoleController.createUserRole(testRequest);
@@ -203,7 +203,7 @@ public class UserRoleControllerTest {
     public void testUpdateUserRole_ServiceException() {
         // Given
         Long id = 1L;
-        when(userRoleService.findById(id)).thenThrow(new RuntimeException("Service error"));
+        when(userRoleService.findById(id)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
 
         // When
         ResponseEntity<UserRole> response = userRoleController.updateUserRole(id, testRequest);
@@ -233,7 +233,7 @@ public class UserRoleControllerTest {
         // Given
         Long id = 1L;
         // 使用doThrow来模拟void方法的异常
-        org.mockito.Mockito.doThrow(new RuntimeException("Service error"))
+        org.mockito.Mockito.doThrow(new org.springframework.dao.DataAccessException("Service error") {})
             .when(userRoleService).deleteById(id);
 
         // When
@@ -265,7 +265,7 @@ public class UserRoleControllerTest {
     @Test
     public void testGetExecutorCount_ServiceException() {
         // Given
-        when(userRoleService.getExecutorUserCount()).thenThrow(new RuntimeException("Service error"));
+        when(userRoleService.getExecutorUserCount()).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
 
         // When
         ResponseEntity<Long> response = userRoleController.getExecutorCount();

@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -152,20 +153,20 @@ public class TestCaseSetServiceTest {
         // Mock Excel extraction and parsing
         when(archiveParseService.extractCasesExcel(any(byte[].class), anyString()))
             .thenReturn("Excel content".getBytes());
-        when(excelParseService.parseCasesExcel(any(byte[].class)))
+        lenient().when(excelParseService.parseCasesExcel(any(byte[].class)))
             .thenReturn(new java.util.ArrayList<>());
         
         // Mock script extraction and matching
-        when(archiveParseService.extractScriptFileNames(any(byte[].class), anyString()))
+        lenient().when(archiveParseService.extractScriptFileNames(any(byte[].class), anyString()))
             .thenReturn(new java.util.ArrayList<>());
-        when(scriptMatchService.matchScripts(any(), any()))
+        lenient().when(scriptMatchService.matchScripts(any(), any()))
             .thenReturn(new ScriptMatchService.ScriptMatchResult(new java.util.HashMap<>(), new java.util.ArrayList<>(), new java.util.ArrayList<>()));
         
         // Mock test case service
-        when(testCaseService.saveTestCases(any())).thenReturn(new java.util.ArrayList<>());
+        lenient().when(testCaseService.saveTestCases(any())).thenReturn(new java.util.ArrayList<>());
 
         // When
-        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then
         assertNotNull(result);
@@ -183,7 +184,7 @@ public class TestCaseSetServiceTest {
         when(mockFile.isEmpty()).thenReturn(true);
 
         // When
-        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then - exception expected
     }
@@ -195,7 +196,7 @@ public class TestCaseSetServiceTest {
         when(mockFile.getSize()).thenReturn(101L * 1024 * 1024); // 101MB
 
         // When
-        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then - exception expected
     }
@@ -208,7 +209,7 @@ public class TestCaseSetServiceTest {
         when(mockFile.getOriginalFilename()).thenReturn("test.txt");
 
         // When
-        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then - exception expected
     }
@@ -221,7 +222,7 @@ public class TestCaseSetServiceTest {
         when(mockFile.getOriginalFilename()).thenReturn("test.zip");
 
         // When
-        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then - exception expected
     }
@@ -235,7 +236,7 @@ public class TestCaseSetServiceTest {
         when(testCaseSetRepository.existsByNameAndVersion("test", "v1")).thenReturn(true);
 
         // When
-        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");
+        testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
 
         // Then - exception expected
     }
