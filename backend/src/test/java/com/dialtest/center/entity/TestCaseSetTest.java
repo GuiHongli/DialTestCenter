@@ -103,45 +103,45 @@ public class TestCaseSetTest {
     @Test
     public void testGettersAndSetters() {
         TestCaseSet testCaseSet = new TestCaseSet();
-        
+
         // Test ID
         testCaseSet.setId(1L);
         assertEquals(Long.valueOf(1L), testCaseSet.getId());
-        
+
         // Test Name
         testCaseSet.setName("test");
         assertEquals("test", testCaseSet.getName());
-        
+
         // Test Version
         testCaseSet.setVersion("v1");
         assertEquals("v1", testCaseSet.getVersion());
-        
+
         // Test ZipFile
         byte[] zipFile = "test content".getBytes();
         testCaseSet.setZipFile(zipFile);
         assertArrayEquals(zipFile, testCaseSet.getZipFile());
-        
+
         // Test FileFormat
         testCaseSet.setFileFormat("zip");
         assertEquals("zip", testCaseSet.getFileFormat());
-        
+
         // Test Creator
         testCaseSet.setCreator("admin");
         assertEquals("admin", testCaseSet.getCreator());
-        
+
         // Test FileSize
         testCaseSet.setFileSize(179L);
         assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
-        
+
         // Test Description
         testCaseSet.setDescription("Test description");
         assertEquals("Test description", testCaseSet.getDescription());
-        
+
         // Test CreatedTime
         LocalDateTime now = LocalDateTime.now();
         testCaseSet.setCreatedTime(now);
         assertEquals(now, testCaseSet.getCreatedTime());
-        
+
         // Test UpdatedTime
         testCaseSet.setUpdatedTime(now);
         assertEquals(now, testCaseSet.getUpdatedTime());
@@ -151,16 +151,16 @@ public class TestCaseSetTest {
     public void testEquals() {
         // Same object
         assertTrue(testCaseSet1.equals(testCaseSet1));
-        
+
         // Equal objects (same id, name, version)
         assertTrue(testCaseSet1.equals(testCaseSet2));
-        
+
         // Different objects (different id)
         assertFalse(testCaseSet1.equals(testCaseSet3));
-        
+
         // Null object
         assertFalse(testCaseSet1.equals(null));
-        
+
         // Different class
         assertFalse(testCaseSet1.equals("string"));
     }
@@ -169,7 +169,7 @@ public class TestCaseSetTest {
     public void testHashCode() {
         // Equal objects should have same hash code
         assertEquals(testCaseSet1.hashCode(), testCaseSet2.hashCode());
-        
+
         // Different objects should have different hash codes
         assertNotEquals(testCaseSet1.hashCode(), testCaseSet3.hashCode());
     }
@@ -200,7 +200,7 @@ public class TestCaseSetTest {
         testCaseSet.setDescription("Test description");
         testCaseSet.setCreatedTime(LocalDateTime.now());
         testCaseSet.setUpdatedTime(LocalDateTime.now());
-        
+
         String toString = testCaseSet.toString();
         assertNotNull(toString);
         assertTrue(toString.contains("zipFileSize=0"));
@@ -210,19 +210,19 @@ public class TestCaseSetTest {
     public void testEqualsWithNullFields() {
         TestCaseSet testCaseSet1 = new TestCaseSet();
         TestCaseSet testCaseSet2 = new TestCaseSet();
-        
+
         // Both have null id, name, version
         assertTrue(testCaseSet1.equals(testCaseSet2));
-        
+
         // One has id, other doesn't
         testCaseSet1.setId(1L);
         assertFalse(testCaseSet1.equals(testCaseSet2));
-        
+
         // Reset and test name
         testCaseSet1.setId(null);
         testCaseSet1.setName("test");
         assertFalse(testCaseSet1.equals(testCaseSet2));
-        
+
         // Reset and test version
         testCaseSet1.setName(null);
         testCaseSet1.setVersion("v1");
@@ -232,15 +232,15 @@ public class TestCaseSetTest {
     @Test
     public void testFileFormat() {
         TestCaseSet testCaseSet = new TestCaseSet();
-        
+
         // Test ZIP format
         testCaseSet.setFileFormat("zip");
         assertEquals("zip", testCaseSet.getFileFormat());
-        
+
         // Test TAR.GZ format
         testCaseSet.setFileFormat("tar.gz");
         assertEquals("tar.gz", testCaseSet.getFileFormat());
-        
+
         // Test null format
         testCaseSet.setFileFormat(null);
         assertNull(testCaseSet.getFileFormat());

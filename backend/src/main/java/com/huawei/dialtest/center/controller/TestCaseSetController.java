@@ -44,12 +44,12 @@ import com.huawei.dialtest.center.service.TestCaseSetService;
 @RestController
 @RequestMapping("/api/test-case-sets")
 public class TestCaseSetController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TestCaseSetController.class);
-    
+
     @Autowired
     private TestCaseSetService testCaseSetService;
-    
+
     /**
      * 获取用例集列表
      * 
@@ -64,13 +64,13 @@ public class TestCaseSetController {
         logger.info("Getting test case sets - page: {}, size: {}", page, pageSize);
         try {
             Page<TestCaseSet> testCaseSets = testCaseSetService.getTestCaseSets(page, pageSize);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("data", testCaseSets.getContent());
             response.put("total", testCaseSets.getTotalElements());
             response.put("page", page);
             response.put("pageSize", pageSize);
-            
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
@@ -80,7 +80,7 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 获取用例集详情
      * 
@@ -105,7 +105,7 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 上传用例集
      * 
@@ -123,14 +123,14 @@ public class TestCaseSetController {
         try {
             // 模拟当前用户（实际应该从认证信息中获取）
             String creator = "admin";
-            
+
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, creator);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Upload successful");
             response.put("data", testCaseSet);
-            
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             logger.warn("Test case set upload failed: {}", e.getMessage());
@@ -152,7 +152,7 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-    
+
     /**
      * 下载用例集
      * 
@@ -167,21 +167,21 @@ public class TestCaseSetController {
             if (!testCaseSetOpt.isPresent()) {
                 return ResponseEntity.notFound().build();
             }
-            
+
             TestCaseSet testCaseSet = testCaseSetOpt.get();
             byte[] fileContent = testCaseSet.getZipFile();
-            
+
             if (fileContent == null || fileContent.length == 0) {
                 return ResponseEntity.notFound().build();
             }
-            
+
             Resource resource = new ByteArrayResource(fileContent);
-            
+
             // 根据文件格式确定下载文件名和Content-Type
             String fileFormat = testCaseSet.getFileFormat();
             String fileExtension = ".zip"; // 默认扩展名
             MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
-            
+
             if ("tar.gz".equals(fileFormat)) {
                 fileExtension = ".tar.gz";
                 contentType = MediaType.parseMediaType("application/gzip");
@@ -189,7 +189,7 @@ public class TestCaseSetController {
                 fileExtension = ".zip";
                 contentType = MediaType.parseMediaType("application/zip");
             }
-            
+
             return ResponseEntity.ok()
                     .contentType(contentType)
                     .header(HttpHeaders.CONTENT_DISPOSITION, 
@@ -203,7 +203,7 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 删除用例集
      * 
@@ -226,7 +226,7 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 更新用例集信息
      * 
@@ -244,7 +244,7 @@ public class TestCaseSetController {
             String name = request.get("name");
             String version = request.get("version");
             String description = request.get("description");
-            
+
             TestCaseSet updated = testCaseSetService.updateTestCaseSet(id, name, version, description);
             logger.info("Test case set updated successfully: {} - {}", name, version);
             return ResponseEntity.ok(updated);
@@ -256,5 +256,5 @@ public class TestCaseSetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
 }

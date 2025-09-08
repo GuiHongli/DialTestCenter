@@ -29,13 +29,13 @@ import com.huawei.dialtest.center.repository.TestCaseSetRepository;
  */
 @Service
 public class TestCaseSetService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TestCaseSetService.class);
-    
+
     @Autowired
     private TestCaseSetRepository testCaseSetRepository;
-    
-    
+
+
     /**
      * 获取用例集列表（分页）
      * 
@@ -48,7 +48,7 @@ public class TestCaseSetService {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         return testCaseSetRepository.findAllByOrderByCreatedTimeDesc(pageable);
     }
-    
+
     /**
      * 根据ID获取用例集
      * 
@@ -59,7 +59,7 @@ public class TestCaseSetService {
         logger.debug("Getting test case set by ID: {}", id);
         return testCaseSetRepository.findById(id);
     }
-    
+
     /**
      * 上传用例集
      * 
@@ -72,19 +72,19 @@ public class TestCaseSetService {
      */
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String creator) throws IOException {
         logger.info("Starting test case set upload: {}", file.getOriginalFilename());
-        
+
         // 验证文件
         validateFile(file);
-        
+
         // 解析文件名和格式
         String fileName = file.getOriginalFilename();
         if (fileName == null) {
             throw new IllegalArgumentException("File name cannot be null");
         }
-        
+
         String fileFormat;
         String nameWithoutExt;
-        
+
         if (fileName.toLowerCase().endsWith(".tar.gz")) {
             fileFormat = "tar.gz";
             nameWithoutExt = fileName.substring(0, fileName.lastIndexOf(".tar.gz"));
@@ -94,23 +94,23 @@ public class TestCaseSetService {
         } else {
             throw new IllegalArgumentException("Only ZIP and TAR.GZ format files are supported");
         }
-        
+
         int lastUnderscoreIndex = nameWithoutExt.lastIndexOf("_");
         if (lastUnderscoreIndex == -1) {
             throw new IllegalArgumentException("Invalid file name format, should be: testcase_name_version." + fileFormat);
         }
-        
+
         String name = nameWithoutExt.substring(0, lastUnderscoreIndex);
         String version = nameWithoutExt.substring(lastUnderscoreIndex + 1);
-        
+
         // 检查是否已存在
         if (testCaseSetRepository.existsByNameAndVersion(name, version)) {
             throw new IllegalArgumentException("Test case set with name and version already exists");
         }
-        
+
         // 读取文件内容
         byte[] fileContent = file.getBytes();
-        
+
         // 创建用例集记录
         TestCaseSet testCaseSet = new TestCaseSet();
         testCaseSet.setName(name);
@@ -120,13 +120,13 @@ public class TestCaseSetService {
         testCaseSet.setCreator(creator);
         testCaseSet.setFileSize(file.getSize());
         testCaseSet.setDescription(description);
-        
+
         TestCaseSet saved = testCaseSetRepository.save(testCaseSet);
         logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes", name, version, fileFormat, fileContent.length);
-        
+
         return saved;
     }
-    
+
     /**
      * 删除用例集
      * 
@@ -135,11 +135,11 @@ public class TestCaseSetService {
      */
     public void deleteTestCaseSet(Long id) {
         logger.info("Deleting test case set with ID: {}", id);
-        
+
         Optional<TestCaseSet> testCaseSetOpt = testCaseSetRepository.findById(id);
         if (testCaseSetOpt.isPresent()) {
             TestCaseSet testCaseSet = testCaseSetOpt.get();
-            
+
             // 删除数据库记录（文件内容也会一起删除）
             testCaseSetRepository.deleteById(id);
             logger.info("Test case set deleted successfully: {} - {}", testCaseSet.getName(), testCaseSet.getVersion());
@@ -147,7 +147,7 @@ public class TestCaseSetService {
             throw new IllegalArgumentException("Test case set does not exist");
         }
     }
-    
+
     /**
      * 更新用例集信息
      * 
@@ -160,22 +160,22 @@ public class TestCaseSetService {
      */
     public TestCaseSet updateTestCaseSet(Long id, String name, String version, String description) {
         logger.info("Updating test case set with ID: {}", id);
-        
+
         Optional<TestCaseSet> testCaseSetOpt = testCaseSetRepository.findById(id);
         if (testCaseSetOpt.isPresent()) {
             TestCaseSet testCaseSet = testCaseSetOpt.get();
-            
+
             // 检查名称和版本是否与其他记录冲突
             if (!testCaseSet.getName().equals(name) || !testCaseSet.getVersion().equals(version)) {
                 if (testCaseSetRepository.existsByNameAndVersion(name, version)) {
                     throw new IllegalArgumentException("Test case set with name and version already exists");
                 }
             }
-            
+
             testCaseSet.setName(name);
             testCaseSet.setVersion(version);
             testCaseSet.setDescription(description);
-            
+
             TestCaseSet updated = testCaseSetRepository.save(testCaseSet);
             logger.info("Test case set updated successfully: {} - {}", name, version);
             return updated;
@@ -183,8 +183,8 @@ public class TestCaseSetService {
             throw new IllegalArgumentException("Test case set does not exist");
         }
     }
-    
-    
+
+
     /**
      * 验证文件格式和大小
      * 
@@ -195,25 +195,25 @@ public class TestCaseSetService {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
-        
+
         // 检查文件大小 (100MB)
         long maxSize = 100 * 1024 * 1024; // 100MB
         if (file.getSize() > maxSize) {
             throw new IllegalArgumentException("File size cannot exceed 100MB");
         }
-        
+
         // 检查文件类型 - 支持 .zip 和 .tar.gz
         String fileName = file.getOriginalFilename();
         if (fileName == null) {
             throw new IllegalArgumentException("File name cannot be null");
         }
-        
+
         String lowerFileName = fileName.toLowerCase();
         if (!lowerFileName.endsWith(".zip") && !lowerFileName.endsWith(".tar.gz")) {
             throw new IllegalArgumentException("Only ZIP and TAR.GZ format files are supported");
         }
-        
+
         logger.debug("File validation passed for: {}", fileName);
     }
-    
+
 }

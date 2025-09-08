@@ -112,7 +112,7 @@ public class UserRoleServiceTest {
         newUserRole.setUsername("newuser");
         newUserRole.setRole(Role.OPERATOR);
         // ID为null表示新建
-        
+
         when(userRoleRepository.existsByUsernameAndRole(anyString(), any(Role.class))).thenReturn(false);
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(newUserRole);
 
@@ -133,7 +133,7 @@ public class UserRoleServiceTest {
         UserRole duplicateUserRole = new UserRole();
         duplicateUserRole.setUsername("testuser");
         duplicateUserRole.setRole(Role.ADMIN);
-        
+
         when(userRoleRepository.existsByUsernameAndRole(anyString(), any(Role.class))).thenReturn(true);
 
         // When & Then - 应该抛出异常
@@ -305,12 +305,12 @@ public class UserRoleServiceTest {
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
-        
+
         UserRole userRole2 = new UserRole();
         userRole2.setId(2L);
         userRole2.setUsername("user2");
         userRole2.setRole(Role.OPERATOR);
-        
+
         List<UserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
         when(userRoleRepository.findAllOrderByCreatedTimeDesc()).thenReturn(expectedUserRoles);
 
@@ -330,7 +330,7 @@ public class UserRoleServiceTest {
         existingUserRole.setId(1L);
         existingUserRole.setUsername("updateduser");
         existingUserRole.setRole(Role.OPERATOR);
-        
+
         // 模拟查找不到其他相同用户名和角色的记录
         when(userRoleRepository.findByUsernameAndRole("updateduser", Role.OPERATOR))
             .thenReturn(Optional.empty());
@@ -354,12 +354,12 @@ public class UserRoleServiceTest {
         existingUserRole.setId(1L);
         existingUserRole.setUsername("updateduser");
         existingUserRole.setRole(Role.OPERATOR);
-        
+
         UserRole duplicateUserRole = new UserRole();
         duplicateUserRole.setId(2L); // 不同的ID
         duplicateUserRole.setUsername("updateduser");
         duplicateUserRole.setRole(Role.OPERATOR);
-        
+
         // 模拟找到了其他相同用户名和角色的记录
         when(userRoleRepository.findByUsernameAndRole("updateduser", Role.OPERATOR))
             .thenReturn(Optional.of(duplicateUserRole));
@@ -532,7 +532,7 @@ public class UserRoleServiceTest {
         UserRole userRole = new UserRole();
         userRole.setUsername("  testuser  ");
         userRole.setRole(Role.ADMIN);
-        
+
         when(userRoleRepository.existsByUsernameAndRole("testuser", Role.ADMIN)).thenReturn(false);
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(userRole);
 

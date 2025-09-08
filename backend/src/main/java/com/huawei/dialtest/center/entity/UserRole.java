@@ -37,26 +37,26 @@ import org.hibernate.annotations.UpdateTimestamp;
            @Index(name = "idx_role", columnList = "role")
        })
 public class UserRole {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "username", nullable = false, length = 100)
     private String username;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 50)
     private Role role;
-    
+
     @CreationTimestamp
     @Column(name = "created_time")
     private LocalDateTime createdTime;
-    
+
     @UpdateTimestamp
     @Column(name = "updated_time")
     private LocalDateTime updatedTime;
-    
+
     /**
      * 默认构造函数
      * 
@@ -64,7 +64,7 @@ public class UserRole {
      * @since 2025-09-06
      */
     public UserRole() {}
-    
+
     /**
      * 带参数构造函数，用于创建新的用户角色关系实例
      * 
@@ -77,48 +77,48 @@ public class UserRole {
         this.username = username;
         this.role = role;
     }
-    
+
     // Getter和Setter方法
     public Long getId() {
         return id;
     }
-    
+
     public void setId(Long id) {
         this.id = id;
     }
-    
+
     public String getUsername() {
         return username;
     }
-    
+
     public void setUsername(String username) {
         this.username = username;
     }
-    
+
     public Role getRole() {
         return role;
     }
-    
+
     public void setRole(Role role) {
         this.role = role;
     }
-    
+
     public LocalDateTime getCreatedTime() {
         return createdTime;
     }
-    
+
     public void setCreatedTime(LocalDateTime createdTime) {
         this.createdTime = createdTime;
     }
-    
+
     public LocalDateTime getUpdatedTime() {
         return updatedTime;
     }
-    
+
     public void setUpdatedTime(LocalDateTime updatedTime) {
         this.updatedTime = updatedTime;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,12 +128,12 @@ public class UserRole {
                Objects.equals(username, userRole.username) &&
                role == userRole.role;
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(id, username, role);
     }
-    
+
     @Override
     public String toString() {
         return "UserRole{" +

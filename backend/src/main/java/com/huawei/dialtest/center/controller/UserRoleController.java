@@ -40,15 +40,14 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/user-roles")
 public class UserRoleController {
-    
     private static final Logger logger = LoggerFactory.getLogger(UserRoleController.class);
-    
+
     @Autowired
     private UserRoleService userRoleService;
-    
+
     /**
      * 获取用户角色列表
-     * 
+     *
      * @param username 用户名（可选，不传则返回所有）
      * @return 用户角色列表
      */
@@ -64,7 +63,6 @@ public class UserRoleController {
             }
             logger.debug("Successfully retrieved user roles: {}", userRoles.size());
             return ResponseEntity.ok(userRoles);
-            
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -76,10 +74,10 @@ public class UserRoleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 创建用户角色
-     * 
+     *
      * @param request 用户角色请求，不能为空
      * @return 创建的用户角色
      * @throws IllegalArgumentException 当请求参数无效时抛出
@@ -94,7 +92,6 @@ public class UserRoleController {
             UserRole savedUserRole = userRoleService.save(userRole);
             logger.info("User role created successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUserRole);
-            
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -106,10 +103,10 @@ public class UserRoleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 更新用户角色
-     * 
+     *
      * @param id 用户角色ID，不能为空
      * @param request 用户角色请求，不能为空
      * @return 更新后的用户角色
@@ -129,7 +126,6 @@ public class UserRoleController {
             UserRole updatedUserRole = userRoleService.save(userRole);
             logger.info("User role updated successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.ok(updatedUserRole);
-            
         } catch (EntityNotFoundException e) {
             logger.warn("User role not found for update: {}", id);
             return ResponseEntity.notFound().build();
@@ -144,10 +140,10 @@ public class UserRoleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 删除用户角色
-     * 
+     *
      * @param id 用户角色ID，不能为空
      * @return 删除结果
      * @throws IllegalArgumentException 当用户角色不存在时抛出
@@ -159,7 +155,6 @@ public class UserRoleController {
             userRoleService.deleteById(id);
             logger.info("User role deleted successfully: {}", id);
             return ResponseEntity.noContent().build();
-            
         } catch (IllegalArgumentException e) {
             logger.warn("User role not found for deletion: {}", id);
             return ResponseEntity.notFound().build();
@@ -171,10 +166,10 @@ public class UserRoleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 获取执行机用户数量
-     * 
+     *
      * @return 执行机用户数量
      */
     @GetMapping("/executor-count")
@@ -192,7 +187,7 @@ public class UserRoleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * 用户角色请求对象，用于接收用户角色创建和更新的请求数据
      * 包含用户名和角色信息
@@ -200,37 +195,37 @@ public class UserRoleController {
     public static class UserRoleRequest {
         private String username;
         private Role role;
-        
+
         /**
          * 获取用户名
-         * 
+         *
          * @return 用户名
          */
         public String getUsername() {
             return username;
         }
-        
+
         /**
          * 设置用户名
-         * 
+         *
          * @param username 用户名，不能为空
          */
         public void setUsername(String username) {
             this.username = username;
         }
-        
+
         /**
          * 获取角色
-         * 
+         *
          * @return 角色枚举
          */
         public Role getRole() {
             return role;
         }
-        
+
         /**
          * 设置角色
-         * 
+         *
          * @param role 角色枚举，不能为空
          */
         public void setRole(Role role) {

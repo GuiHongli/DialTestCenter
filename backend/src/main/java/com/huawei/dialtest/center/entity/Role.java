@@ -17,10 +17,10 @@ public enum Role {
     OPERATOR("操作员", "可以执行拨测任务相关的所有操作"),
     BROWSER("浏览者", "仅查看"),
     EXECUTOR("执行机", "执行机注册使用");
-    
+
     private final String description;
     private final String permission;
-    
+
     /**
      * 角色构造函数
      * 
@@ -33,7 +33,7 @@ public enum Role {
         this.description = description;
         this.permission = permission;
     }
-    
+
     /**
      * 获取角色描述
      * 
@@ -44,7 +44,7 @@ public enum Role {
     public String getDescription() {
         return description;
     }
-    
+
     /**
      * 获取权限说明
      * 
@@ -55,7 +55,7 @@ public enum Role {
     public String getPermission() {
         return permission;
     }
-    
+
     /**
      * 检查角色是否有管理员权限
      * 
@@ -66,7 +66,7 @@ public enum Role {
     public boolean isAdmin() {
         return this == ADMIN;
     }
-    
+
     /**
      * 检查角色是否可以管理用户
      * 
@@ -77,7 +77,7 @@ public enum Role {
     public boolean canManageUsers() {
         return this == ADMIN;
     }
-    
+
     /**
      * 检查角色是否可以执行拨测任务
      * 
@@ -88,7 +88,7 @@ public enum Role {
     public boolean canExecuteTasks() {
         return this == ADMIN || this == OPERATOR;
     }
-    
+
     /**
      * 检查角色是否可以注册执行机
      * 

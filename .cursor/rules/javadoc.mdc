@@ -5,12 +5,16 @@ description: Javadoc documentation requirements for Java classes and methods
 
 # Javadoc Documentation Requirements
 
-## MANDATORY File Header Rules
+## Overview
+This rule defines mandatory Javadoc documentation standards for all Java files in the project, including file headers, import organization, method documentation, and code formatting.
+
+## File Structure Requirements
+
+### Copyright Header (MANDATORY)
 - **All Java files must have copyright header comment**
 - **Copyright header must be placed at the very top of the file**
 - **Copyright header must be placed before package declaration**
 
-## Copyright Header Format
 ```java
 /*
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
@@ -19,17 +23,12 @@ description: Javadoc documentation requirements for Java classes and methods
 package com.example.package;
 ```
 
-## MANDATORY Import Package Rules
+### Import Organization (MANDATORY)
 - **Import packages must be sorted in specific order**
 - **Each group must be separated by one empty line**
 - **Use alphabetical order within each group**
 
-## MANDATORY Method Declaration Rules
-- **Method declaration and implementation must be adjacent**
-- **No empty lines between method signature and opening brace**
-- **No empty lines between Javadoc and method signature**
-
-## Import Package Order
+#### Import Package Order
 1. **Android packages** (android.*)
 2. **Huawei company packages** (com.huawei.*)
 3. **Other commercial organizations** (com.company.*)
@@ -38,275 +37,225 @@ package com.example.package;
 6. **Net/Org open source organizations** (net.sourceforge.*, org.junit.*, etc.)
 7. **Java standard packages** (java.*, javax.*)
 
-## Import Package Example
+#### Import Example
 ```java
-/*
- * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
- */
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 
-package com.dialtest.center.entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import android.content.Context;
+import java.util.List;
 
-import com.huawei.agconnect.AGConnectInstance;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 ```
 
-## MANDATORY Javadoc Rules
+## Javadoc Documentation (MANDATORY)
+
+### Class Documentation
 - **All public classes must have Javadoc comments**
-- **All public methods must have Javadoc comments**
-- **Use standard Javadoc format with /** */**
+- **Use standard Javadoc format with /** */
+- **Include @author and @since tags**
 
-## Class Javadoc Requirements
 ```java
 /**
- * 功能描述：类的详细功能说明
- * 可以包含多行描述，说明类的主要用途和功能
- * 
- * @author g00940940
- * @since 2025-09-06
- */
-public class ClassName {
-    // class implementation
-}
-```
-
-## Method Javadoc Requirements
-- **Function Description**: Provide clear description of method functionality
-- **Empty Line**: One empty line between description and tags
-- **Tags Order**: Use @param, @return, @throws in order as needed
-- **@param**: Document all parameters with clear descriptions
-- **@return**: Document return value with clear descriptions
-- **@throws**: Document all thrown exceptions with clear descriptions
-
-## Method Javadoc Format
-```java
-/**
- * 方法功能描述，详细说明方法的作用和功能
- * 可以包含多行描述，说明方法的主要用途和实现逻辑
- * 
- * @param paramName 参数描述，说明参数的作用和约束条件
- * @param anotherParam 另一个参数的描述
- * @return 返回值描述，说明返回值的类型和含义
- * @throws ExceptionType 异常描述，说明什么情况下会抛出此异常
- */
-public ReturnType methodName(ParamType paramName, AnotherType anotherParam) throws ExceptionType {
-    // method implementation
-}
-```
-
-## Method Declaration Rules
-- **Javadoc注释和方法声明之间不能有空行**
-- **方法声明和左大括号之间不能有空行**
-- **方法声明和实现必须紧挨在一起**
-
-## Method Javadoc Examples
-
-### Simple Method
-```java
-/**
- * 获取用例集名称
- * 
- * @return 用例集名称字符串
- */
-public String getName() {
-    return name;
-}
-```
-
-### Method with Parameters
-```java
-/**
- * 设置用例集名称
- * 
- * @param name 用例集名称，不能为空
- */
-public void setName(String name) {
-    this.name = name;
-}
-```
-
-### Method with Parameters and Return Value
-```java
-/**
- * 上传用例集文件
- * 
- * @param file 用例集文件，支持.zip和.tar.gz格式
- * @param description 用例集描述信息
- * @return 保存后的用例集实体对象
- * @throws IOException 文件读取失败时抛出
- */
-public TestCaseSet uploadTestCaseSet(MultipartFile file, String description) throws IOException {
-    // method implementation
-}
-```
-
-## Javadoc Standards
-- **Class Level**: Use @author "g00940940" and @since "YYYY-MM-DD" format
-- **Method Level**: Only use @param, @return, @throws tags as needed
-- **Language**: Use Chinese for descriptions
-- **Content**: Provide clear, concise descriptions
-- **Parameters**: Document all parameters with @param
-- **Return Values**: Document return values with @return
-- **Exceptions**: Document thrown exceptions with @throws
-- **Empty Line**: One empty line between description and tags
-- **Method Declaration**: No empty lines between Javadoc and method signature
-- **Method Implementation**: No empty lines between method signature and opening brace
-
-
-## Complete File Example
-```java
-/*
- * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
- */
-
-package com.dialtest.center.entity;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
-/**
- * 用例集实体类，用于存储和管理测试用例集信息
- * 支持ZIP和TAR.GZ格式的文件存储，包含文件内容、格式、大小等元数据
- * 
- * @author g00940940
- * @since 2025-09-06
- */
-@Entity
-@Table(name = "test_case_set")
-public class TestCaseSet {
-    
-    /**
-     * 获取用例集名称
-     * 
-     * @return 用例集名称字符串
-     */
-    public String getName() {
-        return name;
-    }
-    
-    /**
-     * 设置用例集名称
-     * 
-     * @param name 用例集名称，不能为空
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    /**
-     * 上传用例集文件
-     * 
-     * @param file 用例集文件，支持.zip和.tar.gz格式
-     * @return 保存后的用例集实体对象
-     * @throws IOException 文件读取失败时抛出
-     */
-    public TestCaseSet uploadTestCaseSet(MultipartFile file) throws IOException {
-        // 处理文件上传逻辑
-        TestCaseSet result = processFile(file);
-        return result;
-    }
-    
-    // other methods...
-}
-```
-
-## Service Class Example
-```java
-/**
- * 用例集服务类，提供用例集的业务逻辑处理
- * 包括上传、下载、删除、查询等操作
- * 
- * @author g00940940
- * @since 2025-09-06
- */
-@Service
-public class TestCaseSetService {
-    
-    /**
-     * 上传用例集文件
-     * 
-     * @param file 用例集文件，支持.zip和.tar.gz格式
-     * @param description 用例集描述信息
-     * @return 保存后的用例集实体对象
-     * @throws IOException 文件读取失败时抛出
-     */
-    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description) throws IOException {
-        // 验证文件格式
-        validateFileFormat(file);
-        
-        // 保存文件
-        TestCaseSet result = saveTestCaseSet(file, description);
-        return result;
-    }
-}
-```
-
-## Controller Class Example
-```java
-/**
- * 用例集控制器，提供用例集管理的REST API接口
- * 支持用例集的上传、下载、查询、删除等操作
- * 
+ * 用户角色控制器，提供用户角色管理的REST API接口
+ * 支持用户角色的创建、更新、删除、查询等操作
+ * 提供权限检查和执行机用户统计功能
+ *
  * @author g00940940
  * @since 2025-09-06
  */
 @RestController
-@RequestMapping("/api/test-case-sets")
-public class TestCaseSetController {
+@RequestMapping("/api/user-roles")
+public class UserRoleController {
+    // class implementation
+}
+```
+
+### Method Documentation
+- **All public methods must have Javadoc comments**
+- **Provide clear description of method functionality**
+- **Use @param, @return, @throws tags as needed**
+- **One empty line between description and tags**
+
+#### Method Javadoc Format
+```java
+/**
+ * 获取用户角色列表
+ *
+ * @param username 用户名（可选，不传则返回所有）
+ * @return 用户角色列表
+ */
+@GetMapping
+public ResponseEntity<List<UserRole>> getUserRoles(
+        @RequestParam(required = false) String username) {
+    // method implementation
+}
+```
+
+#### Method with Parameters and Exceptions
+```java
+/**
+ * 创建用户角色
+ *
+ * @param request 用户角色请求，不能为空
+ * @return 创建的用户角色
+ * @throws IllegalArgumentException 当请求参数无效时抛出
+ */
+@PostMapping
+public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRoleRequest request) {
+    // method implementation
+}
+```
+
+## Code Formatting Rules (MANDATORY)
+
+### Method Declaration Formatting
+- **Javadoc注释和方法声明之间不能有空行**
+- **方法声明和左大括号之间不能有空行**
+- **方法声明和实现必须紧挨在一起**
+
+### Class Structure Formatting
+- **类定义与变量定义之间不需要空行**
+- **try包裹的语句块，最后一行实现和}之间不需要空行**
+- **所有Java文件的末尾行必须增加空行**
+
+### Empty Line Formatting (MANDATORY)
+- **空行必须保持字符为空，不能存在任何字符**
+- **空行不能包含空格、tab、或其他空白字符**
+- **空行必须完全为空**
+
+#### Correct Formatting Examples
+
+**Class Definition:**
+```java
+public class UserRoleController {
+    private static final Logger logger = LoggerFactory.getLogger(UserRoleController.class);
     
-    /**
-     * 获取用例集列表
-     * 
-     * @param page 页码，从0开始
-     * @param size 每页大小
-     * @return 用例集分页数据
-     */
-    @GetMapping
-    public ResponseEntity<Page<TestCaseSet>> getTestCaseSets(@RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
-        Page<TestCaseSet> result = testCaseSetService.getTestCaseSets(page, size);
-        return ResponseEntity.ok(result);
+    @Autowired
+    private UserRoleService userRoleService;
+}
+```
+
+**Try Block:**
+```java
+try {
+    // business logic
+    return ResponseEntity.ok(result);
+} catch (Exception e) {
+    // error handling
+}
+```
+
+**File Ending:**
+```java
+public class ExampleClass {
+    // class implementation
+}
+// Empty line at the end
+```
+
+**Empty Line Format:**
+```java
+// Correct - Empty line contains no characters
+public class ExampleClass {
+    private String field;
+    
+    public void method() {
+        // implementation
+    }
+}
+
+// Incorrect - Empty line contains spaces or tabs
+public class ExampleClass {
+    private String field;
+    
+    public void method() {
+        // implementation
     }
 }
 ```
 
-## Test Class Example
+## Javadoc Standards Summary
+
+### Class Level
+- Use @author "g00940940" and @since "YYYY-MM-DD" format
+- Provide clear, concise class description in Chinese
+
+### Method Level
+- Only use @param, @return, @throws tags as needed
+- Use Chinese for descriptions
+- Document all parameters with @param
+- Document return values with @return
+- Document thrown exceptions with @throws
+- One empty line between description and tags
+
+### Formatting
+- No empty lines between Javadoc and method signature
+- No empty lines between method signature and opening brace
+- No empty lines between class definition and variable declaration
+- No empty lines between last statement and closing brace in try blocks
+- All Java files must end with an empty line
+
+## Complete Example
+
 ```java
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
+package com.huawei.dialtest.center.controller;
+
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 /**
- * 用例集实体测试类，测试TestCaseSet实体的各种功能
- * 包括构造函数、getter/setter、equals/hashCode、toString等方法
- * 
+ * 用户角色控制器，提供用户角色管理的REST API接口
+ * 支持用户角色的创建、更新、删除、查询等操作
+ *
  * @author g00940940
  * @since 2025-09-06
  */
-public class TestCaseSetTest {
+@RestController
+@RequestMapping("/api/user-roles")
+public class UserRoleController {
+    private static final Logger logger = LoggerFactory.getLogger(UserRoleController.class);
+    
+    @Autowired
+    private UserRoleService userRoleService;
     
     /**
-     * 测试默认构造函数
+     * 获取用户角色列表
+     *
+     * @param username 用户名（可选，不传则返回所有）
+     * @return 用户角色列表
      */
-    @Test
-    public void testDefaultConstructor() {
-        TestCaseSet testCaseSet = new TestCaseSet();
-        assertNotNull(testCaseSet);
+    @GetMapping
+    public ResponseEntity<List<UserRole>> getUserRoles(
+            @RequestParam(required = false) String username) {
+        try {
+            List<UserRole> userRoles = userRoleService.getUserRoles(username);
+            return ResponseEntity.ok(userRoles);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
 ```

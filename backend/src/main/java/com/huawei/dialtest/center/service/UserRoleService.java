@@ -28,12 +28,12 @@ import com.huawei.dialtest.center.repository.UserRoleRepository;
 @Service
 @Transactional
 public class UserRoleService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(UserRoleService.class);
-    
+
     @Autowired
     private UserRoleRepository userRoleRepository;
-    
+
     /**
      * 根据用户名获取用户角色列表
      * 
@@ -46,11 +46,11 @@ public class UserRoleService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }
-        
+
         logger.debug("Querying user roles for: {}", username);
         return userRoleRepository.findByUsernameOrderByCreatedTimeDesc(username.trim());
     }
-    
+
     /**
      * 根据用户名获取角色枚举列表
      * 
@@ -63,11 +63,11 @@ public class UserRoleService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }
-        
+
         logger.debug("Querying user role enums for: {}", username);
         return userRoleRepository.findRolesByUsername(username.trim());
     }
-    
+
     /**
      * 获取所有用户角色关系
      * 
@@ -78,7 +78,7 @@ public class UserRoleService {
         logger.debug("Querying all user role relationships");
         return userRoleRepository.findAllOrderByCreatedTimeDesc();
     }
-    
+
     /**
      * 保存用户角色关系
      * 
@@ -90,17 +90,17 @@ public class UserRoleService {
         if (userRole == null) {
             throw new IllegalArgumentException("User role cannot be null");
         }
-        
+
         if (userRole.getUsername() == null || userRole.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }
-        
+
         if (userRole.getRole() == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
-        
+
         userRole.setUsername(userRole.getUsername().trim());
-        
+
         // 如果是更新操作（有ID），需要检查是否存在其他记录有相同的用户名和角色组合
         if (userRole.getId() != null) {
             Optional<UserRole> existingUserRole = userRoleRepository.findByUsernameAndRole(
@@ -114,11 +114,11 @@ public class UserRoleService {
                 throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
             }
         }
-        
+
         logger.info("Saving user role relationship: {} - {}", userRole.getUsername(), userRole.getRole());
         return userRoleRepository.save(userRole);
     }
-    
+
     /**
      * 根据ID查找用户角色关系
      * 
@@ -131,11 +131,11 @@ public class UserRoleService {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
-        
+
         logger.debug("Finding user role by ID: {}", id);
         return userRoleRepository.findById(id);
     }
-    
+
     /**
      * 根据ID删除用户角色关系
      * 
@@ -146,15 +146,15 @@ public class UserRoleService {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
-        
+
         if (!userRoleRepository.existsById(id)) {
             throw new IllegalArgumentException("User role relationship does not exist: " + id);
         }
-        
+
         logger.info("Deleting user role relationship: {}", id);
         userRoleRepository.deleteById(id);
     }
-    
+
     /**
      * 根据用户名和角色删除用户角色关系
      * @param username 用户名
@@ -164,15 +164,15 @@ public class UserRoleService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("用户名不能为空");
         }
-        
+
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
-        
+
         logger.info("删除用户角色关系: {} - {}", username, role);
         userRoleRepository.deleteByUsernameAndRole(username.trim(), role);
     }
-    
+
     /**
      * 检查是否存在管理员用户
      * @return 是否存在管理员
@@ -183,7 +183,7 @@ public class UserRoleService {
         logger.debug("检查是否存在管理员: {}", hasAdmin);
         return hasAdmin;
     }
-    
+
     /**
      * 获取管理员用户数量
      * @return 管理员用户数量
@@ -194,7 +194,7 @@ public class UserRoleService {
         logger.debug("Admin user count: {}", count);
         return count;
     }
-    
+
     /**
      * 根据角色获取用户角色关系列表
      * @param role 角色
@@ -205,11 +205,11 @@ public class UserRoleService {
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
-        
+
         logger.debug("Querying user roles by role: {}", role);
         return userRoleRepository.findByRole(role);
     }
-    
+
     /**
      * 检查用户是否拥有指定角色
      * @param username 用户名
@@ -221,16 +221,16 @@ public class UserRoleService {
         if (username == null || username.trim().isEmpty()) {
             return false;
         }
-        
+
         if (role == null) {
             return false;
         }
-        
+
         boolean hasRole = userRoleRepository.existsByUsernameAndRole(username.trim(), role);
         logger.debug("Checking user role: {} - {} = {}", username, role, hasRole);
         return hasRole;
     }
-    
+
     /**
      * 获取执行机用户数量
      * @return 执行机用户数量

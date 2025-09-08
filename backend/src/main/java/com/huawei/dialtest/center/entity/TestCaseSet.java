@@ -28,40 +28,40 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(name = "test_case_set")
 public class TestCaseSet {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(name = "name", nullable = false, length = 200)
     private String name;
-    
+
     @Column(name = "version", nullable = false, length = 50)
     private String version;
-    
+
     @Column(name = "zip_file", nullable = false, columnDefinition = "bytea")
     private byte[] zipFile;
-    
+
     @Column(name = "file_format", nullable = false, length = 10)
     private String fileFormat; // 文件格式：zip 或 tar.gz
-    
+
     @Column(name = "creator", nullable = false, length = 100)
     private String creator;
-    
+
     @Column(name = "file_size", nullable = false)
     private Long fileSize;
-    
+
     @Column(name = "description", length = 1000)
     private String description;
-    
+
     @CreationTimestamp
     @Column(name = "created_time")
     private LocalDateTime createdTime;
-    
+
     @UpdateTimestamp
     @Column(name = "updated_time")
     private LocalDateTime updatedTime;
-    
+
     /**
      * 默认构造函数
      * 
@@ -69,7 +69,7 @@ public class TestCaseSet {
      * @since 2025-09-06
      */
     public TestCaseSet() {}
-    
+
     /**
      * 带参数构造函数，用于创建新的用例集实例
      * 
@@ -90,88 +90,88 @@ public class TestCaseSet {
         this.creator = creator;
         this.fileSize = fileSize;
     }
-    
+
     // Getter和Setter方法
     public Long getId() {
         return id;
     }
-    
+
     public void setId(Long id) {
         this.id = id;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getVersion() {
         return version;
     }
-    
+
     public void setVersion(String version) {
         this.version = version;
     }
-    
+
     public byte[] getZipFile() {
         return zipFile;
     }
-    
+
     public void setZipFile(byte[] zipFile) {
         this.zipFile = zipFile;
     }
-    
+
     public String getFileFormat() {
         return fileFormat;
     }
-    
+
     public void setFileFormat(String fileFormat) {
         this.fileFormat = fileFormat;
     }
-    
+
     public String getCreator() {
         return creator;
     }
-    
+
     public void setCreator(String creator) {
         this.creator = creator;
     }
-    
+
     public Long getFileSize() {
         return fileSize;
     }
-    
+
     public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
     }
-    
+
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public LocalDateTime getCreatedTime() {
         return createdTime;
     }
-    
+
     public void setCreatedTime(LocalDateTime createdTime) {
         this.createdTime = createdTime;
     }
-    
+
     public LocalDateTime getUpdatedTime() {
         return updatedTime;
     }
-    
+
     public void setUpdatedTime(LocalDateTime updatedTime) {
         this.updatedTime = updatedTime;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -181,12 +181,12 @@ public class TestCaseSet {
                Objects.equals(name, that.name) &&
                Objects.equals(version, that.version);
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(id, name, version);
     }
-    
+
     @Override
     public String toString() {
         return "TestCaseSet{" +

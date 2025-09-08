@@ -308,7 +308,7 @@ public class TestCaseSetControllerTest {
         request.put("name", "updated_test");
         request.put("version", "v2");
         request.put("description", "Updated description");
-        
+
         when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
                 .thenReturn(testCaseSet);
 
@@ -329,7 +329,7 @@ public class TestCaseSetControllerTest {
         request.put("name", "updated_test");
         request.put("version", "v2");
         request.put("description", "Updated description");
-        
+
         when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
                 .thenThrow(new IllegalArgumentException("用例集不存在"));
 
@@ -348,7 +348,7 @@ public class TestCaseSetControllerTest {
         request.put("name", "updated_test");
         request.put("version", "v2");
         request.put("description", "Updated description");
-        
+
         when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
                 .thenThrow(new RuntimeException("Update failed"));
 

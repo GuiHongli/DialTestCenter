@@ -18,18 +18,18 @@ import com.huawei.dialtest.center.service.UserRoleService;
  */
 @Component
 public class AdminInitializer implements ApplicationRunner {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AdminInitializer.class);
-    
+
     @Autowired
     private UserRoleService userRoleService;
-    
+
     @Value("${app.admin.default-username:admin}")
     private String defaultAdminUsername;
-    
+
     @Value("${app.admin.auto-create:true}")
     private boolean autoCreateAdmin;
-    
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         if (autoCreateAdmin) {
@@ -38,7 +38,7 @@ public class AdminInitializer implements ApplicationRunner {
             logger.info("自动创建管理员功能已禁用");
         }
     }
-    
+
     /**
      * 初始化默认管理员
      */
@@ -50,15 +50,15 @@ public class AdminInitializer implements ApplicationRunner {
                 UserRole adminRole = new UserRole();
                 adminRole.setUsername(defaultAdminUsername);
                 adminRole.setRole(Role.ADMIN);
-                
+
                 userRoleService.save(adminRole);
-                
+
                 logger.info("默认管理员账号已创建: {}", defaultAdminUsername);
             } else {
                 long adminCount = userRoleService.getAdminUserCount();
                 logger.info("系统中已存在 {} 个管理员账号，跳过创建默认管理员", adminCount);
             }
-            
+
         } catch (Exception e) {
             logger.error("初始化默认管理员失败: {}", e.getMessage(), e);
             // 不抛出异常，避免影响应用启动
