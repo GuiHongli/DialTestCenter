@@ -1,6 +1,6 @@
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadFile, UploadProps } from 'antd'
-import { Button, Form, Input, message, Modal, Upload } from 'antd'
+import { Button, Form, Input, message, Modal, Select, Upload } from 'antd'
 import React, { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import testCaseSetService from '../services/testCaseSetService'
@@ -50,6 +50,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
       const uploadData: TestCaseSetUploadData = {
         file: file as File,
         description: form.getFieldValue('description'),
+        business: form.getFieldValue('business'),
       }
 
       const result = await testCaseSetService.uploadTestCaseSet(uploadData)
@@ -155,6 +156,17 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
           rules={[{ required: true, message: '请输入版本号' }]}
         >
           <Input placeholder="从文件名自动解析" readOnly />
+        </Form.Item>
+
+        <Form.Item 
+          label="业务类型" 
+          name="business" 
+          initialValue="VPN阻断业务"
+          rules={[{ required: true, message: '请选择业务类型' }]}
+        >
+          <Select placeholder="请选择业务类型">
+            <Select.Option value="VPN阻断业务">VPN阻断业务</Select.Option>
+          </Select>
         </Form.Item>
 
         <Form.Item label={translateCommon('description')} name="description">

@@ -77,9 +77,11 @@ public class TestCaseSetServiceTest {
         testCaseSet.setId(1L);
         testCaseSet.setName("test");
         testCaseSet.setVersion("v1");
-        testCaseSet.setZipFile("test content".getBytes());
+        testCaseSet.setFileContent("test content".getBytes());
         testCaseSet.setCreator("admin");
         testCaseSet.setFileSize(179L);
+        testCaseSet.setSha512("sha512_hash_test");
+        testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
         testCaseSet.setCreatedTime(LocalDateTime.now());
         testCaseSet.setUpdatedTime(LocalDateTime.now());

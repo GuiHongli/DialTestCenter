@@ -11,6 +11,7 @@ export interface TestCaseSet {
   fileSize: number
   description?: string
   fileFormat?: 'zip' | 'tar.gz' // 可选的文件格式字段
+  business?: string // 业务类型
   missingScriptsCount?: number // 缺失脚本数量
 }
 
@@ -23,6 +24,7 @@ export interface TestCaseSetFormData {
 export interface TestCaseSetUploadData {
   file: File
   description?: string
+  business?: string
 }
 
 

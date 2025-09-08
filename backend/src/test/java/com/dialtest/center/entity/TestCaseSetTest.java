@@ -39,10 +39,12 @@ public class TestCaseSetTest {
         testCaseSet1.setId(1L);
         testCaseSet1.setName("test");
         testCaseSet1.setVersion("v1");
-        testCaseSet1.setZipFile("test content".getBytes());
+        testCaseSet1.setFileContent("test content".getBytes());
         testCaseSet1.setFileFormat("zip");
         testCaseSet1.setCreator("admin");
         testCaseSet1.setFileSize(179L);
+        testCaseSet1.setSha512("sha512_hash_1");
+        testCaseSet1.setBusiness("VPN阻断业务");
         testCaseSet1.setDescription("Test description");
         testCaseSet1.setCreatedTime(LocalDateTime.now());
         testCaseSet1.setUpdatedTime(LocalDateTime.now());
@@ -51,10 +53,12 @@ public class TestCaseSetTest {
         testCaseSet2.setId(1L);
         testCaseSet2.setName("test");
         testCaseSet2.setVersion("v1");
-        testCaseSet2.setZipFile("test content".getBytes());
+        testCaseSet2.setFileContent("test content".getBytes());
         testCaseSet2.setFileFormat("zip");
         testCaseSet2.setCreator("admin");
         testCaseSet2.setFileSize(179L);
+        testCaseSet2.setSha512("sha512_hash_1");
+        testCaseSet2.setBusiness("VPN阻断业务");
         testCaseSet2.setDescription("Test description");
         testCaseSet2.setCreatedTime(LocalDateTime.now());
         testCaseSet2.setUpdatedTime(LocalDateTime.now());
@@ -63,10 +67,12 @@ public class TestCaseSetTest {
         testCaseSet3.setId(2L);
         testCaseSet3.setName("test2");
         testCaseSet3.setVersion("v2");
-        testCaseSet3.setZipFile("test content 2".getBytes());
+        testCaseSet3.setFileContent("test content 2".getBytes());
         testCaseSet3.setFileFormat("tar.gz");
         testCaseSet3.setCreator("user");
         testCaseSet3.setFileSize(200L);
+        testCaseSet3.setSha512("sha512_hash_2");
+        testCaseSet3.setBusiness("VPN阻断业务");
         testCaseSet3.setDescription("Test description 2");
         testCaseSet3.setCreatedTime(LocalDateTime.now());
         testCaseSet3.setUpdatedTime(LocalDateTime.now());
@@ -79,7 +85,7 @@ public class TestCaseSetTest {
         assertNull(testCaseSet.getId());
         assertNull(testCaseSet.getName());
         assertNull(testCaseSet.getVersion());
-        assertNull(testCaseSet.getZipFile());
+        assertNull(testCaseSet.getFileContent());
         assertNull(testCaseSet.getFileFormat());
         assertNull(testCaseSet.getCreator());
         assertNull(testCaseSet.getFileSize());
@@ -90,14 +96,16 @@ public class TestCaseSetTest {
 
     @Test
     public void testParameterizedConstructor() {
-        TestCaseSet testCaseSet = new TestCaseSet("test", "v1", "test content".getBytes(), "zip", "admin", 179L);
+        TestCaseSet testCaseSet = new TestCaseSet("test", "v1", "test content".getBytes(), "zip", "admin", 179L, "sha512_hash", "VPN阻断业务");
         assertNotNull(testCaseSet);
         assertEquals("test", testCaseSet.getName());
         assertEquals("v1", testCaseSet.getVersion());
-        assertArrayEquals("test content".getBytes(), testCaseSet.getZipFile());
+        assertArrayEquals("test content".getBytes(), testCaseSet.getFileContent());
         assertEquals("zip", testCaseSet.getFileFormat());
         assertEquals("admin", testCaseSet.getCreator());
         assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
+        assertEquals("sha512_hash", testCaseSet.getSha512());
+        assertEquals("VPN阻断业务", testCaseSet.getBusiness());
     }
 
     @Test
@@ -118,8 +126,8 @@ public class TestCaseSetTest {
 
         // Test ZipFile
         byte[] zipFile = "test content".getBytes();
-        testCaseSet.setZipFile(zipFile);
-        assertArrayEquals(zipFile, testCaseSet.getZipFile());
+        testCaseSet.setFileContent(zipFile);
+        assertArrayEquals(zipFile, testCaseSet.getFileContent());
 
         // Test FileFormat
         testCaseSet.setFileFormat("zip");
@@ -132,6 +140,14 @@ public class TestCaseSetTest {
         // Test FileSize
         testCaseSet.setFileSize(179L);
         assertEquals(Long.valueOf(179L), testCaseSet.getFileSize());
+
+        // Test SHA512
+        testCaseSet.setSha512("abc123def456");
+        assertEquals("abc123def456", testCaseSet.getSha512());
+
+        // Test Business
+        testCaseSet.setBusiness("VPN阻断业务");
+        assertEquals("VPN阻断业务", testCaseSet.getBusiness());
 
         // Test Description
         testCaseSet.setDescription("Test description");
@@ -185,25 +201,29 @@ public class TestCaseSetTest {
         assertTrue(toString.contains("fileFormat='zip'"));
         assertTrue(toString.contains("creator='admin'"));
         assertTrue(toString.contains("fileSize=179"));
+        assertTrue(toString.contains("sha512='sha512_hash_1'"));
+        assertTrue(toString.contains("business='VPN阻断业务'"));
         assertTrue(toString.contains("description='Test description'"));
     }
 
     @Test
-    public void testToStringWithNullZipFile() {
+    public void testToStringWithNullFileContent() {
         TestCaseSet testCaseSet = new TestCaseSet();
         testCaseSet.setId(1L);
         testCaseSet.setName("test");
         testCaseSet.setVersion("v1");
-        testCaseSet.setZipFile(null);
+        testCaseSet.setFileContent(null);
         testCaseSet.setCreator("admin");
         testCaseSet.setFileSize(179L);
+        testCaseSet.setSha512("sha512_hash_1");
+        testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
         testCaseSet.setCreatedTime(LocalDateTime.now());
         testCaseSet.setUpdatedTime(LocalDateTime.now());
 
         String toString = testCaseSet.toString();
         assertNotNull(toString);
-        assertTrue(toString.contains("zipFileSize=0"));
+        assertTrue(toString.contains("fileContentSize=0"));
     }
 
     @Test

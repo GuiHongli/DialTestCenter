@@ -208,6 +208,13 @@ const TestCaseSetManagement: React.FC = () => {
       width: 120,
     },
     {
+      title: '业务类型',
+      dataIndex: 'business',
+      key: 'business',
+      width: 120,
+      render: (business: string) => business || 'VPN阻断业务',
+    },
+    {
       title: translateTestCaseSet('table.fileSize'),
       dataIndex: 'fileSize',
       key: 'fileSize',

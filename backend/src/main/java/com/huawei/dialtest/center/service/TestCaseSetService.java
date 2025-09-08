@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -84,12 +86,13 @@ public class TestCaseSetService {
      * @param file 用例集文件，支持.zip和.tar.gz格式
      * @param description 用例集描述信息
      * @param creator 创建者用户名
+     * @param business 业务类型
      * @return 保存后的用例集实体对象
      * @throws IOException 文件读取失败时抛出
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
     @Transactional
-    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String creator) throws IOException {
+    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String creator, String business) throws IOException {
         logger.info("Starting test case set upload: {}", file.getOriginalFilename());
 
         // 验证文件
@@ -136,18 +139,23 @@ public class TestCaseSetService {
             throw new IllegalArgumentException("Invalid archive structure: missing cases.xlsx or scripts directory");
         }
 
+        // 计算文件内容的SHA512哈希值
+        String sha512 = calculateSHA512(fileContent);
+
         // 创建用例集记录
         TestCaseSet testCaseSet = new TestCaseSet();
         testCaseSet.setName(name);
         testCaseSet.setVersion(version);
-        testCaseSet.setZipFile(fileContent);
+        testCaseSet.setFileContent(fileContent);
         testCaseSet.setFileFormat(fileFormat);
         testCaseSet.setCreator(creator);
         testCaseSet.setFileSize(file.getSize());
+        testCaseSet.setSha512(sha512);
+        testCaseSet.setBusiness(business);
         testCaseSet.setDescription(description);
 
         TestCaseSet saved = testCaseSetRepository.save(testCaseSet);
-        logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes", name, version, fileFormat, fileContent.length);
+        logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes, SHA512: {}, business: {}", name, version, fileFormat, fileContent.length, sha512, business);
 
         // 解析并存储用例信息
         parseAndStoreTestCases(saved, fileContent, fileFormat);
@@ -212,6 +220,34 @@ public class TestCaseSetService {
         }
     }
 
+
+    /**
+     * 计算文件内容的SHA512哈希值
+     *
+     * @param fileContent 文件内容字节数组
+     * @return SHA512哈希值的十六进制字符串
+     * @throws RuntimeException 当计算哈希值失败时抛出
+     */
+    private String calculateSHA512(byte[] fileContent) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            byte[] hash = digest.digest(fileContent);
+            
+            // 将字节数组转换为十六进制字符串
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("SHA-512 algorithm not available", e);
+            throw new RuntimeException("Failed to calculate SHA512 hash", e);
+        }
+    }
 
     /**
      * 验证文件格式和大小

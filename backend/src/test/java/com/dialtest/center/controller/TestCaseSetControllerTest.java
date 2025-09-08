@@ -64,9 +64,11 @@ public class TestCaseSetControllerTest {
         testCaseSet.setId(1L);
         testCaseSet.setName("test");
         testCaseSet.setVersion("v1");
-        testCaseSet.setZipFile("test content".getBytes());
+        testCaseSet.setFileContent("test content".getBytes());
         testCaseSet.setCreator("admin");
         testCaseSet.setFileSize(179L);
+        testCaseSet.setSha512("sha512_hash_test");
+        testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
         testCaseSet.setCreatedTime(LocalDateTime.now());
         testCaseSet.setUpdatedTime(LocalDateTime.now());
@@ -238,7 +240,9 @@ public class TestCaseSetControllerTest {
         emptyTestCaseSet.setId(1L);
         emptyTestCaseSet.setName("test");
         emptyTestCaseSet.setVersion("v1");
-        emptyTestCaseSet.setZipFile(null);
+        emptyTestCaseSet.setFileContent(null);
+        emptyTestCaseSet.setSha512("empty_sha512");
+        emptyTestCaseSet.setBusiness("VPN阻断业务");
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(emptyTestCaseSet));
 
         // When

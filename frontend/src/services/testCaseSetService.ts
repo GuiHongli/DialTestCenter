@@ -34,6 +34,9 @@ class TestCaseSetService {
     if (uploadData.description) {
       formData.append('description', uploadData.description)
     }
+    if (uploadData.business) {
+      formData.append('business', uploadData.business)
+    }
 
     const response = await fetch(`${this.baseUrl}/upload`, {
       method: 'POST',

@@ -113,6 +113,7 @@ public class TestCaseSetController {
      *
      * @param file 用例集文件，支持.zip和.tar.gz格式
      * @param description 用例集描述信息（可选）
+     * @param business 业务类型（可选，默认为"VPN阻断业务"）
      * @return 上传结果
      * @throws IOException 文件读取失败时抛出
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
@@ -120,13 +121,14 @@ public class TestCaseSetController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadTestCaseSet(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "description", required = false) String description) {
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "business", required = false, defaultValue = "VPN阻断业务") String business) {
         logger.info("Uploading test case set: {}", file.getOriginalFilename());
         try {
             // 模拟当前用户（实际应该从认证信息中获取）
             String creator = "admin";
 
-            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, creator);
+            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, creator, business);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -171,7 +173,7 @@ public class TestCaseSetController {
             }
 
             TestCaseSet testCaseSet = testCaseSetOpt.get();
-            byte[] fileContent = testCaseSet.getZipFile();
+            byte[] fileContent = testCaseSet.getFileContent();
 
             if (fileContent == null || fileContent.length == 0) {
                 return ResponseEntity.notFound().build();
