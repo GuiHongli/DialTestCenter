@@ -8,6 +8,14 @@ description: Javadoc documentation requirements for Java classes and methods
 ## Overview
 This rule defines mandatory Javadoc documentation standards for all Java files in the project, including file headers, import organization, method documentation, and code formatting.
 
+## MANDATORY Javadoc Rules
+- **Public elements**: All public classes, methods, fields, and constructors must have Javadoc comments
+- **Protected elements**: All protected methods, fields, and constructors must have Javadoc comments
+- **Documentation completeness**: Javadoc must provide clear description of functionality
+- **Parameter documentation**: All parameters must be documented with @param tags
+- **Return documentation**: Return values must be documented with @return tags
+- **Exception documentation**: Thrown exceptions must be documented with @throws tags
+
 ## File Structure Requirements
 
 ### Copyright Header (MANDATORY)

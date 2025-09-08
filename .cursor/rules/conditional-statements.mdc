@@ -1,172 +1,165 @@
 ---
-globs: *.java
-description: Conditional statement requirements for Java code
+globs: *.java,*.js,*.ts,*.tsx,*.jsx
+description: Conditional statements and loop blocks must use braces
 ---
 
-# Conditional Statement Requirements
+# Conditional Statements and Loop Blocks Rule
 
-## Overview
-This rule defines mandatory requirements for conditional statements in Java code, specifically requiring that all if-else if chains must include a final else branch.
+## Mandatory Braces Usage
 
-## Conditional Statement Rules (MANDATORY)
+All conditional statements and loop blocks **MUST** use braces `{}`, even for single-line statements.
 
-### If-Else If Chain Requirements
-- **All if-else if chains must end with an else branch**
-- **The else branch must handle unexpected or default cases**
-- **The else branch should log warnings or throw appropriate exceptions**
-- **No if-else if chains without a final else branch are allowed**
+### ✅ Correct Examples
 
-### Correct Conditional Statement Format
-
-#### ✅ CORRECT - With else branch
+**Java:**
 ```java
-if ("tar.gz".equals(fileFormat)) {
-    fileExtension = ".tar.gz";
-    contentType = MediaType.parseMediaType("application/gzip");
-} else if ("zip".equals(fileFormat)) {
-    fileExtension = ".zip";
-    contentType = MediaType.parseMediaType("application/zip");
-} else {
-    logger.warn("Unsupported file format: {}", fileFormat);
-    throw new IllegalArgumentException("Unsupported file format: " + fileFormat);
+// if statement
+if (testCase != null) {
+    processTestCase(testCase);
 }
-```
 
-#### ✅ CORRECT - With else branch and logging
-```java
-if (userRole == Role.ADMIN) {
-    return adminService.getAllUsers();
-} else if (userRole == Role.USER) {
-    return userService.getCurrentUser();
-} else {
-    logger.warn("Unknown user role: {}", userRole);
-    throw new IllegalArgumentException("Unknown user role: " + userRole);
-}
-```
-
-#### ✅ CORRECT - With else branch for default behavior
-```java
-if (status == Status.ACTIVE) {
-    return processActiveItem(item);
-} else if (status == Status.INACTIVE) {
-    return processInactiveItem(item);
-} else {
-    logger.info("Using default processing for status: {}", status);
-    return processDefaultItem(item);
-}
-```
-
-### Incorrect Conditional Statement Format
-
-#### ❌ INCORRECT - Missing else branch
-```java
-if ("tar.gz".equals(fileFormat)) {
-    fileExtension = ".tar.gz";
-    contentType = MediaType.parseMediaType("application/gzip");
-} else if ("zip".equals(fileFormat)) {
-    fileExtension = ".zip";
-    contentType = MediaType.parseMediaType("application/zip");
-}
-// Missing else branch - this is not allowed
-```
-
-#### ❌ INCORRECT - Incomplete handling
-```java
-if (userRole == Role.ADMIN) {
-    return adminService.getAllUsers();
-} else if (userRole == Role.USER) {
-    return userService.getCurrentUser();
-}
-// Missing else branch - what happens for other roles?
-```
-
-## Exception Cases
-
-### Switch Statements
-Switch statements are exempt from this rule as they have their own default handling:
-```java
-switch (fileFormat) {
-    case "tar.gz":
-        fileExtension = ".tar.gz";
-        contentType = MediaType.parseMediaType("application/gzip");
-        break;
-    case "zip":
-        fileExtension = ".zip";
-        contentType = MediaType.parseMediaType("application/zip");
-        break;
-    default:
-        logger.warn("Unsupported file format: {}", fileFormat);
-        throw new IllegalArgumentException("Unsupported file format: " + fileFormat);
-}
-```
-
-### Simple If Statements
-Simple if statements without else if are exempt:
-```java
-if (user != null) {
-    logger.info("User found: {}", user.getUsername());
-}
-```
-
-## Best Practices
-
-### 1. Error Handling in Else Branch
-```java
+// if-else statement
 if (fileFormat.equals("zip")) {
-    return processZipFile(file);
-} else if (fileFormat.equals("tar.gz")) {
-    return processTarGzFile(file);
+    processZipFile(file);
 } else {
-    logger.error("Unsupported file format: {}", fileFormat);
-    throw new UnsupportedOperationException("File format not supported: " + fileFormat);
+    processTarGzFile(file);
+}
+
+// for loop
+for (int i = 0; i < testCases.size(); i++) {
+    TestCase testCase = testCases.get(i);
+    processTestCase(testCase);
+}
+
+// while loop
+while (iterator.hasNext()) {
+    TestCase testCase = iterator.next();
+    processTestCase(testCase);
+}
+
+// do-while loop
+do {
+    processTestCase(testCase);
+    testCase = getNextTestCase();
+} while (testCase != null);
+
+// enhanced for loop
+for (TestCase testCase : testCases) {
+    processTestCase(testCase);
 }
 ```
 
-### 2. Default Behavior in Else Branch
+**JavaScript/TypeScript:**
+```javascript
+// if statement
+if (testCaseSet) {
+    processTestCaseSet(testCaseSet);
+}
+
+// if-else statement
+if (file.type === 'application/zip') {
+    processZipFile(file);
+} else {
+    processTarGzFile(file);
+}
+
+// for loop
+for (let i = 0; i < testCases.length; i++) {
+    const testCase = testCases[i];
+    processTestCase(testCase);
+}
+
+// while loop
+while (testCases.length > 0) {
+    const testCase = testCases.pop();
+    processTestCase(testCase);
+}
+
+// for...of loop
+for (const testCase of testCases) {
+    processTestCase(testCase);
+}
+
+// for...in loop
+for (const key in testCaseSet) {
+    const value = testCaseSet[key];
+    processTestCaseSetProperty(key, value);
+}
+```
+
+### ❌ Incorrect Examples
+
+**Java:**
 ```java
-if (priority == Priority.HIGH) {
-    return processImmediately(task);
-} else if (priority == Priority.MEDIUM) {
-    return processWithDelay(task, 1000);
-} else {
-    logger.debug("Using default processing for priority: {}", priority);
-    return processWithDelay(task, 5000);
-}
+// WRONG - Missing braces
+if (condition)
+    doSomething();
+
+// WRONG - Missing braces
+if (condition)
+    doSomething();
+else
+    doSomethingElse();
+
+// WRONG - Missing braces
+for (int i = 0; i < 10; i++)
+    processItem(i);
+
+// WRONG - Missing braces
+while (condition)
+    processData();
 ```
 
-### 3. Validation in Else Branch
+**JavaScript/TypeScript:**
+```javascript
+// WRONG - Missing braces
+if (condition)
+    doSomething();
+
+// WRONG - Missing braces
+if (condition)
+    doSomething();
+else
+    doSomethingElse();
+
+// WRONG - Missing braces
+for (let i = 0; i < 10; i++)
+    processItem(i);
+
+// WRONG - Missing braces
+while (condition)
+    processData();
+```
+
+## Rationale
+
+1. **Consistency**: Ensures consistent code style across the entire codebase
+2. **Maintainability**: Makes it easier to add additional statements later without introducing bugs
+3. **Readability**: Improves code readability and reduces cognitive load
+4. **Error Prevention**: Prevents common bugs that occur when adding statements to single-line blocks
+5. **Code Review**: Makes code reviews more reliable by eliminating ambiguity
+
+## Enforcement
+
+This rule applies to all conditional statements and loop constructs:
+- `if` statements
+- `if-else` statements
+- `if-else if-else` chains
+- `for` loops (traditional and enhanced)
+- `while` loops
+- `do-while` loops
+- `for...of` loops (JavaScript/TypeScript)
+- `for...in` loops (JavaScript/TypeScript)
+
+## Exception
+
+The only exception is when using ternary operators for simple conditional expressions:
 ```java
-if (age >= 18) {
-    return "Adult";
-} else if (age >= 13) {
-    return "Teenager";
-} else if (age >= 0) {
-    return "Child";
-} else {
-    logger.warn("Invalid age value: {}", age);
-    throw new IllegalArgumentException("Age cannot be negative: " + age);
-}
+// This is acceptable
+String result = condition ? "true" : "false";
 ```
 
-## Validation Requirements
-
-### Code Review Checklist
-- [ ] All if-else if chains have a final else branch
-- [ ] The else branch handles unexpected cases appropriately
-- [ ] The else branch includes appropriate logging
-- [ ] The else branch throws appropriate exceptions or provides default behavior
-
-### Automated Validation
-Use the following grep command to find if-else if chains without else branches:
-```bash
-# Find if-else if chains that might be missing else branches
-grep -n "} else if" *.java -A 5 | grep -B 5 -A 5 "} else if"
+```javascript
+// This is acceptable
+const result = condition ? "true" : "false";
 ```
-
-## Summary
-
-- **Mandatory**: All if-else if chains must end with an else branch
-- **Purpose**: Ensure complete handling of all possible conditions
-- **Implementation**: Use logging and appropriate exceptions in else branches
-- **Exemptions**: Switch statements and simple if statements are exempt
-- **Best Practice**: Always consider what happens when none of the conditions match

@@ -27,18 +27,19 @@ description: Backend Java development guidelines for Spring Boot application
 - Use Optional for nullable return values
 - Implement proper exception handling in controllers
 
-## Javadoc Requirements
-- **Note**: See javadoc.mdc for detailed Javadoc documentation requirements
+## Code Quality Rules
+- **Conditional Statements**: See [conditional-statements.mdc](mdc:.cursor/rules/conditional-statements.mdc) for mandatory braces usage
+- **Else Branches**: See [else-branch.mdc](mdc:.cursor/rules/else-branch.mdc) for else if chain requirements
+- **Instanceof Checks**: See [instanceof-check.mdc](mdc:.cursor/rules/instanceof-check.mdc) for downcasting safety
 
-## Logging Requirements
-- **Note**: See logging.mdc for detailed logging standards and best practices
-
-## Exception Handling Requirements
-- **Note**: See exception-handling.mdc for detailed exception handling standards
+## Documentation & Standards
+- **Javadoc**: See [javadoc.mdc](mdc:.cursor/rules/javadoc.mdc) for detailed Javadoc documentation requirements
+- **Logging**: See [logging.mdc](mdc:.cursor/rules/logging.mdc) for detailed logging standards and best practices
+- **Exception Handling**: See [exception-handling.mdc](mdc:.cursor/rules/exception-handling.mdc) for detailed exception handling standards
 
 ## Testing & Documentation
-- **Note**: See llt-generation.mdc for testing requirements
-- **Note**: See yaml-documentation.mdc for API documentation requirements
+- **Testing**: See [llt-generation.mdc](mdc:.cursor/rules/llt-generation.mdc) for unit testing requirements
+- **API Documentation**: See [yaml-documentation.mdc](mdc:.cursor/rules/yaml-documentation.mdc) for YAML generation requirements
 
 ## File Upload Handling
 - Support both .zip and .tar.gz formats

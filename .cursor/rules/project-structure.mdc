@@ -34,5 +34,20 @@ This is a full-stack application for managing dial test cases with user role man
 - Maintain type safety in TypeScript
 
 ## Development Requirements
-- **Testing**: See llt-generation.mdc for unit testing requirements
-- **API Documentation**: See yaml-documentation.mdc for YAML generation requirements
+- **Testing**: See [llt-generation.mdc](mdc:.cursor/rules/llt-generation.mdc) for unit testing requirements
+- **API Documentation**: See [yaml-documentation.mdc](mdc:.cursor/rules/yaml-documentation.mdc) for YAML generation requirements
+- **Code Quality**: See [backend-java.mdc](mdc:.cursor/rules/backend-java.mdc) for Java development guidelines
+- **Frontend**: See [frontend-react.mdc](mdc:.cursor/rules/frontend-react.mdc) for React TypeScript guidelines
+
+## Key Components
+- **Entities**: TestCaseSet, TestCase, UserRole, Role
+- **Services**: TestCaseSetService, TestCaseService, UserRoleService, ArchiveParseService, ExcelParseService, ScriptMatchService
+- **Controllers**: TestCaseSetController, UserRoleController
+- **Frontend**: React components with Ant Design UI, i18n support
+- **Database**: PostgreSQL with migration scripts
+
+## File Organization
+- **Backend**: Spring Boot application with layered architecture
+- **Frontend**: React SPA with component-based structure
+- **Database**: SQL scripts for initialization and migrations
+- **Documentation**: Chinese technical documentation in AR软件实现设计文档/
