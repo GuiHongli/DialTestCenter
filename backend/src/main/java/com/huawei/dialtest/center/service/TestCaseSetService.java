@@ -4,8 +4,12 @@
 
 package com.huawei.dialtest.center.service;
 
+import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
 import com.huawei.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.service.ArchiveParseService.ArchiveValidationResult;
+import com.huawei.dialtest.center.service.ExcelParseService.TestCaseInfo;
+import com.huawei.dialtest.center.service.ScriptMatchService.ScriptMatchResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +18,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 用例集服务类，提供用例集的业务逻辑处理
@@ -33,6 +41,18 @@ public class TestCaseSetService {
 
     @Autowired
     private TestCaseSetRepository testCaseSetRepository;
+
+    @Autowired
+    private TestCaseService testCaseService;
+
+    @Autowired
+    private ArchiveParseService archiveParseService;
+
+    @Autowired
+    private ExcelParseService excelParseService;
+
+    @Autowired
+    private ScriptMatchService scriptMatchService;
 
     /**
      * 获取用例集列表（分页）
@@ -68,6 +88,7 @@ public class TestCaseSetService {
      * @throws IOException 文件读取失败时抛出
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
+    @Transactional
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String creator) throws IOException {
         logger.info("Starting test case set upload: {}", file.getOriginalFilename());
 
@@ -109,6 +130,12 @@ public class TestCaseSetService {
         // 读取文件内容
         byte[] fileContent = file.getBytes();
 
+        // 验证压缩包结构
+        ArchiveValidationResult validationResult = archiveParseService.validateArchive(fileContent, fileFormat);
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException("Invalid archive structure: missing cases.xlsx or scripts directory");
+        }
+
         // 创建用例集记录
         TestCaseSet testCaseSet = new TestCaseSet();
         testCaseSet.setName(name);
@@ -121,6 +148,9 @@ public class TestCaseSetService {
 
         TestCaseSet saved = testCaseSetRepository.save(testCaseSet);
         logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes", name, version, fileFormat, fileContent.length);
+
+        // 解析并存储用例信息
+        parseAndStoreTestCases(saved, fileContent, fileFormat);
 
         return saved;
     }
@@ -212,6 +242,102 @@ public class TestCaseSetService {
         }
 
         logger.debug("File validation passed for: {}", fileName);
+    }
+
+    /**
+     * 解析并存储测试用例信息
+     *
+     * @param testCaseSet 用例集对象
+     * @param fileContent 压缩包文件内容
+     * @param fileFormat 文件格式
+     * @throws IOException 解析过程中发生IO异常时抛出
+     */
+    private void parseAndStoreTestCases(TestCaseSet testCaseSet, byte[] fileContent, String fileFormat) throws IOException {
+        logger.info("Parsing and storing test cases for: {} - {}", testCaseSet.getName(), testCaseSet.getVersion());
+
+        // 提取cases.xlsx文件内容
+        byte[] excelData = archiveParseService.extractCasesExcel(fileContent, fileFormat);
+        if (excelData == null) {
+            throw new IOException("Failed to extract cases.xlsx from archive");
+        }
+
+        // 解析Excel文件获取用例信息
+        List<TestCaseInfo> testCaseInfos = excelParseService.parseCasesExcel(excelData);
+        if (testCaseInfos.isEmpty()) {
+            logger.warn("No valid test cases found in Excel file");
+            return;
+        }
+
+        // 提取脚本文件名列表
+        List<String> scriptFileNames = archiveParseService.extractScriptFileNames(fileContent, fileFormat);
+
+        // 匹配用例编号与脚本文件
+        List<String> caseNumbers = testCaseInfos.stream()
+                .map(TestCaseInfo::getCaseNumber)
+                .collect(Collectors.toList());
+        ScriptMatchResult matchResult = scriptMatchService.matchScripts(caseNumbers, scriptFileNames);
+
+        // 创建TestCase实体并保存
+        List<TestCase> testCases = new ArrayList<>();
+        for (TestCaseInfo testCaseInfo : testCaseInfos) {
+            TestCase testCase = new TestCase(
+                testCaseSet,
+                testCaseInfo.getCaseName(),
+                testCaseInfo.getCaseNumber(),
+                testCaseInfo.getNetworkTopology(),
+                testCaseInfo.getBusinessCategory(),
+                testCaseInfo.getAppName(),
+                testCaseInfo.getTestSteps(),
+                testCaseInfo.getExpectedResult()
+            );
+            
+            // 设置脚本存在状态
+            boolean scriptExists = matchResult.getMatchMap().getOrDefault(testCaseInfo.getCaseNumber(), false);
+            testCase.setScriptExists(scriptExists);
+            
+            testCases.add(testCase);
+        }
+
+        // 批量保存测试用例
+        testCaseService.saveTestCases(testCases);
+
+        logger.info("Successfully stored {} test cases, {} with scripts, {} missing scripts", 
+                   testCases.size(), matchResult.getMatchedCount(), matchResult.getMissingCount());
+    }
+
+    /**
+     * 获取用例集的测试用例列表（分页）
+     *
+     * @param testCaseSetId 用例集ID
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 测试用例分页数据
+     */
+    public Page<TestCase> getTestCases(Long testCaseSetId, int page, int pageSize) {
+        logger.debug("Getting test cases for test case set: {}, page: {}, size: {}", testCaseSetId, page, pageSize);
+        return testCaseService.getTestCasesByTestCaseSet(testCaseSetId, page, pageSize);
+    }
+
+    /**
+     * 获取用例集中没有脚本的测试用例列表
+     *
+     * @param testCaseSetId 用例集ID
+     * @return 没有脚本的测试用例列表
+     */
+    public List<TestCase> getMissingScripts(Long testCaseSetId) {
+        logger.debug("Getting missing scripts for test case set: {}", testCaseSetId);
+        return testCaseService.getMissingScripts(testCaseSetId);
+    }
+
+    /**
+     * 统计用例集中没有脚本的测试用例数量
+     *
+     * @param testCaseSetId 用例集ID
+     * @return 没有脚本的测试用例数量
+     */
+    public long countMissingScripts(Long testCaseSetId) {
+        logger.debug("Counting missing scripts for test case set: {}", testCaseSetId);
+        return testCaseService.countMissingScripts(testCaseSetId);
     }
 
 }

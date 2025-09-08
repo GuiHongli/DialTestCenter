@@ -1,4 +1,4 @@
-import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse } from '../types/testCaseSet'
+import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse } from '../types/testCaseSet'
 
 class TestCaseSetService {
   private baseUrl = '/api/test-case-sets'
@@ -140,6 +140,28 @@ class TestCaseSetService {
     const version = nameWithoutExt.substring(lastUnderscoreIndex + 1)
 
     return { name, version }
+  }
+
+  /**
+   * 获取用例集的测试用例列表
+   */
+  async getTestCases(testCaseSetId: number, page: number = 1, pageSize: number = 10): Promise<TestCaseListResponse> {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/test-cases?page=${page}&pageSize=${pageSize}`)
+    if (!response.ok) {
+      throw new Error('获取测试用例列表失败')
+    }
+    return response.json()
+  }
+
+  /**
+   * 获取用例集中没有脚本的测试用例列表
+   */
+  async getMissingScripts(testCaseSetId: number): Promise<MissingScriptsResponse> {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`)
+    if (!response.ok) {
+      throw new Error('获取缺失脚本信息失败')
+    }
+    return response.json()
   }
 }
 

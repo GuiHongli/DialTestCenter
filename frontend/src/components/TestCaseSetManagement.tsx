@@ -2,6 +2,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  FileTextOutlined,
   FileZipOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -21,6 +22,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
+import TestCaseDetails from './TestCaseDetails'
 import TestCaseSetUpload from './TestCaseSetUpload'
 
 const { Title } = Typography
@@ -29,6 +31,8 @@ const TestCaseSetManagement: React.FC = () => {
   const [testCaseSets, setTestCaseSets] = useState<TestCaseSet[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadVisible, setUploadVisible] = useState(false)
+  const [detailsVisible, setDetailsVisible] = useState(false)
+  const [selectedTestCaseSet, setSelectedTestCaseSet] = useState<TestCaseSet | null>(null)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -117,6 +121,12 @@ const TestCaseSetManagement: React.FC = () => {
     })
   }
 
+  // 查看测试用例详情
+  const handleViewDetails = (record: TestCaseSet) => {
+    setSelectedTestCaseSet(record)
+    setDetailsVisible(true)
+  }
+
   // 格式化文件大小
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B'
@@ -176,9 +186,16 @@ const TestCaseSetManagement: React.FC = () => {
     {
       title: translateTestCaseSet('table.actions'),
       key: 'action',
-      width: 150,
+      width: 200,
       render: (_, record: TestCaseSet) => (
         <Space size="small">
+          <Tooltip title="查看测试用例">
+            <Button
+              type="text"
+              icon={<FileTextOutlined />}
+              onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
           <Tooltip title={translateTestCaseSet('table.download')}>
             <Button
               type="text"
@@ -262,6 +279,16 @@ const TestCaseSetManagement: React.FC = () => {
         onCancel={() => setUploadVisible(false)}
         onSuccess={() => {
           loadTestCaseSets(pagination.current, pagination.pageSize)
+        }}
+      />
+
+      {/* 测试用例详情对话框 */}
+      <TestCaseDetails
+        visible={detailsVisible}
+        testCaseSet={selectedTestCaseSet}
+        onCancel={() => {
+          setDetailsVisible(false)
+          setSelectedTestCaseSet(null)
         }}
       />
     </div>

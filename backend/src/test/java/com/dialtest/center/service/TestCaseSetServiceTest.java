@@ -33,6 +33,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.huawei.dialtest.center.entity.TestCaseSet;
 import com.huawei.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.service.ArchiveParseService;
+import com.huawei.dialtest.center.service.ExcelParseService;
+import com.huawei.dialtest.center.service.ScriptMatchService;
+import com.huawei.dialtest.center.service.TestCaseService;
 import com.huawei.dialtest.center.service.TestCaseSetService;
 
 /**
@@ -48,6 +52,18 @@ public class TestCaseSetServiceTest {
 
     @Mock
     private TestCaseSetRepository testCaseSetRepository;
+
+    @Mock
+    private TestCaseService testCaseService;
+
+    @Mock
+    private ArchiveParseService archiveParseService;
+
+    @Mock
+    private ExcelParseService excelParseService;
+
+    @Mock
+    private ScriptMatchService scriptMatchService;
 
     @InjectMocks
     private TestCaseSetService testCaseSetService;
@@ -124,6 +140,27 @@ public class TestCaseSetServiceTest {
         when(mockFile.isEmpty()).thenReturn(false);
         when(testCaseSetRepository.existsByNameAndVersion("test", "v1")).thenReturn(false);
         when(testCaseSetRepository.save(any(TestCaseSet.class))).thenReturn(testCaseSet);
+        
+        // Mock archive validation
+        ArchiveParseService.ArchiveValidationResult validationResult = 
+            new ArchiveParseService.ArchiveValidationResult(true, true, 1);
+        when(archiveParseService.validateArchive(any(byte[].class), anyString()))
+            .thenReturn(validationResult);
+        
+        // Mock Excel extraction and parsing
+        when(archiveParseService.extractCasesExcel(any(byte[].class), anyString()))
+            .thenReturn("Excel content".getBytes());
+        when(excelParseService.parseCasesExcel(any(byte[].class)))
+            .thenReturn(new java.util.ArrayList<>());
+        
+        // Mock script extraction and matching
+        when(archiveParseService.extractScriptFileNames(any(byte[].class), anyString()))
+            .thenReturn(new java.util.ArrayList<>());
+        when(scriptMatchService.matchScripts(any(), any()))
+            .thenReturn(new ScriptMatchService.ScriptMatchResult(new java.util.HashMap<>(), new java.util.ArrayList<>(), new java.util.ArrayList<>()));
+        
+        // Mock test case service
+        when(testCaseService.saveTestCases(any())).thenReturn(new java.util.ArrayList<>());
 
         // When
         TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, "Test description", "admin");

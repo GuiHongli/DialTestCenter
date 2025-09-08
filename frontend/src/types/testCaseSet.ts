@@ -38,3 +38,31 @@ export interface TestCaseSetUploadResponse {
   message: string
   data?: TestCaseSet
 }
+
+// 测试用例相关类型定义
+export interface TestCase {
+  id: number
+  testCaseSetId: number
+  caseName: string
+  caseNumber: string
+  networkTopology?: string
+  businessCategory?: string
+  appName?: string
+  testSteps?: string
+  expectedResult?: string
+  scriptExists: boolean
+  createdTime: string
+  updatedTime: string
+}
+
+export interface TestCaseListResponse {
+  data: TestCase[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface MissingScriptsResponse {
+  data: TestCase[]
+  count: number
+}

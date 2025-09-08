@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
 import com.huawei.dialtest.center.service.TestCaseSetService;
 
@@ -31,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -256,6 +258,66 @@ public class TestCaseSetController {
             return ResponseEntity.badRequest().build();
         } catch (DataAccessException e) {
             logger.error("Database error while updating test case set: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 获取用例集的测试用例列表
+     *
+     * @param id 用例集ID
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 测试用例分页数据
+     */
+    @GetMapping("/{id}/test-cases")
+    public ResponseEntity<Map<String, Object>> getTestCases(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        logger.info("Getting test cases for test case set: {}, page: {}, size: {}", id, page, pageSize);
+        try {
+            Page<TestCase> testCases = testCaseSetService.getTestCases(id, page, pageSize);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", testCases.getContent());
+            response.put("total", testCases.getTotalElements());
+            response.put("page", page);
+            response.put("pageSize", pageSize);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (DataAccessException e) {
+            logger.error("Database error while getting test cases: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 获取用例集中没有脚本的测试用例列表
+     *
+     * @param id 用例集ID
+     * @return 没有脚本的测试用例列表
+     */
+    @GetMapping("/{id}/missing-scripts")
+    public ResponseEntity<Map<String, Object>> getMissingScripts(@PathVariable Long id) {
+        logger.info("Getting missing scripts for test case set: {}", id);
+        try {
+            List<TestCase> missingScripts = testCaseSetService.getMissingScripts(id);
+            long missingCount = testCaseSetService.countMissingScripts(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", missingScripts);
+            response.put("count", missingCount);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (DataAccessException e) {
+            logger.error("Database error while getting missing scripts: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
