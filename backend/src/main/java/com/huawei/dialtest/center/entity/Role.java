@@ -23,11 +23,9 @@ public enum Role {
 
     /**
      * 角色构造函数
-     * 
+     *
      * @param description 角色描述
      * @param permission 权限说明
-     * @author g00940940
-     * @since 2025-09-06
      */
     Role(String description, String permission) {
         this.description = description;
@@ -36,10 +34,8 @@ public enum Role {
 
     /**
      * 获取角色描述
-     * 
+     *
      * @return 角色描述
-     * @author g00940940
-     * @since 2025-09-06
      */
     public String getDescription() {
         return description;
@@ -47,10 +43,8 @@ public enum Role {
 
     /**
      * 获取权限说明
-     * 
+     *
      * @return 权限说明
-     * @author g00940940
-     * @since 2025-09-06
      */
     public String getPermission() {
         return permission;
@@ -58,10 +52,8 @@ public enum Role {
 
     /**
      * 检查角色是否有管理员权限
-     * 
+     *
      * @return 如果是管理员角色返回true，否则返回false
-     * @author g00940940
-     * @since 2025-09-06
      */
     public boolean isAdmin() {
         return this == ADMIN;
@@ -69,10 +61,8 @@ public enum Role {
 
     /**
      * 检查角色是否可以管理用户
-     * 
+     *
      * @return 如果可以管理用户返回true，否则返回false
-     * @author g00940940
-     * @since 2025-09-06
      */
     public boolean canManageUsers() {
         return this == ADMIN;
@@ -80,10 +70,8 @@ public enum Role {
 
     /**
      * 检查角色是否可以执行拨测任务
-     * 
+     *
      * @return 如果可以执行拨测任务返回true，否则返回false
-     * @author g00940940
-     * @since 2025-09-06
      */
     public boolean canExecuteTasks() {
         return this == ADMIN || this == OPERATOR;
@@ -91,10 +79,8 @@ public enum Role {
 
     /**
      * 检查角色是否可以注册执行机
-     * 
+     *
      * @return 如果可以注册执行机返回true，否则返回false
-     * @author g00940940
-     * @since 2025-09-06
      */
     public boolean canRegisterExecutor() {
         return this == ADMIN || this == EXECUTOR;

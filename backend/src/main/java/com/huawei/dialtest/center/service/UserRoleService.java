@@ -169,7 +169,7 @@ public class UserRoleService {
             throw new IllegalArgumentException("Role cannot be null");
         }
 
-        logger.info("删除用户角色关系: {} - {}", username, role);
+        logger.info("Deleting user role relationship: {} - {}", username, role);
         userRoleRepository.deleteByUsernameAndRole(username.trim(), role);
     }
 
@@ -180,7 +180,7 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public boolean hasAdminUser() {
         boolean hasAdmin = userRoleRepository.existsByRole(Role.ADMIN);
-        logger.debug("检查是否存在管理员: {}", hasAdmin);
+        logger.debug("Checking if admin exists: {}", hasAdmin);
         return hasAdmin;
     }
 
