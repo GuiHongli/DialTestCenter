@@ -1,7 +1,7 @@
 import {
   DeleteOutlined,
   DownloadOutlined,
-  EditOutlined,
+  ExclamationCircleOutlined,
   FileTextOutlined,
   FileZipOutlined,
   PlusOutlined,
@@ -46,7 +46,30 @@ const TestCaseSetManagement: React.FC = () => {
     try {
       setLoading(true)
       const response = await testCaseSetService.getTestCaseSets(page, pageSize)
-      setTestCaseSets(response.data)
+      
+      // 为每个用例集加载缺失脚本数量
+      const testCaseSetsWithMissingCount = await Promise.all(
+        response.data.map(async (testCaseSet) => {
+          try {
+            const missingScriptsResponse = await testCaseSetService.getMissingScripts(testCaseSet.id)
+            // 只有当缺失脚本数量大于0时才设置字段
+            if (missingScriptsResponse.count > 0) {
+              return {
+                ...testCaseSet,
+                missingScriptsCount: missingScriptsResponse.count
+              }
+            } else {
+              // 没有缺失脚本时，不设置missingScriptsCount字段
+              return testCaseSet
+            }
+          } catch (error) {
+            // 如果获取缺失脚本数量失败，不设置字段
+            return testCaseSet
+          }
+        })
+      )
+      
+      setTestCaseSets(testCaseSetsWithMissingCount)
       setPagination({
         current: response.page,
         pageSize: response.pageSize,
@@ -146,12 +169,34 @@ const TestCaseSetManagement: React.FC = () => {
       render: (text: string, record: TestCaseSet) => (
         <Space>
           <FileZipOutlined />
-          <span>{text}</span>
+          <span 
+            style={{ 
+              cursor: 'pointer', 
+              color: '#1890ff',
+              textDecoration: 'underline'
+            }}
+            onClick={() => handleViewDetails(record)}
+            title="点击查看测试用例详情"
+          >
+            {text}
+          </span>
           <Tag color="blue">{record.version}</Tag>
           {record.fileFormat && (
             <Tag color={record.fileFormat === 'tar.gz' ? 'green' : 'blue'}>
               {record.fileFormat.toUpperCase()}
             </Tag>
+          )}
+          {record.missingScriptsCount && record.missingScriptsCount > 0 && (
+            <Tooltip title={`有 ${record.missingScriptsCount} 个测试用例缺少脚本文件`}>
+              <Tag 
+                color="warning" 
+                icon={<ExclamationCircleOutlined />}
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleViewDetails(record)}
+              >
+                缺失脚本 ({record.missingScriptsCount})
+              </Tag>
+            </Tooltip>
           )}
         </Space>
       ),
@@ -201,13 +246,6 @@ const TestCaseSetManagement: React.FC = () => {
               type="text"
               icon={<DownloadOutlined />}
               onClick={() => handleDownload(record)}
-            />
-          </Tooltip>
-          <Tooltip title={translateTestCaseSet('table.edit')}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => message.info(translateTestCaseSet('editFeaturePending'))}
             />
           </Tooltip>
           <Tooltip title={translateTestCaseSet('table.delete')}>
