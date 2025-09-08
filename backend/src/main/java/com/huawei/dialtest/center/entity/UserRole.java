@@ -58,7 +58,7 @@ public class UserRole {
 
     /**
      * 默认构造函数
-     * 
+     *
      * @author g00940940
      * @since 2025-09-06
      */
@@ -66,7 +66,7 @@ public class UserRole {
 
     /**
      * 带参数构造函数，用于创建新的用户角色关系实例
-     * 
+     *
      * @param username 用户名
      * @param role 角色类型
      * @author g00940940

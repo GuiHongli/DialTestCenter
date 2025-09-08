@@ -36,7 +36,7 @@ public class UserRoleService {
 
     /**
      * 根据用户名获取用户角色列表
-     * 
+     *
      * @param username 用户名，不能为空
      * @return 用户角色列表
      * @throws IllegalArgumentException 当用户名为空时抛出
@@ -53,7 +53,7 @@ public class UserRoleService {
 
     /**
      * 根据用户名获取角色枚举列表
-     * 
+     *
      * @param username 用户名，不能为空
      * @return 角色枚举列表
      * @throws IllegalArgumentException 当用户名为空时抛出
@@ -70,7 +70,7 @@ public class UserRoleService {
 
     /**
      * 获取所有用户角色关系
-     * 
+     *
      * @return 所有用户角色关系列表
      */
     @Transactional(readOnly = true)
@@ -81,7 +81,7 @@ public class UserRoleService {
 
     /**
      * 保存用户角色关系
-     * 
+     *
      * @param userRole 用户角色关系，不能为空
      * @return 保存后的用户角色关系
      * @throws IllegalArgumentException 当用户角色为空时抛出
@@ -121,7 +121,7 @@ public class UserRoleService {
 
     /**
      * 根据ID查找用户角色关系
-     * 
+     *
      * @param id ID，不能为空
      * @return 用户角色关系
      * @throws IllegalArgumentException 当ID为空时抛出
@@ -138,7 +138,7 @@ public class UserRoleService {
 
     /**
      * 根据ID删除用户角色关系
-     * 
+     *
      * @param id ID，不能为空
      * @throws IllegalArgumentException 当ID为空或用户角色关系不存在时抛出
      */

@@ -85,7 +85,7 @@ public class UserRoleController {
 - **Provide clear description of method functionality**
 - **Use @param, @return, @throws tags as needed**
 - **One empty line between description and tags**
-- **Description与tags之间的空行必须完全为空，不能包含任何字符（如空格、tab等）**
+- **Empty line between description and tags must be completely empty, containing no characters (spaces, tabs, etc.)**
 
 #### Method Javadoc Format
 ```java
@@ -120,20 +120,26 @@ public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRoleReque
 ## Code Formatting Rules (MANDATORY)
 
 ### Method Declaration Formatting
-- **Javadoc注释和方法声明之间不能有空行**
-- **方法声明和左大括号之间不能有空行**
-- **方法声明和实现必须紧挨在一起**
+- **No empty lines between Javadoc comments and method declaration**
+- **No empty lines between method declaration and opening brace**
+- **Method declaration and implementation must be adjacent**
 
 ### Class Structure Formatting
-- **类定义与变量定义之间不需要空行**
-- **try包裹的语句块，最后一行实现和}之间不需要空行**
-- **所有Java文件的末尾行必须增加空行**
+- **No empty lines between class definition and variable declaration**
+- **No empty lines between last statement and closing brace in try blocks**
+- **All Java files must end with an empty line**
 
 ### Empty Line Formatting (MANDATORY)
-- **空行必须保持字符为空，不能存在任何字符**
-- **空行不能包含空格、tab、或其他空白字符**
-- **空行必须完全为空**
-- **Javadoc中description与tags之间的空行也必须完全为空**
+- **Empty lines must remain empty, containing no characters**
+- **Empty lines cannot contain spaces, tabs, or other whitespace characters**
+- **Empty lines must be completely empty**
+- **Empty lines between Javadoc description and tags must also be completely empty**
+
+#### Javadoc Empty Line Validation (MANDATORY)
+- **All Javadoc empty lines must use `*` instead of `* ` (no space after asterisk)**
+- **Check command**: `grep -n "^ \* $" *.java` should return empty result
+- **Fix command**: `sed -i 's/^ \* $/ */' *.java`
+- **Verify command**: `hexdump -C` to check empty line content, should only contain asterisk and newline
 
 #### Correct Formatting Examples
 
@@ -211,6 +217,18 @@ public List<UserRole> getUserRoles(String username) {
 }
 ```
 
+**Javadoc Empty Line Validation:**
+```bash
+# Check for Javadoc empty lines containing spaces
+grep -n "^ \* $" *.java
+
+# Fix all Javadoc empty lines containing spaces
+find . -name "*.java" -exec sed -i 's/^ \* $/ */' {} \;
+
+# Verify fix results
+grep -n "^ \* $" *.java  # Should return empty result
+```
+
 ## Javadoc Standards Summary
 
 ### Class Level
@@ -224,7 +242,7 @@ public List<UserRole> getUserRoles(String username) {
 - Document return values with @return
 - Document thrown exceptions with @throws
 - One empty line between description and tags
-- Description与tags之间的空行必须完全为空，不能包含任何字符
+- Empty line between description and tags must be completely empty, containing no characters
 
 ### Formatting
 - No empty lines between Javadoc and method signature
@@ -232,6 +250,13 @@ public List<UserRole> getUserRoles(String username) {
 - No empty lines between class definition and variable declaration
 - No empty lines between last statement and closing brace in try blocks
 - All Java files must end with an empty line
+
+### Validation Requirements (MANDATORY)
+- **Javadoc empty line validation**: Use `grep -n "^ \* $" *.java` to check, must return empty result
+- **Empty line content validation**: Use `hexdump -C` to check, empty lines can only contain asterisk and newline
+- **Automatic fix**: Use `sed -i 's/^ \* $/ */' *.java` to fix all Javadoc empty lines containing spaces
+- **Automation script**: Use `./scripts/validate-javadoc.sh` to automatically check and fix all Javadoc empty line format issues
+- **Comprehensive validation**: Use `./scripts/validate-code-format.sh` to validate all code format rules
 
 ## Complete Example
 
