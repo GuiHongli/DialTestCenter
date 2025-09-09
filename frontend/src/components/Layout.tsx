@@ -7,6 +7,7 @@ import {
     MenuUnfoldOutlined,
     SettingOutlined,
     UserOutlined,
+    AppstoreOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Dropdown, Menu, Space, theme } from 'antd'
 import React, { useState } from 'react'
@@ -54,6 +55,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           key: '/test-case-sets',
           icon: <FileZipOutlined />,
           label: translateNavigation('testCaseSetManagement'),
+        },
+        {
+          key: '/software-packages',
+          icon: <AppstoreOutlined />,
+          label: translateNavigation('softwarePackageManagement'),
         },
       ],
     },
