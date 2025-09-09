@@ -311,12 +311,12 @@ export const UserRoleManagement: React.FC = () => {
         alignItems: 'center', 
         marginBottom: '24px' 
       }}>
-        <div>
-          <Title level={2} style={{ margin: 0 }}>
+        <div style={{ textAlign: 'left' }}>
+          <Title level={2} style={{ margin: 0, textAlign: 'left' }}>
             <TeamOutlined style={{ marginRight: '8px' }} />
             {translateUserRole('title')}
           </Title>
-          <Text type="secondary" style={{ fontSize: '14px' }}>
+          <Text type="secondary" style={{ fontSize: '14px', textAlign: 'left' }}>
             {translateUserRole('currentUserRoles')}: {currentUserRoles.length > 0 ? currentUserRoles.join(', ') : translateUserRole('noPermission')}
           </Text>
           {/* 测试用角色切换按钮 */}

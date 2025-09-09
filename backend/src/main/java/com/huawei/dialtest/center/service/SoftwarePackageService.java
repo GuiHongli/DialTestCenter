@@ -32,7 +32,7 @@ import java.util.zip.ZipInputStream;
  * 支持APK和IPA格式的文件处理，以及ZIP包批量上传
  *
  * @author g00940940
- * @since 2025-01-15
+ * @since 2025-09-09
  */
 @Service
 public class SoftwarePackageService {

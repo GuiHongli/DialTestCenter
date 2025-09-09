@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * 测试实体类的基本功能，包括构造函数、getter/setter、equals/hashCode、toString等方法
  *
  * @author g00940940
- * @since 2025-01-15
+ * @since 2025-09-09
  */
 public class SoftwarePackageTest {
 

@@ -22,7 +22,7 @@ import java.util.Optional;
  * 支持按平台、创建者、软件名称等条件进行查询
  *
  * @author g00940940
- * @since 2025-01-15
+ * @since 2025-09-09
  */
 @Repository
 public interface SoftwarePackageRepository extends JpaRepository<SoftwarePackage, Long> {

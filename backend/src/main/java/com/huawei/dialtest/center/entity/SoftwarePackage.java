@@ -23,7 +23,7 @@ import javax.persistence.Table;
  * 提供完整的CRUD操作支持，包括文件上传、下载、查询等功能
  *
  * @author g00940940
- * @since 2025-01-15
+ * @since 2025-09-09
  */
 @Entity
 @Table(name = "software_package")
@@ -68,7 +68,7 @@ public class SoftwarePackage {
      * 默认构造函数
      *
      * @author g00940940
-     * @since 2025-01-15
+     * @since 2025-09-09
      */
     public SoftwarePackage() {}
 
@@ -83,7 +83,7 @@ public class SoftwarePackage {
      * @param fileSize 文件大小
      * @param sha512 文件内容的SHA512哈希值
      * @author g00940940
-     * @since 2025-01-15
+     * @since 2025-09-09
      */
     public SoftwarePackage(String softwareName, byte[] fileContent, String fileFormat, 
                           String platform, String creator, Long fileSize, String sha512) {

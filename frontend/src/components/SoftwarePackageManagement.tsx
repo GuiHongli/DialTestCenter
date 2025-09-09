@@ -20,7 +20,7 @@ import {
   Col,
   Tag,
   Tooltip,
-  InputNumber,
+  Typography,
 } from 'antd';
 import {
   UploadOutlined,
@@ -31,6 +31,8 @@ import {
   FileZipOutlined,
   AndroidOutlined,
   AppleOutlined,
+  ReloadOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { 
@@ -51,6 +53,7 @@ import {
 const { Dragger } = Upload;
 const { Option } = Select;
 const { TextArea } = Input;
+const { Title, Text } = Typography;
 
 interface SoftwarePackageManagementProps {
   // 可以添加props类型定义
@@ -206,22 +209,58 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
     }
   };
 
+  // 格式化文件大小
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    if (i === 0) {
+      return `${bytes} ${sizes[i]}`;
+    } else {
+      return `${(bytes / Math.pow(k, i)).toFixed(i === 1 ? 0 : 2)} ${sizes[i]}`;
+    }
+  };
+
+  // 格式化日期时间
+  const formatDateTime = (dateTime: string) => {
+    return new Date(dateTime).toLocaleString('zh-CN');
+  };
+
   // 表格列定义
   const columns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+      sorter: (a: SoftwarePackage, b: SoftwarePackage) => a.id - b.id,
+    },
     {
       title: '软件名称',
       dataIndex: 'softwareName',
       key: 'softwareName',
-      render: (text: string, record: SoftwarePackage) => (
-        <div>
-          <div>{text}</div>
-        </div>
+      width: 200,
+      sorter: (a: SoftwarePackage, b: SoftwarePackage) => a.softwareName.localeCompare(b.softwareName),
+      render: (text: string) => (
+        <Space>
+          <AppstoreOutlined />
+          <Text strong>{text}</Text>
+        </Space>
       ),
     },
     {
       title: '平台',
       dataIndex: 'platform',
       key: 'platform',
+      width: 120,
+      filters: [
+        { text: 'Android', value: 'android' },
+        { text: 'iOS', value: 'ios' },
+      ],
+      onFilter: (value: any, record: SoftwarePackage) => record.platform === value,
       render: (platform: string) => (
         <Tag color={platform === 'android' ? 'green' : 'blue'} icon={platform === 'android' ? <AndroidOutlined /> : <AppleOutlined />}>
           {platform === 'android' ? 'Android' : 'iOS'}
@@ -232,64 +271,60 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
       title: '文件大小',
       dataIndex: 'fileSize',
       key: 'fileSize',
-      render: (size: number) => {
-        const formatFileSize = (bytes: number): string => {
-          if (bytes === 0) return '0 B';
-          
-          const k = 1024;
-          const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-          const i = Math.floor(Math.log(bytes) / Math.log(k));
-          
-          if (i === 0) {
-            return `${bytes} ${sizes[i]}`;
-          } else {
-            return `${(bytes / Math.pow(k, i)).toFixed(i === 1 ? 0 : 2)} ${sizes[i]}`;
-          }
-        };
-        
-        return formatFileSize(size);
-      },
+      width: 120,
+      sorter: (a: SoftwarePackage, b: SoftwarePackage) => a.fileSize - b.fileSize,
+      render: (size: number) => formatFileSize(size),
     },
     {
       title: '创建者',
       dataIndex: 'creator',
       key: 'creator',
+      width: 120,
+      sorter: (a: SoftwarePackage, b: SoftwarePackage) => a.creator.localeCompare(b.creator),
     },
     {
       title: '创建时间',
       dataIndex: 'createdTime',
       key: 'createdTime',
-      render: (time: string) => new Date(time).toLocaleString(),
+      width: 180,
+      sorter: (a: SoftwarePackage, b: SoftwarePackage) => 
+        new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime(),
+      render: (text: string) => formatDateTime(text),
     },
     {
       title: '操作',
       key: 'action',
+      width: 150,
       render: (_, record: SoftwarePackage) => (
         <Space size="small">
           <Tooltip title="下载">
             <Button
-              type="link"
+              type="text"
               icon={<DownloadOutlined />}
               onClick={() => handleDownload(record)}
             />
           </Tooltip>
           <Tooltip title="编辑">
             <Button
-              type="link"
+              type="text"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
-          <Tooltip title="删除">
-            <Popconfirm
-              title="确定要删除这个软件包吗？"
-              onConfirm={() => handleDelete(record.id)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="link" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Tooltip>
+          <Popconfirm
+            title="确定要删除这个软件包吗？"
+            onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Tooltip title="删除">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -297,93 +332,113 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
 
   return (
     <div style={{ padding: '24px' }}>
-      <Card title="软件包管理" style={{ marginBottom: '16px' }}>
-        {/* 统计信息 */}
-        <Row gutter={16} style={{ marginBottom: '16px' }}>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="Android软件包"
-                value={statistics.android}
-                prefix={<AndroidOutlined />}
-                valueStyle={{ color: '#3f8600' }}
-              />
-            </Card>
-          </Col>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="iOS软件包"
-                value={statistics.ios}
-                prefix={<AppleOutlined />}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="总计"
-                value={statistics.total}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        {/* 操作按钮 */}
-        <div style={{ marginBottom: '16px' }}>
-          <Space>
-            <Button
-              type="primary"
-              icon={<UploadOutlined />}
-              onClick={() => {
-                setUploadType('single');
-                setUploadModalVisible(true);
-              }}
-            >
-              上传单个软件包
-            </Button>
-            <Button
-              icon={<FileZipOutlined />}
-              onClick={() => {
-                setUploadType('zip');
-                setUploadModalVisible(true);
-              }}
-            >
-              上传ZIP包
-            </Button>
-          </Space>
+      {/* 页面标题和操作按钮 */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '24px' 
+      }}>
+        <div style={{ textAlign: 'left' }}>
+          <Title level={2} style={{ margin: 0, textAlign: 'left' }}>
+            <AppstoreOutlined style={{ marginRight: '8px' }} />
+            软件包管理
+          </Title>
+          <Text type="secondary" style={{ fontSize: '14px', textAlign: 'left' }}>
+            管理Android和iOS软件包，支持上传、下载、编辑和删除操作
+          </Text>
         </div>
+        <Space>
+          <Button
+            type="primary"
+            icon={<UploadOutlined />}
+            onClick={() => {
+              setUploadType('single');
+              setUploadModalVisible(true);
+            }}
+          >
+            上传单个软件包
+          </Button>
+          <Button
+            icon={<FileZipOutlined />}
+            onClick={() => {
+              setUploadType('zip');
+              setUploadModalVisible(true);
+            }}
+          >
+            上传ZIP包
+          </Button>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => loadSoftwarePackages()}
+          >
+            刷新
+          </Button>
+        </Space>
+      </div>
 
-        {/* 筛选器 */}
-        <div style={{ marginBottom: '16px' }}>
-          <Space>
-            <Select
-              placeholder="选择平台"
-              style={{ width: 120 }}
-              allowClear
-              onChange={(value) => {
-                setFilters(prev => ({ ...prev, platform: value }));
-                loadSoftwarePackages({ platform: value });
-              }}
-            >
-              <Option value="android">Android</Option>
-              <Option value="ios">iOS</Option>
-            </Select>
-            <Input
-              placeholder="搜索软件名称"
-              style={{ width: 200 }}
-              onChange={(e) => {
-                const value = e.target.value;
-                setFilters(prev => ({ ...prev, softwareName: value }));
-                loadSoftwarePackages({ softwareName: value });
-              }}
+      {/* 统计信息卡片 */}
+      <Row gutter={16} style={{ marginBottom: '24px' }}>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Android软件包"
+              value={statistics.android}
+              prefix={<AndroidOutlined />}
+              valueStyle={{ color: '#3f8600' }}
             />
-          </Space>
-        </div>
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="iOS软件包"
+              value={statistics.ios}
+              prefix={<AppleOutlined />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="总计"
+              value={statistics.total}
+              valueStyle={{ color: '#722ed1' }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-        {/* 软件包列表 */}
+      {/* 筛选器 */}
+      <Card style={{ marginBottom: '16px' }}>
+        <Space>
+          <Select
+            placeholder="选择平台"
+            style={{ width: 120 }}
+            allowClear
+            onChange={(value) => {
+              setFilters(prev => ({ ...prev, platform: value }));
+              loadSoftwarePackages({ platform: value });
+            }}
+          >
+            <Option value="android">Android</Option>
+            <Option value="ios">iOS</Option>
+          </Select>
+          <Input
+            placeholder="搜索软件名称"
+            style={{ width: 200 }}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFilters(prev => ({ ...prev, softwareName: value }));
+              loadSoftwarePackages({ softwareName: value });
+            }}
+          />
+        </Space>
+      </Card>
+
+      {/* 软件包列表 */}
+      <Card>
         <Table
           columns={columns}
           dataSource={softwarePackages}
@@ -399,6 +454,8 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
               loadSoftwarePackages({ page, pageSize });
             },
           }}
+          scroll={{ x: 800 }}
+          size="middle"
         />
       </Card>
 

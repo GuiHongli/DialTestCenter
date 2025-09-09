@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
  * 测试软件包控制器的REST API接口，包括HTTP请求处理、响应格式等
  *
  * @author g00940940
- * @since 2025-01-15
+ * @since 2025-09-09
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SoftwarePackageControllerTest {
