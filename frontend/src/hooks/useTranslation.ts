@@ -32,6 +32,16 @@ export const useTranslation = () => {
     return t(`home.${key}`, options)
   }
 
+  // 用户相关翻译
+  const translateUser = (key: string, options?: any) => {
+    return t(`user.${key}`, options)
+  }
+
+  // 软件包相关翻译
+  const translateSoftwarePackage = (key: string, options?: any) => {
+    return t(`softwarePackage.${key}`, options)
+  }
+
   // 用户角色相关翻译
   const translateUserRole = (key: string, options?: any) => {
     return t(`userRole.${key}`, options)
@@ -54,6 +64,8 @@ export const useTranslation = () => {
     translateApp,
     translateNavigation,
     translateHome,
+    translateUser,
+    translateSoftwarePackage,
     translateUserRole,
     translateTestCaseSet,
     translateLanguage,

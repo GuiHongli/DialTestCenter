@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
  */
 
-package com.dialtest.center.entity;
+package com.huawei.dialtest.center.entity;
 
 import com.huawei.dialtest.center.entity.SoftwarePackage;
 

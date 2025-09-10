@@ -176,7 +176,7 @@ const TestCaseSetManagement: React.FC = () => {
               textDecoration: 'underline'
             }}
             onClick={() => handleViewDetails(record)}
-            title="点击查看测试用例详情"
+            title={translateTestCaseSet('details.clickToViewDetails')}
           >
             {text}
           </span>
@@ -187,14 +187,14 @@ const TestCaseSetManagement: React.FC = () => {
             </Tag>
           )}
           {record.missingScriptsCount && record.missingScriptsCount > 0 && (
-            <Tooltip title={`有 ${record.missingScriptsCount} 个测试用例缺少脚本文件`}>
+            <Tooltip title={translateTestCaseSet('details.missingScriptsTooltip', { count: record.missingScriptsCount })}>
               <Tag 
                 color="warning" 
                 icon={<ExclamationCircleOutlined />}
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleViewDetails(record)}
               >
-                缺失脚本 ({record.missingScriptsCount})
+                {translateTestCaseSet('details.missingScriptsTag', { count: record.missingScriptsCount })}
               </Tag>
             </Tooltip>
           )}
@@ -208,7 +208,7 @@ const TestCaseSetManagement: React.FC = () => {
       width: 120,
     },
     {
-      title: '业务类型',
+      title: translateTestCaseSet('table.business'),
       dataIndex: 'business',
       key: 'business',
       width: 120,
@@ -241,7 +241,7 @@ const TestCaseSetManagement: React.FC = () => {
       width: 200,
       render: (_, record: TestCaseSet) => (
         <Space size="small">
-          <Tooltip title="查看测试用例">
+          <Tooltip title={translateTestCaseSet('table.viewTestCases')}>
             <Button
               type="text"
               icon={<FileTextOutlined />}

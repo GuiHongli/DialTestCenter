@@ -72,8 +72,10 @@
   "navigation": {
     "home": "Home",
     "dashboard": "Dashboard",
-    "userRoleManagement": "User Role Management",
-    "configManagement": "Config Management",
+    "userManagement": "User Management",
+    "userList": "Execution Machine Account Management",
+    "roleManagement": "Role Management",
+    "configManagement": "Dial Management",
     "testCaseSetManagement": "Test Case Set Management",
     "softwarePackageManagement": "Software Package Management"
   },
@@ -101,6 +103,99 @@
       "step2": "Start frontend service:",
       "step3": "Access system:",
       "step4": "View API documentation:"
+    }
+  },
+  "user": {
+    "title": "Execution Machine Account Management",
+    "description": "Manage system execution machines, support CRUD operations for execution machine accounts",
+    "addUser": "Add Execution Machine Account",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "confirmDelete": "Are you sure you want to delete this user?",
+    "deleteDescription": "This action cannot be undone",
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "deleteSuccess": "User deleted successfully",
+    "createFailed": "Failed to create user",
+    "updateFailed": "Failed to update user",
+    "deleteFailed": "Failed to delete user",
+    "loadFailed": "Failed to load user list",
+    "table": {
+      "id": "ID",
+      "username": "Execution Machine Account",
+      "lastLoginTime": "Last Login Time",
+      "createdTime": "Created Time",
+      "updatedTime": "Updated Time",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "form": {
+      "username": "Execution Machine Account",
+      "usernamePlaceholder": "Please enter execution machine account",
+      "password": "Password",
+      "passwordPlaceholder": "Please enter password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Please enter password again",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "filters": {
+      "searchUsername": "Search Execution Machine Account"
+    }
+  },
+  "softwarePackage": {
+    "title": "Software Package Management",
+    "description": "Manage Android and iOS software packages, support upload, download, edit and delete operations",
+    "uploadSingle": "Upload Single Package",
+    "uploadZip": "Upload ZIP Package",
+    "refresh": "Refresh",
+    "statistics": {
+      "android": "Android Packages",
+      "ios": "iOS Packages",
+      "total": "Total"
+    },
+    "filters": {
+      "platform": "Platform",
+      "platformPlaceholder": "Select Platform",
+      "softwareName": "Software Name",
+      "softwareNamePlaceholder": "Please enter software name"
+    },
+    "table": {
+      "id": "ID",
+      "softwareName": "Software Name",
+      "platform": "Platform",
+      "fileSize": "File Size",
+      "creator": "Creator",
+      "createdTime": "Created Time",
+      "actions": "Actions",
+      "download": "Download",
+      "edit": "Edit",
+      "delete": "Delete",
+      "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "modal": {
+      "editTitle": "Edit Software Package Information",
+      "uploadSingleTitle": "Upload Single Package",
+      "uploadZipTitle": "Upload ZIP Package",
+      "softwareName": "Software Name",
+      "softwareNamePlaceholder": "Please enter software name",
+      "description": "Description",
+      "uploadText": "Click or drag file to this area to upload",
+      "uploadHint": "Support file upload"
+    },
+    "messages": {
+      "loadFailed": "Failed to load software package list",
+      "deleteSuccess": "Delete successful",
+      "deleteFailed": "Delete failed",
+      "downloadSuccess": "Download successful",
+      "downloadFailed": "Download failed",
+      "updateSuccess": "Update successful",
+      "updateFailed": "Update failed",
+      "uploadSuccess": "Upload successful",
+      "uploadFailed": "Upload failed",
+      "zipUploadSuccess": "ZIP package upload successful, uploaded {{count}} software packages",
+      "confirmDelete": "Are you sure you want to delete this software package?"
     }
   },
   "userRole": {
@@ -172,6 +267,7 @@
     "table": {
       "name": "Test Case Set Name",
       "creator": "Creator",
+      "business": "Business Type",
       "fileSize": "File Size",
       "createdTime": "Created Time",
       "updatedTime": "Updated Time",
@@ -179,7 +275,37 @@
       "download": "Download",
       "edit": "Edit",
       "delete": "Delete",
+      "viewTestCases": "View Test Cases",
       "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "details": {
+      "title": "Test Case Details",
+      "totalCases": "Total Cases",
+      "matched": "Matched",
+      "missingScripts": "Missing Scripts",
+      "matchRate": "Match Rate",
+      "scriptIntegrity": "Script Integrity",
+      "missingScriptsAlert": "Missing Scripts Found",
+      "missingScriptsDescription": "{{count}} test cases are missing corresponding Python script files. Please check if the corresponding script files exist in the scripts directory.",
+      "viewDetails": "View Details",
+      "allCases": "All Cases",
+      "missingScriptsTab": "Missing Scripts",
+      "close": "Close",
+      "caseNumber": "Case Number",
+      "caseName": "Case Name",
+      "businessCategory": "Business Category",
+      "appName": "App Name",
+      "scriptStatus": "Script Status",
+      "missing": "Missing",
+      "action": "Action",
+      "details": "Details",
+      "testCaseDetailTitle": "Test Case Details - {{caseNumber}}",
+      "logicalNetwork": "Logical Network",
+      "testSteps": "Test Steps",
+      "expectedResult": "Expected Result",
+      "missingScriptsTooltip": "{{count}} test cases are missing script files",
+      "missingScriptsTag": "Missing Scripts ({{count}})",
+      "clickToViewDetails": "Click to view test case details"
     },
     "upload": {
       "title": "Upload Test Case Set",
@@ -193,65 +319,6 @@
       "fileName": "File Name",
       "fileSize": "File Size",
       "uploadProgress": "Upload Progress"
-    }
-  },
-  "softwarePackage": {
-    "title": "Software Package Management",
-    "uploadSinglePackage": "Upload Single Package",
-    "uploadZipPackage": "Upload ZIP Package",
-    "downloadSuccess": "Download successful",
-    "downloadFailed": "Download failed",
-    "deleteSuccess": "Delete successful",
-    "deleteFailed": "Delete failed",
-    "updateSuccess": "Update successful",
-    "updateFailed": "Update failed",
-    "loadFailed": "Failed to get software package list",
-    "confirmDelete": "Confirm Delete",
-    "deleteDescription": "Are you sure you want to delete this software package?",
-    "statistics": {
-      "androidPackages": "Android Packages",
-      "iosPackages": "iOS Packages",
-      "total": "Total"
-    },
-    "table": {
-      "softwareName": "Software Name",
-      "fileName": "File Name",
-      "platform": "Platform",
-      "version": "Version",
-      "fileSize": "File Size",
-      "creator": "Creator",
-      "createdTime": "Created Time",
-      "actions": "Actions",
-      "download": "Download",
-      "edit": "Edit",
-      "delete": "Delete",
-      "pagination": "{{start}}-{{end}} of {{total}} items"
-    },
-    "upload": {
-      "singleTitle": "Upload Single Package",
-      "zipTitle": "Upload ZIP Package",
-      "singleDragTip": "Click or drag APK/IPA file to this area to upload",
-      "zipDragTip": "Click or drag ZIP file to this area to upload",
-      "singleSupportFormat": "Support single APK or IPA file upload",
-      "zipSupportFormat": "Support ZIP package containing multiple APK/IPA files",
-      "fileSizeLimit": "File size should not exceed 500MB",
-      "zipFileSizeLimit": "ZIP file size should not exceed 1GB",
-      "uploading": "Uploading...",
-      "uploadSuccess": "Upload successful",
-      "uploadFailed": "Upload failed",
-      "zipUploadSuccess": "ZIP package upload successful, uploaded {{count}} software packages"
-    },
-    "form": {
-      "softwareName": "Software Name",
-      "softwareNamePlaceholder": "Please enter software name",
-      "version": "Version",
-      "versionPlaceholder": "Please enter version",
-      "description": "Description",
-      "descriptionPlaceholder": "Please enter description"
-    },
-    "filters": {
-      "platform": "Select Platform",
-      "searchSoftwareName": "Search Software Name"
     }
   },
   "language": {

@@ -1,5 +1,4 @@
 import {
-  BugOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   ExclamationCircleOutlined,
@@ -27,7 +26,7 @@ import { useTranslation } from '../hooks/useTranslation'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCase, TestCaseSet } from '../types/testCaseSet'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 interface TestCaseDetailsProps {
   visible: boolean
@@ -50,7 +49,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
     total: 0,
   })
 
-  const { translateTestCaseSet, translateCommon } = useTranslation()
+  const { translateTestCaseSet } = useTranslation()
 
   // 加载测试用例列表
   const loadTestCases = async (page: number = 1, pageSize: number = 10) => {
@@ -66,7 +65,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
         total: response.total,
       })
     } catch (error) {
-      message.error('获取测试用例列表失败')
+      message.error(translateTestCaseSet('loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -80,7 +79,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
       const response = await testCaseSetService.getMissingScripts(testCaseSet.id)
       setMissingScripts(response.data)
     } catch (error) {
-      message.error('获取缺失脚本信息失败')
+      message.error(translateTestCaseSet('loadFailed'))
     }
   }
 
@@ -116,7 +115,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
   // 测试用例表格列定义
   const testCaseColumns: ColumnsType<TestCase> = [
     {
-      title: '用例编号',
+      title: translateTestCaseSet('details.caseNumber'),
       dataIndex: 'caseNumber',
       key: 'caseNumber',
       width: 120,
@@ -132,39 +131,39 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
       ),
     },
     {
-      title: '用例名称',
+      title: translateTestCaseSet('details.caseName'),
       dataIndex: 'caseName',
       key: 'caseName',
       width: 200,
       ellipsis: true,
     },
     {
-      title: '业务大类',
+      title: translateTestCaseSet('details.businessCategory'),
       dataIndex: 'businessCategory',
       key: 'businessCategory',
       width: 120,
       ellipsis: true,
     },
     {
-      title: 'App名称',
+      title: translateTestCaseSet('details.appName'),
       dataIndex: 'appName',
       key: 'appName',
       width: 120,
       ellipsis: true,
     },
     {
-      title: '脚本状态',
+      title: translateTestCaseSet('details.scriptStatus'),
       dataIndex: 'scriptExists',
       key: 'scriptExists',
       width: 100,
       render: (exists: boolean) => (
         <Tag color={exists ? 'success' : 'error'}>
-          {exists ? '已匹配' : '缺失'}
+          {exists ? translateTestCaseSet('details.matched') : translateTestCaseSet('details.missing')}
         </Tag>
       ),
     },
     {
-      title: '操作',
+      title: translateTestCaseSet('details.action'),
       key: 'action',
       width: 80,
       render: (_, record: TestCase) => (
@@ -173,7 +172,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
           size="small"
           onClick={() => showTestCaseDetail(record)}
         >
-          详情
+          {translateTestCaseSet('details.details')}
         </Button>
       ),
     },
@@ -182,26 +181,26 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
   // 显示测试用例详情
   const showTestCaseDetail = (testCase: TestCase) => {
     Modal.info({
-      title: `测试用例详情 - ${testCase.caseNumber}`,
+      title: translateTestCaseSet('details.testCaseDetailTitle', { caseNumber: testCase.caseNumber }),
       width: 800,
       content: (
         <Descriptions column={1} bordered>
-          <Descriptions.Item label="用例名称">{testCase.caseName}</Descriptions.Item>
-          <Descriptions.Item label="用例编号">{testCase.caseNumber}</Descriptions.Item>
-          <Descriptions.Item label="逻辑组网">{testCase.networkTopology || '-'}</Descriptions.Item>
-          <Descriptions.Item label="业务大类">{testCase.businessCategory || '-'}</Descriptions.Item>
-          <Descriptions.Item label="App名称">{testCase.appName || '-'}</Descriptions.Item>
-          <Descriptions.Item label="脚本状态">
+          <Descriptions.Item label={translateTestCaseSet('details.caseName')}>{testCase.caseName}</Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.caseNumber')}>{testCase.caseNumber}</Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.logicalNetwork')}>{testCase.networkTopology || '-'}</Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.businessCategory')}>{testCase.businessCategory || '-'}</Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.appName')}>{testCase.appName || '-'}</Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.scriptStatus')}>
             <Tag color={testCase.scriptExists ? 'success' : 'error'}>
-              {testCase.scriptExists ? '已匹配' : '缺失'}
+              {testCase.scriptExists ? translateTestCaseSet('details.matched') : translateTestCaseSet('details.missing')}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="测试步骤" span={2}>
+          <Descriptions.Item label={translateTestCaseSet('details.testSteps')} span={2}>
             <div style={{ maxHeight: '200px', overflow: 'auto' }}>
               {testCase.testSteps || '-'}
             </div>
           </Descriptions.Item>
-          <Descriptions.Item label="预期结果" span={2}>
+          <Descriptions.Item label={translateTestCaseSet('details.expectedResult')} span={2}>
             <div style={{ maxHeight: '200px', overflow: 'auto' }}>
               {testCase.expectedResult || '-'}
             </div>
@@ -216,7 +215,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
       title={
         <Space>
           <FileTextOutlined />
-          <span>测试用例详情</span>
+          <span>{translateTestCaseSet('details.title')}</span>
           {testCaseSet && (
             <Tag color="blue">{testCaseSet.name} - {testCaseSet.version}</Tag>
           )}
@@ -227,7 +226,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
       width={1200}
       footer={[
         <Button key="close" onClick={onCancel}>
-          关闭
+          {translateTestCaseSet('details.close')}
         </Button>,
       ]}
     >
@@ -241,7 +240,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                   <div>
                     <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.totalCases}</div>
-                    <div style={{ color: '#666' }}>总用例数</div>
+                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.totalCases')}</div>
                   </div>
                 </Space>
               </Card>
@@ -252,7 +251,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                   <CheckCircleOutlined style={{ color: '#52c41a' }} />
                   <div>
                     <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.matchedCount}</div>
-                    <div style={{ color: '#666' }}>已匹配</div>
+                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.matched')}</div>
                   </div>
                 </Space>
               </Card>
@@ -263,7 +262,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                   <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
                   <div>
                     <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.missingCount}</div>
-                    <div style={{ color: '#666' }}>缺失脚本</div>
+                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.missingScripts')}</div>
                   </div>
                 </Space>
               </Card>
@@ -273,8 +272,8 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                 <Space>
                   <Badge count={`${stats.matchRate}%`} style={{ backgroundColor: '#52c41a' }} />
                   <div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>匹配率</div>
-                    <div style={{ color: '#666' }}>脚本完整性</div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{translateTestCaseSet('details.matchRate')}</div>
+                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.scriptIntegrity')}</div>
                   </div>
                 </Space>
               </Card>
@@ -284,8 +283,8 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
           {/* 缺失脚本警告 */}
           {stats.missingCount > 0 && (
             <Alert
-              message="发现缺失脚本"
-              description={`有 ${stats.missingCount} 个测试用例缺少对应的Python脚本文件。请检查scripts目录下是否存在对应的脚本文件。`}
+              message={translateTestCaseSet('details.missingScriptsAlert')}
+              description={translateTestCaseSet('details.missingScriptsDescription', { count: stats.missingCount })}
               type="warning"
               icon={<ExclamationCircleOutlined />}
               showIcon
@@ -296,7 +295,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                   type="primary"
                   onClick={() => setActiveTab('missing')}
                 >
-                  查看详情
+                  {translateTestCaseSet('details.viewDetails')}
                 </Button>
               }
             />
@@ -309,14 +308,14 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                 type={activeTab === 'all' ? 'primary' : 'default'}
                 onClick={() => setActiveTab('all')}
               >
-                所有用例 ({stats.totalCases})
+                {translateTestCaseSet('details.allCases')} ({stats.totalCases})
               </Button>
               <Button
                 type={activeTab === 'missing' ? 'primary' : 'default'}
                 danger={stats.missingCount > 0}
                 onClick={() => setActiveTab('missing')}
               >
-                缺失脚本 ({stats.missingCount})
+                {translateTestCaseSet('details.missingScriptsTab')} ({stats.missingCount})
               </Button>
             </Space>
           </div>
@@ -333,7 +332,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
                 showSizeChanger: true,
                 showQuickJumper: true,
                 showTotal: (total, range) =>
-                  `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+                  translateTestCaseSet('table.pagination', { start: range[0], end: range[1], total }),
               }}
               onChange={handleTableChange}
             />

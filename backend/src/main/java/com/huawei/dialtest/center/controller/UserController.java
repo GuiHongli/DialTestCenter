@@ -1,0 +1,322 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
+ */
+
+package com.huawei.dialtest.center.controller;
+
+import com.huawei.dialtest.center.entity.User;
+import com.huawei.dialtest.center.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * 用户控制器，提供用户管理的REST API接口
+ * 支持用户的创建、更新、删除、查询等操作
+ * 提供权限控制和数据验证功能
+ *
+ * @author g00940940
+ * @since 2025-09-09
+ */
+@RestController
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "*")
+public class UserController {
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 获取所有用户列表
+     *
+     * @return 用户列表
+     */
+    @GetMapping
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            logger.info("Received request to get all users");
+            List<User> users = userService.getAllUsers();
+            logger.info("Successfully retrieved {} users", users.size());
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            logger.error("Failed to get all users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to retrieve users"));
+        }
+    }
+
+    /**
+     * 根据ID获取用户
+     *
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        try {
+            logger.info("Received request to get user by ID: {}", id);
+            Optional<User> user = userService.getUserById(id);
+            if (user.isPresent()) {
+                logger.info("Successfully retrieved user: {}", user.get().getUsername());
+                return ResponseEntity.ok(user.get());
+            } else {
+                logger.warn("User not found with ID: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (RuntimeException e) {
+            logger.error("Failed to get user by ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to retrieve user"));
+        }
+    }
+
+    /**
+     * 根据用户名获取用户
+     *
+     * @param username 用户名
+     * @return 用户信息
+     */
+    @GetMapping("/username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+        try {
+            logger.info("Received request to get user by username: {}", username);
+            Optional<User> user = userService.getUserByUsername(username);
+            if (user.isPresent()) {
+                logger.info("Successfully retrieved user: {}", username);
+                return ResponseEntity.ok(user.get());
+            } else {
+                logger.warn("User not found with username: {}", username);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (RuntimeException e) {
+            logger.error("Failed to get user by username: {}", username, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to retrieve user"));
+        }
+    }
+
+    /**
+     * 创建新用户
+     *
+     * @param request 用户创建请求
+     * @return 创建的用户
+     */
+    @PostMapping
+    public ResponseEntity<?> createUser(@RequestBody Map<String, String> request) {
+        try {
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            logger.info("Received request to create user: {}", username);
+            
+            if (username == null || username.trim().isEmpty()) {
+                logger.warn("Username is required");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+            }
+            
+            if (password == null || password.trim().isEmpty()) {
+                logger.warn("Password is required");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Password is required"));
+            }
+
+            User user = userService.createUser(username.trim(), password);
+            logger.info("Successfully created user: {}", username);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse("VALIDATION_ERROR", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Failed to create user", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to create user"));
+        }
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param id 用户ID
+     * @param request 用户更新请求
+     * @return 更新后的用户
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        try {
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            logger.info("Received request to update user with ID: {}", id);
+            
+            if (username != null && username.trim().isEmpty()) {
+                logger.warn("Username cannot be empty");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Username cannot be empty"));
+            }
+
+            User user = userService.updateUser(id, username, password);
+            logger.info("Successfully updated user: {}", user.getUsername());
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse("VALIDATION_ERROR", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Failed to update user with ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to update user"));
+        }
+    }
+
+    /**
+     * 删除用户
+     *
+     * @param id 用户ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            logger.info("Received request to delete user with ID: {}", id);
+            userService.deleteUser(id);
+            logger.info("Successfully deleted user with ID: {}", id);
+            return ResponseEntity.ok(createSuccessResponse("User deleted successfully"));
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid request parameters: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse("VALIDATION_ERROR", e.getMessage()));
+        } catch (RuntimeException e) {
+            logger.error("Failed to delete user with ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to delete user"));
+        }
+    }
+
+    /**
+     * 根据用户名搜索用户
+     *
+     * @param username 用户名关键字
+     * @return 用户列表
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam String username) {
+        try {
+            logger.info("Received request to search users by username: {}", username);
+            List<User> users = userService.searchUsersByUsername(username);
+            logger.info("Found {} users matching username: {}", users.size(), username);
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            logger.error("Failed to search users by username: {}", username, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to search users"));
+        }
+    }
+
+    /**
+     * 验证用户密码
+     *
+     * @param request 密码验证请求
+     * @return 验证结果
+     */
+    @PostMapping("/validate-password")
+    public ResponseEntity<?> validatePassword(@RequestBody Map<String, String> request) {
+        try {
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            logger.info("Received request to validate password for user: {}", username);
+            
+            if (username == null || username.trim().isEmpty()) {
+                logger.warn("Username is required");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+            }
+            
+            if (password == null || password.trim().isEmpty()) {
+                logger.warn("Password is required");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Password is required"));
+            }
+
+            boolean isValid = userService.validatePassword(username.trim(), password);
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", isValid);
+            response.put("message", isValid ? "Password is valid" : "Password is invalid");
+            
+            logger.info("Password validation result for user {}: {}", username, isValid);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            logger.error("Failed to validate password for user: {}", request.get("username"), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to validate password"));
+        }
+    }
+
+    /**
+     * 更新用户最后登录时间
+     *
+     * @param request 登录时间更新请求
+     * @return 更新结果
+     */
+    @PostMapping("/update-login-time")
+    public ResponseEntity<?> updateLastLoginTime(@RequestBody Map<String, String> request) {
+        try {
+            String username = request.get("username");
+            
+            logger.info("Received request to update last login time for user: {}", username);
+            
+            if (username == null || username.trim().isEmpty()) {
+                logger.warn("Username is required");
+                return ResponseEntity.badRequest()
+                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+            }
+
+            userService.updateLastLoginTime(username.trim());
+            logger.info("Successfully updated last login time for user: {}", username);
+            return ResponseEntity.ok(createSuccessResponse("Last login time updated successfully"));
+        } catch (RuntimeException e) {
+            logger.error("Failed to update last login time for user: {}", request.get("username"), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("INTERNAL_ERROR", "Failed to update last login time"));
+        }
+    }
+
+    /**
+     * 创建错误响应
+     *
+     * @param code 错误代码
+     * @param message 错误消息
+     * @return 错误响应
+     */
+    private Map<String, Object> createErrorResponse(String code, String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("error", code);
+        response.put("message", message);
+        return response;
+    }
+
+    /**
+     * 创建成功响应
+     *
+     * @param message 成功消息
+     * @return 成功响应
+     */
+    private Map<String, Object> createSuccessResponse(String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", message);
+        return response;
+    }
+}

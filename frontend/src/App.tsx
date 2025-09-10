@@ -6,6 +6,7 @@ import './i18n'; // 初始化国际化
 import Home from './pages/Home'
 import TestCaseSetManagementPage from './pages/TestCaseSetManagement'
 import UserRoleManagementPage from './pages/UserRoleManagement'
+import UserManagementPage from './pages/UserManagement'
 import SoftwarePackageManagementPage from './pages/SoftwarePackageManagement'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Home />} />
+          <Route path="/users" element={<UserManagementPage />} />
           <Route path="/user-roles" element={<UserRoleManagementPage />} />
           <Route path="/test-case-sets" element={<TestCaseSetManagementPage />} />
           <Route path="/software-packages" element={<SoftwarePackageManagementPage />} />

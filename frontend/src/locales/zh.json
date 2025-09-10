@@ -72,8 +72,10 @@
   "navigation": {
     "home": "首页",
     "dashboard": "仪表板",
-    "userRoleManagement": "用户角色管理",
-    "configManagement": "配置管理",
+    "userManagement": "用户管理",
+    "userList": "执行机账号管理",
+    "roleManagement": "角色管理",
+    "configManagement": "拨测管理",
     "testCaseSetManagement": "用例集管理",
     "softwarePackageManagement": "软件包管理"
   },
@@ -101,6 +103,99 @@
       "step2": "启动前端服务：",
       "step3": "访问系统：",
       "step4": "查看API文档："
+    }
+  },
+  "user": {
+    "title": "执行机账号管理",
+    "description": "管理系统执行机，支持执行机账号的增删改查操作",
+    "addUser": "新增执行机账号",
+    "editUser": "编辑用户",
+    "deleteUser": "删除用户",
+    "confirmDelete": "确定要删除这个用户吗？",
+    "deleteDescription": "此操作不可撤销",
+    "createSuccess": "用户创建成功",
+    "updateSuccess": "用户更新成功",
+    "deleteSuccess": "用户删除成功",
+    "createFailed": "创建用户失败",
+    "updateFailed": "更新用户失败",
+    "deleteFailed": "删除用户失败",
+    "loadFailed": "加载用户列表失败",
+    "table": {
+      "id": "ID",
+      "username": "执行机账号",
+      "lastLoginTime": "最后登录时间",
+      "createdTime": "创建时间",
+      "updatedTime": "更新时间",
+      "actions": "操作",
+      "edit": "编辑",
+      "delete": "删除",
+      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+    },
+    "form": {
+      "username": "执行机账号",
+      "usernamePlaceholder": "请输入执行机账号",
+      "password": "密码",
+      "passwordPlaceholder": "请输入密码",
+      "confirmPassword": "确认密码",
+      "confirmPasswordPlaceholder": "请再次输入密码",
+      "passwordMismatch": "两次输入的密码不一致"
+    },
+    "filters": {
+      "searchUsername": "搜索执行机账号"
+    }
+  },
+  "softwarePackage": {
+    "title": "软件包管理",
+    "description": "管理Android和iOS软件包，支持上传、下载、编辑和删除操作",
+    "uploadSingle": "上传单个软件包",
+    "uploadZip": "上传ZIP包",
+    "refresh": "刷新",
+    "statistics": {
+      "android": "Android软件包",
+      "ios": "iOS软件包",
+      "total": "总计"
+    },
+    "filters": {
+      "platform": "平台",
+      "platformPlaceholder": "选择平台",
+      "softwareName": "软件名称",
+      "softwareNamePlaceholder": "请输入软件名称"
+    },
+    "table": {
+      "id": "ID",
+      "softwareName": "软件名称",
+      "platform": "平台",
+      "fileSize": "文件大小",
+      "creator": "创建者",
+      "createdTime": "创建时间",
+      "actions": "操作",
+      "download": "下载",
+      "edit": "编辑",
+      "delete": "删除",
+      "pagination": "第 {{start}}-{{end}} 条，共 {{total}} 条"
+    },
+    "modal": {
+      "editTitle": "编辑软件包信息",
+      "uploadSingleTitle": "上传单个软件包",
+      "uploadZipTitle": "上传ZIP包",
+      "softwareName": "软件名称",
+      "softwareNamePlaceholder": "请输入软件名称",
+      "description": "描述",
+      "uploadText": "点击或拖拽文件到此区域上传",
+      "uploadHint": "支持文件上传"
+    },
+    "messages": {
+      "loadFailed": "加载软件包列表失败",
+      "deleteSuccess": "删除成功",
+      "deleteFailed": "删除失败",
+      "downloadSuccess": "下载成功",
+      "downloadFailed": "下载失败",
+      "updateSuccess": "更新成功",
+      "updateFailed": "更新失败",
+      "uploadSuccess": "上传成功",
+      "uploadFailed": "上传失败",
+      "zipUploadSuccess": "ZIP包上传成功，共上传 {{count}} 个软件包",
+      "confirmDelete": "确定要删除这个软件包吗？"
     }
   },
   "userRole": {
@@ -172,6 +267,7 @@
     "table": {
       "name": "用例集名称",
       "creator": "创建人",
+      "business": "业务类型",
       "fileSize": "文件大小",
       "createdTime": "创建时间",
       "updatedTime": "更新时间",
@@ -179,7 +275,37 @@
       "download": "下载",
       "edit": "编辑",
       "delete": "删除",
+      "viewTestCases": "查看测试用例",
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+    },
+    "details": {
+      "title": "测试用例详情",
+      "totalCases": "总用例数",
+      "matched": "已匹配",
+      "missingScripts": "缺失脚本",
+      "matchRate": "匹配率",
+      "scriptIntegrity": "脚本完整性",
+      "missingScriptsAlert": "发现缺失脚本",
+      "missingScriptsDescription": "有 {{count}} 个测试用例缺少对应的Python脚本文件。请检查scripts目录下是否存在对应的脚本文件。",
+      "viewDetails": "查看详情",
+      "allCases": "所有用例",
+      "missingScriptsTab": "缺失脚本",
+      "close": "关闭",
+      "caseNumber": "用例编号",
+      "caseName": "用例名称",
+      "businessCategory": "业务大类",
+      "appName": "App名称",
+      "scriptStatus": "脚本状态",
+      "missing": "缺失",
+      "action": "操作",
+      "details": "详情",
+      "testCaseDetailTitle": "测试用例详情 - {{caseNumber}}",
+      "logicalNetwork": "逻辑组网",
+      "testSteps": "测试步骤",
+      "expectedResult": "预期结果",
+      "missingScriptsTooltip": "有 {{count}} 个测试用例缺少脚本文件",
+      "missingScriptsTag": "缺失脚本 ({{count}})",
+      "clickToViewDetails": "点击查看测试用例详情"
     },
     "upload": {
       "title": "上传用例集",
@@ -193,65 +319,6 @@
       "fileName": "文件名",
       "fileSize": "文件大小",
       "uploadProgress": "上传进度"
-    }
-  },
-  "softwarePackage": {
-    "title": "软件包管理",
-    "uploadSinglePackage": "上传单个软件包",
-    "uploadZipPackage": "上传ZIP包",
-    "downloadSuccess": "下载成功",
-    "downloadFailed": "下载失败",
-    "deleteSuccess": "删除成功",
-    "deleteFailed": "删除失败",
-    "updateSuccess": "更新成功",
-    "updateFailed": "更新失败",
-    "loadFailed": "获取软件包列表失败",
-    "confirmDelete": "确认删除",
-    "deleteDescription": "确定要删除这个软件包吗？",
-    "statistics": {
-      "androidPackages": "Android软件包",
-      "iosPackages": "iOS软件包",
-      "total": "总计"
-    },
-    "table": {
-      "softwareName": "软件名称",
-      "fileName": "文件名",
-      "platform": "平台",
-      "version": "版本",
-      "fileSize": "文件大小",
-      "creator": "创建者",
-      "createdTime": "创建时间",
-      "actions": "操作",
-      "download": "下载",
-      "edit": "编辑",
-      "delete": "删除",
-      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
-    },
-    "upload": {
-      "singleTitle": "上传单个软件包",
-      "zipTitle": "上传ZIP包",
-      "singleDragTip": "点击或拖拽APK/IPA文件到此区域上传",
-      "zipDragTip": "点击或拖拽ZIP文件到此区域上传",
-      "singleSupportFormat": "支持单个APK或IPA文件上传",
-      "zipSupportFormat": "支持包含多个APK/IPA文件的ZIP包上传",
-      "fileSizeLimit": "文件大小不超过 500MB",
-      "zipFileSizeLimit": "ZIP文件大小不超过 1GB",
-      "uploading": "上传中...",
-      "uploadSuccess": "上传成功",
-      "uploadFailed": "上传失败",
-      "zipUploadSuccess": "ZIP包上传成功，共上传 {{count}} 个软件包"
-    },
-    "form": {
-      "softwareName": "软件名称",
-      "softwareNamePlaceholder": "请输入软件名称",
-      "version": "版本",
-      "versionPlaceholder": "请输入版本",
-      "description": "描述",
-      "descriptionPlaceholder": "请输入描述信息"
-    },
-    "filters": {
-      "platform": "选择平台",
-      "searchSoftwareName": "搜索软件名称"
     }
   },
   "language": {

@@ -42,9 +42,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       label: translateNavigation('dashboard'),
     },
     {
-      key: '/user-roles',
+      key: 'user',
       icon: <UserOutlined />,
-      label: translateNavigation('userRoleManagement'),
+      label: translateNavigation('userManagement'),
+      children: [
+        {
+          key: '/users',
+          icon: <UserOutlined />,
+          label: translateNavigation('userList'),
+        },
+        {
+          key: '/user-roles',
+          icon: <UserOutlined />,
+          label: translateNavigation('roleManagement'),
+        },
+      ],
     },
     {
       key: 'config',
