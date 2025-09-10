@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * @since 2025-09-09
  */
 @Entity
-@Table(name = "\"user\"")
+@Table(name = "dial_user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

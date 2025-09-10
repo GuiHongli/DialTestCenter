@@ -8,6 +8,9 @@ import {
     SettingOutlined,
     UserOutlined,
     AppstoreOutlined,
+    TeamOutlined,
+    DesktopOutlined,
+    SafetyCertificateOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Dropdown, Menu, Space, theme } from 'antd'
 import React, { useState } from 'react'
@@ -43,17 +46,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
     {
       key: 'user',
-      icon: <UserOutlined />,
+      icon: <TeamOutlined />,
       label: translateNavigation('userManagement'),
       children: [
         {
           key: '/users',
-          icon: <UserOutlined />,
+          icon: <DesktopOutlined />,
           label: translateNavigation('userList'),
         },
         {
           key: '/user-roles',
-          icon: <UserOutlined />,
+          icon: <SafetyCertificateOutlined />,
           label: translateNavigation('roleManagement'),
         },
       ],
