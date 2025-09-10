@@ -52,6 +52,11 @@ export const useTranslation = () => {
     return t(`testCaseSet.${key}`, options)
   }
 
+  // 操作记录相关翻译
+  const translateOperationLog = (key: string, options?: any) => {
+    return t(`operationLog.${key}`, options)
+  }
+
   // 语言相关翻译
   const translateLanguage = (key: string, options?: any) => {
     return t(`language.${key}`, options)
@@ -68,6 +73,7 @@ export const useTranslation = () => {
     translateSoftwarePackage,
     translateUserRole,
     translateTestCaseSet,
+    translateOperationLog,
     translateLanguage,
     language,
     isReady

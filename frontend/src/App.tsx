@@ -8,6 +8,7 @@ import TestCaseSetManagementPage from './pages/TestCaseSetManagement'
 import UserRoleManagementPage from './pages/UserRoleManagement'
 import UserManagementPage from './pages/UserManagement'
 import SoftwarePackageManagementPage from './pages/SoftwarePackageManagement'
+import OperationLogManagementPage from './pages/OperationLogManagement'
 
 function App() {
   return (
@@ -15,11 +16,11 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Home />} />
           <Route path="/users" element={<UserManagementPage />} />
           <Route path="/user-roles" element={<UserRoleManagementPage />} />
           <Route path="/test-case-sets" element={<TestCaseSetManagementPage />} />
           <Route path="/software-packages" element={<SoftwarePackageManagementPage />} />
+          <Route path="/operation-logs" element={<OperationLogManagementPage />} />
         </Routes>
       </Layout>
     </I18nProvider>

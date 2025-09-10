@@ -77,7 +77,9 @@
     "roleManagement": "角色管理",
     "configManagement": "拨测管理",
     "testCaseSetManagement": "用例集管理",
-    "softwarePackageManagement": "软件包管理"
+    "softwarePackageManagement": "软件包管理",
+    "operationManagement": "运维管理",
+    "operationLogManagement": "操作记录"
   },
   "home": {
     "title": "欢迎使用 Dial Test Center",
@@ -319,6 +321,65 @@
       "fileName": "文件名",
       "fileSize": "文件大小",
       "uploadProgress": "上传进度"
+    }
+  },
+  "operationLog": {
+    "title": "操作记录管理",
+    "description": "查看和管理系统操作记录",
+    "table": {
+      "id": "ID",
+      "username": "用户名",
+      "operationTime": "操作时间",
+      "operationType": "操作类型",
+      "target": "操作对象",
+      "description": "操作描述",
+      "actions": "操作"
+    },
+    "filters": {
+      "username": "用户名",
+      "usernamePlaceholder": "请输入用户名",
+      "operationType": "操作类型",
+      "operationTypePlaceholder": "请选择操作类型",
+      "target": "操作对象",
+      "targetPlaceholder": "请选择操作对象",
+      "timeRange": "时间范围",
+      "timeRangePlaceholder": "请选择时间范围"
+    },
+    "statistics": {
+      "totalCount": "总操作记录数",
+      "todayCount": "今日操作数",
+      "activeUsers": "活跃用户数",
+      "operationTypes": "操作类型数"
+    },
+    "operationTypes": {
+      "CREATE": "创建",
+      "UPDATE": "更新",
+      "DELETE": "删除",
+      "LOGIN": "登录",
+      "LOGOUT": "登出",
+      "VIEW": "查看",
+      "EXPORT": "导出",
+      "IMPORT": "导入",
+      "UPLOAD": "上传",
+      "DOWNLOAD": "下载"
+    },
+    "targets": {
+      "USER": "用户管理",
+      "USER_ROLE": "角色管理",
+      "TEST_CASE_SET": "测试用例集",
+      "SOFTWARE_PACKAGE": "软件包管理",
+      "SYSTEM": "系统",
+      "LOGIN": "系统登录",
+      "LOGOUT": "系统登出"
+    },
+    "messages": {
+      "loadSuccess": "操作记录加载成功",
+      "loadFailed": "操作记录加载失败",
+      "deleteSuccess": "删除成功",
+      "deleteFailed": "删除失败",
+      "deleteConfirm": "确定要删除这条操作记录吗？",
+      "noData": "暂无操作记录",
+      "searchPlaceholder": "请输入搜索关键词"
     }
   },
   "language": {

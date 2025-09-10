@@ -77,7 +77,9 @@
     "roleManagement": "Role Management",
     "configManagement": "Dial Management",
     "testCaseSetManagement": "Test Case Set Management",
-    "softwarePackageManagement": "Software Package Management"
+    "softwarePackageManagement": "Software Package Management",
+    "operationManagement": "Operation Management",
+    "operationLogManagement": "Operation Log"
   },
   "home": {
     "title": "Welcome to Dial Test Center",
@@ -319,6 +321,65 @@
       "fileName": "File Name",
       "fileSize": "File Size",
       "uploadProgress": "Upload Progress"
+    }
+  },
+  "operationLog": {
+    "title": "Operation Log Management",
+    "description": "View and manage system operation logs",
+    "table": {
+      "id": "ID",
+      "username": "Username",
+      "operationTime": "Operation Time",
+      "operationType": "Operation Type",
+      "target": "Target",
+      "description": "Description",
+      "actions": "Actions"
+    },
+    "filters": {
+      "username": "Username",
+      "usernamePlaceholder": "Please enter username",
+      "operationType": "Operation Type",
+      "operationTypePlaceholder": "Please select operation type",
+      "target": "Target",
+      "targetPlaceholder": "Please select target",
+      "timeRange": "Time Range",
+      "timeRangePlaceholder": "Please select time range"
+    },
+    "statistics": {
+      "totalCount": "Total Operation Count",
+      "todayCount": "Today's Operations",
+      "activeUsers": "Active Users",
+      "operationTypes": "Operation Types"
+    },
+    "operationTypes": {
+      "CREATE": "Create",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "LOGIN": "Login",
+      "LOGOUT": "Logout",
+      "VIEW": "View",
+      "EXPORT": "Export",
+      "IMPORT": "Import",
+      "UPLOAD": "Upload",
+      "DOWNLOAD": "Download"
+    },
+    "targets": {
+      "USER": "User Management",
+      "USER_ROLE": "Role Management",
+      "TEST_CASE_SET": "Test Case Set",
+      "SOFTWARE_PACKAGE": "Software Package Management",
+      "SYSTEM": "System",
+      "LOGIN": "System Login",
+      "LOGOUT": "System Logout"
+    },
+    "messages": {
+      "loadSuccess": "Operation logs loaded successfully",
+      "loadFailed": "Failed to load operation logs",
+      "deleteSuccess": "Deleted successfully",
+      "deleteFailed": "Delete failed",
+      "deleteConfirm": "Are you sure to delete this operation log?",
+      "noData": "No operation logs",
+      "searchPlaceholder": "Please enter search keyword"
     }
   },
   "language": {

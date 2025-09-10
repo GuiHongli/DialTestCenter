@@ -11,6 +11,8 @@ import {
     TeamOutlined,
     DesktopOutlined,
     SafetyCertificateOutlined,
+    ToolOutlined,
+    HistoryOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Dropdown, Menu, Space, theme } from 'antd'
 import React, { useState } from 'react'
@@ -75,6 +77,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           key: '/software-packages',
           icon: <AppstoreOutlined />,
           label: translateNavigation('softwarePackageManagement'),
+        },
+      ],
+    },
+    {
+      key: 'operation',
+      icon: <ToolOutlined />,
+      label: translateNavigation('operationManagement'),
+      children: [
+        {
+          key: '/operation-logs',
+          icon: <HistoryOutlined />,
+          label: translateNavigation('operationLogManagement'),
         },
       ],
     },
