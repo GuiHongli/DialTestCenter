@@ -8,18 +8,19 @@
         <result column="software_name" property="softwareName" jdbcType="VARCHAR"/>
         <result column="version" property="version" jdbcType="VARCHAR"/>
         <result column="platform" property="platform" jdbcType="VARCHAR"/>
-        <result column="file_path" property="filePath" jdbcType="VARCHAR"/>
+        <result column="file_content" property="fileContent" jdbcType="BLOB"/>
+        <result column="file_format" property="fileFormat" jdbcType="VARCHAR"/>
         <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
         <result column="sha512" property="sha512" jdbcType="VARCHAR"/>
         <result column="creator" property="creator" jdbcType="VARCHAR"/>
-        <result column="description" property="description" jdbcType="TEXT"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
         <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
         <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, software_name, version, platform, file_path, file_size, sha512, creator, description, created_time, updated_time
+        id, software_name, version, platform, file_content, file_format, file_size, sha512, creator, description, created_time, updated_time
     </sql>
 
     <!-- 动态查询条件 -->
@@ -194,7 +195,8 @@
             software_name,
             version,
             platform,
-            file_path,
+            file_content,
+            file_format,
             file_size,
             sha512,
             creator,
@@ -205,7 +207,8 @@
             #{softwareName},
             #{version},
             #{platform},
-            #{filePath},
+            #{fileContent},
+            #{fileFormat},
             #{fileSize},
             #{sha512},
             #{creator},
@@ -221,7 +224,8 @@
         SET software_name = #{softwareName},
             version = #{version},
             platform = #{platform},
-            file_path = #{filePath},
+            file_content = #{fileContent},
+            file_format = #{fileFormat},
             file_size = #{fileSize},
             sha512 = #{sha512},
             creator = #{creator},

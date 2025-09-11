@@ -8,7 +8,7 @@
         <result column="test_case_set_id" property="testCaseSetId" jdbcType="BIGINT"/>
         <result column="case_number" property="caseNumber" jdbcType="VARCHAR"/>
         <result column="case_name" property="caseName" jdbcType="VARCHAR"/>
-        <result column="case_description" property="caseDescription" jdbcType="TEXT"/>
+        <result column="case_description" property="caseDescription" jdbcType="VARCHAR"/>
         <result column="script_path" property="scriptPath" jdbcType="VARCHAR"/>
         <result column="script_exists" property="scriptExists" jdbcType="BOOLEAN"/>
         <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>

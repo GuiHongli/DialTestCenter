@@ -4,18 +4,8 @@
 
 package com.huawei.dialtest.center.entity;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * 软件包实体类，用于存储和管理手机APP安装包信息
@@ -25,43 +15,17 @@ import javax.persistence.Table;
  * @author g00940940
  * @since 2025-09-09
  */
-@Entity
-@Table(name = "software_package")
 public class SoftwarePackage {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "software_name", nullable = false, length = 255)
     private String softwareName; // 软件名称（完整文件名，带后缀）
-
-    @Column(name = "file_content", nullable = false, columnDefinition = "bytea")
     private byte[] fileContent; // 文件内容
-
-    @Column(name = "file_format", nullable = false, length = 10)
     private String fileFormat; // 文件格式：apk 或 ipa
-
-    @Column(name = "sha512", length = 128)
     private String sha512; // 文件内容的SHA512哈希值
-
-    @Column(name = "platform", nullable = false, length = 20)
     private String platform; // 平台：android 或 ios
-
-    @Column(name = "creator", nullable = false, length = 100)
     private String creator; // 创建者
-
-    @Column(name = "file_size", nullable = false)
     private Long fileSize; // 文件大小
-
-    @Column(name = "description", length = 1000)
     private String description; // 描述信息
-
-    @CreationTimestamp
-    @Column(name = "created_time")
     private LocalDateTime createdTime;
-
-    @UpdateTimestamp
-    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     /**

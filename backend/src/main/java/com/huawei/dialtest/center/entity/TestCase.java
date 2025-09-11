@@ -4,20 +4,8 @@
 
 package com.huawei.dialtest.center.entity;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  * 测试用例实体类，用于存储从cases.xlsx解析出的用例信息
@@ -27,47 +15,18 @@ import javax.persistence.Table;
  * @author g00940940
  * @since 2025-09-08
  */
-@Entity
-@Table(name = "test_case")
 public class TestCase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "test_case_set_id", nullable = false)
     private TestCaseSet testCaseSet;
-
-    @Column(name = "case_name", nullable = false, length = 200)
     private String caseName;
-
-    @Column(name = "case_number", nullable = false, length = 100)
     private String caseNumber;
-
-    @Column(name = "network_topology", length = 500)
     private String networkTopology;
-
-    @Column(name = "business_category", length = 200)
     private String businessCategory;
-
-    @Column(name = "app_name", length = 200)
     private String appName;
-
-    @Column(name = "test_steps", columnDefinition = "TEXT")
     private String testSteps;
-
-    @Column(name = "expected_result", columnDefinition = "TEXT")
     private String expectedResult;
-
-    @Column(name = "script_exists", nullable = false)
     private Boolean scriptExists = false;
-
-    @CreationTimestamp
-    @Column(name = "created_time")
     private LocalDateTime createdTime;
-
-    @UpdateTimestamp
-    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     /**

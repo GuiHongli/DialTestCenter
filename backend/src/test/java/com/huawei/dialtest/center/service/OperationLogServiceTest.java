@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.OperationLog;
-import com.huawei.dialtest.center.repository.OperationLogRepository;
+import com.huawei.dialtest.center.mapper.OperationLogMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 public class OperationLogServiceTest {
 
     @Mock
-    private OperationLogRepository operationLogRepository;
+    private OperationLogMapper operationLogMapper;
 
     @InjectMocks
     private OperationLogService operationLogService;
@@ -61,8 +61,9 @@ public class OperationLogServiceTest {
         String operationType = "CREATE";
         String target = "用户管理";
         String description = "创建新用户";
+        
 
-        when(operationLogRepository.save(any(OperationLog.class))).thenReturn(testOperationLog);
+        when(operationLogMapper.insert(any(OperationLog.class))).thenReturn(1);
 
         // Act
         OperationLog result = operationLogService.logOperation(username, operationType, target, description);
@@ -75,7 +76,7 @@ public class OperationLogServiceTest {
         assertEquals("Description should match", description, result.getDescription());
         assertNotNull("Operation time should be set", result.getOperationTime());
 
-        verify(operationLogRepository).save(any(OperationLog.class));
+        verify(operationLogMapper).insert(any(OperationLog.class));
     }
 
     @Test
@@ -92,7 +93,7 @@ public class OperationLogServiceTest {
         expectedResult.setTarget(target);
         expectedResult.setDescription(null);
 
-        when(operationLogRepository.save(any(OperationLog.class))).thenReturn(expectedResult);
+        when(operationLogMapper.insert(any(OperationLog.class))).thenReturn(1);
 
         // Act
         OperationLog result = operationLogService.logOperation(username, operationType, target);
@@ -103,7 +104,7 @@ public class OperationLogServiceTest {
         assertEquals("Operation type should match", operationType, result.getOperationType());
         assertEquals("Target should match", target, result.getTarget());
 
-        verify(operationLogRepository).save(any(OperationLog.class));
+        verify(operationLogMapper).insert(any(OperationLog.class));
     }
 
     @Test(expected = RuntimeException.class)
@@ -114,7 +115,7 @@ public class OperationLogServiceTest {
         String target = "用户管理";
         String description = "创建新用户";
 
-        when(operationLogRepository.save(any(OperationLog.class)))
+        when(operationLogMapper.insert(any(OperationLog.class)))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -132,7 +133,8 @@ public class OperationLogServiceTest {
         List<OperationLog> operationLogs = Arrays.asList(testOperationLog);
         Page<OperationLog> page = new PageImpl<>(operationLogs);
 
-        when(operationLogRepository.findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), any(Pageable.class))).thenReturn(page);
+        when(operationLogMapper.findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), anyInt(), anyInt())).thenReturn(operationLogs);
+        when(operationLogMapper.countByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime))).thenReturn(1L);
 
         // Act
         Page<OperationLog> result = operationLogService.getOperationLogsByConditions(username, operationType, target, startTime, endTime, 0, 20);
@@ -142,7 +144,8 @@ public class OperationLogServiceTest {
         assertEquals("Total elements should match", 1, result.getTotalElements());
         assertEquals("Content size should match", 1, result.getContent().size());
 
-        verify(operationLogRepository).findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), any(Pageable.class));
+        verify(operationLogMapper).findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), anyInt(), anyInt());
+        verify(operationLogMapper).countByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime));
     }
 
     @Test(expected = RuntimeException.class)
@@ -153,7 +156,7 @@ public class OperationLogServiceTest {
         String target = "用户管理";
         LocalDateTime startTime = LocalDateTime.now().minusDays(1);
         LocalDateTime endTime = LocalDateTime.now();
-        when(operationLogRepository.findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), any(Pageable.class)))
+        when(operationLogMapper.findByConditions(eq(username), eq(operationType), eq(target), eq(startTime), eq(endTime), anyInt(), anyInt()))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -164,7 +167,7 @@ public class OperationLogServiceTest {
     public void testGetOperationLogById_Success() {
         // Arrange
         Long id = 1L;
-        when(operationLogRepository.findById(id)).thenReturn(Optional.of(testOperationLog));
+        when(operationLogMapper.findById(id)).thenReturn(testOperationLog);
 
         // Act
         Optional<OperationLog> result = operationLogService.getOperationLogById(id);
@@ -173,14 +176,14 @@ public class OperationLogServiceTest {
         assertTrue("Result should be present", result.isPresent());
         assertEquals("ID should match", id, result.get().getId());
 
-        verify(operationLogRepository).findById(id);
+        verify(operationLogMapper).findById(id);
     }
 
     @Test
     public void testGetOperationLogById_NotFound() {
         // Arrange
         Long id = 999L;
-        when(operationLogRepository.findById(id)).thenReturn(Optional.empty());
+        when(operationLogMapper.findById(id)).thenReturn(null);
 
         // Act
         Optional<OperationLog> result = operationLogService.getOperationLogById(id);
@@ -188,14 +191,14 @@ public class OperationLogServiceTest {
         // Assert
         assertFalse("Result should not be present", result.isPresent());
 
-        verify(operationLogRepository).findById(id);
+        verify(operationLogMapper).findById(id);
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetOperationLogById_Error() {
         // Arrange
         Long id = 1L;
-        when(operationLogRepository.findById(id))
+        when(operationLogMapper.findById(id))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
@@ -209,7 +212,7 @@ public class OperationLogServiceTest {
     public void testGetRecentOperationLogs_Success() {
         // Arrange
         List<OperationLog> operationLogs = Arrays.asList(testOperationLog);
-        when(operationLogRepository.findRecentOperationLogs(10)).thenReturn(operationLogs);
+        when(operationLogMapper.findRecentOperationLogs(10)).thenReturn(operationLogs);
 
         // Act
         List<OperationLog> result = operationLogService.getRecentOperationLogs(10);
@@ -218,13 +221,13 @@ public class OperationLogServiceTest {
         assertNotNull("Result should not be null", result);
         assertEquals("Size should match", 1, result.size());
 
-        verify(operationLogRepository).findRecentOperationLogs(10);
+        verify(operationLogMapper).findRecentOperationLogs(10);
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetRecentOperationLogs_Error() {
         // Arrange
-        when(operationLogRepository.findRecentOperationLogs(10))
+        when(operationLogMapper.findRecentOperationLogs(10))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act

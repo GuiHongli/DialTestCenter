@@ -28,7 +28,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.UserRole;
-import com.huawei.dialtest.center.repository.UserRoleRepository;
+import com.huawei.dialtest.center.mapper.UserRoleMapper;
 import com.huawei.dialtest.center.service.UserRoleService;
 
 /**
@@ -43,7 +43,7 @@ import com.huawei.dialtest.center.service.UserRoleService;
 public class UserRoleServiceTest {
 
     @Mock
-    private UserRoleRepository userRoleRepository;
+    private UserRoleMapper userRoleMapper;
 
     @InjectMocks
     private UserRoleService userRoleService;
@@ -65,7 +65,7 @@ public class UserRoleServiceTest {
     public void testGetUserRoles_Success() {
         // Given
         String username = "testuser";
-        when(userRoleRepository.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(testUserRoles);
+        when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(testUserRoles);
 
         // When
         List<UserRole> result = userRoleService.getUserRoles(username);
@@ -75,7 +75,7 @@ public class UserRoleServiceTest {
         assertEquals(1, result.size());
         assertEquals(username, result.get(0).getUsername());
         assertEquals(Role.ADMIN, result.get(0).getRole());
-        verify(userRoleRepository).findByUsernameOrderByCreatedTimeDesc(username);
+        verify(userRoleMapper).findByUsernameOrderByCreatedTimeDesc(username);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -94,7 +94,7 @@ public class UserRoleServiceTest {
     public void testGetUserRoles_UserNotExist() {
         // Given
         String username = "nonexistent";
-        when(userRoleRepository.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(Collections.emptyList());
+        when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(Collections.emptyList());
 
         // When
         List<UserRole> result = userRoleService.getUserRoles(username);
@@ -102,7 +102,7 @@ public class UserRoleServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(userRoleRepository).findByUsernameOrderByCreatedTimeDesc(username);
+        verify(userRoleMapper).findByUsernameOrderByCreatedTimeDesc(username);
     }
 
     @Test
@@ -113,8 +113,8 @@ public class UserRoleServiceTest {
         newUserRole.setRole(Role.OPERATOR);
         // ID为null表示新建
 
-        when(userRoleRepository.existsByUsernameAndRole(anyString(), any(Role.class))).thenReturn(false);
-        when(userRoleRepository.save(any(UserRole.class))).thenReturn(newUserRole);
+        when(userRoleMapper.existsByUsernameAndRole(anyString(), anyString())).thenReturn(false);
+        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
 
         // When
         UserRole result = userRoleService.save(newUserRole);
@@ -123,8 +123,8 @@ public class UserRoleServiceTest {
         assertNotNull(result);
         assertEquals("newuser", result.getUsername());
         assertEquals(Role.OPERATOR, result.getRole());
-        verify(userRoleRepository).existsByUsernameAndRole("newuser", Role.OPERATOR);
-        verify(userRoleRepository).save(newUserRole);
+        verify(userRoleMapper).existsByUsernameAndRole("newuser", Role.OPERATOR.toString());
+        verify(userRoleMapper).insert(newUserRole);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class UserRoleServiceTest {
         duplicateUserRole.setUsername("testuser");
         duplicateUserRole.setRole(Role.ADMIN);
 
-        when(userRoleRepository.existsByUsernameAndRole(anyString(), any(Role.class))).thenReturn(true);
+        when(userRoleMapper.existsByUsernameAndRole(anyString(), anyString())).thenReturn(true);
 
         // When & Then - 应该抛出异常
         try {
@@ -155,21 +155,22 @@ public class UserRoleServiceTest {
     public void testDeleteById_Success() {
         // Given
         Long id = 1L;
-        when(userRoleRepository.existsById(id)).thenReturn(true);
+        when(userRoleMapper.findById(id)).thenReturn(testUserRole);
+        when(userRoleMapper.deleteById(id)).thenReturn(1);
 
         // When
         userRoleService.deleteById(id);
 
         // Then
-        verify(userRoleRepository).existsById(id);
-        verify(userRoleRepository).deleteById(id);
+        verify(userRoleMapper).findById(id);
+        verify(userRoleMapper).deleteById(id);
     }
 
     @Test
     public void testDeleteById_IDNotExist() {
         // Given
         Long id = 999L;
-        when(userRoleRepository.existsById(id)).thenReturn(false);
+        when(userRoleMapper.findById(id)).thenReturn(null);
 
         // When & Then - 应该抛出异常
         try {
@@ -183,27 +184,27 @@ public class UserRoleServiceTest {
     @Test
     public void testHasAdminUser_AdminExists() {
         // Given
-        when(userRoleRepository.existsByRole(Role.ADMIN)).thenReturn(true);
+        when(userRoleMapper.existsByRole(Role.ADMIN.toString())).thenReturn(true);
 
         // When
         boolean result = userRoleService.hasAdminUser();
 
         // Then
         assertTrue(result);
-        verify(userRoleRepository).existsByRole(Role.ADMIN);
+        verify(userRoleMapper).existsByRole(Role.ADMIN.toString());
     }
 
     @Test
     public void testHasAdminUser_NoAdmin() {
         // Given
-        when(userRoleRepository.existsByRole(Role.ADMIN)).thenReturn(false);
+        when(userRoleMapper.existsByRole(Role.ADMIN.toString())).thenReturn(false);
 
         // When
         boolean result = userRoleService.hasAdminUser();
 
         // Then
         assertFalse(result);
-        verify(userRoleRepository).existsByRole(Role.ADMIN);
+        verify(userRoleMapper).existsByRole(Role.ADMIN.toString());
     }
 
     @Test
@@ -211,14 +212,14 @@ public class UserRoleServiceTest {
         // Given
         String username = "testuser";
         Role role = Role.ADMIN;
-        when(userRoleRepository.existsByUsernameAndRole(username, role)).thenReturn(true);
+        when(userRoleMapper.existsByUsernameAndRole(username, role.toString())).thenReturn(true);
 
         // When
         boolean result = userRoleService.hasRole(username, role);
 
         // Then
         assertTrue(result);
-        verify(userRoleRepository).existsByUsernameAndRole(username, role);
+        verify(userRoleMapper).existsByUsernameAndRole(username, role.toString());
     }
 
     @Test
@@ -226,14 +227,14 @@ public class UserRoleServiceTest {
         // Given
         String username = "testuser";
         Role role = Role.OPERATOR;
-        when(userRoleRepository.existsByUsernameAndRole(username, role)).thenReturn(false);
+        when(userRoleMapper.existsByUsernameAndRole(username, role.toString())).thenReturn(false);
 
         // When
         boolean result = userRoleService.hasRole(username, role);
 
         // Then
         assertFalse(result);
-        verify(userRoleRepository).existsByUsernameAndRole(username, role);
+        verify(userRoleMapper).existsByUsernameAndRole(username, role.toString());
     }
 
     @Test
@@ -243,7 +244,7 @@ public class UserRoleServiceTest {
 
         // Then
         assertFalse(result);
-        verify(userRoleRepository, never()).existsByUsernameAndRole(anyString(), any(Role.class));
+        verify(userRoleMapper, never()).existsByUsernameAndRole(anyString(), anyString());
     }
 
     @Test
@@ -253,7 +254,7 @@ public class UserRoleServiceTest {
 
         // Then
         assertFalse(result);
-        verify(userRoleRepository, never()).existsByUsernameAndRole(anyString(), any(Role.class));
+        verify(userRoleMapper, never()).existsByUsernameAndRole(anyString(), anyString());
     }
 
     // ========== 新增测试用例以提高覆盖率 ==========
@@ -263,7 +264,7 @@ public class UserRoleServiceTest {
         // Given
         String username = "testuser";
         List<Role> expectedRoles = Arrays.asList(Role.ADMIN, Role.OPERATOR);
-        when(userRoleRepository.findRolesByUsername(username)).thenReturn(expectedRoles);
+        when(userRoleMapper.findRolesByUsername(username)).thenReturn(expectedRoles);
 
         // When
         List<Role> result = userRoleService.getUserRoleEnums(username);
@@ -273,7 +274,7 @@ public class UserRoleServiceTest {
         assertEquals(2, result.size());
         assertTrue(result.contains(Role.ADMIN));
         assertTrue(result.contains(Role.OPERATOR));
-        verify(userRoleRepository).findRolesByUsername(username);
+        verify(userRoleMapper).findRolesByUsername(username);
     }
 
     @Test
@@ -312,7 +313,7 @@ public class UserRoleServiceTest {
         userRole2.setRole(Role.OPERATOR);
 
         List<UserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
-        when(userRoleRepository.findAllOrderByCreatedTimeDesc()).thenReturn(expectedUserRoles);
+        when(userRoleMapper.findAllOrderByCreatedTimeDesc()).thenReturn(expectedUserRoles);
 
         // When
         List<UserRole> result = userRoleService.getAllUserRoles();
@@ -320,7 +321,7 @@ public class UserRoleServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        verify(userRoleRepository).findAllOrderByCreatedTimeDesc();
+        verify(userRoleMapper).findAllOrderByCreatedTimeDesc();
     }
 
     @Test
@@ -332,9 +333,9 @@ public class UserRoleServiceTest {
         existingUserRole.setRole(Role.OPERATOR);
 
         // 模拟查找不到其他相同用户名和角色的记录
-        when(userRoleRepository.findByUsernameAndRole("updateduser", Role.OPERATOR))
-            .thenReturn(Optional.empty());
-        when(userRoleRepository.save(any(UserRole.class))).thenReturn(existingUserRole);
+        when(userRoleMapper.findByUsernameAndRole("updateduser", Role.OPERATOR.toString()))
+            .thenReturn(null);
+        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
 
         // When
         UserRole result = userRoleService.save(existingUserRole);
@@ -343,8 +344,8 @@ public class UserRoleServiceTest {
         assertNotNull(result);
         assertEquals("updateduser", result.getUsername());
         assertEquals(Role.OPERATOR, result.getRole());
-        verify(userRoleRepository).findByUsernameAndRole("updateduser", Role.OPERATOR);
-        verify(userRoleRepository).save(existingUserRole);
+        verify(userRoleMapper).findByUsernameAndRole("updateduser", Role.OPERATOR.toString());
+        verify(userRoleMapper).insert(existingUserRole);
     }
 
     @Test
@@ -361,8 +362,8 @@ public class UserRoleServiceTest {
         duplicateUserRole.setRole(Role.OPERATOR);
 
         // 模拟找到了其他相同用户名和角色的记录
-        when(userRoleRepository.findByUsernameAndRole("updateduser", Role.OPERATOR))
-            .thenReturn(Optional.of(duplicateUserRole));
+        when(userRoleMapper.findByUsernameAndRole("updateduser", Role.OPERATOR.toString()))
+            .thenReturn(duplicateUserRole);
 
         // When & Then - 应该抛出异常
         try {
@@ -409,7 +410,7 @@ public class UserRoleServiceTest {
     public void testFindById_Success() {
         // Given
         Long id = 1L;
-        when(userRoleRepository.findById(id)).thenReturn(Optional.of(testUserRole));
+        when(userRoleMapper.findById(id)).thenReturn(testUserRole);
 
         // When
         Optional<UserRole> result = userRoleService.findById(id);
@@ -418,21 +419,21 @@ public class UserRoleServiceTest {
         assertTrue(result.isPresent());
         assertEquals(testUserRole.getId(), result.get().getId());
         assertEquals(testUserRole.getUsername(), result.get().getUsername());
-        verify(userRoleRepository).findById(id);
+        verify(userRoleMapper).findById(id);
     }
 
     @Test
     public void testFindById_NotFound() {
         // Given
         Long id = 999L;
-        when(userRoleRepository.findById(id)).thenReturn(Optional.empty());
+        when(userRoleMapper.findById(id)).thenReturn(null);
 
         // When
         Optional<UserRole> result = userRoleService.findById(id);
 
         // Then
         assertFalse(result.isPresent());
-        verify(userRoleRepository).findById(id);
+        verify(userRoleMapper).findById(id);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -451,7 +452,7 @@ public class UserRoleServiceTest {
     public void testGetUserRolesByRole_Success() {
         // Given
         Role role = Role.ADMIN;
-        when(userRoleRepository.findByRole(role)).thenReturn(testUserRoles);
+        when(userRoleMapper.findByRole(role.toString())).thenReturn(testUserRoles);
 
         // When
         List<UserRole> result = userRoleService.getUserRolesByRole(role);
@@ -460,7 +461,7 @@ public class UserRoleServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(Role.ADMIN, result.get(0).getRole());
-        verify(userRoleRepository).findByRole(role);
+        verify(userRoleMapper).findByRole(role.toString());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -473,14 +474,14 @@ public class UserRoleServiceTest {
     public void testGetExecutorUserCount_Success() {
         // Given
         long expectedCount = 5L;
-        when(userRoleRepository.countByRole(Role.EXECUTOR)).thenReturn(expectedCount);
+        when(userRoleMapper.countByRole(Role.EXECUTOR.toString())).thenReturn(expectedCount);
 
         // When
         long result = userRoleService.getExecutorUserCount();
 
         // Then
         assertEquals(expectedCount, result);
-        verify(userRoleRepository).countByRole(Role.EXECUTOR);
+        verify(userRoleMapper).countByRole(Role.EXECUTOR.toString());
     }
 
     @Test
@@ -490,7 +491,7 @@ public class UserRoleServiceTest {
 
         // Then
         assertFalse(result);
-        verify(userRoleRepository, never()).existsByUsernameAndRole(anyString(), any(Role.class));
+        verify(userRoleMapper, never()).existsByUsernameAndRole(anyString(), anyString());
     }
 
     @Test
@@ -498,7 +499,7 @@ public class UserRoleServiceTest {
         // Given
         String usernameWithSpaces = "  testuser  ";
         String trimmedUsername = "testuser";
-        when(userRoleRepository.findByUsernameOrderByCreatedTimeDesc(trimmedUsername)).thenReturn(testUserRoles);
+        when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(trimmedUsername)).thenReturn(testUserRoles);
 
         // When
         List<UserRole> result = userRoleService.getUserRoles(usernameWithSpaces);
@@ -506,7 +507,7 @@ public class UserRoleServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(userRoleRepository).findByUsernameOrderByCreatedTimeDesc(trimmedUsername);
+        verify(userRoleMapper).findByUsernameOrderByCreatedTimeDesc(trimmedUsername);
     }
 
     @Test
@@ -515,7 +516,7 @@ public class UserRoleServiceTest {
         String usernameWithSpaces = "  testuser  ";
         String trimmedUsername = "testuser";
         List<Role> expectedRoles = Arrays.asList(Role.ADMIN);
-        when(userRoleRepository.findRolesByUsername(trimmedUsername)).thenReturn(expectedRoles);
+        when(userRoleMapper.findRolesByUsername(trimmedUsername)).thenReturn(expectedRoles);
 
         // When
         List<Role> result = userRoleService.getUserRoleEnums(usernameWithSpaces);
@@ -523,7 +524,7 @@ public class UserRoleServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(userRoleRepository).findRolesByUsername(trimmedUsername);
+        verify(userRoleMapper).findRolesByUsername(trimmedUsername);
     }
 
     @Test
@@ -533,8 +534,8 @@ public class UserRoleServiceTest {
         userRole.setUsername("  testuser  ");
         userRole.setRole(Role.ADMIN);
 
-        when(userRoleRepository.existsByUsernameAndRole("testuser", Role.ADMIN)).thenReturn(false);
-        when(userRoleRepository.save(any(UserRole.class))).thenReturn(userRole);
+        when(userRoleMapper.existsByUsernameAndRole("testuser", Role.ADMIN.toString())).thenReturn(false);
+        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
 
         // When
         UserRole result = userRoleService.save(userRole);
@@ -542,6 +543,6 @@ public class UserRoleServiceTest {
         // Then
         assertNotNull(result);
         assertEquals("testuser", result.getUsername()); // 应该被trim
-        verify(userRoleRepository).existsByUsernameAndRole("testuser", Role.ADMIN);
+        verify(userRoleMapper).existsByUsernameAndRole("testuser", Role.ADMIN.toString());
     }
 }

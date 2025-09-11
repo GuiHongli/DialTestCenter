@@ -6,7 +6,7 @@ package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
-import com.huawei.dialtest.center.repository.TestCaseRepository;
+import com.huawei.dialtest.center.mapper.TestCaseMapper;
 import com.huawei.dialtest.center.service.TestCaseService;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 public class TestCaseServiceTest {
 
     @Mock
-    private TestCaseRepository testCaseRepository;
+    private TestCaseMapper testCaseMapper;
 
     @InjectMocks
     private TestCaseService testCaseService;
@@ -83,8 +83,10 @@ public class TestCaseServiceTest {
         List<TestCase> testCases = Arrays.asList(testCase);
         Page<TestCase> expectedPage = new PageImpl<>(testCases, pageable, 1);
 
-        when(testCaseRepository.findByTestCaseSetId(testCaseSetId, pageable))
-                .thenReturn(expectedPage);
+        when(testCaseMapper.findByTestCaseSetIdWithPage(testCaseSetId, page - 1, pageSize))
+                .thenReturn(testCases);
+        when(testCaseMapper.countByTestCaseSetId(testCaseSetId))
+                .thenReturn(1L);
 
         // Act
         Page<TestCase> result = testCaseService.getTestCasesByTestCaseSet(testCaseSetId, page, pageSize);
@@ -93,7 +95,8 @@ public class TestCaseServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
         assertEquals(testCase, result.getContent().get(0));
-        verify(testCaseRepository).findByTestCaseSetId(testCaseSetId, pageable);
+        verify(testCaseMapper).findByTestCaseSetIdWithPage(testCaseSetId, page - 1, pageSize);
+        verify(testCaseMapper).countByTestCaseSetId(testCaseSetId);
     }
 
     /**
@@ -103,7 +106,7 @@ public class TestCaseServiceTest {
     public void testGetTestCasesByTestCaseSet_WithoutPagination_ShouldReturnList() {
         // Arrange
         List<TestCase> expectedTestCases = Arrays.asList(testCase);
-        when(testCaseRepository.findByTestCaseSet(testCaseSet)).thenReturn(expectedTestCases);
+        when(testCaseMapper.findByTestCaseSetId(testCaseSet.getId())).thenReturn(expectedTestCases);
 
         // Act
         List<TestCase> result = testCaseService.getTestCasesByTestCaseSet(testCaseSet);
@@ -112,7 +115,7 @@ public class TestCaseServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(testCase, result.get(0));
-        verify(testCaseRepository).findByTestCaseSet(testCaseSet);
+        verify(testCaseMapper).findByTestCaseSetId(testCaseSet.getId());
     }
 
     /**
@@ -122,7 +125,7 @@ public class TestCaseServiceTest {
     public void testGetTestCaseById_ExistingId_ShouldReturnTestCase() {
         // Arrange
         Long id = 1L;
-        when(testCaseRepository.findById(id)).thenReturn(Optional.of(testCase));
+        when(testCaseMapper.findById(id)).thenReturn(testCase);
 
         // Act
         Optional<TestCase> result = testCaseService.getTestCaseById(id);
@@ -130,7 +133,7 @@ public class TestCaseServiceTest {
         // Assert
         assertTrue(result.isPresent());
         assertEquals(testCase, result.get());
-        verify(testCaseRepository).findById(id);
+        verify(testCaseMapper).findById(id);
     }
 
     /**
@@ -140,14 +143,14 @@ public class TestCaseServiceTest {
     public void testGetTestCaseById_NonExistingId_ShouldReturnEmpty() {
         // Arrange
         Long id = 999L;
-        when(testCaseRepository.findById(id)).thenReturn(Optional.empty());
+        when(testCaseMapper.findById(id)).thenReturn(null);
 
         // Act
         Optional<TestCase> result = testCaseService.getTestCaseById(id);
 
         // Assert
         assertFalse(result.isPresent());
-        verify(testCaseRepository).findById(id);
+        verify(testCaseMapper).findById(id);
     }
 
     /**
@@ -157,7 +160,7 @@ public class TestCaseServiceTest {
     public void testGetTestCaseByCaseNumber_ExistingCaseNumber_ShouldReturnTestCase() {
         // Arrange
         String caseNumber = "TC001";
-        when(testCaseRepository.findByCaseNumber(caseNumber)).thenReturn(Optional.of(testCase));
+        when(testCaseMapper.findByCaseNumber(caseNumber)).thenReturn(testCase);
 
         // Act
         Optional<TestCase> result = testCaseService.getTestCaseByCaseNumber(caseNumber);
@@ -165,7 +168,7 @@ public class TestCaseServiceTest {
         // Assert
         assertTrue(result.isPresent());
         assertEquals(testCase, result.get());
-        verify(testCaseRepository).findByCaseNumber(caseNumber);
+        verify(testCaseMapper).findByCaseNumber(caseNumber);
     }
 
     /**
@@ -175,14 +178,14 @@ public class TestCaseServiceTest {
     public void testGetTestCaseByCaseNumber_NonExistingCaseNumber_ShouldReturnEmpty() {
         // Arrange
         String caseNumber = "TC999";
-        when(testCaseRepository.findByCaseNumber(caseNumber)).thenReturn(Optional.empty());
+        when(testCaseMapper.findByCaseNumber(caseNumber)).thenReturn(null);
 
         // Act
         Optional<TestCase> result = testCaseService.getTestCaseByCaseNumber(caseNumber);
 
         // Assert
         assertFalse(result.isPresent());
-        verify(testCaseRepository).findByCaseNumber(caseNumber);
+        verify(testCaseMapper).findByCaseNumber(caseNumber);
     }
 
     /**
@@ -191,7 +194,7 @@ public class TestCaseServiceTest {
     @Test
     public void testSaveTestCase_ShouldSaveAndReturnTestCase() {
         // Arrange
-        when(testCaseRepository.save(testCase)).thenReturn(testCase);
+        when(testCaseMapper.insert(testCase)).thenReturn(1);
 
         // Act
         TestCase result = testCaseService.saveTestCase(testCase);
@@ -199,7 +202,7 @@ public class TestCaseServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(testCase, result);
-        verify(testCaseRepository).save(testCase);
+        verify(testCaseMapper).insert(testCase);
     }
 
     /**
@@ -209,7 +212,7 @@ public class TestCaseServiceTest {
     public void testSaveTestCases_ShouldSaveAllTestCases() {
         // Arrange
         List<TestCase> testCases = Arrays.asList(testCase);
-        when(testCaseRepository.saveAll(testCases)).thenReturn(testCases);
+        when(testCaseMapper.insert(any(TestCase.class))).thenReturn(1);
 
         // Act
         List<TestCase> result = testCaseService.saveTestCases(testCases);
@@ -218,7 +221,7 @@ public class TestCaseServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(testCase, result.get(0));
-        verify(testCaseRepository).saveAll(testCases);
+        verify(testCaseMapper, times(testCases.size())).insert(any(TestCase.class));
     }
 
     /**
@@ -229,8 +232,8 @@ public class TestCaseServiceTest {
         // Arrange
         Long testCaseId = 1L;
         Boolean scriptExists = false;
-        when(testCaseRepository.findById(testCaseId)).thenReturn(Optional.of(testCase));
-        when(testCaseRepository.save(testCase)).thenReturn(testCase);
+        when(testCaseMapper.findById(testCaseId)).thenReturn(testCase);
+        when(testCaseMapper.update(testCase)).thenReturn(1);
 
         // Act
         TestCase result = testCaseService.updateScriptExists(testCaseId, scriptExists);
@@ -238,8 +241,8 @@ public class TestCaseServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(scriptExists, result.getScriptExists());
-        verify(testCaseRepository).findById(testCaseId);
-        verify(testCaseRepository).save(testCase);
+        verify(testCaseMapper).findById(testCaseId);
+        verify(testCaseMapper).update(testCase);
     }
 
     /**
@@ -250,7 +253,7 @@ public class TestCaseServiceTest {
         // Arrange
         Long testCaseId = 999L;
         Boolean scriptExists = false;
-        when(testCaseRepository.findById(testCaseId)).thenReturn(Optional.empty());
+        when(testCaseMapper.findById(testCaseId)).thenReturn(null);
 
         // Act
         testCaseService.updateScriptExists(testCaseId, scriptExists);
@@ -266,7 +269,7 @@ public class TestCaseServiceTest {
         // Arrange
         Long testCaseSetId = 1L;
         List<TestCase> missingScripts = Arrays.asList(testCase);
-        when(testCaseRepository.findMissingScripts(testCaseSetId)).thenReturn(missingScripts);
+        when(testCaseMapper.findMissingScripts(testCaseSetId)).thenReturn(missingScripts);
 
         // Act
         List<TestCase> result = testCaseService.getMissingScripts(testCaseSetId);
@@ -275,7 +278,7 @@ public class TestCaseServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(testCase, result.get(0));
-        verify(testCaseRepository).findMissingScripts(testCaseSetId);
+        verify(testCaseMapper).findMissingScripts(testCaseSetId);
     }
 
     /**
@@ -286,14 +289,14 @@ public class TestCaseServiceTest {
         // Arrange
         Long testCaseSetId = 1L;
         long expectedCount = 5L;
-        when(testCaseRepository.countMissingScripts(testCaseSetId)).thenReturn(expectedCount);
+        when(testCaseMapper.countMissingScripts(testCaseSetId)).thenReturn(expectedCount);
 
         // Act
         long result = testCaseService.countMissingScripts(testCaseSetId);
 
         // Assert
         assertEquals(expectedCount, result);
-        verify(testCaseRepository).countMissingScripts(testCaseSetId);
+        verify(testCaseMapper).countMissingScripts(testCaseSetId);
     }
 
     /**
@@ -303,14 +306,15 @@ public class TestCaseServiceTest {
     public void testDeleteTestCase_ExistingTestCase_ShouldDelete() {
         // Arrange
         Long testCaseId = 1L;
-        when(testCaseRepository.existsById(testCaseId)).thenReturn(true);
+        when(testCaseMapper.findById(testCaseId)).thenReturn(testCase);
+        when(testCaseMapper.deleteById(testCaseId)).thenReturn(1);
 
         // Act
         testCaseService.deleteTestCase(testCaseId);
 
         // Assert
-        verify(testCaseRepository).existsById(testCaseId);
-        verify(testCaseRepository).deleteById(testCaseId);
+        verify(testCaseMapper).findById(testCaseId);
+        verify(testCaseMapper).deleteById(testCaseId);
     }
 
     /**
@@ -320,7 +324,7 @@ public class TestCaseServiceTest {
     public void testDeleteTestCase_NonExistingTestCase_ShouldThrowException() {
         // Arrange
         Long testCaseId = 999L;
-        when(testCaseRepository.existsById(testCaseId)).thenReturn(false);
+        when(testCaseMapper.findById(testCaseId)).thenReturn(null);
 
         // Act
         testCaseService.deleteTestCase(testCaseId);
@@ -340,6 +344,6 @@ public class TestCaseServiceTest {
         testCaseService.deleteTestCasesByTestCaseSet(testCaseSet);
 
         // Assert
-        verify(testCaseRepository).deleteByTestCaseSet(testCaseSet);
+        verify(testCaseMapper).deleteByTestCaseSetId(testCaseSet.getId());
     }
 }

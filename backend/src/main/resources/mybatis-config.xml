@@ -21,7 +21,9 @@
     </typeAliases>
     
     <!-- 插件配置 -->
-    <plugins>
-        <!-- 可以在这里添加其他插件 -->
-    </plugins>
+    <!-- 暂时没有插件，注释掉plugins标签 -->
+    <!-- <plugins>
+        <plugin interceptor="com.example.MyPlugin">
+        </plugin>
+    </plugins> -->
 </configuration>

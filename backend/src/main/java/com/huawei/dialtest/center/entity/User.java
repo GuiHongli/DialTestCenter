@@ -4,7 +4,6 @@
 
 package com.huawei.dialtest.center.entity;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -14,26 +13,12 @@ import java.time.LocalDateTime;
  * @author g00940940
  * @since 2025-09-09
  */
-@Entity
-@Table(name = "dial_user")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
-
-    @Column(name = "password", nullable = false, length = 255)
     private String password;
-
-    @Column(name = "last_login_time")
     private LocalDateTime lastLoginTime;
-
-    @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
-
-    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     /**

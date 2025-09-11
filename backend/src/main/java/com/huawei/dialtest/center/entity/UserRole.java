@@ -4,22 +4,8 @@
 
 package com.huawei.dialtest.center.entity;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 /**
  * 用户角色关系实体类，用于管理用户与角色的关联关系
@@ -29,31 +15,11 @@ import javax.persistence.UniqueConstraint;
  * @author g00940940
  * @since 2025-09-06
  */
-@Entity
-@Table(name = "user_role", 
-       uniqueConstraints = @UniqueConstraint(name = "uk_username_role", columnNames = {"username", "role"}),
-       indexes = {
-           @Index(name = "idx_username", columnList = "username"),
-           @Index(name = "idx_role", columnList = "role")
-       })
 public class UserRole {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "username", nullable = false, length = 100)
     private String username;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 50)
     private Role role;
-
-    @CreationTimestamp
-    @Column(name = "created_time")
     private LocalDateTime createdTime;
-
-    @UpdateTimestamp
-    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     /**

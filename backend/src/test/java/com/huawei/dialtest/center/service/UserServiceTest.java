@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.User;
-import com.huawei.dialtest.center.repository.UserRepository;
+import com.huawei.dialtest.center.mapper.UserMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
     @Mock
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @InjectMocks
     private UserService userService;
@@ -62,7 +62,7 @@ public class UserServiceTest {
 
     @Test
     public void testGetAllUsers_Success() {
-        when(userRepository.findAllOrderByCreatedTimeDesc()).thenReturn(testUsers);
+        when(userMapper.findAllOrderByCreatedTimeDesc()).thenReturn(testUsers);
 
         List<User> result = userService.getAllUsers();
 
@@ -70,186 +70,187 @@ public class UserServiceTest {
         assertEquals(2, result.size());
         assertEquals("testuser", result.get(0).getUsername());
         assertEquals("testuser2", result.get(1).getUsername());
-        verify(userRepository).findAllOrderByCreatedTimeDesc();
+        verify(userMapper).findAllOrderByCreatedTimeDesc();
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetAllUsers_Error() {
-        when(userRepository.findAllOrderByCreatedTimeDesc()).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findAllOrderByCreatedTimeDesc()).thenThrow(new DataAccessException("Database error") {});
 
         userService.getAllUsers();
     }
 
     @Test
     public void testGetUserById_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userMapper.findById(1L)).thenReturn(testUser);
 
         Optional<User> result = userService.getUserById(1L);
 
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
-        verify(userRepository).findById(1L);
+        verify(userMapper).findById(1L);
     }
 
     @Test
     public void testGetUserById_NotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userMapper.findById(999L)).thenReturn(null);
 
         Optional<User> result = userService.getUserById(999L);
 
         assertFalse(result.isPresent());
-        verify(userRepository).findById(999L);
+        verify(userMapper).findById(999L);
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetUserById_Error() {
-        when(userRepository.findById(1L)).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findById(1L)).thenThrow(new DataAccessException("Database error") {});
 
         userService.getUserById(1L);
     }
 
     @Test
     public void testGetUserByUsername_Success() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        when(userMapper.findByUsername("testuser")).thenReturn(testUser);
 
         Optional<User> result = userService.getUserByUsername("testuser");
 
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
-        verify(userRepository).findByUsername("testuser");
+        verify(userMapper).findByUsername("testuser");
     }
 
     @Test
     public void testGetUserByUsername_NotFound() {
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(userMapper.findByUsername("nonexistent")).thenReturn(null);
 
         Optional<User> result = userService.getUserByUsername("nonexistent");
 
         assertFalse(result.isPresent());
-        verify(userRepository).findByUsername("nonexistent");
+        verify(userMapper).findByUsername("nonexistent");
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetUserByUsername_Error() {
-        when(userRepository.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
 
         userService.getUserByUsername("testuser");
     }
 
     @Test
     public void testCreateUser_Success() {
-        when(userRepository.existsByUsername("newuser")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userMapper.existsByUsername("newuser")).thenReturn(false);
+        when(userMapper.insert(any(User.class))).thenReturn(1);
 
         User result = userService.createUser("newuser", "password123");
 
         assertNotNull(result);
-        assertEquals("testuser", result.getUsername());
-        verify(userRepository).existsByUsername("newuser");
-        verify(userRepository).save(any(User.class));
+        assertEquals("newuser", result.getUsername());
+        verify(userMapper).existsByUsername("newuser");
+        verify(userMapper).insert(any(User.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCreateUser_UsernameExists() {
-        when(userRepository.existsByUsername("existinguser")).thenReturn(true);
+        when(userMapper.existsByUsername("existinguser")).thenReturn(true);
 
         userService.createUser("existinguser", "password123");
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateUser_Error() {
-        when(userRepository.existsByUsername("newuser")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.existsByUsername("newuser")).thenReturn(false);
+        when(userMapper.insert(any(User.class))).thenThrow(new DataAccessException("Database error") {});
 
         userService.createUser("newuser", "password123");
     }
 
     @Test
     public void testUpdateUser_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(userRepository.existsByUsername("updateduser")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userMapper.findById(1L)).thenReturn(testUser);
+        when(userMapper.existsByUsername("updateduser")).thenReturn(false);
+        when(userMapper.update(any(User.class))).thenReturn(1);
 
         User result = userService.updateUser(1L, "updateduser", "newpassword");
 
         assertNotNull(result);
-        verify(userRepository).findById(1L);
-        verify(userRepository).existsByUsername("updateduser");
-        verify(userRepository).save(any(User.class));
+        verify(userMapper).findById(1L);
+        verify(userMapper).existsByUsername("updateduser");
+        verify(userMapper).update(any(User.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateUser_UserNotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userMapper.findById(999L)).thenReturn(null);
 
         userService.updateUser(999L, "updateduser", "newpassword");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateUser_UsernameExists() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(userRepository.existsByUsername("existinguser")).thenReturn(true);
+        when(userMapper.findById(1L)).thenReturn(testUser);
+        when(userMapper.existsByUsername("existinguser")).thenReturn(true);
 
         userService.updateUser(1L, "existinguser", "newpassword");
     }
 
     @Test(expected = RuntimeException.class)
     public void testUpdateUser_Error() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findById(1L)).thenReturn(testUser);
+        when(userMapper.update(any(User.class))).thenThrow(new DataAccessException("Database error") {});
 
         userService.updateUser(1L, "updateduser", "newpassword");
     }
 
     @Test
     public void testDeleteUser_Success() {
-        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userMapper.findById(1L)).thenReturn(testUser);
+        when(userMapper.deleteById(1L)).thenReturn(1);
 
         userService.deleteUser(1L);
 
-        verify(userRepository).existsById(1L);
-        verify(userRepository).deleteById(1L);
+        verify(userMapper).findById(1L);
+        verify(userMapper).deleteById(1L);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testDeleteUser_UserNotFound() {
-        when(userRepository.existsById(999L)).thenReturn(false);
+        when(userMapper.findById(999L)).thenReturn(null);
 
         userService.deleteUser(999L);
     }
 
     @Test(expected = RuntimeException.class)
     public void testDeleteUser_Error() {
-        when(userRepository.existsById(1L)).thenReturn(true);
-        doThrow(new DataAccessException("Database error") {}).when(userRepository).deleteById(1L);
+        when(userMapper.findById(1L)).thenReturn(testUser);
+        doThrow(new DataAccessException("Database error") {}).when(userMapper).deleteById(1L);
 
         userService.deleteUser(1L);
     }
 
     @Test
     public void testUpdateLastLoginTime_Success() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userMapper.findByUsername("testuser")).thenReturn(testUser);
+        when(userMapper.update(any(User.class))).thenReturn(1);
 
         userService.updateLastLoginTime("testuser");
 
-        verify(userRepository).findByUsername("testuser");
-        verify(userRepository).save(any(User.class));
+        verify(userMapper).findByUsername("testuser");
+        verify(userMapper).update(any(User.class));
     }
 
     @Test
     public void testUpdateLastLoginTime_UserNotFound() {
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(userMapper.findByUsername("nonexistent")).thenReturn(null);
 
         userService.updateLastLoginTime("nonexistent");
 
-        verify(userRepository).findByUsername("nonexistent");
-        verify(userRepository, never()).save(any(User.class));
+        verify(userMapper).findByUsername("nonexistent");
+        verify(userMapper, never()).update(any(User.class));
     }
 
     @Test(expected = RuntimeException.class)
     public void testUpdateLastLoginTime_Error() {
-        when(userRepository.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
 
         userService.updateLastLoginTime("testuser");
     }
@@ -263,55 +264,55 @@ public class UserServiceTest {
         // Use a known BCrypt hash for "admin123"
         userWithEncodedPassword.setPassword("$2a$10$kl97OCzpiKVHp16ttRJa3OcNFVTnmznxsQDgpLg0Tm5bRW7DIsXEm");
         
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(userWithEncodedPassword));
+        when(userMapper.findByUsername("testuser")).thenReturn(userWithEncodedPassword);
 
         boolean result = userService.validatePassword("testuser", "admin123");
 
         assertTrue(result);
-        verify(userRepository).findByUsername("testuser");
+        verify(userMapper).findByUsername("testuser");
     }
 
     @Test
     public void testValidatePassword_InvalidPassword() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        when(userMapper.findByUsername("testuser")).thenReturn(testUser);
 
         boolean result = userService.validatePassword("testuser", "wrongpassword");
 
         assertFalse(result);
-        verify(userRepository).findByUsername("testuser");
+        verify(userMapper).findByUsername("testuser");
     }
 
     @Test
     public void testValidatePassword_UserNotFound() {
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(userMapper.findByUsername("nonexistent")).thenReturn(null);
 
         boolean result = userService.validatePassword("nonexistent", "password123");
 
         assertFalse(result);
-        verify(userRepository).findByUsername("nonexistent");
+        verify(userMapper).findByUsername("nonexistent");
     }
 
     @Test(expected = RuntimeException.class)
     public void testValidatePassword_Error() {
-        when(userRepository.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findByUsername("testuser")).thenThrow(new DataAccessException("Database error") {});
 
         userService.validatePassword("testuser", "password123");
     }
 
     @Test
     public void testSearchUsersByUsername_Success() {
-        when(userRepository.findByUsernameContaining("test")).thenReturn(testUsers);
+        when(userMapper.findByUsernameContaining("test")).thenReturn(testUsers);
 
         List<User> result = userService.searchUsersByUsername("test");
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        verify(userRepository).findByUsernameContaining("test");
+        verify(userMapper).findByUsernameContaining("test");
     }
 
     @Test(expected = RuntimeException.class)
     public void testSearchUsersByUsername_Error() {
-        when(userRepository.findByUsernameContaining("test")).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findByUsernameContaining("test")).thenThrow(new DataAccessException("Database error") {});
 
         userService.searchUsersByUsername("test");
     }

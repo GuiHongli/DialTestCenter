@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,9 @@ public class TestCaseSetService {
     public Page<TestCaseSet> getTestCaseSets(int page, int pageSize) {
         logger.debug("Getting test case sets - page: {}, size: {}", page, pageSize);
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return testCaseSetRepository.findAllByOrderByCreatedTimeDesc(pageable);
+        List<TestCaseSet> content = testCaseSetMapper.findAllByOrderByCreatedTimeDesc(page - 1, pageSize);
+        long total = testCaseSetMapper.count();
+        return new PageImpl<>(content, pageable, total);
     }
 
     /**
@@ -77,7 +80,8 @@ public class TestCaseSetService {
      */
     public Optional<TestCaseSet> getTestCaseSetById(Long id) {
         logger.debug("Getting test case set by ID: {}", id);
-        return testCaseSetRepository.findById(id);
+        TestCaseSet testCaseSet = testCaseSetMapper.findById(id);
+        return Optional.ofNullable(testCaseSet);
     }
 
     /**
@@ -126,7 +130,7 @@ public class TestCaseSetService {
         String version = nameWithoutExt.substring(lastUnderscoreIndex + 1);
 
         // 检查是否已存在
-        if (testCaseSetRepository.existsByNameAndVersion(name, version)) {
+        if (testCaseSetMapper.existsByNameAndVersion(name, version)) {
             throw new IllegalArgumentException("Test case set with name and version already exists");
         }
 
@@ -154,13 +158,17 @@ public class TestCaseSetService {
         testCaseSet.setBusiness(business);
         testCaseSet.setDescription(description);
 
-        TestCaseSet saved = testCaseSetRepository.save(testCaseSet);
-        logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes, SHA512: {}, business: {}", name, version, fileFormat, fileContent.length, sha512, business);
+        int result = testCaseSetMapper.insert(testCaseSet);
+        if (result > 0) {
+            logger.info("Test case set uploaded successfully: {} - {}, format: {}, file size: {} bytes, SHA512: {}, business: {}", name, version, fileFormat, fileContent.length, sha512, business);
 
-        // 解析并存储用例信息
-        parseAndStoreTestCases(saved, fileContent, fileFormat);
+            // 解析并存储用例信息
+            parseAndStoreTestCases(testCaseSet, fileContent, fileFormat);
 
-        return saved;
+            return testCaseSet;
+        } else {
+            throw new RuntimeException("Failed to save test case set");
+        }
     }
 
     /**
@@ -172,13 +180,15 @@ public class TestCaseSetService {
     public void deleteTestCaseSet(Long id) {
         logger.info("Deleting test case set with ID: {}", id);
 
-        Optional<TestCaseSet> testCaseSetOpt = testCaseSetRepository.findById(id);
-        if (testCaseSetOpt.isPresent()) {
-            TestCaseSet testCaseSet = testCaseSetOpt.get();
-
+        TestCaseSet testCaseSet = testCaseSetMapper.findById(id);
+        if (testCaseSet != null) {
             // 删除数据库记录（文件内容也会一起删除）
-            testCaseSetRepository.deleteById(id);
-            logger.info("Test case set deleted successfully: {} - {}", testCaseSet.getName(), testCaseSet.getVersion());
+            int result = testCaseSetMapper.deleteById(id);
+            if (result > 0) {
+                logger.info("Test case set deleted successfully: {} - {}", testCaseSet.getName(), testCaseSet.getVersion());
+            } else {
+                throw new RuntimeException("Failed to delete test case set");
+            }
         } else {
             throw new IllegalArgumentException("Test case set does not exist");
         }
@@ -197,13 +207,11 @@ public class TestCaseSetService {
     public TestCaseSet updateTestCaseSet(Long id, String name, String version, String description) {
         logger.info("Updating test case set with ID: {}", id);
 
-        Optional<TestCaseSet> testCaseSetOpt = testCaseSetRepository.findById(id);
-        if (testCaseSetOpt.isPresent()) {
-            TestCaseSet testCaseSet = testCaseSetOpt.get();
-
+        TestCaseSet testCaseSet = testCaseSetMapper.findById(id);
+        if (testCaseSet != null) {
             // 检查名称和版本是否与其他记录冲突
             if (!testCaseSet.getName().equals(name) || !testCaseSet.getVersion().equals(version)) {
-                if (testCaseSetRepository.existsByNameAndVersion(name, version)) {
+                if (testCaseSetMapper.existsByNameAndVersion(name, version)) {
                     throw new IllegalArgumentException("Test case set with name and version already exists");
                 }
             }
@@ -212,9 +220,13 @@ public class TestCaseSetService {
             testCaseSet.setVersion(version);
             testCaseSet.setDescription(description);
 
-            TestCaseSet updated = testCaseSetRepository.save(testCaseSet);
-            logger.info("Test case set updated successfully: {} - {}", name, version);
-            return updated;
+            int result = testCaseSetMapper.update(testCaseSet);
+            if (result > 0) {
+                logger.info("Test case set updated successfully: {} - {}", name, version);
+                return testCaseSet;
+            } else {
+                throw new RuntimeException("Failed to update test case set");
+            }
         } else {
             throw new IllegalArgumentException("Test case set does not exist");
         }

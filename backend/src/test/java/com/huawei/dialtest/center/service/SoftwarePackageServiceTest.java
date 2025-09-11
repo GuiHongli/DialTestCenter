@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.SoftwarePackage;
-import com.huawei.dialtest.center.repository.SoftwarePackageRepository;
+import com.huawei.dialtest.center.mapper.SoftwarePackageMapper;
 import com.huawei.dialtest.center.service.SoftwarePackageService;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
 public class SoftwarePackageServiceTest {
 
     @Mock
-    private SoftwarePackageRepository softwarePackageRepository;
+    private SoftwarePackageMapper softwarePackageMapper;
 
     @InjectMocks
     private SoftwarePackageService softwarePackageService;
@@ -72,8 +72,8 @@ public class SoftwarePackageServiceTest {
     public void testGetSoftwarePackages_Success() {
         // Arrange
         List<SoftwarePackage> packages = Arrays.asList(testSoftwarePackage);
-        Page<SoftwarePackage> page = new PageImpl<>(packages);
-        when(softwarePackageRepository.findAllByOrderByCreatedTimeDesc(any(Pageable.class))).thenReturn(page);
+        when(softwarePackageMapper.findAllByOrderByCreatedTimeDesc(anyInt(), anyInt())).thenReturn(packages);
+        when(softwarePackageMapper.count()).thenReturn(1L);
 
         // Act
         Page<SoftwarePackage> result = softwarePackageService.getSoftwarePackages(1, 10, null, null, null);
@@ -83,16 +83,18 @@ public class SoftwarePackageServiceTest {
         assertEquals("Should return 1 package", 1, result.getContent().size());
         assertEquals("Should return correct package", testSoftwarePackage.getSoftwareName(), 
                     result.getContent().get(0).getSoftwareName());
-        verify(softwarePackageRepository).findAllByOrderByCreatedTimeDesc(any(Pageable.class));
+        verify(softwarePackageMapper).findAllByOrderByCreatedTimeDesc(anyInt(), anyInt());
+        verify(softwarePackageMapper).count();
     }
 
     @Test
     public void testGetSoftwarePackages_WithFilters() {
         // Arrange
         List<SoftwarePackage> packages = Arrays.asList(testSoftwarePackage);
-        Page<SoftwarePackage> page = new PageImpl<>(packages);
-        when(softwarePackageRepository.findByConditions(eq("android"), eq("admin"), eq("TestApp"), any(Pageable.class)))
-                .thenReturn(page);
+        when(softwarePackageMapper.findByConditions(eq("android"), eq("admin"), eq("TestApp"), anyInt(), anyInt()))
+                .thenReturn(packages);
+        when(softwarePackageMapper.countByConditions(eq("android"), eq("admin"), eq("TestApp")))
+                .thenReturn(1L);
 
         // Act
         Page<SoftwarePackage> result = softwarePackageService.getSoftwarePackages(1, 10, "android", "admin", "TestApp");
@@ -100,13 +102,14 @@ public class SoftwarePackageServiceTest {
         // Assert
         assertNotNull("Result should not be null", result);
         assertEquals("Should return 1 package", 1, result.getContent().size());
-        verify(softwarePackageRepository).findByConditions(eq("android"), eq("admin"), eq("TestApp"), any(Pageable.class));
+        verify(softwarePackageMapper).findByConditions(eq("android"), eq("admin"), eq("TestApp"), anyInt(), anyInt());
+        verify(softwarePackageMapper).countByConditions(eq("android"), eq("admin"), eq("TestApp"));
     }
 
     @Test
     public void testGetSoftwarePackageById_Success() {
         // Arrange
-        when(softwarePackageRepository.findById(1L)).thenReturn(Optional.of(testSoftwarePackage));
+        when(softwarePackageMapper.findById(1L)).thenReturn(testSoftwarePackage);
 
         // Act
         Optional<SoftwarePackage> result = softwarePackageService.getSoftwarePackageById(1L);
@@ -114,39 +117,43 @@ public class SoftwarePackageServiceTest {
         // Assert
         assertTrue("Result should be present", result.isPresent());
         assertEquals("Should return correct package", testSoftwarePackage.getId(), result.get().getId());
-        verify(softwarePackageRepository).findById(1L);
+        verify(softwarePackageMapper).findById(1L);
     }
 
     @Test
     public void testGetSoftwarePackageById_NotFound() {
         // Arrange
-        when(softwarePackageRepository.findById(999L)).thenReturn(Optional.empty());
+        when(softwarePackageMapper.findById(999L)).thenReturn(null);
 
         // Act
         Optional<SoftwarePackage> result = softwarePackageService.getSoftwarePackageById(999L);
 
         // Assert
         assertFalse("Result should not be present", result.isPresent());
-        verify(softwarePackageRepository).findById(999L);
+        verify(softwarePackageMapper).findById(999L);
     }
 
     @Test
     public void testUploadSoftwarePackage_APK_Success() throws IOException {
         // Arrange
         when(testFile.getBytes()).thenReturn(testFileContent);
-        when(softwarePackageRepository.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(false);
-        when(softwarePackageRepository.existsBySha512(anyString())).thenReturn(false);
-        when(softwarePackageRepository.save(any(SoftwarePackage.class))).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(false);
+        when(softwarePackageMapper.existsBySha512(anyString())).thenReturn(false);
+        when(softwarePackageMapper.insert(any(SoftwarePackage.class))).thenAnswer(invocation -> {
+            SoftwarePackage pkg = invocation.getArgument(0);
+            pkg.setId(1L); // 模拟insert后设置ID
+            return 1;
+        });
 
         // Act
         SoftwarePackage result = softwarePackageService.uploadSoftwarePackage(testFile, "Test description", "admin");
 
         // Assert
         assertNotNull("Result should not be null", result);
-        assertEquals("Should return correct package", testSoftwarePackage.getId(), result.getId());
-        verify(softwarePackageRepository).existsBySoftwareName("TestApp_1.0.0.apk");
-        verify(softwarePackageRepository).existsBySha512(anyString());
-        verify(softwarePackageRepository).save(any(SoftwarePackage.class));
+        assertEquals("Should return correct package", Long.valueOf(1L), result.getId());
+        verify(softwarePackageMapper).existsBySoftwareName("TestApp_1.0.0.apk");
+        verify(softwarePackageMapper).existsBySha512(anyString());
+        verify(softwarePackageMapper).insert(any(SoftwarePackage.class));
     }
 
     @Test
@@ -154,17 +161,17 @@ public class SoftwarePackageServiceTest {
         // Arrange
         when(testFile.getOriginalFilename()).thenReturn("TestApp_1.0.0.ipa");
         when(testFile.getBytes()).thenReturn(testFileContent);
-        when(softwarePackageRepository.existsBySoftwareName("TestApp_1.0.0.ipa")).thenReturn(false);
-        when(softwarePackageRepository.existsBySha512(anyString())).thenReturn(false);
-        when(softwarePackageRepository.save(any(SoftwarePackage.class))).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.existsBySoftwareName("TestApp_1.0.0.ipa")).thenReturn(false);
+        when(softwarePackageMapper.existsBySha512(anyString())).thenReturn(false);
+        when(softwarePackageMapper.insert(any(SoftwarePackage.class))).thenReturn(1);
 
         // Act
         SoftwarePackage result = softwarePackageService.uploadSoftwarePackage(testFile, "Test description", "admin");
 
         // Assert
         assertNotNull("Result should not be null", result);
-        verify(softwarePackageRepository).existsBySoftwareName("TestApp_1.0.0.ipa");
-        verify(softwarePackageRepository).save(any(SoftwarePackage.class));
+        verify(softwarePackageMapper).existsBySoftwareName("TestApp_1.0.0.ipa");
+        verify(softwarePackageMapper).insert(any(SoftwarePackage.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -197,7 +204,7 @@ public class SoftwarePackageServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testUploadSoftwarePackage_FileNameExists() throws IOException {
         // Arrange
-        when(softwarePackageRepository.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(true);
+        when(softwarePackageMapper.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(true);
 
         // Act
         softwarePackageService.uploadSoftwarePackage(testFile, "Test description", "admin");
@@ -207,8 +214,8 @@ public class SoftwarePackageServiceTest {
     public void testUploadSoftwarePackage_SHA512Exists() throws IOException {
         // Arrange
         when(testFile.getBytes()).thenReturn(testFileContent);
-        when(softwarePackageRepository.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(false);
-        when(softwarePackageRepository.existsBySha512(anyString())).thenReturn(true);
+        when(softwarePackageMapper.existsBySoftwareName("TestApp_1.0.0.apk")).thenReturn(false);
+        when(softwarePackageMapper.existsBySha512(anyString())).thenReturn(true);
 
         // Act
         softwarePackageService.uploadSoftwarePackage(testFile, "Test description", "admin");
@@ -217,20 +224,21 @@ public class SoftwarePackageServiceTest {
     @Test
     public void testDeleteSoftwarePackage_Success() {
         // Arrange
-        when(softwarePackageRepository.findById(1L)).thenReturn(Optional.of(testSoftwarePackage));
+        when(softwarePackageMapper.findById(1L)).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.deleteById(1L)).thenReturn(1);
 
         // Act
         softwarePackageService.deleteSoftwarePackage(1L);
 
         // Assert
-        verify(softwarePackageRepository).findById(1L);
-        verify(softwarePackageRepository).deleteById(1L);
+        verify(softwarePackageMapper).findById(1L);
+        verify(softwarePackageMapper).deleteById(1L);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testDeleteSoftwarePackage_NotFound() {
         // Arrange
-        when(softwarePackageRepository.findById(999L)).thenReturn(Optional.empty());
+        when(softwarePackageMapper.findById(999L)).thenReturn(null);
 
         // Act
         softwarePackageService.deleteSoftwarePackage(999L);
@@ -239,22 +247,22 @@ public class SoftwarePackageServiceTest {
     @Test
     public void testUpdateSoftwarePackage_Success() {
         // Arrange
-        when(softwarePackageRepository.findById(1L)).thenReturn(Optional.of(testSoftwarePackage));
-        when(softwarePackageRepository.save(any(SoftwarePackage.class))).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.findById(1L)).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.update(any(SoftwarePackage.class))).thenReturn(1);
 
         // Act
         SoftwarePackage result = softwarePackageService.updateSoftwarePackage(1L, "NewApp_2.0.0.apk", "New description");
 
         // Assert
         assertNotNull("Result should not be null", result);
-        verify(softwarePackageRepository).findById(1L);
-        verify(softwarePackageRepository).save(any(SoftwarePackage.class));
+        verify(softwarePackageMapper).findById(1L);
+        verify(softwarePackageMapper).update(any(SoftwarePackage.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testUpdateSoftwarePackage_NotFound() {
         // Arrange
-        when(softwarePackageRepository.findById(999L)).thenReturn(Optional.empty());
+        when(softwarePackageMapper.findById(999L)).thenReturn(null);
 
         // Act
         softwarePackageService.updateSoftwarePackage(999L, "NewApp_2.0.0.apk", "New description");
@@ -263,9 +271,9 @@ public class SoftwarePackageServiceTest {
     @Test
     public void testGetPlatformStatistics() {
         // Arrange
-        when(softwarePackageRepository.countByPlatform("android")).thenReturn(5L);
-        when(softwarePackageRepository.countByPlatform("ios")).thenReturn(3L);
-        when(softwarePackageRepository.count()).thenReturn(8L);
+        when(softwarePackageMapper.countByPlatform("android")).thenReturn(5L);
+        when(softwarePackageMapper.countByPlatform("ios")).thenReturn(3L);
+        when(softwarePackageMapper.count()).thenReturn(8L);
 
         // Act
         Map<String, Long> result = softwarePackageService.getPlatformStatistics();
@@ -275,9 +283,9 @@ public class SoftwarePackageServiceTest {
         assertEquals("Android count should be 5", Long.valueOf(5L), result.get("android"));
         assertEquals("iOS count should be 3", Long.valueOf(3L), result.get("ios"));
         assertEquals("Total count should be 8", Long.valueOf(8L), result.get("total"));
-        verify(softwarePackageRepository).countByPlatform("android");
-        verify(softwarePackageRepository).countByPlatform("ios");
-        verify(softwarePackageRepository).count();
+        verify(softwarePackageMapper).countByPlatform("android");
+        verify(softwarePackageMapper).countByPlatform("ios");
+        verify(softwarePackageMapper).count();
     }
 
     @Test
@@ -290,9 +298,9 @@ public class SoftwarePackageServiceTest {
         when(zipFile.getInputStream()).thenReturn(new java.io.ByteArrayInputStream(
             createTestZipContent()
         ));
-        when(softwarePackageRepository.existsBySoftwareName(anyString())).thenReturn(false);
-        when(softwarePackageRepository.existsBySha512(anyString())).thenReturn(false);
-        when(softwarePackageRepository.save(any(SoftwarePackage.class))).thenReturn(testSoftwarePackage);
+        when(softwarePackageMapper.existsBySoftwareName(anyString())).thenReturn(false);
+        when(softwarePackageMapper.existsBySha512(anyString())).thenReturn(false);
+        when(softwarePackageMapper.insert(any(SoftwarePackage.class))).thenReturn(1);
 
         // Act
         List<SoftwarePackage> result = softwarePackageService.uploadZipPackage(zipFile, "admin");
@@ -300,7 +308,7 @@ public class SoftwarePackageServiceTest {
         // Assert
         assertNotNull("Result should not be null", result);
         // Note: The actual number depends on the test ZIP content
-        verify(softwarePackageRepository, atLeastOnce()).save(any(SoftwarePackage.class));
+        verify(softwarePackageMapper, atLeastOnce()).insert(any(SoftwarePackage.class));
     }
 
     @Test(expected = IllegalArgumentException.class)

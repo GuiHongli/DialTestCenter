@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 /**
@@ -110,7 +109,7 @@ public class UserRoleController {
      * @param id 用户角色ID，不能为空
      * @param request 用户角色请求，不能为空
      * @return 更新后的用户角色
-     * @throws EntityNotFoundException 当用户角色不存在时抛出
+     * @throws RuntimeException 当用户角色不存在时抛出
      * @throws IllegalArgumentException 当请求参数无效时抛出
      */
     @PutMapping("/{id}")
@@ -120,15 +119,12 @@ public class UserRoleController {
         logger.info("Updating user role with ID: {}", id);
         try {
             UserRole userRole = userRoleService.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User role does not exist"));
+                .orElseThrow(() -> new RuntimeException("User role does not exist"));
             userRole.setUsername(request.getUsername());
             userRole.setRole(request.getRole());
             UserRole updatedUserRole = userRoleService.save(userRole);
             logger.info("User role updated successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.ok(updatedUserRole);
-        } catch (EntityNotFoundException e) {
-            logger.warn("User role not found for update: {}", id);
-            return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -138,6 +134,9 @@ public class UserRoleController {
         } catch (IllegalStateException e) {
             logger.error("Service state error while updating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            logger.warn("User role not found for update: {}", id);
+            return ResponseEntity.notFound().build();
         }
     }
 

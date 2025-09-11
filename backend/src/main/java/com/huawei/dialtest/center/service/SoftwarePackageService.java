@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,11 +60,15 @@ public class SoftwarePackageService {
         
         // 如果所有过滤条件都为空，返回所有数据
         if (platform == null && creator == null && softwareName == null) {
-            return softwarePackageRepository.findAllByOrderByCreatedTimeDesc(pageable);
+            List<SoftwarePackage> content = softwarePackageMapper.findAllByOrderByCreatedTimeDesc(page - 1, pageSize);
+            long total = softwarePackageMapper.count();
+            return new PageImpl<>(content, pageable, total);
         }
         
         // 使用自定义查询方法
-        return softwarePackageRepository.findByConditions(platform, creator, softwareName, pageable);
+        List<SoftwarePackage> content = softwarePackageMapper.findByConditions(platform, creator, softwareName, page - 1, pageSize);
+        long total = softwarePackageMapper.countByConditions(platform, creator, softwareName);
+        return new PageImpl<>(content, pageable, total);
     }
 
     /**
@@ -74,7 +79,8 @@ public class SoftwarePackageService {
      */
     public Optional<SoftwarePackage> getSoftwarePackageById(Long id) {
         logger.debug("Getting software package by ID: {}", id);
-        return softwarePackageRepository.findById(id);
+        SoftwarePackage softwarePackage = softwarePackageMapper.findById(id);
+        return Optional.ofNullable(softwarePackage);
     }
 
     /**
@@ -115,7 +121,7 @@ public class SoftwarePackageService {
         }
 
         // 检查是否已存在相同文件名的软件包
-        if (softwarePackageRepository.existsBySoftwareName(softwareName)) {
+        if (softwarePackageMapper.existsBySoftwareName(softwareName)) {
             throw new IllegalArgumentException("Software package with the same file name already exists");
         }
 
@@ -126,7 +132,7 @@ public class SoftwarePackageService {
         String sha512 = calculateSHA512(fileContent);
 
         // 检查是否已存在相同SHA512的软件包
-        if (softwarePackageRepository.existsBySha512(sha512)) {
+        if (softwarePackageMapper.existsBySha512(sha512)) {
             throw new IllegalArgumentException("Software package with the same content already exists");
         }
 
@@ -136,11 +142,14 @@ public class SoftwarePackageService {
         );
         softwarePackage.setDescription(description);
 
-        SoftwarePackage saved = softwarePackageRepository.save(softwarePackage);
-        logger.info("Software package uploaded successfully: {}, format: {}, file size: {} bytes, SHA512: {}", 
-                   softwareName, fileFormat, fileContent.length, sha512);
-
-        return saved;
+        int result = softwarePackageMapper.insert(softwarePackage);
+        if (result > 0) {
+            logger.info("Software package uploaded successfully: {}, format: {}, file size: {} bytes, SHA512: {}", 
+                       softwareName, fileFormat, fileContent.length, sha512);
+            return softwarePackage;
+        } else {
+            throw new RuntimeException("Failed to save software package");
+        }
     }
 
     /**
@@ -189,14 +198,14 @@ public class SoftwarePackageService {
                             }
 
                             // 检查是否已存在
-                            if (softwarePackageRepository.existsBySoftwareName(softwareName)) {
+                            if (softwarePackageMapper.existsBySoftwareName(softwareName)) {
                                 logger.warn("Software package with file name {} already exists, skipping", softwareName);
                                 continue;
                             }
 
                             // 计算SHA512
                             String sha512 = calculateSHA512(fileContent);
-                            if (softwarePackageRepository.existsBySha512(sha512)) {
+                            if (softwarePackageMapper.existsBySha512(sha512)) {
                                 logger.warn("Software package with SHA512 {} already exists, skipping", sha512);
                                 continue;
                             }
@@ -207,8 +216,10 @@ public class SoftwarePackageService {
                             );
                             softwarePackage.setDescription("Uploaded from ZIP package: " + file.getOriginalFilename());
 
-                            SoftwarePackage saved = softwarePackageRepository.save(softwarePackage);
-                            uploadedPackages.add(saved);
+                            int result = softwarePackageMapper.insert(softwarePackage);
+                            if (result > 0) {
+                                uploadedPackages.add(softwarePackage);
+                            }
                             
                             logger.info("Software package from ZIP uploaded: {}, format: {}, size: {} bytes", 
                                        entryName, fileFormat, fileContent.length);
@@ -235,13 +246,15 @@ public class SoftwarePackageService {
     public void deleteSoftwarePackage(Long id) {
         logger.info("Deleting software package with ID: {}", id);
 
-        Optional<SoftwarePackage> softwarePackageOpt = softwarePackageRepository.findById(id);
-        if (softwarePackageOpt.isPresent()) {
-            SoftwarePackage softwarePackage = softwarePackageOpt.get();
-
+        SoftwarePackage softwarePackage = softwarePackageMapper.findById(id);
+        if (softwarePackage != null) {
             // 删除数据库记录（文件内容也会一起删除）
-            softwarePackageRepository.deleteById(id);
-            logger.info("Software package deleted successfully: {}", softwarePackage.getSoftwareName());
+            int result = softwarePackageMapper.deleteById(id);
+            if (result > 0) {
+                logger.info("Software package deleted successfully: {}", softwarePackage.getSoftwareName());
+            } else {
+                throw new RuntimeException("Failed to delete software package");
+            }
         } else {
             throw new IllegalArgumentException("Software package does not exist");
         }
@@ -259,16 +272,18 @@ public class SoftwarePackageService {
     public SoftwarePackage updateSoftwarePackage(Long id, String softwareName, String description) {
         logger.info("Updating software package with ID: {}", id);
 
-        Optional<SoftwarePackage> softwarePackageOpt = softwarePackageRepository.findById(id);
-        if (softwarePackageOpt.isPresent()) {
-            SoftwarePackage softwarePackage = softwarePackageOpt.get();
-
+        SoftwarePackage softwarePackage = softwarePackageMapper.findById(id);
+        if (softwarePackage != null) {
             softwarePackage.setSoftwareName(softwareName);
             softwarePackage.setDescription(description);
 
-            SoftwarePackage updated = softwarePackageRepository.save(softwarePackage);
-            logger.info("Software package updated successfully: {}", softwareName);
-            return updated;
+            int result = softwarePackageMapper.update(softwarePackage);
+            if (result > 0) {
+                logger.info("Software package updated successfully: {}", softwareName);
+                return softwarePackage;
+            } else {
+                throw new RuntimeException("Failed to update software package");
+            }
         } else {
             throw new IllegalArgumentException("Software package does not exist");
         }
@@ -283,9 +298,9 @@ public class SoftwarePackageService {
         logger.debug("Getting platform statistics");
         
         java.util.Map<String, Long> statistics = new java.util.HashMap<>();
-        statistics.put("android", softwarePackageRepository.countByPlatform("android"));
-        statistics.put("ios", softwarePackageRepository.countByPlatform("ios"));
-        statistics.put("total", softwarePackageRepository.count());
+        statistics.put("android", softwarePackageMapper.countByPlatform("android"));
+        statistics.put("ios", softwarePackageMapper.countByPlatform("ios"));
+        statistics.put("total", softwarePackageMapper.count());
         
         return statistics;
     }

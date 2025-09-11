@@ -4,18 +4,8 @@
 
 package com.huawei.dialtest.center.entity;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * 用例集实体类，用于存储和管理测试用例集信息
@@ -25,46 +15,18 @@ import javax.persistence.Table;
  * @author g00940940
  * @since 2025-09-06
  */
-@Entity
-@Table(name = "test_case_set")
 public class TestCaseSet {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "name", nullable = false, length = 200)
     private String name;
-
-    @Column(name = "version", nullable = false, length = 50)
     private String version;
-
-    @Column(name = "file_content", nullable = false, columnDefinition = "bytea")
     private byte[] fileContent;
-
-    @Column(name = "file_format", nullable = false, length = 10)
     private String fileFormat; // 文件格式：zip 或 tar.gz
-
-    @Column(name = "sha512", length = 128)
     private String sha512; // 文件内容的SHA512哈希值
-
-    @Column(name = "business", nullable = false, length = 50)
     private String business; // 业务类型
-
-    @Column(name = "creator", nullable = false, length = 100)
     private String creator;
-
-    @Column(name = "file_size", nullable = false)
     private Long fileSize;
-
-    @Column(name = "description", length = 1000)
     private String description;
-
-    @CreationTimestamp
-    @Column(name = "created_time")
     private LocalDateTime createdTime;
-
-    @UpdateTimestamp
-    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     /**
