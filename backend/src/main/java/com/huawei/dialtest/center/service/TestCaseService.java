@@ -6,12 +6,13 @@ package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
-import com.huawei.dialtest.center.repository.TestCaseRepository;
+import com.huawei.dialtest.center.mapper.TestCaseMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class TestCaseService {
     private static final Logger logger = LoggerFactory.getLogger(TestCaseService.class);
 
     @Autowired
-    private TestCaseRepository testCaseRepository;
+    private TestCaseMapper testCaseMapper;
 
     /**
      * 根据用例集获取测试用例列表（分页）
@@ -46,7 +47,9 @@ public class TestCaseService {
     public Page<TestCase> getTestCasesByTestCaseSet(Long testCaseSetId, int page, int pageSize) {
         logger.debug("Getting test cases for test case set: {}, page: {}, size: {}", testCaseSetId, page, pageSize);
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        return testCaseRepository.findByTestCaseSetId(testCaseSetId, pageable);
+        List<TestCase> testCases = testCaseMapper.findByTestCaseSetIdWithPage(testCaseSetId, pageable.getPageNumber(), pageable.getPageSize());
+        long total = testCaseMapper.countByTestCaseSetId(testCaseSetId);
+        return new PageImpl<>(testCases, pageable, total);
     }
 
     /**
@@ -57,7 +60,7 @@ public class TestCaseService {
      */
     public List<TestCase> getTestCasesByTestCaseSet(TestCaseSet testCaseSet) {
         logger.debug("Getting all test cases for test case set: {}", testCaseSet.getId());
-        return testCaseRepository.findByTestCaseSet(testCaseSet);
+        return testCaseMapper.findByTestCaseSetId(testCaseSet.getId());
     }
 
     /**
@@ -68,7 +71,8 @@ public class TestCaseService {
      */
     public Optional<TestCase> getTestCaseById(Long id) {
         logger.debug("Getting test case by ID: {}", id);
-        return testCaseRepository.findById(id);
+        TestCase testCase = testCaseMapper.findById(id);
+        return Optional.ofNullable(testCase);
     }
 
     /**
@@ -79,7 +83,8 @@ public class TestCaseService {
      */
     public Optional<TestCase> getTestCaseByCaseNumber(String caseNumber) {
         logger.debug("Getting test case by case number: {}", caseNumber);
-        return testCaseRepository.findByCaseNumber(caseNumber);
+        TestCase testCase = testCaseMapper.findByCaseNumber(caseNumber);
+        return Optional.ofNullable(testCase);
     }
 
     /**
@@ -91,7 +96,12 @@ public class TestCaseService {
     @Transactional
     public TestCase saveTestCase(TestCase testCase) {
         logger.debug("Saving test case: {}", testCase.getCaseNumber());
-        return testCaseRepository.save(testCase);
+        int result = testCaseMapper.insert(testCase);
+        if (result > 0) {
+            return testCase;
+        } else {
+            throw new RuntimeException("Failed to save test case");
+        }
     }
 
     /**
@@ -103,7 +113,13 @@ public class TestCaseService {
     @Transactional
     public List<TestCase> saveTestCases(List<TestCase> testCases) {
         logger.info("Saving {} test cases", testCases.size());
-        return testCaseRepository.saveAll(testCases);
+        for (TestCase testCase : testCases) {
+            int result = testCaseMapper.insert(testCase);
+            if (result == 0) {
+                throw new RuntimeException("Failed to save test case: " + testCase.getCaseNumber());
+            }
+        }
+        return testCases;
     }
 
     /**
@@ -118,11 +134,17 @@ public class TestCaseService {
     public TestCase updateScriptExists(Long testCaseId, Boolean scriptExists) {
         logger.debug("Updating script exists status for test case: {}, exists: {}", testCaseId, scriptExists);
         
-        Optional<TestCase> testCaseOpt = testCaseRepository.findById(testCaseId);
+        TestCase testCase = testCaseMapper.findById(testCaseId);
+        Optional<TestCase> testCaseOpt = Optional.ofNullable(testCase);
         if (testCaseOpt.isPresent()) {
-            TestCase testCase = testCaseOpt.get();
-            testCase.setScriptExists(scriptExists);
-            return testCaseRepository.save(testCase);
+            TestCase foundTestCase = testCaseOpt.get();
+            foundTestCase.setScriptExists(scriptExists);
+            int result = testCaseMapper.update(foundTestCase);
+            if (result > 0) {
+                return foundTestCase;
+            } else {
+                throw new RuntimeException("Failed to update test case");
+            }
         } else {
             throw new IllegalArgumentException("Test case does not exist");
         }
@@ -136,7 +158,7 @@ public class TestCaseService {
      */
     public List<TestCase> getMissingScripts(Long testCaseSetId) {
         logger.debug("Getting missing scripts for test case set: {}", testCaseSetId);
-        return testCaseRepository.findMissingScripts(testCaseSetId);
+        return testCaseMapper.findMissingScripts(testCaseSetId);
     }
 
     /**
@@ -147,7 +169,7 @@ public class TestCaseService {
      */
     public long countMissingScripts(Long testCaseSetId) {
         logger.debug("Counting missing scripts for test case set: {}", testCaseSetId);
-        return testCaseRepository.countMissingScripts(testCaseSetId);
+        return testCaseMapper.countMissingScripts(testCaseSetId);
     }
 
     /**
@@ -160,8 +182,12 @@ public class TestCaseService {
     public void deleteTestCase(Long id) {
         logger.info("Deleting test case with ID: {}", id);
         
-        if (testCaseRepository.existsById(id)) {
-            testCaseRepository.deleteById(id);
+        TestCase testCase = testCaseMapper.findById(id);
+        if (testCase != null) {
+            int result = testCaseMapper.deleteById(id);
+            if (result == 0) {
+                throw new RuntimeException("Failed to delete test case");
+            }
             logger.info("Test case deleted successfully: {}", id);
         } else {
             throw new IllegalArgumentException("Test case does not exist");
@@ -176,7 +202,10 @@ public class TestCaseService {
     @Transactional
     public void deleteTestCasesByTestCaseSet(TestCaseSet testCaseSet) {
         logger.info("Deleting all test cases for test case set: {}", testCaseSet.getId());
-        testCaseRepository.deleteByTestCaseSet(testCaseSet);
+        int result = testCaseMapper.deleteByTestCaseSetId(testCaseSet.getId());
+        if (result == 0) {
+            logger.warn("No test cases found for test case set: {}", testCaseSet.getId());
+        }
         logger.info("All test cases deleted for test case set: {}", testCaseSet.getId());
     }
 }

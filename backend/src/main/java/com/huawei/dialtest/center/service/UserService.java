@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.User;
-import com.huawei.dialtest.center.repository.UserRepository;
+import com.huawei.dialtest.center.mapper.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -44,7 +44,7 @@ public class UserService {
     public List<User> getAllUsers() {
         try {
             logger.info("Getting all users");
-            List<User> users = userRepository.findAllOrderByCreatedTimeDesc();
+            List<User> users = userMapper.findAllOrderByCreatedTimeDesc();
             logger.info("Successfully retrieved {} users", users.size());
             return users;
         } catch (DataAccessException e) {
@@ -63,13 +63,14 @@ public class UserService {
     public Optional<User> getUserById(Long id) {
         try {
             logger.info("Getting user by ID: {}", id);
-            Optional<User> user = userRepository.findById(id);
-            if (user.isPresent()) {
-                logger.info("Successfully retrieved user: {}", user.get().getUsername());
+            User user = userMapper.findById(id);
+            Optional<User> userOptional = Optional.ofNullable(user);
+            if (userOptional.isPresent()) {
+                logger.info("Successfully retrieved user: {}", userOptional.get().getUsername());
             } else {
                 logger.warn("User not found with ID: {}", id);
             }
-            return user;
+            return userOptional;
         } catch (DataAccessException e) {
             logger.error("Failed to get user by ID: {}", id, e);
             throw new RuntimeException("Failed to retrieve user", e);
@@ -86,13 +87,14 @@ public class UserService {
     public Optional<User> getUserByUsername(String username) {
         try {
             logger.info("Getting user by username: {}", username);
-            Optional<User> user = userRepository.findByUsername(username);
-            if (user.isPresent()) {
+            User user = userMapper.findByUsername(username);
+            Optional<User> userOptional = Optional.ofNullable(user);
+            if (userOptional.isPresent()) {
                 logger.info("Successfully retrieved user: {}", username);
             } else {
                 logger.warn("User not found with username: {}", username);
             }
-            return user;
+            return userOptional;
         } catch (DataAccessException e) {
             logger.error("Failed to get user by username: {}", username, e);
             throw new RuntimeException("Failed to retrieve user", e);
@@ -110,17 +112,20 @@ public class UserService {
         try {
             logger.info("Creating new user: {}", username);
             
-            if (userRepository.existsByUsername(username)) {
+            if (userMapper.existsByUsername(username)) {
                 logger.warn("Username already exists: {}", username);
                 throw new IllegalArgumentException("Username already exists: " + username);
             }
 
             String encodedPassword = passwordEncoder.encode(password);
             User user = new User(username, encodedPassword);
-            User savedUser = userRepository.save(user);
-            
-            logger.info("Successfully created user: {}", username);
-            return savedUser;
+            int result = userMapper.insert(user);
+            if (result > 0) {
+                logger.info("Successfully created user: {}", username);
+                return user;
+            } else {
+                throw new RuntimeException("Failed to create user");
+            }
         } catch (DataAccessException e) {
             logger.error("Failed to create user: {}", username, e);
             throw new RuntimeException("Failed to create user", e);
@@ -139,11 +144,13 @@ public class UserService {
         try {
             logger.info("Updating user with ID: {}", id);
             
-            User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
+            User user = userMapper.findById(id);
+            if (user == null) {
+                throw new IllegalArgumentException("User not found with ID: " + id);
+            }
 
             if (username != null && !username.equals(user.getUsername())) {
-                if (userRepository.existsByUsername(username)) {
+                if (userMapper.existsByUsername(username)) {
                     logger.warn("Username already exists: {}", username);
                     throw new IllegalArgumentException("Username already exists: " + username);
                 }
@@ -156,10 +163,13 @@ public class UserService {
             }
 
             user.setUpdatedTime(LocalDateTime.now());
-            User updatedUser = userRepository.save(user);
-            
-            logger.info("Successfully updated user: {}", updatedUser.getUsername());
-            return updatedUser;
+            int result = userMapper.update(user);
+            if (result > 0) {
+                logger.info("Successfully updated user: {}", user.getUsername());
+                return user;
+            } else {
+                throw new RuntimeException("Failed to update user");
+            }
         } catch (DataAccessException e) {
             logger.error("Failed to update user with ID: {}", id, e);
             throw new RuntimeException("Failed to update user", e);
@@ -175,12 +185,16 @@ public class UserService {
         try {
             logger.info("Deleting user with ID: {}", id);
             
-            if (!userRepository.existsById(id)) {
+            User user = userMapper.findById(id);
+            if (user == null) {
                 logger.warn("User not found with ID: {}", id);
                 throw new IllegalArgumentException("User not found with ID: " + id);
             }
-
-            userRepository.deleteById(id);
+            
+            int result = userMapper.deleteById(id);
+            if (result == 0) {
+                throw new RuntimeException("Failed to delete user");
+            }
             logger.info("Successfully deleted user with ID: {}", id);
         } catch (DataAccessException e) {
             logger.error("Failed to delete user with ID: {}", id, e);
@@ -197,11 +211,12 @@ public class UserService {
         try {
             logger.info("Updating last login time for user: {}", username);
             
-            Optional<User> userOpt = userRepository.findByUsername(username);
+            User user = userMapper.findByUsername(username);
+            Optional<User> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                user.setLastLoginTime(LocalDateTime.now());
-                userRepository.save(user);
+                User foundUser = userOpt.get();
+                foundUser.setLastLoginTime(LocalDateTime.now());
+                userMapper.update(foundUser);
                 logger.info("Successfully updated last login time for user: {}", username);
             } else {
                 logger.warn("User not found for updating last login time: {}", username);
@@ -224,10 +239,11 @@ public class UserService {
         try {
             logger.info("Validating password for user: {}", username);
             
-            Optional<User> userOpt = userRepository.findByUsername(username);
+            User user = userMapper.findByUsername(username);
+            Optional<User> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                boolean isValid = passwordEncoder.matches(password, user.getPassword());
+                User foundUser = userOpt.get();
+                boolean isValid = passwordEncoder.matches(password, foundUser.getPassword());
                 logger.info("Password validation result for user {}: {}", username, isValid);
                 return isValid;
             } else {
@@ -250,7 +266,7 @@ public class UserService {
     public List<User> searchUsersByUsername(String username) {
         try {
             logger.info("Searching users by username: {}", username);
-            List<User> users = userRepository.findByUsernameContaining(username);
+            List<User> users = userMapper.findByUsernameContaining(username);
             logger.info("Found {} users matching username: {}", users.size(), username);
             return users;
         } catch (DataAccessException e) {

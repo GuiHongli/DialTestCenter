@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huawei.dialtest.center.mapper.TestCaseMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.TestCase">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="test_case_set_id" property="testCaseSetId" jdbcType="BIGINT"/>
+        <result column="case_number" property="caseNumber" jdbcType="VARCHAR"/>
+        <result column="case_name" property="caseName" jdbcType="VARCHAR"/>
+        <result column="case_description" property="caseDescription" jdbcType="TEXT"/>
+        <result column="script_path" property="scriptPath" jdbcType="VARCHAR"/>
+        <result column="script_exists" property="scriptExists" jdbcType="BOOLEAN"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, test_case_set_id, case_number, case_name, case_description, script_path, script_exists, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查找测试用例 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用例集ID查找所有测试用例 -->
+    <select id="findByTestCaseSetId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId}
+    </select>
+
+    <!-- 根据用例集ID查找所有测试用例（分页） -->
+    <select id="findByTestCaseSetIdWithPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId}
+        ORDER BY created_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 根据用例编号查找测试用例 -->
+    <select id="findByCaseNumber" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE case_number = #{caseNumber}
+    </select>
+
+    <!-- 根据用例集ID和用例编号查找测试用例 -->
+    <select id="findByTestCaseSetIdAndCaseNumber" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId} AND case_number = #{caseNumber}
+    </select>
+
+    <!-- 查找没有对应脚本的测试用例 -->
+    <select id="findMissingScripts" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId} AND script_exists = false
+    </select>
+
+    <!-- 统计用例集中没有脚本的用例数量 -->
+    <select id="countMissingScripts" resultType="long">
+        SELECT COUNT(*)
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId} AND script_exists = false
+    </select>
+
+    <!-- 统计用例集中的用例总数 -->
+    <select id="countByTestCaseSetId" resultType="long">
+        SELECT COUNT(*)
+        FROM test_case
+        WHERE test_case_set_id = #{testCaseSetId}
+    </select>
+
+    <!-- 根据用例集ID删除所有测试用例 -->
+    <delete id="deleteByTestCaseSetId">
+        DELETE FROM test_case WHERE test_case_set_id = #{testCaseSetId}
+    </delete>
+
+    <!-- 插入测试用例 -->
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.TestCase" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO test_case (
+            test_case_set_id,
+            case_number,
+            case_name,
+            case_description,
+            script_path,
+            script_exists,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{testCaseSetId},
+            #{caseNumber},
+            #{caseName},
+            #{caseDescription},
+            #{scriptPath},
+            #{scriptExists},
+            #{createdTime},
+            #{updatedTime}
+        )
+    </insert>
+
+    <!-- 更新测试用例 -->
+    <update id="update" parameterType="com.huawei.dialtest.center.entity.TestCase">
+        UPDATE test_case
+        SET test_case_set_id = #{testCaseSetId},
+            case_number = #{caseNumber},
+            case_name = #{caseName},
+            case_description = #{caseDescription},
+            script_path = #{scriptPath},
+            script_exists = #{scriptExists},
+            updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除测试用例 -->
+    <delete id="deleteById">
+        DELETE FROM test_case WHERE id = #{id}
+    </delete>
+
+</mapper>

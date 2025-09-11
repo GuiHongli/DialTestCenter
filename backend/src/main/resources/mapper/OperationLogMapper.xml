@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huawei.dialtest.center.mapper.OperationLogMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.OperationLog">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="operation_time" property="operationTime" jdbcType="TIMESTAMP"/>
+        <result column="operation_type" property="operationType" jdbcType="VARCHAR"/>
+        <result column="target" property="target" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, username, operation_time, operation_type, target, description
+    </sql>
+
+    <!-- 动态查询条件 -->
+    <sql id="Dynamic_Where_Clause">
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="target != null and target != ''">
+                AND target = #{target}
+            </if>
+            <if test="startTime != null">
+                AND operation_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND operation_time &lt;= #{endTime}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 根据多个条件查询操作记录 -->
+    <select id="findByConditions" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_log
+        <include refid="Dynamic_Where_Clause"/>
+        ORDER BY operation_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 查询所有操作记录，按操作时间倒序排列 -->
+    <select id="findAllOrderByOperationTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_log
+        ORDER BY operation_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 根据用户名查询操作记录，按操作时间倒序排列 -->
+    <select id="findByUsernameOrderByOperationTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_log
+        WHERE username = #{username}
+        ORDER BY operation_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 根据ID获取操作记录 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_log
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入操作记录 -->
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.OperationLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO operation_log (
+            username,
+            operation_time,
+            operation_type,
+            target,
+            description
+        ) VALUES (
+            #{username},
+            #{operationTime},
+            #{operationType},
+            #{target},
+            #{description}
+        )
+    </insert>
+
+    <!-- 查询最近的N条操作记录 -->
+    <select id="findRecentOperationLogs" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_log
+        ORDER BY operation_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 根据条件统计操作记录总数 -->
+    <select id="countByConditions" resultType="long">
+        SELECT COUNT(*)
+        FROM operation_log
+        <include refid="Dynamic_Where_Clause"/>
+    </select>
+
+</mapper>

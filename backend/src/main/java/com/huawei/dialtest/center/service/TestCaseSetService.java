@@ -6,7 +6,7 @@ package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
-import com.huawei.dialtest.center.repository.TestCaseSetRepository;
+import com.huawei.dialtest.center.mapper.TestCaseSetMapper;
 import com.huawei.dialtest.center.service.ArchiveParseService.ArchiveValidationResult;
 import com.huawei.dialtest.center.service.ExcelParseService.TestCaseInfo;
 import com.huawei.dialtest.center.service.ScriptMatchService.ScriptMatchResult;
@@ -42,7 +42,7 @@ public class TestCaseSetService {
     private static final Logger logger = LoggerFactory.getLogger(TestCaseSetService.class);
 
     @Autowired
-    private TestCaseSetRepository testCaseSetRepository;
+    private TestCaseSetMapper testCaseSetMapper;
 
     @Autowired
     private TestCaseService testCaseService;

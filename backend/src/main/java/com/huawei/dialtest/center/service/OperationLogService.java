@@ -5,11 +5,12 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.OperationLog;
-import com.huawei.dialtest.center.repository.OperationLogRepository;
+import com.huawei.dialtest.center.mapper.OperationLogMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,7 +35,7 @@ public class OperationLogService {
     private static final Logger logger = LoggerFactory.getLogger(OperationLogService.class);
 
     @Autowired
-    private OperationLogRepository operationLogRepository;
+    private OperationLogMapper operationLogMapper;
 
     /**
      * 记录操作日志
@@ -50,10 +51,14 @@ public class OperationLogService {
             logger.info("Recording operation: user={}, type={}, target={}", username, operationType, target);
             
             OperationLog operationLog = new OperationLog(username, operationType, target, description);
-            OperationLog savedLog = operationLogRepository.save(operationLog);
+            int result = operationLogMapper.insert(operationLog);
             
-            logger.info("Successfully recorded operation with ID: {}", savedLog.getId());
-            return savedLog;
+            if (result > 0) {
+                logger.info("Successfully recorded operation with ID: {}", operationLog.getId());
+                return operationLog;
+            } else {
+                throw new RuntimeException("Failed to insert operation log");
+            }
         } catch (Exception e) {
             logger.error("Failed to record operation: user={}, type={}, target={}", username, operationType, target, e);
             throw new RuntimeException("Failed to record operation", e);
@@ -96,20 +101,26 @@ public class OperationLogService {
             
             // 如果只有用户名参数，使用简单查询
             if (username != null && operationType == null && target == null && startTime == null && endTime == null) {
-                Page<OperationLog> result = operationLogRepository.findByUsernameOrderByOperationTimeDesc(username, pageable);
+                List<OperationLog> logs = operationLogMapper.findByUsernameOrderByOperationTimeDesc(username, pageable.getPageNumber(), pageable.getPageSize());
+                long total = operationLogMapper.countByConditions(username, null, null, null, null);
+                Page<OperationLog> result = new PageImpl<>(logs, pageable, total);
                 logger.info("Successfully retrieved {} operation logs by username", result.getTotalElements());
                 return result;
             }
             
             // 如果没有任何条件，使用简单查询
             if (username == null && operationType == null && target == null && startTime == null && endTime == null) {
-                Page<OperationLog> result = operationLogRepository.findAllOrderByOperationTimeDesc(pageable);
+                List<OperationLog> logs = operationLogMapper.findAllOrderByOperationTimeDesc(pageable.getPageNumber(), pageable.getPageSize());
+                long total = operationLogMapper.countByConditions(null, null, null, null, null);
+                Page<OperationLog> result = new PageImpl<>(logs, pageable, total);
                 logger.info("Successfully retrieved {} operation logs", result.getTotalElements());
                 return result;
             }
             
             // 使用复杂条件查询
-            Page<OperationLog> result = operationLogRepository.findByConditions(username, operationType, target, startTime, endTime, pageable);
+            List<OperationLog> logs = operationLogMapper.findByConditions(username, operationType, target, startTime, endTime, pageable.getPageNumber(), pageable.getPageSize());
+            long total = operationLogMapper.countByConditions(username, operationType, target, startTime, endTime);
+            Page<OperationLog> result = new PageImpl<>(logs, pageable, total);
             logger.info("Successfully retrieved {} operation logs with complex conditions", result.getTotalElements());
             return result;
         } catch (Exception e) {
@@ -128,10 +139,34 @@ public class OperationLogService {
     public Optional<OperationLog> getOperationLogById(Long id) {
         try {
             logger.info("Getting operation log by ID: {}", id);
-            return operationLogRepository.findById(id);
+            OperationLog operationLog = operationLogMapper.findById(id);
+            return Optional.ofNullable(operationLog);
         } catch (Exception e) {
             logger.error("Failed to get operation log by ID: {}", id, e);
             throw new RuntimeException("Failed to get operation log", e);
+        }
+    }
+
+    /**
+     * 插入操作记录
+     *
+     * @param operationLog 操作记录
+     * @return 插入的操作记录
+     */
+    @Transactional
+    public OperationLog insertOperationLog(OperationLog operationLog) {
+        try {
+            logger.info("Inserting operation log: {}", operationLog);
+            int result = operationLogMapper.insert(operationLog);
+            if (result > 0) {
+                logger.info("Successfully inserted operation log with ID: {}", operationLog.getId());
+                return operationLog;
+            } else {
+                throw new RuntimeException("Failed to insert operation log");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to insert operation log", e);
+            throw new RuntimeException("Failed to insert operation log", e);
         }
     }
 
@@ -158,18 +193,10 @@ public class OperationLogService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "operationTime"));
             Page<OperationLog> result;
             
-            // 根据提供的参数进行不同的查询
-            if (username != null && !username.trim().isEmpty()) {
-                result = operationLogRepository.findByUsernameContainingOrderByOperationTimeDesc(username, pageable);
-            } else if (operationType != null && !operationType.trim().isEmpty()) {
-                result = operationLogRepository.findByOperationTypeContainingOrderByOperationTimeDesc(operationType, pageable);
-            } else if (target != null && !target.trim().isEmpty()) {
-                result = operationLogRepository.findByTargetContainingOrderByOperationTimeDesc(target, pageable);
-            } else if (description != null && !description.trim().isEmpty()) {
-                result = operationLogRepository.findByDescriptionContainingOrderByOperationTimeDesc(description, pageable);
-            } else {
-                result = operationLogRepository.findAllOrderByOperationTimeDesc(pageable);
-            }
+            // 使用复杂条件查询
+            List<OperationLog> logs = operationLogMapper.findByConditions(username, operationType, target, null, null, pageable.getPageNumber(), pageable.getPageSize());
+            long total = operationLogMapper.countByConditions(username, operationType, target, null, null);
+            result = new PageImpl<>(logs, pageable, total);
             
             logger.info("Successfully retrieved {} operation logs from search", result.getTotalElements());
             return result;
@@ -189,7 +216,7 @@ public class OperationLogService {
     public List<OperationLog> getRecentOperationLogs(int limit) {
         try {
             logger.info("Getting recent {} operation logs", limit);
-            List<OperationLog> result = operationLogRepository.findRecentOperationLogs(limit);
+            List<OperationLog> result = operationLogMapper.findRecentOperationLogs(limit);
             logger.info("Successfully retrieved {} recent operation logs", result.size());
             return result;
         } catch (Exception e) {

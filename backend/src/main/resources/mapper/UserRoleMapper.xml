@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huawei.dialtest.center.mapper.UserRoleMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.UserRole">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="role" property="role" jdbcType="VARCHAR"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, username, role, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查找用户角色关系 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户名查询用户角色列表 -->
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据用户名查询用户角色列表，按创建时间倒序排列 -->
+    <select id="findByUsernameOrderByCreatedTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE username = #{username}
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 根据用户名查询角色枚举列表 -->
+    <select id="findRolesByUsername" resultType="com.huawei.dialtest.center.entity.Role">
+        SELECT role
+        FROM user_role
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据用户名和角色查询用户角色关系 -->
+    <select id="findByUsernameAndRole" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE username = #{username} AND role = #{role}
+    </select>
+
+    <!-- 检查用户名和角色组合是否存在 -->
+    <select id="existsByUsernameAndRole" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_role
+        WHERE username = #{username} AND role = #{role}
+    </select>
+
+    <!-- 根据角色查询用户角色关系列表 -->
+    <select id="findByRole" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE role = #{role}
+    </select>
+
+    <!-- 检查是否存在指定角色的用户 -->
+    <select id="existsByRole" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_role
+        WHERE role = #{role}
+    </select>
+
+    <!-- 根据用户名删除所有角色 -->
+    <delete id="deleteByUsername">
+        DELETE FROM user_role WHERE username = #{username}
+    </delete>
+
+    <!-- 根据用户名和角色删除用户角色关系 -->
+    <delete id="deleteByUsernameAndRole">
+        DELETE FROM user_role WHERE username = #{username} AND role = #{role}
+    </delete>
+
+    <!-- 统计指定角色的用户数量 -->
+    <select id="countByRole" resultType="long">
+        SELECT COUNT(*)
+        FROM user_role
+        WHERE role = #{role}
+    </select>
+
+    <!-- 查询所有用户角色，按创建时间倒序排列 -->
+    <select id="findAllOrderByCreatedTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 统计用户角色关系总数 -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM user_role
+    </select>
+
+    <!-- 插入用户角色关系 -->
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.UserRole" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_role (
+            username,
+            role,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{username},
+            #{role},
+            #{createdTime},
+            #{updatedTime}
+        )
+    </insert>
+
+    <!-- 更新用户角色关系 -->
+    <update id="update" parameterType="com.huawei.dialtest.center.entity.UserRole">
+        UPDATE user_role
+        SET username = #{username},
+            role = #{role},
+            updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户角色关系 -->
+    <delete id="deleteById">
+        DELETE FROM user_role WHERE id = #{id}
+    </delete>
+
+</mapper>

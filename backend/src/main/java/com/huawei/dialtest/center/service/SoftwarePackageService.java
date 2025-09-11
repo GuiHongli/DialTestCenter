@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.entity.SoftwarePackage;
-import com.huawei.dialtest.center.repository.SoftwarePackageRepository;
+import com.huawei.dialtest.center.mapper.SoftwarePackageMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class SoftwarePackageService {
     private static final Logger logger = LoggerFactory.getLogger(SoftwarePackageService.class);
 
     @Autowired
-    private SoftwarePackageRepository softwarePackageRepository;
+    private SoftwarePackageMapper softwarePackageMapper;
 
     /**
      * 获取软件包列表（分页）

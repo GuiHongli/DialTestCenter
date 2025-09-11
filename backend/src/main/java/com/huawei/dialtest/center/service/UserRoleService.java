@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.UserRole;
-import com.huawei.dialtest.center.repository.UserRoleRepository;
+import com.huawei.dialtest.center.mapper.UserRoleMapper;
 
 /**
  * 用户角色服务类，提供用户角色管理的业务逻辑处理
@@ -32,7 +32,7 @@ public class UserRoleService {
     private static final Logger logger = LoggerFactory.getLogger(UserRoleService.class);
 
     @Autowired
-    private UserRoleRepository userRoleRepository;
+    private UserRoleMapper userRoleMapper;
 
     /**
      * 根据用户名获取用户角色列表
@@ -48,7 +48,7 @@ public class UserRoleService {
         }
 
         logger.debug("Querying user roles for: {}", username);
-        return userRoleRepository.findByUsernameOrderByCreatedTimeDesc(username.trim());
+        return userRoleMapper.findByUsernameOrderByCreatedTimeDesc(username.trim());
     }
 
     /**
@@ -65,7 +65,7 @@ public class UserRoleService {
         }
 
         logger.debug("Querying user role enums for: {}", username);
-        return userRoleRepository.findRolesByUsername(username.trim());
+        return userRoleMapper.findRolesByUsername(username.trim());
     }
 
     /**
@@ -76,7 +76,7 @@ public class UserRoleService {
     @Transactional(readOnly = true)
     public List<UserRole> getAllUserRoles() {
         logger.debug("Querying all user role relationships");
-        return userRoleRepository.findAllOrderByCreatedTimeDesc();
+        return userRoleMapper.findAllOrderByCreatedTimeDesc();
     }
 
     /**
@@ -103,20 +103,25 @@ public class UserRoleService {
 
         // 如果是更新操作（有ID），需要检查是否存在其他记录有相同的用户名和角色组合
         if (userRole.getId() != null) {
-            Optional<UserRole> existingUserRole = userRoleRepository.findByUsernameAndRole(
-                userRole.getUsername(), userRole.getRole());
-            if (existingUserRole.isPresent() && !existingUserRole.get().getId().equals(userRole.getId())) {
+            UserRole existingUserRole = userRoleMapper.findByUsernameAndRole(
+                userRole.getUsername(), userRole.getRole().toString());
+            if (existingUserRole != null && !existingUserRole.getId().equals(userRole.getId())) {
                 throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
             }
         } else {
             // 如果是新建操作（无ID），检查是否已存在相同的用户名和角色组合
-            if (userRoleRepository.existsByUsernameAndRole(userRole.getUsername(), userRole.getRole())) {
+            if (userRoleMapper.existsByUsernameAndRole(userRole.getUsername(), userRole.getRole().toString())) {
                 throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
             }
         }
 
         logger.info("Saving user role relationship: {} - {}", userRole.getUsername(), userRole.getRole());
-        return userRoleRepository.save(userRole);
+        int result = userRoleMapper.insert(userRole);
+        if (result > 0) {
+            return userRole;
+        } else {
+            throw new RuntimeException("Failed to save user role relationship");
+        }
     }
 
     /**
@@ -133,7 +138,8 @@ public class UserRoleService {
         }
 
         logger.debug("Finding user role by ID: {}", id);
-        return userRoleRepository.findById(id);
+        UserRole userRole = userRoleMapper.findById(id);
+        return Optional.ofNullable(userRole);
     }
 
     /**
@@ -147,12 +153,16 @@ public class UserRoleService {
             throw new IllegalArgumentException("ID cannot be null");
         }
 
-        if (!userRoleRepository.existsById(id)) {
+        UserRole userRole = userRoleMapper.findById(id);
+        if (userRole == null) {
             throw new IllegalArgumentException("User role relationship does not exist: " + id);
         }
 
         logger.info("Deleting user role relationship: {}", id);
-        userRoleRepository.deleteById(id);
+        int result = userRoleMapper.deleteById(id);
+        if (result == 0) {
+            throw new RuntimeException("Failed to delete user role relationship");
+        }
     }
 
     /**
@@ -170,7 +180,10 @@ public class UserRoleService {
         }
 
         logger.info("Deleting user role relationship: {} - {}", username, role);
-        userRoleRepository.deleteByUsernameAndRole(username.trim(), role);
+        int result = userRoleMapper.deleteByUsernameAndRole(username.trim(), role.toString());
+        if (result == 0) {
+            throw new RuntimeException("Failed to delete user role relationship");
+        }
     }
 
     /**
@@ -179,7 +192,7 @@ public class UserRoleService {
      */
     @Transactional(readOnly = true)
     public boolean hasAdminUser() {
-        boolean hasAdmin = userRoleRepository.existsByRole(Role.ADMIN);
+        boolean hasAdmin = userRoleMapper.existsByRole(Role.ADMIN.toString());
         logger.debug("Checking if admin exists: {}", hasAdmin);
         return hasAdmin;
     }
@@ -190,7 +203,7 @@ public class UserRoleService {
      */
     @Transactional(readOnly = true)
     public long getAdminUserCount() {
-        long count = userRoleRepository.countByRole(Role.ADMIN);
+        long count = userRoleMapper.countByRole(Role.ADMIN.toString());
         logger.debug("Admin user count: {}", count);
         return count;
     }
@@ -207,7 +220,7 @@ public class UserRoleService {
         }
 
         logger.debug("Querying user roles by role: {}", role);
-        return userRoleRepository.findByRole(role);
+        return userRoleMapper.findByRole(role.toString());
     }
 
     /**
@@ -226,7 +239,7 @@ public class UserRoleService {
             return false;
         }
 
-        boolean hasRole = userRoleRepository.existsByUsernameAndRole(username.trim(), role);
+        boolean hasRole = userRoleMapper.existsByUsernameAndRole(username.trim(), role.toString());
         logger.debug("Checking user role: {} - {} = {}", username, role, hasRole);
         return hasRole;
     }
@@ -237,7 +250,7 @@ public class UserRoleService {
      */
     @Transactional(readOnly = true)
     public long getExecutorUserCount() {
-        long count = userRoleRepository.countByRole(Role.EXECUTOR);
+        long count = userRoleMapper.countByRole(Role.EXECUTOR.toString());
         logger.debug("Executor user count: {}", count);
         return count;
     }

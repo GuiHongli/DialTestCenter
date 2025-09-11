@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huawei.dialtest.center.mapper.UserMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.User">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, username, password, email, phone, status, created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查找用户 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dial_user
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户名查找用户 -->
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dial_user
+        WHERE username = #{username}
+    </select>
+
+    <!-- 检查用户名是否存在 -->
+    <select id="existsByUsername" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM dial_user
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据用户名模糊查询用户列表 -->
+    <select id="findByUsernameContaining" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dial_user
+        WHERE username LIKE CONCAT('%', #{username}, '%')
+    </select>
+
+    <!-- 获取所有用户，按创建时间倒序排列 -->
+    <select id="findAllOrderByCreatedTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dial_user
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dial_user (
+            username,
+            password,
+            email,
+            phone,
+            status,
+            created_time,
+            updated_time
+        ) VALUES (
+            #{username},
+            #{password},
+            #{email},
+            #{phone},
+            #{status},
+            #{createdTime},
+            #{updatedTime}
+        )
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update" parameterType="com.huawei.dialtest.center.entity.User">
+        UPDATE dial_user
+        SET username = #{username},
+            password = #{password},
+            email = #{email},
+            phone = #{phone},
+            status = #{status},
+            updated_time = #{updatedTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户 -->
+    <delete id="deleteById">
+        DELETE FROM dial_user WHERE id = #{id}
+    </delete>
+
+    <!-- 统计用户总数 -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM dial_user
+    </select>
+
+</mapper>
