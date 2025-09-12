@@ -7,15 +7,17 @@
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="name" property="name" jdbcType="VARCHAR"/>
         <result column="version" property="version" jdbcType="VARCHAR"/>
-        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="file_content" property="fileContent" jdbcType="BLOB"/>
         <result column="creator" property="creator" jdbcType="VARCHAR"/>
+        <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
         <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
         <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, name, version, description, creator, created_time, updated_time
+        id, name, version, file_content, creator, file_size, description, created_time, updated_time
     </sql>
 
     <!-- 根据ID查找用例集 -->
@@ -78,15 +80,19 @@
         INSERT INTO test_case_set (
             name,
             version,
-            description,
+            file_content,
             creator,
+            file_size,
+            description,
             created_time,
             updated_time
         ) VALUES (
             #{name},
             #{version},
-            #{description},
+            #{fileContent},
             #{creator},
+            #{fileSize},
+            #{description},
             #{createdTime},
             #{updatedTime}
         )
@@ -97,8 +103,10 @@
         UPDATE test_case_set
         SET name = #{name},
             version = #{version},
-            description = #{description},
+            file_content = #{fileContent},
             creator = #{creator},
+            file_size = #{fileSize},
+            description = #{description},
             updated_time = #{updatedTime}
         WHERE id = #{id}
     </update>

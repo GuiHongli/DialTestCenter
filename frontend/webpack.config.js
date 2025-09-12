@@ -40,6 +40,20 @@ export default {
     port: 3000,
     hot: true,
     historyApiFallback: true,
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+        runtimeErrors: (error) => {
+          // 抑制 ResizeObserver 相关的运行时错误
+          const errorMessage = error.message || '';
+          if (errorMessage.includes('ResizeObserver loop completed with undelivered notifications')) {
+            return false;
+          }
+          return true;
+        },
+      },
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

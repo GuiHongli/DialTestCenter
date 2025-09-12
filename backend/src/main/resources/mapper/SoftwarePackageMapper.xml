@@ -6,7 +6,6 @@
     <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.SoftwarePackage">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="software_name" property="softwareName" jdbcType="VARCHAR"/>
-        <result column="version" property="version" jdbcType="VARCHAR"/>
         <result column="platform" property="platform" jdbcType="VARCHAR"/>
         <result column="file_content" property="fileContent" jdbcType="BLOB"/>
         <result column="file_format" property="fileFormat" jdbcType="VARCHAR"/>
@@ -20,7 +19,7 @@
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, software_name, version, platform, file_content, file_format, file_size, sha512, creator, description, created_time, updated_time
+        id, software_name, platform, file_content, file_format, file_size, sha512, creator, description, created_time, updated_time
     </sql>
 
     <!-- 动态查询条件 -->
@@ -193,7 +192,6 @@
     <insert id="insert" parameterType="com.huawei.dialtest.center.entity.SoftwarePackage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO software_package (
             software_name,
-            version,
             platform,
             file_content,
             file_format,
@@ -205,7 +203,6 @@
             updated_time
         ) VALUES (
             #{softwareName},
-            #{version},
             #{platform},
             #{fileContent},
             #{fileFormat},
@@ -222,7 +219,6 @@
     <update id="update" parameterType="com.huawei.dialtest.center.entity.SoftwarePackage">
         UPDATE software_package
         SET software_name = #{softwareName},
-            version = #{version},
             platform = #{platform},
             file_content = #{fileContent},
             file_format = #{fileFormat},

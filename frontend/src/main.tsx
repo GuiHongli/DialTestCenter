@@ -4,14 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import 'antd/dist/antd.css'
+import { initErrorHandler } from './utils/errorHandler'
 
-// Suppress dev-overlay ResizeObserver loop errors (common in AntD layouts)
-window.addEventListener('error', (e) => {
-  const msg = (e as ErrorEvent).message || ''
-  if (msg.includes('ResizeObserver loop') || msg.includes('ResizeObserver')) {
-    e.stopImmediatePropagation()
-  }
-})
+// 初始化错误处理，抑制 ResizeObserver 相关错误
+initErrorHandler()
 
 ReactDOM.render(
   <BrowserRouter>

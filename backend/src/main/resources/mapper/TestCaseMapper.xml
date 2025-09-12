@@ -8,8 +8,11 @@
         <result column="test_case_set_id" property="testCaseSetId" jdbcType="BIGINT"/>
         <result column="case_number" property="caseNumber" jdbcType="VARCHAR"/>
         <result column="case_name" property="caseName" jdbcType="VARCHAR"/>
-        <result column="case_description" property="caseDescription" jdbcType="VARCHAR"/>
-        <result column="script_path" property="scriptPath" jdbcType="VARCHAR"/>
+        <result column="network_topology" property="networkTopology" jdbcType="VARCHAR"/>
+        <result column="business_category" property="businessCategory" jdbcType="VARCHAR"/>
+        <result column="app_name" property="appName" jdbcType="VARCHAR"/>
+        <result column="test_steps" property="testSteps" jdbcType="VARCHAR"/>
+        <result column="expected_result" property="expectedResult" jdbcType="VARCHAR"/>
         <result column="script_exists" property="scriptExists" jdbcType="BOOLEAN"/>
         <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
         <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
@@ -17,7 +20,7 @@
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, test_case_set_id, case_number, case_name, case_description, script_path, script_exists, created_time, updated_time
+        id, test_case_set_id, case_number, case_name, network_topology, business_category, app_name, test_steps, expected_result, script_exists, created_time, updated_time
     </sql>
 
     <!-- 根据ID查找测试用例 -->
@@ -95,8 +98,11 @@
             test_case_set_id,
             case_number,
             case_name,
-            case_description,
-            script_path,
+            network_topology,
+            business_category,
+            app_name,
+            test_steps,
+            expected_result,
             script_exists,
             created_time,
             updated_time
@@ -104,8 +110,11 @@
             #{testCaseSetId},
             #{caseNumber},
             #{caseName},
-            #{caseDescription},
-            #{scriptPath},
+            #{networkTopology},
+            #{businessCategory},
+            #{appName},
+            #{testSteps},
+            #{expectedResult},
             #{scriptExists},
             #{createdTime},
             #{updatedTime}
@@ -118,8 +127,11 @@
         SET test_case_set_id = #{testCaseSetId},
             case_number = #{caseNumber},
             case_name = #{caseName},
-            case_description = #{caseDescription},
-            script_path = #{scriptPath},
+            network_topology = #{networkTopology},
+            business_category = #{businessCategory},
+            app_name = #{appName},
+            test_steps = #{testSteps},
+            expected_result = #{expectedResult},
             script_exists = #{scriptExists},
             updated_time = #{updatedTime}
         WHERE id = #{id}
