@@ -52,6 +52,17 @@ export interface OperationLogCreateParams {
   description?: string
 }
 
+/**
+ * 操作记录统计信息
+ */
+export interface OperationLogStatistics {
+  totalOperations: number
+  operationsByType: Record<string, number>
+  operationsByUser: Record<string, number>
+  operationsByTarget: Record<string, number>
+  recentOperations: OperationLog[]
+}
+
 
 /**
  * API响应基础结构
@@ -59,6 +70,7 @@ export interface OperationLogCreateParams {
 export interface ApiResponse<T> {
   success: boolean
   data: T
+  message?: string
   timestamp: string
 }
 

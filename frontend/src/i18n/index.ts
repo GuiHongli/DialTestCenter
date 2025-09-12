@@ -3,8 +3,8 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
 // 导入语言资源
-import en from '../locales/en.json'
-import zh from '../locales/zh.json'
+import * as en from '../locales/en.json'
+import * as zh from '../locales/zh.json'
 
 // 语言资源
 const resources = {

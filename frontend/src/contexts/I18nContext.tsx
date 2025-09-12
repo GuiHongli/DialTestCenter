@@ -56,7 +56,7 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   const contextValue: I18nContextType = {
     language,
     setLanguage,
-    t,
+    t: (key: string, options?: any) => t(key, options) as string,
     isReady
   }
 
