@@ -265,7 +265,6 @@ export const UserRoleManagement: React.FC = () => {
           </Tooltip>
           <Popconfirm
             title={translateUserRole('confirmDelete')}
-            description={translateUserRole('deleteDescription')}
             onConfirm={() => handleDeleteUserRole(record.id)}
             okText={translateCommon('confirm')}
             cancelText={translateCommon('cancel')}

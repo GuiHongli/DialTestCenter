@@ -27,7 +27,7 @@ import {
   OperationType,
   OperationTarget 
 } from '../types/operationLog'
-import dayjs from 'dayjs'
+import moment, { Moment } from 'moment'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -316,10 +316,10 @@ const OperationLogManagement: React.FC = () => {
                 format="YYYY-MM-DD HH:mm:ss"
                 placeholder={['开始时间', '结束时间']}
                 value={filters.startTime && filters.endTime ? [
-                  dayjs(filters.startTime),
-                  dayjs(filters.endTime)
-                ] : null}
-                onChange={(dates) => {
+                  moment(filters.startTime),
+                  moment(filters.endTime)
+                ] as [Moment, Moment] : null}
+                onChange={(dates: null | [Moment, Moment]) => {
                   if (dates && dates[0] && dates[1]) {
                     handleFilterChange('startTime', dates[0].format('YYYY-MM-DD HH:mm:ss'))
                     handleFilterChange('endTime', dates[1].format('YYYY-MM-DD HH:mm:ss'))
@@ -355,7 +355,7 @@ const OperationLogManagement: React.FC = () => {
       </Card>
 
       {/* 操作记录表格 */}
-      <Card>
+      <Card bodyStyle={{ padding: 0 }}>
         <Table
           columns={columns}
           dataSource={operationLogs}
@@ -368,7 +368,7 @@ const OperationLogManagement: React.FC = () => {
             showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
           }}
           onChange={handleTableChange}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: 520 }}
         />
       </Card>
     </div>

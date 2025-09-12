@@ -1,8 +1,9 @@
 import { ConfigProvider } from 'antd'
-import enUS from 'antd/locale/en_US'
-import zhCN from 'antd/locale/zh_CN'
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import enUS from 'antd/es/locale/en_US'
+import zhCN from 'antd/es/locale/zh_CN'
+import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import zh from '../locales/zh.json'
+import en from '../locales/en.json'
 
 // 支持的语言类型
 export type SupportedLanguage = 'zh' | 'en'
@@ -31,32 +32,50 @@ const antdLocales = {
 
 // I18n Provider 组件
 export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
-  const { i18n, t, ready } = useTranslation()
   const [language, setLanguageState] = useState<SupportedLanguage>('zh')
   const [isReady, setIsReady] = useState(false)
 
+  // 简单本地字典
+  const dictionaries = useMemo(() => ({ zh, en }), [])
+
   // 初始化语言设置
   useEffect(() => {
-    if (ready) {
-      const currentLang = i18n.language as SupportedLanguage
-      setLanguageState(currentLang)
-      setIsReady(true)
+    const stored = localStorage.getItem('i18nextLng') as SupportedLanguage | null
+    if (stored === 'zh' || stored === 'en') {
+      setLanguageState(stored)
+    } else {
+      const browserLang = (navigator.language || 'zh').startsWith('zh') ? 'zh' : 'en'
+      setLanguageState(browserLang as SupportedLanguage)
     }
-  }, [ready, i18n.language])
+    setIsReady(true)
+  }, [])
 
   // 切换语言函数
   const setLanguage = (lang: SupportedLanguage) => {
-    i18n.changeLanguage(lang)
     setLanguageState(lang)
-    // 保存到 localStorage
     localStorage.setItem('i18nextLng', lang)
+  }
+
+  // 简单的 key 取值函数：支持命名空间用点分隔
+  const t = (fullKey: string): string => {
+    const dict = language === 'zh' ? dictionaries.zh : dictionaries.en
+    const parts = fullKey.split('.')
+    let cur: any = dict
+    for (const p of parts) {
+      if (cur && typeof cur === 'object' && p in cur) {
+        cur = (cur as any)[p]
+      } else {
+        return fullKey
+      }
+    }
+    return typeof cur === 'string' ? cur : fullKey
   }
 
   // Context 值
   const contextValue: I18nContextType = {
     language,
     setLanguage,
-    t: (key: string, options?: any) => t(key, options) as string,
+    t,
     isReady
   }
 

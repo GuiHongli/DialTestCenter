@@ -14,7 +14,7 @@ import {
     ToolOutlined,
     HistoryOutlined,
 } from '@ant-design/icons'
-import { Layout as AntLayout, Button, Dropdown, Menu, Space, theme } from 'antd'
+import { Layout as AntLayout, Button, Dropdown, Menu, Space } from 'antd'
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage, useTranslation } from '../hooks/useTranslation'
@@ -31,9 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation()
   const { translateNavigation, translateApp, translateLanguage } = useTranslation()
   const { currentLanguage, setLanguage } = useLanguage()
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken()
+  const colorBgContainer = '#ffffff'
 
   const menuItems = [
     {
@@ -113,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <AntLayout style={{ minHeight: '100vh' }}>
+    <AntLayout style={{ minHeight: '100vh', overflow: 'hidden' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
         <Menu
@@ -125,7 +123,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       </Sider>
       <AntLayout>
-        <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Header style={{ padding: 0, background: colorBgContainer as any, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Button
               type="text"
@@ -160,6 +158,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             margin: '24px 16px',
             padding: 24,
             minHeight: 280,
+            overflow: 'auto',
+            height: 'calc(100vh - 64px - 48px)',
           }}
         >
           {children}
