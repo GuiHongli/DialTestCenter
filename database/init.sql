@@ -5,7 +5,7 @@
 -- 注意：需要在PostgreSQL中手动执行：createdb dialtestcenter
 
 -- 连接到数据库
-\c dialtestcenter;
+\c dialingtest;
 
 -- 创建用户角色关系表
 CREATE TABLE IF NOT EXISTS user_role (

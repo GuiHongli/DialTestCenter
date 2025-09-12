@@ -182,7 +182,7 @@ public class SoftwarePackageService {
                     if (entryName.toLowerCase().endsWith(".apk") || entryName.toLowerCase().endsWith(".ipa")) {
                         try {
                             // 读取文件内容
-                            byte[] fileContent = zipInputStream.readAllBytes();
+                            byte[] fileContent = readAllBytes(zipInputStream);
                             
                             // 解析文件信息
                             String fileFormat;
@@ -393,5 +393,30 @@ public class SoftwarePackageService {
         }
 
         logger.debug("ZIP file validation passed for: {}", fileName);
+    }
+
+    /**
+     * 读取ZipInputStream的所有字节（Java 8兼容方法）
+     * @param inputStream ZipInputStream
+     * @return 字节数组
+     * @throws IOException IO异常
+     */
+    private byte[] readAllBytes(ZipInputStream inputStream) throws IOException {
+        List<Byte> byteList = new ArrayList<>();
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            for (int i = 0; i < bytesRead; i++) {
+                byteList.add(buffer[i]);
+            }
+        }
+        
+        byte[] result = new byte[byteList.size()];
+        for (int i = 0; i < byteList.size(); i++) {
+            result[i] = byteList.get(i);
+        }
+        
+        return result;
     }
 }
