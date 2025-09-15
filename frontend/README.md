@@ -92,7 +92,7 @@ npm run dev
 yarn dev
 ```
 
-应用将在 `http://localhost:3000` 启动
+应用将在 `http://localhost:4396` 启动
 
 ### 生产环境构建
 
@@ -205,7 +205,7 @@ yarn preview
 
 ### 请求配置
 
-- 基础URL: `http://localhost:8080/api`
+- 基础URL: `https://localhost:8087/api`
 - 请求超时: 30秒
 - 错误处理: 统一错误处理机制
 
@@ -303,7 +303,7 @@ npm run build
 
 ```bash
 # .env.development
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=https://localhost:8087/api
 
 # .env.production
 VITE_API_BASE_URL=https://api.yourdomain.com/api

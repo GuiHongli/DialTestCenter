@@ -53,7 +53,7 @@ export default {
     static: {
       directory: path.join(__dirname, '../backend/src/main/resources/static'),
     },
-    port: 3000,
+    port: 4396,
     hot: true,
     historyApiFallback: true,
     client: {
@@ -71,7 +71,7 @@ export default {
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://localhost:8087',
         changeOrigin: true,
         secure: false,
       },
