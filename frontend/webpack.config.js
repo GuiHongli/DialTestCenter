@@ -8,9 +8,10 @@ const __dirname = path.dirname(__filename);
 export default {
   entry: './src/main.tsx',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../backend/src/main/resources/static'),
     filename: 'bundle.js',
     clean: true,
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -31,11 +32,13 @@ export default {
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html',
+      filename: 'index.html',
+      inject: true,
     }),
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: path.join(__dirname, '../backend/src/main/resources/static'),
     },
     port: 3000,
     hot: true,
@@ -45,7 +48,6 @@ export default {
         errors: true,
         warnings: false,
         runtimeErrors: (error) => {
-          // 抑制 ResizeObserver 相关的运行时错误
           const errorMessage = error.message || '';
           if (errorMessage.includes('ResizeObserver loop completed with undelivered notifications')) {
             return false;
