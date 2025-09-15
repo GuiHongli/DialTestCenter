@@ -4,9 +4,9 @@
   "description": "Dial Test Center Frontend Application",
   "type": "module",
   "scripts": {
-    "dev": "webpack serve --mode development",
+    "dev": "webpack serve --mode development --port 4396",
     "build": "webpack --mode production",
-    "start": "webpack serve --mode production",
+    "start": "webpack serve --mode production --port 4396",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
