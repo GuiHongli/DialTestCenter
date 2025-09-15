@@ -62,6 +62,11 @@ export const useTranslation = () => {
     return t(`language.${key}`, options)
   }
 
+  // Footer相关翻译
+  const translateFooter = (key: string, options?: any) => {
+    return t(`footer.${key}`, options)
+  }
+
   return {
     t,
     translate,
@@ -75,6 +80,7 @@ export const useTranslation = () => {
     translateTestCaseSet,
     translateOperationLog,
     translateLanguage,
+    translateFooter,
     language,
     isReady
   }

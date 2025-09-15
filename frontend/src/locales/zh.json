@@ -386,5 +386,9 @@
     "switch": "切换语言",
     "chinese": "中文",
     "english": "English"
+  },
+  "footer": {
+    "copyright": "© 2024 Dial Test Center. 版权所有.",
+    "allRightsReserved": "保留所有权利"
   }
 }
