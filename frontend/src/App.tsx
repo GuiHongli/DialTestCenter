@@ -1,4 +1,4 @@
-import { Route, Switch } from 'react-router-dom'
+import { Route, Switch } from '@cloudsop/horizon-router'
 import './App.css'
 import Layout from './components/Layout'
 import { I18nProvider } from './contexts/I18nContext'
