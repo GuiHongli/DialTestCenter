@@ -16,7 +16,7 @@ import {
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Dropdown, Menu, Space } from 'antd'
 import React, { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useHistory } from 'react-router-dom'
 import { useLanguage, useTranslation } from '../hooks/useTranslation'
 
 const { Header, Sider, Content } = AntLayout
@@ -27,7 +27,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
-  const navigate = useNavigate()
+  const history = useHistory()
   const location = useLocation()
   const { translateNavigation, translateApp, translateLanguage } = useTranslation()
   const { currentLanguage, setLanguage } = useLanguage()
@@ -107,7 +107,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ]
 
   const handleMenuClick = ({ key }: { key: string }) => {
-    navigate(key)
+    history.push(key)
   }
 
   return (

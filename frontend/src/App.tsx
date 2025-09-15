@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 import './App.css'
 import Layout from './components/Layout'
 import { I18nProvider } from './contexts/I18nContext'
@@ -13,14 +13,14 @@ function App() {
   return (
     <I18nProvider>
       <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/users" element={<UserManagementPage />} />
-          <Route path="/user-roles" element={<UserRoleManagementPage />} />
-          <Route path="/test-case-sets" element={<TestCaseSetManagementPage />} />
-          <Route path="/software-packages" element={<SoftwarePackageManagementPage />} />
-          <Route path="/operation-logs" element={<OperationLogManagementPage />} />
-        </Routes>
+        <Switch>
+          <Route path="/" exact component={Home} />
+          <Route path="/users" component={UserManagementPage} />
+          <Route path="/user-roles" component={UserRoleManagementPage} />
+          <Route path="/test-case-sets" component={TestCaseSetManagementPage} />
+          <Route path="/software-packages" component={SoftwarePackageManagementPage} />
+          <Route path="/operation-logs" component={OperationLogManagementPage} />
+        </Switch>
       </Layout>
     </I18nProvider>
   )
