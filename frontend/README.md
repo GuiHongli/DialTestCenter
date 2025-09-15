@@ -205,7 +205,7 @@ yarn preview
 
 ### 请求配置
 
-- 基础URL: `https://localhost:8087/api`
+- 基础URL: `https://localhost:8087/dialingtest/api`
 - 请求超时: 30秒
 - 错误处理: 统一错误处理机制
 
@@ -303,10 +303,10 @@ npm run build
 
 ```bash
 # .env.development
-VITE_API_BASE_URL=https://localhost:8087/api
+VITE_API_BASE_URL=https://localhost:8087/dialingtest/api
 
 # .env.production
-VITE_API_BASE_URL=https://api.yourdomain.com/api
+VITE_API_BASE_URL=https://api.yourdomain.com/dialingtest/api
 ```
 
 ## 🐛 故障排除

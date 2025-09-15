@@ -57,7 +57,7 @@ export default {
       },
     },
     proxy: {
-      '/api': {
+      '/dialingtest/api': {
         target: 'https://localhost:8087',
         changeOrigin: true,
         secure: false,

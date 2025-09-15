@@ -12,7 +12,7 @@ import {
   ApiResponse 
 } from '../types/operationLog'
 
-const API_BASE_URL = 'http://localhost:8080/api'
+const API_BASE_URL = 'https://localhost:8087/dialingtest/api'
 
 /**
  * 操作记录服务类

@@ -11,7 +11,7 @@ import {
   SoftwarePackageUpdateParams
 } from '../types/softwarePackage';
 
-const API_BASE_URL = '/api/software-packages';
+const API_BASE_URL = '/dialingtest/api/software-packages';
 
 /**
  * 获取软件包列表
