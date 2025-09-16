@@ -78,7 +78,7 @@ paths:
               - type: "object"
                 properties:
                   data:
-                    $ref: "#/definitions/User"
+                    $ref: "#/definitions/DialUser"
         400:
           description: "请求参数错误"
           schema:
@@ -110,7 +110,7 @@ paths:
               - type: "object"
                 properties:
                   data:
-                    $ref: "#/definitions/User"
+                    $ref: "#/definitions/DialUser"
         404:
           description: "用户不存在"
           schema:
@@ -145,7 +145,7 @@ paths:
               - type: "object"
                 properties:
                   data:
-                    $ref: "#/definitions/User"
+                    $ref: "#/definitions/DialUser"
         400:
           description: "请求参数错误"
           schema:
@@ -207,7 +207,7 @@ paths:
               - type: "object"
                 properties:
                   data:
-                    $ref: "#/definitions/User"
+                    $ref: "#/definitions/DialUser"
         404:
           description: "用户不存在"
           schema:
@@ -240,7 +240,7 @@ paths:
                   data:
                     type: "array"
                     items:
-                      $ref: "#/definitions/User"
+                      $ref: "#/definitions/DialUser"
         500:
           description: "服务器内部错误"
           schema:
@@ -336,7 +336,7 @@ definitions:
         type: "array"
         description: "分页数据"
         items:
-          description: "数据项"
+          $ref: "#/definitions/DialUser"
       total:
         type: "integer"
         format: "int64"
@@ -357,7 +357,7 @@ definitions:
         type: "boolean"
         description: "是否有上一页"
 
-  User:
+  DialUser:
     type: "object"
     properties:
       id:
