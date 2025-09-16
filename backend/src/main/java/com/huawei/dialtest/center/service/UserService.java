@@ -4,16 +4,13 @@
 
 package com.huawei.dialtest.center.service;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.User;
 import com.huawei.dialtest.center.mapper.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,10 +49,9 @@ public class UserService {
      * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(int page, int pageSize, String search) {
+    public PagedResponse<User> getAllUsers(int page, int pageSize, String search) {
         try {
             logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
-            Pageable pageable = PageRequest.of(page - 1, pageSize);
             
             List<User> content;
             long total;
@@ -70,7 +66,7 @@ public class UserService {
                 total = userMapper.count();
             }
             
-            Page<User> result = new PageImpl<>(content, pageable, total);
+            PagedResponse<User> result = new PagedResponse<>(content, total, page, pageSize);
             logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, result.getTotalPages());
             return result;
         } catch (DataAccessException e) {

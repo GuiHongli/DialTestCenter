@@ -48,24 +48,7 @@ paths:
         200:
           description: "成功获取用户列表"
           schema:
-            type: "object"
-            properties:
-              data:
-                type: "array"
-                items:
-                  $ref: "#/definitions/User"
-              total:
-                type: "integer"
-                description: "总记录数"
-              page:
-                type: "integer"
-                description: "当前页码"
-              pageSize:
-                type: "integer"
-                description: "每页大小"
-              totalPages:
-                type: "integer"
-                description: "总页数"
+            $ref: "#/definitions/PagedUserResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -276,6 +259,26 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
 definitions:
+  PagedUserResponse:
+    type: "object"
+    properties:
+      data:
+        type: "array"
+        items:
+          $ref: "#/definitions/User"
+      total:
+        type: "integer"
+        description: "总记录数"
+      page:
+        type: "integer"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        description: "每页大小"
+      totalPages:
+        type: "integer"
+        description: "总页数"
+
   User:
     type: "object"
     properties:

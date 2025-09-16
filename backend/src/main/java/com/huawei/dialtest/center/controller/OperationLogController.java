@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.OperationLog;
 import com.huawei.dialtest.center.service.OperationLogService;
 import org.slf4j.Logger;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +50,7 @@ public class OperationLogController {
      * @return 操作记录分页结果
      */
     @GetMapping
-    public ResponseEntity<?> getOperationLogsByConditions(
+    public ResponseEntity<PagedResponse<OperationLog>> getOperationLogsByConditions(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String operationType,
             @RequestParam(required = false) String target,
@@ -65,11 +65,17 @@ public class OperationLogController {
             Page<OperationLog> operationLogs = operationLogService.getOperationLogsByConditions(username, operationType, target, startTime, endTime, page, size);
             logger.info("Successfully retrieved {} operation logs", operationLogs.getTotalElements());
             
-            return ResponseEntity.ok(createSuccessResponse(operationLogs));
+            PagedResponse<OperationLog> response = new PagedResponse<>(
+                    operationLogs.getContent(),
+                    operationLogs.getTotalElements(),
+                    page + 1, // 转换为从1开始的页码
+                    size
+            );
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to get operation logs by conditions", e);
-            return ResponseEntity.status(500)
-                    .body(createErrorResponse("INTERNAL_ERROR", "Failed to get operation logs by conditions"));
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -80,23 +86,21 @@ public class OperationLogController {
      * @return 操作记录详情
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOperationLogById(@PathVariable Long id) {
+    public ResponseEntity<OperationLog> getOperationLogById(@PathVariable Long id) {
         try {
             logger.info("Received request to get operation log by ID: {}", id);
             
             Optional<OperationLog> operationLog = operationLogService.getOperationLogById(id);
             if (operationLog.isPresent()) {
                 logger.info("Successfully retrieved operation log with ID: {}", id);
-                return ResponseEntity.ok(createSuccessResponse(operationLog.get()));
+                return ResponseEntity.ok(operationLog.get());
             } else {
                 logger.warn("Operation log not found with ID: {}", id);
-                return ResponseEntity.status(404)
-                        .body(createErrorResponse("NOT_FOUND", "Operation log not found"));
+                return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
             logger.error("Failed to get operation log by ID: {}", id, e);
-            return ResponseEntity.status(500)
-                    .body(createErrorResponse("INTERNAL_ERROR", "Failed to get operation log"));
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -116,7 +120,7 @@ public class OperationLogController {
      * @return 操作记录分页结果
      */
     @GetMapping("/search")
-    public ResponseEntity<?> searchOperationLogs(
+    public ResponseEntity<PagedResponse<OperationLog>> searchOperationLogs(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String operationType,
             @RequestParam(required = false) String target,
@@ -130,11 +134,17 @@ public class OperationLogController {
             Page<OperationLog> operationLogs = operationLogService.searchOperationLogs(username, operationType, target, description, page, size);
             logger.info("Successfully retrieved {} operation logs from search", operationLogs.getTotalElements());
             
-            return ResponseEntity.ok(createSuccessResponse(operationLogs));
+            PagedResponse<OperationLog> response = new PagedResponse<>(
+                    operationLogs.getContent(),
+                    operationLogs.getTotalElements(),
+                    page + 1, // 转换为从1开始的页码
+                    size
+            );
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Failed to search operation logs", e);
-            return ResponseEntity.status(500)
-                    .body(createErrorResponse("INTERNAL_ERROR", "Failed to search operation logs"));
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -145,18 +155,17 @@ public class OperationLogController {
      * @return 最近的操作记录列表
      */
     @GetMapping("/recent")
-    public ResponseEntity<?> getRecentOperationLogs(@RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<List<OperationLog>> getRecentOperationLogs(@RequestParam(defaultValue = "10") int limit) {
         try {
             logger.info("Received request to get recent {} operation logs", limit);
             
             List<OperationLog> operationLogs = operationLogService.getRecentOperationLogs(limit);
             logger.info("Successfully retrieved {} recent operation logs", operationLogs.size());
             
-            return ResponseEntity.ok(createSuccessResponse(operationLogs));
+            return ResponseEntity.ok(operationLogs);
         } catch (Exception e) {
             logger.error("Failed to get recent operation logs", e);
-            return ResponseEntity.status(500)
-                    .body(createErrorResponse("INTERNAL_ERROR", "Failed to get recent operation logs"));
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -167,7 +176,7 @@ public class OperationLogController {
      * @return 创建的操作记录
      */
     @PostMapping
-    public ResponseEntity<?> logOperation(@RequestBody Map<String, String> request) {
+    public ResponseEntity<OperationLog> logOperation(@RequestBody Map<String, String> request) {
         try {
             String username = request.get("username");
             String operationType = request.get("operationType");
@@ -176,20 +185,17 @@ public class OperationLogController {
 
             if (username == null || username.trim().isEmpty()) {
                 logger.warn("Username is required");
-                return ResponseEntity.status(400)
-                        .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+                return ResponseEntity.badRequest().build();
             }
 
             if (operationType == null || operationType.trim().isEmpty()) {
                 logger.warn("Operation type is required");
-                return ResponseEntity.status(400)
-                        .body(createErrorResponse("VALIDATION_ERROR", "Operation type is required"));
+                return ResponseEntity.badRequest().build();
             }
 
             if (target == null || target.trim().isEmpty()) {
                 logger.warn("Target is required");
-                return ResponseEntity.status(400)
-                        .body(createErrorResponse("VALIDATION_ERROR", "Target is required"));
+                return ResponseEntity.badRequest().build();
             }
 
             logger.info("Received request to log operation: user={}, type={}, target={}", username, operationType, target);
@@ -197,43 +203,13 @@ public class OperationLogController {
             OperationLog operationLog = operationLogService.logOperation(username, operationType, target, description);
             logger.info("Successfully logged operation with ID: {}", operationLog.getId());
             
-            return ResponseEntity.ok(createSuccessResponse(operationLog));
+            return ResponseEntity.ok(operationLog);
         } catch (Exception e) {
             logger.error("Failed to log operation", e);
-            return ResponseEntity.status(500)
-                    .body(createErrorResponse("INTERNAL_ERROR", "Failed to log operation"));
+            return ResponseEntity.status(500).build();
         }
     }
 
 
 
-    /**
-     * 创建成功响应
-     *
-     * @param data 响应数据
-     * @return 响应体
-     */
-    private Map<String, Object> createSuccessResponse(Object data) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("data", data);
-        response.put("timestamp", LocalDateTime.now());
-        return response;
-    }
-
-    /**
-     * 创建错误响应
-     *
-     * @param errorCode 错误代码
-     * @param errorMessage 错误消息
-     * @return 响应体
-     */
-    private Map<String, Object> createErrorResponse(String errorCode, String errorMessage) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("error", errorCode);
-        response.put("message", errorMessage);
-        response.put("timestamp", LocalDateTime.now());
-        return response;
-    }
 }
