@@ -5,8 +5,8 @@
 package com.huawei.dialtest.center.service;
 
 import com.huawei.dialtest.center.dto.PagedResponse;
-import com.huawei.dialtest.center.entity.User;
-import com.huawei.dialtest.center.mapper.UserMapper;
+import com.huawei.dialtest.center.entity.DialDialUser;
+import com.huawei.dialtest.center.mapper.DialUserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +29,11 @@ import java.util.Optional;
  */
 @Service
 @Transactional
-public class UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+public class DialUserService {
+    private static final Logger logger = LoggerFactory.getLogger(DialUserService.class);
 
     @Autowired
-    private UserMapper userMapper;
+    private DialUserMapper userMapper;
 
     @Autowired
     private OperationLogService operationLogService;
@@ -49,24 +49,24 @@ public class UserService {
      * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public PagedResponse<User> getAllUsers(int page, int pageSize, String search) {
+    public PagedResponse<DialDialUser> getAllDialUsers(int page, int pageSize, String search) {
         try {
             logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
             
-            List<User> content;
+            List<DialUser> content;
             long total;
             
             if (search != null && !search.trim().isEmpty()) {
                 // 带搜索条件的分页查询
-                content = userMapper.findByUsernameContainingWithPage(search.trim(), page - 1, pageSize);
-                total = userMapper.countByUsernameContaining(search.trim());
+                content = userMapper.findByDialUsernameContainingWithPage(search.trim(), page - 1, pageSize);
+                total = userMapper.countByDialUsernameContaining(search.trim());
             } else {
                 // 无搜索条件的分页查询
                 content = userMapper.findAllByOrderByCreatedTimeDesc(page - 1, pageSize);
                 total = userMapper.count();
             }
             
-            PagedResponse<User> result = new PagedResponse<>(content, total, page, pageSize);
+            PagedResponse<DialUser> result = new PagedResponse<>(content, total, page, pageSize);
             logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, result.getTotalPages());
             return result;
         } catch (DataAccessException e) {
@@ -82,15 +82,15 @@ public class UserService {
      * @return 用户信息
      */
     @Transactional(readOnly = true)
-    public Optional<User> getUserById(Long id) {
+    public Optional<DialUser> getDialUserById(Long id) {
         try {
             logger.info("Getting user by ID: {}", id);
-            User user = userMapper.findById(id);
-            Optional<User> userOptional = Optional.ofNullable(user);
+            DialUser user = userMapper.findById(id);
+            Optional<DialUser> userOptional = Optional.ofNullable(user);
             if (userOptional.isPresent()) {
-                logger.info("Successfully retrieved user: {}", userOptional.get().getUsername());
+                logger.info("Successfully retrieved user: {}", userOptional.get().getDialUsername());
             } else {
-                logger.warn("User not found with ID: {}", id);
+                logger.warn("DialUser not found with ID: {}", id);
             }
             return userOptional;
         } catch (DataAccessException e) {
@@ -106,15 +106,15 @@ public class UserService {
      * @return 用户信息
      */
     @Transactional(readOnly = true)
-    public Optional<User> getUserByUsername(String username) {
+    public Optional<DialUser> getDialUserByDialUsername(String username) {
         try {
             logger.info("Getting user by username: {}", username);
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOptional = Optional.ofNullable(user);
+            DialUser user = userMapper.findByDialUsername(username);
+            Optional<DialUser> userOptional = Optional.ofNullable(user);
             if (userOptional.isPresent()) {
                 logger.info("Successfully retrieved user: {}", username);
             } else {
-                logger.warn("User not found with username: {}", username);
+                logger.warn("DialUser not found with username: {}", username);
             }
             return userOptional;
         } catch (DataAccessException e) {
@@ -130,17 +130,17 @@ public class UserService {
      * @param password 密码
      * @return 创建的用户
      */
-    public User createUser(String username, String password) {
+    public DialUser createDialUser(String username, String password) {
         try {
             logger.info("Creating new user: {}", username);
             
-            if (userMapper.existsByUsername(username)) {
-                logger.warn("Username already exists: {}", username);
-                throw new IllegalArgumentException("Username already exists: " + username);
+            if (userMapper.existsByDialUsername(username)) {
+                logger.warn("DialUsername already exists: {}", username);
+                throw new IllegalArgumentException("DialUsername already exists: " + username);
             }
 
             String encodedPassword = passwordEncoder.encode(password);
-            User user = new User(username, encodedPassword);
+            DialUser user = new DialUser(username, encodedPassword);
             user.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             int result = userMapper.insert(user);
             if (result > 0) {
@@ -165,21 +165,21 @@ public class UserService {
      * @param password 新密码
      * @return 更新后的用户
      */
-    public User updateUser(Long id, String username, String password) {
+    public DialUser updateDialUser(Long id, String username, String password) {
         try {
             logger.info("Updating user with ID: {}", id);
             
-            User user = userMapper.findById(id);
+            DialUser user = userMapper.findById(id);
             if (user == null) {
-                throw new IllegalArgumentException("User not found with ID: " + id);
+                throw new IllegalArgumentException("DialUser not found with ID: " + id);
             }
 
-            if (username != null && !username.equals(user.getUsername())) {
-                if (userMapper.existsByUsername(username)) {
-                    logger.warn("Username already exists: {}", username);
-                    throw new IllegalArgumentException("Username already exists: " + username);
+            if (username != null && !username.equals(user.getDialUsername())) {
+                if (userMapper.existsByDialUsername(username)) {
+                    logger.warn("DialUsername already exists: {}", username);
+                    throw new IllegalArgumentException("DialUsername already exists: " + username);
                 }
-                user.setUsername(username);
+                user.setDialUsername(username);
             }
 
             if (password != null && !password.isEmpty()) {
@@ -189,9 +189,9 @@ public class UserService {
 
             int result = userMapper.update(user);
             if (result > 0) {
-                logger.info("Successfully updated user: {}", user.getUsername());
+                logger.info("Successfully updated user: {}", user.getDialUsername());
                 // 记录操作日志
-                operationLogService.logOperation(user.getUsername(), "UPDATE", "USER", "更新用户信息: " + user.getUsername());
+                operationLogService.logOperation(user.getDialUsername(), "UPDATE", "USER", "更新用户信息: " + user.getDialUsername());
                 return user;
             } else {
                 throw new RuntimeException("Failed to update user");
@@ -207,14 +207,14 @@ public class UserService {
      *
      * @param id 用户ID
      */
-    public void deleteUser(Long id) {
+    public void deleteDialUser(Long id) {
         try {
             logger.info("Deleting user with ID: {}", id);
             
-            User user = userMapper.findById(id);
+            DialUser user = userMapper.findById(id);
             if (user == null) {
-                logger.warn("User not found with ID: {}", id);
-                throw new IllegalArgumentException("User not found with ID: " + id);
+                logger.warn("DialUser not found with ID: {}", id);
+                throw new IllegalArgumentException("DialUser not found with ID: " + id);
             }
             
             int result = userMapper.deleteById(id);
@@ -223,7 +223,7 @@ public class UserService {
             }
             logger.info("Successfully deleted user with ID: {}", id);
             // 记录操作日志
-            operationLogService.logOperation(user.getUsername(), "DELETE", "USER", "删除用户: " + user.getUsername());
+            operationLogService.logOperation(user.getDialUsername(), "DELETE", "USER", "删除用户: " + user.getDialUsername());
         } catch (DataAccessException e) {
             logger.error("Failed to delete user with ID: {}", id, e);
             throw new RuntimeException("Failed to delete user", e);
@@ -239,15 +239,15 @@ public class UserService {
         try {
             logger.info("Updating last login time for user: {}", username);
             
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOpt = Optional.ofNullable(user);
+            DialUser user = userMapper.findByDialUsername(username);
+            Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User foundUser = userOpt.get();
-                foundUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                userMapper.update(foundUser);
+                DialUser foundDialUser = userOpt.get();
+                foundDialUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userMapper.update(foundDialUser);
                 logger.info("Successfully updated last login time for user: {}", username);
             } else {
-                logger.warn("User not found for updating last login time: {}", username);
+                logger.warn("DialUser not found for updating last login time: {}", username);
             }
         } catch (DataAccessException e) {
             logger.error("Failed to update last login time for user: {}", username, e);
@@ -267,15 +267,15 @@ public class UserService {
         try {
             logger.info("Validating password for user: {}", username);
             
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOpt = Optional.ofNullable(user);
+            DialUser user = userMapper.findByDialUsername(username);
+            Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User foundUser = userOpt.get();
-                boolean isValid = passwordEncoder.matches(password, foundUser.getPassword());
+                DialUser foundDialUser = userOpt.get();
+                boolean isValid = passwordEncoder.matches(password, foundDialUser.getPassword());
                 logger.info("Password validation result for user {}: {}", username, isValid);
                 return isValid;
             } else {
-                logger.warn("User not found for password validation: {}", username);
+                logger.warn("DialUser not found for password validation: {}", username);
                 return false;
             }
         } catch (DataAccessException e) {
@@ -291,10 +291,10 @@ public class UserService {
      * @return 用户列表
      */
     @Transactional(readOnly = true)
-    public List<User> searchUsersByUsername(String username) {
+    public List<DialUser> searchDialUsersByDialUsername(String username) {
         try {
             logger.info("Searching users by username: {}", username);
-            List<User> users = userMapper.findByUsernameContaining(username);
+            List<DialUser> users = userMapper.findByDialUsernameContaining(username);
             logger.info("Found {} users matching username: {}", users.size(), username);
             return users;
         } catch (DataAccessException e) {

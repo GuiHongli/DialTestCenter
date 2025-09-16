@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  title: "User Management API"
+  title: "DialUser Management API"
   description: "用户管理API文档 - 提供用户的创建、更新、删除、查询等操作"
   version: "1.0.0"
   contact:
@@ -48,7 +48,7 @@ paths:
         200:
           description: "成功获取用户列表"
           schema:
-            $ref: "#/definitions/PagedUserResponse"
+            $ref: "#/definitions/PagedDialUserResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -63,12 +63,12 @@ paths:
           in: "body"
           required: true
           schema:
-            $ref: "#/definitions/UserCreateRequest"
+            $ref: "#/definitions/DialUserCreateRequest"
       responses:
         201:
           description: "用户创建成功"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/DialUser"
         400:
           description: "请求参数错误"
           schema:
@@ -95,7 +95,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/DialUser"
         404:
           description: "用户不存在"
         500:
@@ -118,12 +118,12 @@ paths:
           in: "body"
           required: true
           schema:
-            $ref: "#/definitions/UserUpdateRequest"
+            $ref: "#/definitions/DialUserUpdateRequest"
       responses:
         200:
           description: "用户更新成功"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/DialUser"
         400:
           description: "请求参数错误"
           schema:
@@ -174,7 +174,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/DialUser"
         404:
           description: "用户不存在"
         500:
@@ -200,7 +200,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/User"
+              $ref: "#/definitions/DialUser"
         500:
           description: "服务器内部错误"
           schema:
@@ -259,13 +259,13 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
 definitions:
-  PagedUserResponse:
+  PagedDialUserResponse:
     type: "object"
     properties:
       data:
         type: "array"
         items:
-          $ref: "#/definitions/User"
+          $ref: "#/definitions/DialUser"
       total:
         type: "integer"
         description: "总记录数"
@@ -279,7 +279,7 @@ definitions:
         type: "integer"
         description: "总页数"
 
-  User:
+  DialUser:
     type: "object"
     properties:
       id:
@@ -296,7 +296,7 @@ definitions:
         type: "string"
         description: "最后登录时间（格式：yyyy-MM-dd HH:mm:ss）"
 
-  UserCreateRequest:
+  DialUserCreateRequest:
     type: "object"
     required:
       - "username"
@@ -309,7 +309,7 @@ definitions:
         type: "string"
         description: "密码"
 
-  UserUpdateRequest:
+  DialUserUpdateRequest:
     type: "object"
     properties:
       username:
