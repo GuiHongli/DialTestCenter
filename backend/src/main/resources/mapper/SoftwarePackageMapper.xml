@@ -13,13 +13,12 @@
         <result column="sha512" property="sha512" jdbcType="VARCHAR"/>
         <result column="creator" property="creator" jdbcType="VARCHAR"/>
         <result column="description" property="description" jdbcType="VARCHAR"/>
-        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
-        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+        <result column="version" property="version" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, software_name, platform, file_content, file_format, file_size, sha512, creator, description, created_time, updated_time
+        id, software_name, platform, file_content, file_format, file_size, sha512, creator, description, version
     </sql>
 
     <!-- 动态查询条件 -->
@@ -81,7 +80,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE platform = #{platform}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -91,7 +90,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE creator = #{creator}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -101,7 +100,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE LOWER(software_name) LIKE LOWER(CONCAT('%', #{softwareName}, '%'))
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -112,7 +111,7 @@
         FROM software_package
         WHERE platform = #{platform}
         AND LOWER(software_name) LIKE LOWER(CONCAT('%', #{softwareName}, '%'))
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -121,7 +120,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM software_package
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -131,7 +130,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         <include refid="Dynamic_Where_Clause"/>
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -167,7 +166,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE platform = #{platform}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 根据创建者获取软件包列表（不分页） -->
@@ -176,7 +175,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE creator = #{creator}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 根据软件名称模糊查询软件包列表（不分页） -->
@@ -185,7 +184,7 @@
         <include refid="Base_Column_List"/>
         FROM software_package
         WHERE LOWER(software_name) LIKE LOWER(CONCAT('%', #{softwareName}, '%'))
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 插入软件包 -->
@@ -199,8 +198,7 @@
             sha512,
             creator,
             description,
-            created_time,
-            updated_time
+            version
         ) VALUES (
             #{softwareName},
             #{platform},
@@ -210,8 +208,7 @@
             #{sha512},
             #{creator},
             #{description},
-            #{createdTime},
-            #{updatedTime}
+            #{version}
         )
     </insert>
 
@@ -226,7 +223,7 @@
             sha512 = #{sha512},
             creator = #{creator},
             description = #{description},
-            updated_time = #{updatedTime}
+            version = #{version}
         WHERE id = #{id}
     </update>
 

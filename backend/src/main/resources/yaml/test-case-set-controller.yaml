@@ -252,14 +252,6 @@ definitions:
       description:
         type: "string"
         description: "描述"
-      createdTime:
-        type: "string"
-        format: "date-time"
-        description: "创建时间"
-      updatedTime:
-        type: "string"
-        format: "date-time"
-        description: "更新时间"
 
   TestCase:
     type: "object"
@@ -296,14 +288,6 @@ definitions:
       scriptExists:
         type: "boolean"
         description: "脚本是否存在"
-      createdTime:
-        type: "string"
-        format: "date-time"
-        description: "创建时间"
-      updatedTime:
-        type: "string"
-        format: "date-time"
-        description: "更新时间"
 
   TestCaseSetUpdateRequest:
     type: "object"

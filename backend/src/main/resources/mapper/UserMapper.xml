@@ -7,14 +7,12 @@
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="password" property="password" jdbcType="VARCHAR"/>
-        <result column="last_login_time" property="lastLoginTime" jdbcType="TIMESTAMP"/>
-        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
-        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+        <result column="last_login_time" property="lastLoginTime" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, username, password, last_login_time, created_time, updated_time
+        id, username, password, last_login_time
     </sql>
 
     <!-- 根据ID查找用户 -->
@@ -48,12 +46,12 @@
         WHERE username LIKE CONCAT('%', #{username}, '%')
     </select>
 
-    <!-- 分页查询用户列表，按创建时间倒序排列 -->
+    <!-- 分页查询用户列表，按ID倒序排列 -->
     <select id="findAllByOrderByCreatedTimeDesc" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM dial_user
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -63,7 +61,7 @@
         <include refid="Base_Column_List"/>
         FROM dial_user
         WHERE username LIKE CONCAT('%', #{username}, '%')
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -79,15 +77,11 @@
         INSERT INTO dial_user (
             username,
             password,
-            last_login_time,
-            created_time,
-            updated_time
+            last_login_time
         ) VALUES (
             #{username},
             #{password},
-            #{lastLoginTime},
-            #{createdTime},
-            #{updatedTime}
+            #{lastLoginTime}
         )
     </insert>
 
@@ -96,8 +90,7 @@
         UPDATE dial_user
         SET username = #{username},
             password = #{password},
-            last_login_time = #{lastLoginTime},
-            updated_time = #{updatedTime}
+            last_login_time = #{lastLoginTime}
         WHERE id = #{id}
     </update>
 

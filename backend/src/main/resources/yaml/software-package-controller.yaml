@@ -258,14 +258,6 @@ definitions:
       version:
         type: "string"
         description: "软件版本"
-      createdTime:
-        type: "string"
-        format: "date-time"
-        description: "创建时间"
-      updatedTime:
-        type: "string"
-        format: "date-time"
-        description: "更新时间"
 
   SoftwarePackageUpdateRequest:
     type: "object"
