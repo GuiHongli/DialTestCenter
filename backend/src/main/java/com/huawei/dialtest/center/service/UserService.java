@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,9 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private OperationLogService operationLogService;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -141,9 +145,12 @@ public class UserService {
 
             String encodedPassword = passwordEncoder.encode(password);
             User user = new User(username, encodedPassword);
+            user.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             int result = userMapper.insert(user);
             if (result > 0) {
                 logger.info("Successfully created user: {}", username);
+                // 记录操作日志
+                operationLogService.logOperation(username, "CREATE", "USER", "创建用户: " + username);
                 return user;
             } else {
                 throw new RuntimeException("Failed to create user");
@@ -184,10 +191,11 @@ public class UserService {
                 user.setPassword(encodedPassword);
             }
 
-            user.setUpdatedTime(LocalDateTime.now());
             int result = userMapper.update(user);
             if (result > 0) {
                 logger.info("Successfully updated user: {}", user.getUsername());
+                // 记录操作日志
+                operationLogService.logOperation(user.getUsername(), "UPDATE", "USER", "更新用户信息: " + user.getUsername());
                 return user;
             } else {
                 throw new RuntimeException("Failed to update user");
@@ -218,6 +226,8 @@ public class UserService {
                 throw new RuntimeException("Failed to delete user");
             }
             logger.info("Successfully deleted user with ID: {}", id);
+            // 记录操作日志
+            operationLogService.logOperation(user.getUsername(), "DELETE", "USER", "删除用户: " + user.getUsername());
         } catch (DataAccessException e) {
             logger.error("Failed to delete user with ID: {}", id, e);
             throw new RuntimeException("Failed to delete user", e);
@@ -237,7 +247,7 @@ public class UserService {
             Optional<User> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
                 User foundUser = userOpt.get();
-                foundUser.setLastLoginTime(LocalDateTime.now());
+                foundUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userMapper.update(foundUser);
                 logger.info("Successfully updated last login time for user: {}", username);
             } else {

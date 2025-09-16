@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,15 +56,12 @@ public class UserControllerTest {
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setPassword("$2a$10$encodedpassword");
-        testUser.setLastLoginTime(LocalDateTime.now());
-        testUser.setCreatedTime(LocalDateTime.now());
-        testUser.setUpdatedTime(LocalDateTime.now());
+        testUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         User user2 = new User();
         user2.setId(2L);
         user2.setUsername("testuser2");
         user2.setPassword("$2a$10$encodedpassword2");
-        user2.setCreatedTime(LocalDateTime.now());
 
         testUsers = Arrays.asList(testUser, user2);
     }

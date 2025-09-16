@@ -38,22 +38,16 @@ public class UserRoleTest {
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
-        userRole1.setCreatedTime(LocalDateTime.now());
-        userRole1.setUpdatedTime(LocalDateTime.now());
 
         userRole2 = new UserRole();
         userRole2.setId(1L);
         userRole2.setUsername("user1");
         userRole2.setRole(Role.ADMIN);
-        userRole2.setCreatedTime(LocalDateTime.now());
-        userRole2.setUpdatedTime(LocalDateTime.now());
 
         userRole3 = new UserRole();
         userRole3.setId(2L);
         userRole3.setUsername("user2");
         userRole3.setRole(Role.OPERATOR);
-        userRole3.setCreatedTime(LocalDateTime.now());
-        userRole3.setUpdatedTime(LocalDateTime.now());
     }
 
     @Test
@@ -83,22 +77,16 @@ public class UserRoleTest {
         Long id = 1L;
         String username = "testuser";
         Role role = Role.OPERATOR;
-        LocalDateTime createdTime = LocalDateTime.now();
-        LocalDateTime updatedTime = LocalDateTime.now();
 
         // When
         userRole.setId(id);
         userRole.setUsername(username);
         userRole.setRole(role);
-        userRole.setCreatedTime(createdTime);
-        userRole.setUpdatedTime(updatedTime);
 
         // Then
         assertEquals(id, userRole.getId());
         assertEquals(username, userRole.getUsername());
         assertEquals(role, userRole.getRole());
-        assertEquals(createdTime, userRole.getCreatedTime());
-        assertEquals(updatedTime, userRole.getUpdatedTime());
     }
 
     @Test
@@ -307,16 +295,18 @@ public class UserRoleTest {
     }
 
     @Test
-    public void testNullTimestamps() {
+    public void testNullValues() {
         // Given
         UserRole userRole = new UserRole();
 
         // When
-        userRole.setCreatedTime(null);
-        userRole.setUpdatedTime(null);
+        userRole.setId(null);
+        userRole.setUsername(null);
+        userRole.setRole(null);
 
         // Then
-        assertEquals(null, userRole.getCreatedTime());
-        assertEquals(null, userRole.getUpdatedTime());
+        assertEquals(null, userRole.getId());
+        assertEquals(null, userRole.getUsername());
+        assertEquals(null, userRole.getRole());
     }
 }

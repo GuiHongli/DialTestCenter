@@ -71,8 +71,6 @@ public class TestCaseSetControllerTest {
         testCaseSet.setSha512("sha512_hash_test");
         testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
-        testCaseSet.setCreatedTime(LocalDateTime.now());
-        testCaseSet.setUpdatedTime(LocalDateTime.now());
 
         mockFile = mock(MultipartFile.class);
     }

@@ -8,16 +8,17 @@
         <result column="name" property="name" jdbcType="VARCHAR"/>
         <result column="version" property="version" jdbcType="VARCHAR"/>
         <result column="file_content" property="fileContent" jdbcType="BLOB"/>
+        <result column="file_format" property="fileFormat" jdbcType="VARCHAR"/>
+        <result column="sha512" property="sha512" jdbcType="VARCHAR"/>
+        <result column="business" property="business" jdbcType="VARCHAR"/>
         <result column="creator" property="creator" jdbcType="VARCHAR"/>
         <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
         <result column="description" property="description" jdbcType="VARCHAR"/>
-        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
-        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, name, version, file_content, creator, file_size, description, created_time, updated_time
+        id, name, version, file_content, file_format, sha512, business, creator, file_size, description
     </sql>
 
     <!-- 根据ID查找用例集 -->
@@ -42,7 +43,7 @@
         <include refid="Base_Column_List"/>
         FROM test_case_set
         WHERE name = #{name}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 根据创建人查找用例集列表 -->
@@ -51,7 +52,7 @@
         <include refid="Base_Column_List"/>
         FROM test_case_set
         WHERE creator = #{creator}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 分页查询用例集列表 -->
@@ -59,7 +60,7 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM test_case_set
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -81,20 +82,22 @@
             name,
             version,
             file_content,
+            file_format,
+            sha512,
+            business,
             creator,
             file_size,
-            description,
-            created_time,
-            updated_time
+            description
         ) VALUES (
             #{name},
             #{version},
             #{fileContent},
+            #{fileFormat},
+            #{sha512},
+            #{business},
             #{creator},
             #{fileSize},
-            #{description},
-            #{createdTime},
-            #{updatedTime}
+            #{description}
         )
     </insert>
 
@@ -104,10 +107,12 @@
         SET name = #{name},
             version = #{version},
             file_content = #{fileContent},
+            file_format = #{fileFormat},
+            sha512 = #{sha512},
+            business = #{business},
             creator = #{creator},
             file_size = #{fileSize},
-            description = #{description},
-            updated_time = #{updatedTime}
+            description = #{description}
         WHERE id = #{id}
     </update>
 

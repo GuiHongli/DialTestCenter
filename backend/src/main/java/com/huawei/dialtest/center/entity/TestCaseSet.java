@@ -4,7 +4,6 @@
 
 package com.huawei.dialtest.center.entity;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -26,8 +25,6 @@ public class TestCaseSet {
     private String creator;
     private Long fileSize;
     private String description;
-    private LocalDateTime createdTime;
-    private LocalDateTime updatedTime;
 
     /**
      * 默认构造函数
@@ -143,22 +140,6 @@ public class TestCaseSet {
         this.description = description;
     }
 
-    public LocalDateTime getCreatedTime() {
-        return createdTime;
-    }
-
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-
-    public LocalDateTime getUpdatedTime() {
-        return updatedTime;
-    }
-
-    public void setUpdatedTime(LocalDateTime updatedTime) {
-        this.updatedTime = updatedTime;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -191,8 +172,6 @@ public class TestCaseSet {
                ", sha512='" + sha512 + '\'' +
                ", business='" + business + '\'' +
                ", description='" + description + '\'' +
-               ", createdTime=" + createdTime +
-               ", updatedTime=" + updatedTime +
                '}';
     }
 }

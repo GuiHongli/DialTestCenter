@@ -7,13 +7,11 @@
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="role" property="role" jdbcType="VARCHAR"/>
-        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
-        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, username, role, created_time, updated_time
+        id, username, role
     </sql>
 
     <!-- 根据ID查找用户角色关系 -->
@@ -32,13 +30,13 @@
         WHERE username = #{username}
     </select>
 
-    <!-- 根据用户名查询用户角色列表，按创建时间倒序排列 -->
+    <!-- 根据用户名查询用户角色列表，按ID倒序排列 -->
     <select id="findByUsernameOrderByCreatedTimeDesc" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM user_role
         WHERE username = #{username}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 根据用户名查询角色枚举列表 -->
@@ -95,12 +93,12 @@
         WHERE role = #{role}
     </select>
 
-    <!-- 查询所有用户角色，按创建时间倒序排列 -->
+    <!-- 查询所有用户角色，按ID倒序排列 -->
     <select id="findAllOrderByCreatedTimeDesc" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM user_role
-        ORDER BY created_time DESC
+        ORDER BY id DESC
     </select>
 
     <!-- 统计用户角色关系总数 -->
@@ -112,14 +110,10 @@
     <insert id="insert" parameterType="com.huawei.dialtest.center.entity.UserRole" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_role (
             username,
-            role,
-            created_time,
-            updated_time
+            role
         ) VALUES (
             #{username},
-            #{role},
-            #{createdTime},
-            #{updatedTime}
+            #{role}
         )
     </insert>
 
@@ -127,8 +121,7 @@
     <update id="update" parameterType="com.huawei.dialtest.center.entity.UserRole">
         UPDATE user_role
         SET username = #{username},
-            role = #{role},
-            updated_time = #{updatedTime}
+            role = #{role}
         WHERE id = #{id}
     </update>
 
@@ -137,22 +130,22 @@
         DELETE FROM user_role WHERE id = #{id}
     </delete>
 
-    <!-- 分页查询所有用户角色，按创建时间倒序排列 -->
+    <!-- 分页查询所有用户角色，按ID倒序排列 -->
     <select id="findAllByOrderByCreatedTimeDesc" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM user_role
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
-    <!-- 根据用户名分页查询用户角色，按创建时间倒序排列 -->
+    <!-- 根据用户名分页查询用户角色，按ID倒序排列 -->
     <select id="findByUsernameContainingWithPage" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM user_role
         WHERE username LIKE CONCAT('%', #{username}, '%')
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 

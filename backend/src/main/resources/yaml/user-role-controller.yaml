@@ -21,21 +21,51 @@ paths:
     get:
       tags:
         - "用户角色管理"
-      summary: "获取用户角色列表"
-      description: "获取用户角色关系列表，可按用户名过滤"
+      summary: "获取用户角色列表（分页）"
+      description: "获取用户角色关系列表，支持分页和搜索功能"
       parameters:
-        - name: "username"
+        - name: "page"
           in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+          minimum: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+          minimum: 1
+          maximum: 100
+        - name: "search"
+          in: "query"
+          description: "搜索关键字（用户名）"
           required: false
           type: "string"
-          description: "用户名（可选，不传则返回所有）"
       responses:
         200:
           description: "成功获取用户角色列表"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/UserRole"
+            type: "object"
+            properties:
+              data:
+                type: "array"
+                items:
+                  $ref: "#/definitions/UserRole"
+              total:
+                type: "integer"
+                description: "总记录数"
+              page:
+                type: "integer"
+                description: "当前页码"
+              pageSize:
+                type: "integer"
+                description: "每页大小"
+              totalPages:
+                type: "integer"
+                description: "总页数"
         500:
           description: "服务器内部错误"
           schema:
@@ -153,14 +183,6 @@ definitions:
         type: "string"
         enum: ["ADMIN", "OPERATOR", "BROWSER", "EXECUTOR"]
         description: "角色类型"
-      createdTime:
-        type: "string"
-        format: "date-time"
-        description: "创建时间"
-      updatedTime:
-        type: "string"
-        format: "date-time"
-        description: "更新时间"
 
   UserRoleRequest:
     type: "object"

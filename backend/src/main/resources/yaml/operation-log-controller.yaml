@@ -69,8 +69,7 @@ definitions:
         description: "操作用户名"
       operationTime:
         type: "string"
-        format: "date-time"
-        description: "操作时间"
+        description: "操作时间（格式：yyyy-MM-dd HH:mm:ss）"
       operationType:
         type: "string"
         description: "操作类型"

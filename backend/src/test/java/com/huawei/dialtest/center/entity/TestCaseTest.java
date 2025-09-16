@@ -41,8 +41,6 @@ public class TestCaseTest {
         assertNull(testCase.getTestSteps());
         assertNull(testCase.getExpectedResult());
         assertEquals(false, testCase.getScriptExists());
-        assertNull(testCase.getCreatedTime());
-        assertNull(testCase.getUpdatedTime());
     }
 
     /**
@@ -294,8 +292,6 @@ public class TestCaseTest {
         testCase.setTestSteps("测试步骤");
         testCase.setExpectedResult("预期结果");
         testCase.setScriptExists(true);
-        testCase.setCreatedTime(LocalDateTime.now());
-        testCase.setUpdatedTime(LocalDateTime.now());
 
         // Act
         String result = testCase.toString();

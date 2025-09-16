@@ -14,13 +14,11 @@
         <result column="test_steps" property="testSteps" jdbcType="VARCHAR"/>
         <result column="expected_result" property="expectedResult" jdbcType="VARCHAR"/>
         <result column="script_exists" property="scriptExists" jdbcType="BOOLEAN"/>
-        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
-        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        id, test_case_set_id, case_number, case_name, network_topology, business_category, app_name, test_steps, expected_result, script_exists, created_time, updated_time
+        id, test_case_set_id, case_number, case_name, network_topology, business_category, app_name, test_steps, expected_result, script_exists
     </sql>
 
     <!-- 根据ID查找测试用例 -->
@@ -45,7 +43,7 @@
         <include refid="Base_Column_List"/>
         FROM test_case
         WHERE test_case_set_id = #{testCaseSetId}
-        ORDER BY created_time DESC
+        ORDER BY id DESC
         LIMIT #{pageSize} OFFSET #{pageNo}
     </select>
 
@@ -103,9 +101,7 @@
             app_name,
             test_steps,
             expected_result,
-            script_exists,
-            created_time,
-            updated_time
+            script_exists
         ) VALUES (
             #{testCaseSetId},
             #{caseNumber},
@@ -115,9 +111,7 @@
             #{appName},
             #{testSteps},
             #{expectedResult},
-            #{scriptExists},
-            #{createdTime},
-            #{updatedTime}
+            #{scriptExists}
         )
     </insert>
 
@@ -132,8 +126,7 @@
             app_name = #{appName},
             test_steps = #{testSteps},
             expected_result = #{expectedResult},
-            script_exists = #{scriptExists},
-            updated_time = #{updatedTime}
+            script_exists = #{scriptExists}
         WHERE id = #{id}
     </update>
 

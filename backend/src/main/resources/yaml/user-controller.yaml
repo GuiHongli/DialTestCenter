@@ -291,16 +291,7 @@ definitions:
         description: "密码（加密存储）"
       lastLoginTime:
         type: "string"
-        format: "date-time"
-        description: "最后登录时间"
-      createdTime:
-        type: "string"
-        format: "date-time"
-        description: "创建时间"
-      updatedTime:
-        type: "string"
-        format: "date-time"
-        description: "更新时间"
+        description: "最后登录时间（格式：yyyy-MM-dd HH:mm:ss）"
 
   UserCreateRequest:
     type: "object"
