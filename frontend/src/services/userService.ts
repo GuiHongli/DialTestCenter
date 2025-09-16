@@ -12,7 +12,7 @@ import {
   ApiResponse 
 } from '../types/user';
 
-const API_BASE_URL = '/api/users';
+const API_BASE_URL = '/dialingtest/api/users';
 
 /**
  * 获取所有用户列表

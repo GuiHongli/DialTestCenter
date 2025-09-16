@@ -1,6 +1,6 @@
 import { PermissionCheckRequest, PermissionCheckResult, UserRole, UserRoleFormData } from '../types/userRole';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/dialingtest/api';
 
 /**
  * 用户角色服务类

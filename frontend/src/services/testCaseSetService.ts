@@ -1,7 +1,7 @@
 import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse } from '../types/testCaseSet'
 
 class TestCaseSetService {
-  private baseUrl = '/api/test-case-sets'
+  private baseUrl = '/dialingtest/api/test-case-sets'
 
   /**
    * 获取用例集列表
