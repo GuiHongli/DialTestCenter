@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -45,23 +48,31 @@ public class UserRoleController {
     private UserRoleService userRoleService;
 
     /**
-     * 获取用户角色列表
+     * 获取用户角色列表（分页）
      *
-     * @param username 用户名（可选，不传则返回所有）
-     * @return 用户角色列表
+     * @param page 页码（从1开始，默认1）
+     * @param pageSize 每页大小（默认10）
+     * @param search 搜索关键词（可选）
+     * @return 分页的用户角色列表
      */
     @GetMapping
-    public ResponseEntity<List<UserRole>> getUserRoles(
-            @RequestParam(required = false) String username) {
+    public ResponseEntity<?> getUserRoles(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String search) {
         try {
-            List<UserRole> userRoles;
-            if (username != null && !username.trim().isEmpty()) {
-                userRoles = userRoleService.getUserRoles(username.trim());
-            } else {
-                userRoles = userRoleService.getAllUserRoles();
-            }
-            logger.debug("Successfully retrieved user roles: {}", userRoles.size());
-            return ResponseEntity.ok(userRoles);
+            Page<UserRole> userRolePage = userRoleService.getAllUserRoles(page, pageSize, search);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", userRolePage.getContent());
+            response.put("total", userRolePage.getTotalElements());
+            response.put("page", page);
+            response.put("pageSize", pageSize);
+            response.put("totalPages", userRolePage.getTotalPages());
+            
+            logger.debug("Successfully retrieved user roles: page={}, pageSize={}, total={}", 
+                        page, pageSize, userRolePage.getTotalElements());
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();

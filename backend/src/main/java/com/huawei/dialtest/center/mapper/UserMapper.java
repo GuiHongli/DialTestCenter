@@ -53,11 +53,31 @@ public interface UserMapper {
     List<User> findByUsernameContaining(@Param("username") String username);
 
     /**
-     * 获取所有用户，按创建时间倒序排列
+     * 分页查询用户列表，按创建时间倒序排列
      *
+     * @param pageNo 页码（从0开始）
+     * @param pageSize 每页大小
      * @return 用户列表
      */
-    List<User> findAllOrderByCreatedTimeDesc();
+    List<User> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+
+    /**
+     * 根据用户名模糊查询用户列表（分页）
+     *
+     * @param username 用户名关键字
+     * @param pageNo 页码（从0开始）
+     * @param pageSize 每页大小
+     * @return 用户列表
+     */
+    List<User> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+
+    /**
+     * 统计用户名模糊查询的总数
+     *
+     * @param username 用户名关键字
+     * @return 总数
+     */
+    long countByUsernameContaining(@Param("username") String username);
 
     /**
      * 插入用户

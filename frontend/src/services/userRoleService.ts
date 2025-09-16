@@ -31,6 +31,44 @@ export class UserRoleService {
     
     return response.json();
   }
+
+  /**
+   * 获取用户角色列表（分页）
+   * @param page 页码（从1开始）
+   * @param pageSize 每页大小
+   * @param search 搜索关键词（可选）
+   * @returns 分页的用户角色列表
+   */
+  static async getUserRolesWithPagination(page: number = 1, pageSize: number = 10, search?: string): Promise<{
+    data: UserRole[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
+    
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/user-roles?${params}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Username': 'admin' // 这里需要根据实际认证机制调整
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`获取用户角色列表失败: ${response.statusText}`);
+    }
+    
+    return response.json();
+  }
   
   /**
    * 创建用户角色

@@ -9,6 +9,7 @@ import com.huawei.dialtest.center.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,19 +37,33 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 获取所有用户列表
+     * 获取用户列表（分页）
      *
-     * @return 用户列表
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @param search 搜索关键字（可选）
+     * @return 用户分页数据
      */
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String search) {
         try {
-            logger.info("Received request to get all users");
-            List<User> users = userService.getAllUsers();
-            logger.info("Successfully retrieved {} users", users.size());
-            return ResponseEntity.ok(users);
+            logger.info("Received request to get users - page: {}, size: {}, search: {}", page, pageSize, search);
+            Page<User> users = userService.getAllUsers(page, pageSize, search);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", users.getContent());
+            response.put("total", users.getTotalElements());
+            response.put("page", page);
+            response.put("pageSize", pageSize);
+            response.put("totalPages", users.getTotalPages());
+            
+            logger.info("Successfully retrieved {} users (page {}/{})", users.getContent().size(), page, users.getTotalPages());
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            logger.error("Failed to get all users", e);
+            logger.error("Failed to get users", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(createErrorResponse("INTERNAL_ERROR", "Failed to retrieve users"));
         }

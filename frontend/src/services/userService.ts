@@ -15,17 +15,32 @@ import {
 const API_BASE_URL = '/dialingtest/api/users';
 
 /**
- * 获取所有用户列表
+ * 获取用户列表（分页）
  */
-export const getAllUsers = async (): Promise<User[]> => {
+export const getUsers = async (page: number = 1, pageSize: number = 10, search?: string): Promise<{
+  data: User[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}> => {
   try {
-    const response = await fetch(API_BASE_URL);
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
+    
+    if (search && search.trim()) {
+      params.append('search', search.trim());
+    }
+    
+    const response = await fetch(`${API_BASE_URL}?${params}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return await response.json();
   } catch (error) {
-    console.error('Failed to get all users:', error);
+    console.error('Failed to get users:', error);
     throw error;
   }
 };

@@ -13,6 +13,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -62,22 +66,41 @@ public class UserServiceTest {
 
     @Test
     public void testGetAllUsers_Success() {
-        when(userMapper.findAllOrderByCreatedTimeDesc()).thenReturn(testUsers);
+        when(userMapper.findAllByOrderByCreatedTimeDesc(0, 10)).thenReturn(testUsers);
+        when(userMapper.count()).thenReturn(2L);
 
-        List<User> result = userService.getAllUsers();
+        Page<User> result = userService.getAllUsers(1, 10, null);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("testuser", result.get(0).getUsername());
-        assertEquals("testuser2", result.get(1).getUsername());
-        verify(userMapper).findAllOrderByCreatedTimeDesc();
+        assertEquals(2, result.getContent().size());
+        assertEquals(2L, result.getTotalElements());
+        assertEquals("testuser", result.getContent().get(0).getUsername());
+        assertEquals("testuser2", result.getContent().get(1).getUsername());
+        verify(userMapper).findAllByOrderByCreatedTimeDesc(0, 10);
+        verify(userMapper).count();
     }
 
     @Test(expected = RuntimeException.class)
     public void testGetAllUsers_Error() {
-        when(userMapper.findAllOrderByCreatedTimeDesc()).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.findAllByOrderByCreatedTimeDesc(0, 10)).thenThrow(new DataAccessException("Database error") {});
 
-        userService.getAllUsers();
+        userService.getAllUsers(1, 10, null);
+    }
+
+    @Test
+    public void testGetAllUsers_WithSearch() {
+        List<User> searchResults = Arrays.asList(testUser);
+        when(userMapper.findByUsernameContainingWithPage("test", 0, 10)).thenReturn(searchResults);
+        when(userMapper.countByUsernameContaining("test")).thenReturn(1L);
+
+        Page<User> result = userService.getAllUsers(1, 10, "test");
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(1L, result.getTotalElements());
+        assertEquals("testuser", result.getContent().get(0).getUsername());
+        verify(userMapper).findByUsernameContainingWithPage("test", 0, 10);
+        verify(userMapper).countByUsernameContaining("test");
     }
 
     @Test

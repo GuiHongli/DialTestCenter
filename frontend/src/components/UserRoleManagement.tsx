@@ -3,6 +3,7 @@ import {
   EditOutlined,
   PlusOutlined,
   ReloadOutlined,
+  SearchOutlined,
   TeamOutlined,
   UserOutlined
 } from '@ant-design/icons';
@@ -10,6 +11,7 @@ import {
   Button,
   Card,
   Col,
+  Input,
   message,
   Modal,
   Popconfirm,
@@ -22,7 +24,7 @@ import {
   Typography
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { usePermission } from '../hooks/usePermission';
 import { useTranslation } from '../hooks/useTranslation';
 import { UserRoleService } from '../services/userRoleService';
@@ -36,13 +38,19 @@ const { Title, Text } = Typography;
  */
 export const UserRoleManagement: React.FC = () => {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUserRole, setEditingUserRole] = useState<UserRole | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [currentUserRoles, setCurrentUserRoles] = useState<string[]>([]);
   const [userRoleLoading, setUserRoleLoading] = useState(true);
   const [executorCount, setExecutorCount] = useState<number>(0);
+  const [searchText, setSearchText] = useState('');
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   const { canManageUsers } = usePermission();
   const { translateUserRole, translateCommon } = useTranslation();
@@ -69,7 +77,7 @@ export const UserRoleManagement: React.FC = () => {
       setCurrentUserRoles(roleNames);
       
       // 获取当前用户角色后，再加载所有用户角色列表
-      await loadUserRoles();
+      await loadUserRoles(1, 10);
       // 加载执行机数量
       await loadExecutorCount();
     } catch (err) {
@@ -81,11 +89,16 @@ export const UserRoleManagement: React.FC = () => {
     }
   };
 
-  const loadUserRoles = async () => {
+  const loadUserRoles = async (page: number = 1, pageSize: number = 10, search?: string) => {
     try {
       setLoading(true);
-      const data = await UserRoleService.getUserRoles();
-      setUserRoles(data);
+      const response = await UserRoleService.getUserRolesWithPagination(page, pageSize, search);
+      setUserRoles(response.data);
+      setPagination({
+        current: response.page,
+        pageSize: response.pageSize,
+        total: response.total,
+      });
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('loadFailed'));
     } finally {
@@ -111,7 +124,7 @@ export const UserRoleManagement: React.FC = () => {
       await UserRoleService.createUserRole(formData);
       setModalVisible(false);
       message.success(translateUserRole('createSuccess'));
-      await loadUserRoles();
+      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('createFailed'));
@@ -129,7 +142,7 @@ export const UserRoleManagement: React.FC = () => {
       setEditingUserRole(null);
       setModalVisible(false);
       message.success(translateUserRole('updateSuccess'));
-      await loadUserRoles();
+      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('updateFailed'));
@@ -142,7 +155,7 @@ export const UserRoleManagement: React.FC = () => {
     try {
       await UserRoleService.deleteUserRole(id);
       message.success(translateUserRole('deleteSuccess'));
-      await loadUserRoles();
+      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('deleteFailed'));
@@ -166,6 +179,16 @@ export const UserRoleManagement: React.FC = () => {
 
   const formatDateTime = (dateTime: string) => {
     return new Date(dateTime).toLocaleString('zh-CN');
+  };
+
+  // 处理搜索
+  const handleSearch = () => {
+    loadUserRoles(1, pagination.pageSize, searchText);
+  };
+
+  // 处理分页变化
+  const handleTableChange = (pagination: any) => {
+    loadUserRoles(pagination.current, pagination.pageSize, searchText);
   };
 
   // 获取角色标签颜色
@@ -193,7 +216,7 @@ export const UserRoleManagement: React.FC = () => {
   const statistics = getStatistics();
 
   // 表格列配置
-  const columns: ColumnsType<UserRole> = [
+  const columns: ColumnsType<UserRole> = useMemo(() => [
     {
       title: translateUserRole('table.id'),
       dataIndex: 'id',
@@ -280,7 +303,7 @@ export const UserRoleManagement: React.FC = () => {
         </Space>
       ),
     }] : []),
-  ];
+  ], [translateUserRole, translateCommon, canManage]);
 
   // 如果正在加载用户角色，显示加载状态
   if (userRoleLoading) {
@@ -357,7 +380,7 @@ export const UserRoleManagement: React.FC = () => {
             </Button>
             <Button
               icon={<ReloadOutlined />}
-              onClick={loadUserRoles}
+              onClick={() => loadUserRoles(pagination.current, pagination.pageSize, searchText)}
             >
               {translateCommon('refresh')}
             </Button>
@@ -409,6 +432,47 @@ export const UserRoleManagement: React.FC = () => {
         </Row>
       )}
 
+      {/* 搜索和过滤 */}
+      <Card style={{ marginBottom: '16px' }}>
+        <Row gutter={16}>
+          <Col span={8}>
+            <Space.Compact style={{ width: '100%' }}>
+              <span style={{ 
+                padding: '4px 8px', 
+                backgroundColor: '#f5f5f5', 
+                border: '1px solid #d9d9d9',
+                borderRight: 'none',
+                borderRadius: '6px 0 0 6px',
+                fontSize: '14px',
+                color: '#666',
+                display: 'flex',
+                alignItems: 'center',
+                minWidth: '200px',
+                justifyContent: 'center'
+              }}>
+                {translateUserRole('table.username')}
+              </span>
+              <Input
+                placeholder={translateUserRole('form.usernamePlaceholder')}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+                style={{ borderRadius: '0 6px 6px 0' }}
+                onPressEnter={handleSearch}
+              />
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={handleSearch}
+                style={{ borderRadius: '0 6px 6px 0' }}
+              >
+                搜索
+              </Button>
+            </Space.Compact>
+          </Col>
+        </Row>
+      </Card>
+
       {/* 用户角色表格 */}
       <Card>
         <Table
@@ -417,13 +481,13 @@ export const UserRoleManagement: React.FC = () => {
           rowKey="id"
           loading={loading}
           pagination={{
-            total: userRoles.length,
-            pageSize: 10,
+            ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
               translateUserRole('table.pagination', { start: range[0], end: range[1], total }),
           }}
+          onChange={handleTableChange}
           scroll={{ x: 800 }}
           size="middle"
         />

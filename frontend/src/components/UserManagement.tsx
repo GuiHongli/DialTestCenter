@@ -10,10 +10,10 @@ import {
   Table,
   Typography,
 } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
-import React, { useCallback, useEffect, useState } from 'react';
+import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { createUser, deleteUser, getAllUsers, updateUser } from '../services/userService';
+import { createUser, deleteUser, getUsers, updateUser } from '../services/userService';
 import { User, UserCreateParams, UserUpdateParams } from '../types/user';
 import UserForm from './UserForm';
 
@@ -27,25 +27,35 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   // 加载用户列表
-  const loadUsers = useCallback(async () => {
+  const loadUsers = async (page: number = 1, pageSize: number = 10, search?: string) => {
     try {
       setLoading(true);
-      const userList = await getAllUsers();
-      setUsers(userList);
+      const response = await getUsers(page, pageSize, search);
+      setUsers(response.data);
+      setPagination({
+        current: response.page,
+        pageSize: response.pageSize,
+        total: response.total,
+      });
     } catch (error) {
       console.error('Failed to load users:', error);
       message.error(translateUser('loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   // 初始加载
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    loadUsers(1, 10);
+  }, []); // 移除loadUsers依赖，避免无限循环
 
   // 处理新增用户
   const handleAddUser = () => {
@@ -70,7 +80,7 @@ const UserManagement: React.FC = () => {
         try {
           await deleteUser(user.id);
           message.success(translateUser('deleteSuccess'));
-          loadUsers();
+          loadUsers(pagination.current, pagination.pageSize, searchText);
         } catch (error) {
           console.error('Failed to delete user:', error);
           message.error(translateUser('deleteFailed'));
@@ -91,7 +101,7 @@ const UserManagement: React.FC = () => {
         message.success(translateUser('createSuccess'));
       }
       setFormVisible(false);
-      loadUsers();
+      loadUsers(pagination.current, pagination.pageSize, searchText);
     } catch (error) {
       console.error('Failed to submit form:', error);
       message.error(editingUser ? translateUser('updateFailed') : translateUser('createFailed'));
@@ -106,13 +116,21 @@ const UserManagement: React.FC = () => {
     setEditingUser(null);
   };
 
-  // 过滤用户列表
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // 处理搜索
+  const handleSearch = () => {
+    loadUsers(1, pagination.pageSize, searchText);
+  };
+
+  // 处理分页变化
+  const handleTableChange = (pagination: any) => {
+    loadUsers(pagination.current, pagination.pageSize, searchText);
+  };
+
+  // 过滤用户（前端过滤已移除，改为后台搜索）
+  const filteredUsers = users;
 
   // 表格列定义
-  const columns = [
+  const columns = useMemo(() => [
     {
       title: translateUser('table.id'),
       dataIndex: 'id',
@@ -171,7 +189,7 @@ const UserManagement: React.FC = () => {
         </Space>
       ),
     },
-  ];
+  ], [translateUser]);
 
   return (
     <div style={{ textAlign: 'left' }}>
@@ -194,7 +212,7 @@ const UserManagement: React.FC = () => {
           </Button>
           <Button
             icon={<ReloadOutlined />}
-            onClick={loadUsers}
+            onClick={() => loadUsers(pagination.current, pagination.pageSize, searchText)}
             loading={loading}
           >
             {translateCommon('refresh')}
@@ -229,7 +247,16 @@ const UserManagement: React.FC = () => {
                 onChange={(e) => setSearchText(e.target.value)}
                 allowClear
                 style={{ borderRadius: '0 6px 6px 0' }}
+                onPressEnter={handleSearch}
               />
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={handleSearch}
+                style={{ borderRadius: '0 6px 6px 0' }}
+              >
+                搜索
+              </Button>
             </Space.Compact>
           </Col>
         </Row>
@@ -243,6 +270,7 @@ const UserManagement: React.FC = () => {
           rowKey="id"
           loading={loading}
           pagination={{
+            ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
@@ -251,6 +279,7 @@ const UserManagement: React.FC = () => {
                 .replace('{{end}}', range[1].toString())
                 .replace('{{total}}', total.toString()),
           }}
+          onChange={handleTableChange}
           scroll={{ x: 800 }}
           size="middle"
         />

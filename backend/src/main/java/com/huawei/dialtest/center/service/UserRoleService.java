@@ -10,6 +10,10 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -253,5 +257,37 @@ public class UserRoleService {
         long count = userRoleMapper.countByRole(Role.EXECUTOR.toString());
         logger.debug("Executor user count: {}", count);
         return count;
+    }
+
+    /**
+     * 分页获取所有用户角色
+     *
+     * @param page 页码（从1开始）
+     * @param pageSize 每页大小
+     * @param search 搜索关键词（可选）
+     * @return 分页的用户角色列表
+     */
+    @Transactional(readOnly = true)
+    public Page<UserRole> getAllUserRoles(int page, int pageSize, String search) {
+        logger.debug("Getting user roles with pagination: page={}, pageSize={}, search={}", page, pageSize, search);
+        
+        // 转换为从0开始的页码
+        int pageNo = page - 1;
+        
+        List<UserRole> userRoles;
+        long total;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            // 有搜索条件时，使用搜索查询
+            userRoles = userRoleMapper.findByUsernameContainingWithPage(search.trim(), pageNo * pageSize, pageSize);
+            total = userRoleMapper.countByUsernameContaining(search.trim());
+        } else {
+            // 无搜索条件时，查询所有
+            userRoles = userRoleMapper.findAllByOrderByCreatedTimeDesc(pageNo * pageSize, pageSize);
+            total = userRoleMapper.count();
+        }
+        
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return new PageImpl<>(userRoles, pageable, total);
     }
 }
