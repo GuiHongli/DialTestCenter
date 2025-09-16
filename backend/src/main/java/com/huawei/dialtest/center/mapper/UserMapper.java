@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.mapper;
 
-import com.huawei.dialtest.center.entity.User;
+import com.huawei.dialtest.center.entity.DialUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -26,7 +26,7 @@ public interface UserMapper {
      * @param id 用户ID
      * @return 用户信息
      */
-    User findById(@Param("id") Long id);
+    DialUser findById(@Param("id") Long id);
 
     /**
      * 根据用户名查找用户
@@ -34,7 +34,7 @@ public interface UserMapper {
      * @param username 用户名
      * @return 用户信息
      */
-    User findByUsername(@Param("username") String username);
+    DialUser findByUsername(@Param("username") String username);
 
     /**
      * 检查用户名是否存在
@@ -50,7 +50,7 @@ public interface UserMapper {
      * @param username 用户名关键字
      * @return 用户列表
      */
-    List<User> findByUsernameContaining(@Param("username") String username);
+    List<DialUser> findByUsernameContaining(@Param("username") String username);
 
     /**
      * 分页查询用户列表，按创建时间倒序排列
@@ -59,7 +59,7 @@ public interface UserMapper {
      * @param pageSize 每页大小
      * @return 用户列表
      */
-    List<User> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+    List<DialUser> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
      * 根据用户名模糊查询用户列表（分页）
@@ -69,7 +69,7 @@ public interface UserMapper {
      * @param pageSize 每页大小
      * @return 用户列表
      */
-    List<User> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+    List<DialUser> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
      * 统计用户名模糊查询的总数
@@ -85,7 +85,7 @@ public interface UserMapper {
      * @param user 用户对象
      * @return 影响行数
      */
-    int insert(User user);
+    int insert(DialUser user);
 
     /**
      * 更新用户
@@ -93,7 +93,7 @@ public interface UserMapper {
      * @param user 用户对象
      * @return 影响行数
      */
-    int update(User user);
+    int update(DialUser user);
 
     /**
      * 根据ID删除用户

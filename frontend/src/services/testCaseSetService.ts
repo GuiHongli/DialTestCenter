@@ -1,4 +1,4 @@
-import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse } from '../types/testCaseSet'
+import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse, ApiResponse, PagedResponse } from '../types/testCaseSet'
 
 class TestCaseSetService {
   private baseUrl = '/dialingtest/api/test-case-sets'
@@ -6,12 +6,18 @@ class TestCaseSetService {
   /**
    * 获取用例集列表
    */
-  async getTestCaseSets(page: number = 1, pageSize: number = 10): Promise<TestCaseSetListResponse> {
+  async getTestCaseSets(page: number = 1, pageSize: number = 10): Promise<PagedResponse<TestCaseSet>> {
     const response = await fetch(`${this.baseUrl}?page=${page}&pageSize=${pageSize}`)
     if (!response.ok) {
       throw new Error('获取用例集列表失败')
     }
-    return response.json()
+    
+    const result: ApiResponse<PagedResponse<TestCaseSet>> = await response.json()
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get test case sets')
+    }
+    
+    return result.data!
   }
 
   /**
@@ -22,7 +28,13 @@ class TestCaseSetService {
     if (!response.ok) {
       throw new Error('获取用例集详情失败')
     }
-    return response.json()
+    
+    const result: ApiResponse<TestCaseSet> = await response.json()
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get test case set')
+    }
+    
+    return result.data!
   }
 
   /**

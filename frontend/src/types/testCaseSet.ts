@@ -29,6 +29,24 @@ export interface TestCaseSetUploadData {
 
 
 // API响应类型
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errorCode?: string;
+  timestamp?: string;
+}
+
+export interface PagedResponse<T = any> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface TestCaseSetListResponse {
   data: TestCaseSet[]
   total: number

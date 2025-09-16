@@ -31,64 +31,44 @@ paths:
           required: false
           type: "integer"
           format: "int32"
-          description: "页码（从0开始）"
-        - name: "size"
+          default: 1
+          description: "页码（从1开始）"
+        - name: "pageSize"
           in: "query"
           required: false
           type: "integer"
           format: "int32"
+          default: 10
           description: "每页大小"
-        - name: "search"
-          in: "query"
-          required: false
-          type: "string"
-          description: "搜索关键字"
         - name: "platform"
           in: "query"
           required: false
           type: "string"
           enum: ["android", "ios"]
           description: "平台过滤"
+        - name: "creator"
+          in: "query"
+          required: false
+          type: "string"
+          description: "创建者过滤"
+        - name: "softwareName"
+          in: "query"
+          required: false
+          type: "string"
+          description: "软件名称过滤"
       responses:
         200:
           description: "成功获取软件包列表"
           schema:
-            $ref: "#/definitions/SoftwarePackagePageResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-    post:
-      tags:
-        - "软件包管理"
-      summary: "上传软件包"
-      description: "上传新的软件包文件（支持APK和IPA格式）"
-      consumes:
-        - "multipart/form-data"
-      parameters:
-        - name: "file"
-          in: "formData"
-          required: true
-          type: "file"
-          description: "软件包文件（APK或IPA格式）"
-        - name: "description"
-          in: "formData"
-          required: false
-          type: "string"
-          description: "软件包描述"
-      responses:
-        201:
-          description: "软件包上传成功"
-          schema:
-            $ref: "#/definitions/SoftwarePackage"
+            $ref: "#/definitions/ApiResponsePagedSoftwarePackage"
         400:
-          description: "文件格式错误或参数无效"
+          description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
 
   /api/software-packages/{id}:
     get:
@@ -107,13 +87,20 @@ paths:
         200:
           description: "成功获取软件包详情"
           schema:
-            $ref: "#/definitions/SoftwarePackage"
+            $ref: "#/definitions/ApiResponseSoftwarePackage"
         404:
           description: "软件包不存在"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
     put:
       tags:
         - "软件包管理"
@@ -135,15 +122,16 @@ paths:
         200:
           description: "软件包更新成功"
           schema:
-            $ref: "#/definitions/SoftwarePackage"
+            $ref: "#/definitions/ApiResponseSoftwarePackage"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
     delete:
       tags:
         - "软件包管理"
@@ -157,18 +145,79 @@ paths:
           format: "int64"
           description: "软件包ID"
       responses:
-        200:
+        204:
           description: "软件包删除成功"
-          schema:
-            $ref: "#/definitions/SuccessResponse"
+        404:
+          description: "软件包不存在"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/software-packages/upload:
+    post:
+      tags:
+        - "软件包管理"
+      summary: "上传单个软件包"
+      description: "上传新的软件包文件（支持APK和IPA格式）"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          required: true
+          type: "file"
+          description: "软件包文件（APK或IPA格式）"
+        - name: "description"
+          in: "formData"
+          required: false
+          type: "string"
+          description: "软件包描述"
+      responses:
+        200:
+          description: "软件包上传成功"
+          schema:
+            $ref: "#/definitions/ApiResponseSoftwarePackage"
+        400:
+          description: "文件格式错误或参数无效"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/software-packages/upload-zip:
+    post:
+      tags:
+        - "软件包管理"
+      summary: "批量上传软件包"
+      description: "批量上传多个软件包文件（ZIP格式）"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          required: true
+          type: "file"
+          description: "包含多个软件包的ZIP文件"
+      responses:
+        200:
+          description: "批量上传成功"
+          schema:
+            $ref: "#/definitions/ApiResponseSoftwarePackageList"
+        400:
+          description: "文件格式错误或参数无效"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
 
   /api/software-packages/{id}/download:
     get:
@@ -190,38 +239,30 @@ paths:
             type: "file"
         404:
           description: "软件包不存在"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
 
-  /api/software-packages/batch-upload:
-    post:
+  /api/software-packages/statistics:
+    get:
       tags:
         - "软件包管理"
-      summary: "批量上传软件包"
-      description: "批量上传多个软件包文件（ZIP格式）"
-      consumes:
-        - "multipart/form-data"
-      parameters:
-        - name: "file"
-          in: "formData"
-          required: true
-          type: "file"
-          description: "包含多个软件包的ZIP文件"
+      summary: "获取软件包统计信息"
+      description: "获取各平台软件包数量的统计信息"
       responses:
-        201:
-          description: "批量上传成功"
+        200:
+          description: "成功获取统计信息"
           schema:
-            $ref: "#/definitions/BatchUploadResponse"
-        400:
-          description: "文件格式错误或参数无效"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseStatistics"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
 
 definitions:
   SoftwarePackage:
@@ -258,83 +299,121 @@ definitions:
       version:
         type: "string"
         description: "软件版本"
+      uploadTime:
+        type: "string"
+        format: "date-time"
+        description: "上传时间"
 
   SoftwarePackageUpdateRequest:
     type: "object"
     properties:
+      softwareName:
+        type: "string"
+        description: "软件名称"
       description:
         type: "string"
         description: "描述信息"
 
-  SoftwarePackagePageResponse:
+  PagedResponse:
     type: "object"
     properties:
-      content:
+      data:
         type: "array"
         items:
           $ref: "#/definitions/SoftwarePackage"
-      totalElements:
+        description: "数据列表"
+      total:
         type: "integer"
         format: "int64"
         description: "总元素数"
+      page:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
       totalPages:
         type: "integer"
         format: "int32"
         description: "总页数"
-      size:
-        type: "integer"
-        format: "int32"
-        description: "每页大小"
-      number:
-        type: "integer"
-        format: "int32"
-        description: "当前页码"
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
 
-  BatchUploadResponse:
-    type: "object"
-    properties:
-      successCount:
-        type: "integer"
-        format: "int32"
-        description: "成功上传数量"
-      failedCount:
-        type: "integer"
-        format: "int32"
-        description: "失败数量"
-      details:
-        type: "array"
-        items:
-          type: "object"
-          properties:
-            fileName:
-              type: "string"
-              description: "文件名"
-            success:
-              type: "boolean"
-              description: "是否成功"
-            message:
-              type: "string"
-              description: "处理结果消息"
-
-  SuccessResponse:
+  ApiResponse:
     type: "object"
     properties:
       success:
         type: "boolean"
         description: "操作是否成功"
+      data:
+        type: "object"
+        description: "响应数据"
       message:
         type: "string"
-        description: "操作结果消息"
-
-  ErrorResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      error:
+        description: "响应消息"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "响应时间戳"
+      errorCode:
         type: "string"
         description: "错误代码"
-      message:
-        type: "string"
-        description: "错误消息"
+
+  ApiResponseSoftwarePackage:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/SoftwarePackage"
+
+  ApiResponseSoftwarePackageList:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/SoftwarePackage"
+
+  ApiResponsePagedSoftwarePackage:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedResponse"
+
+  ApiResponseStatistics:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "object"
+            additionalProperties:
+              type: "integer"
+              format: "int64"
+            description: "平台统计信息，键为平台名称，值为数量"
+
+  ApiResponseError:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          success:
+            type: "boolean"
+            example: false
+          data:
+            type: "null"
+          errorCode:
+            type: "string"
+            description: "错误代码"
+            example: "VALIDATION_ERROR"

@@ -3,7 +3,7 @@
 <mapper namespace="com.huawei.dialtest.center.mapper.UserMapper">
 
     <!-- 结果映射 -->
-    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.User">
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.DialUser">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="password" property="password" jdbcType="VARCHAR"/>
@@ -73,20 +73,18 @@
     </select>
 
     <!-- 插入用户 -->
-    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.User" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.DialUser" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO dial_user (
             username,
-            password,
-            last_login_time
+            password
         ) VALUES (
             #{username},
-            #{password},
-            #{lastLoginTime}
+            #{password}
         )
     </insert>
 
     <!-- 更新用户 -->
-    <update id="update" parameterType="com.huawei.dialtest.center.entity.User">
+    <update id="update" parameterType="com.huawei.dialtest.center.entity.DialUser">
         UPDATE dial_user
         SET username = #{username},
             password = #{password},

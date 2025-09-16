@@ -4,6 +4,8 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.SoftwarePackage;
 import com.huawei.dialtest.center.service.SoftwarePackageService;
 
@@ -30,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +63,7 @@ public class SoftwarePackageController {
      * @return 软件包分页数据
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getSoftwarePackages(
+    public ResponseEntity<ApiResponse<PagedResponse<SoftwarePackage>>> getSoftwarePackages(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String platform,
@@ -74,20 +75,21 @@ public class SoftwarePackageController {
             Page<SoftwarePackage> softwarePackages = softwarePackageService.getSoftwarePackages(
                     page, pageSize, platform, creator, softwareName);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", softwarePackages.getContent());
-            response.put("total", softwarePackages.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
-            response.put("totalPages", softwarePackages.getTotalPages());
+            PagedResponse<SoftwarePackage> pagedResponse = new PagedResponse<>(
+                softwarePackages.getContent(), 
+                softwarePackages.getTotalElements(), 
+                page, 
+                pageSize
+            );
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(pagedResponse));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting software packages: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -98,21 +100,23 @@ public class SoftwarePackageController {
      * @return 软件包详情
      */
     @GetMapping("/{id}")
-    public ResponseEntity<SoftwarePackage> getSoftwarePackage(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<SoftwarePackage>> getSoftwarePackage(@PathVariable Long id) {
         logger.info("Getting software package details for ID: {}", id);
         try {
             Optional<SoftwarePackage> softwarePackage = softwarePackageService.getSoftwarePackageById(id);
             if (softwarePackage.isPresent()) {
-                return ResponseEntity.ok(softwarePackage.get());
+                return ResponseEntity.ok(ApiResponse.success(softwarePackage.get()));
             } else {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("NOT_FOUND", "Software package not found"));
             }
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting software package details: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -126,7 +130,7 @@ public class SoftwarePackageController {
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, Object>> uploadSoftwarePackage(
+    public ResponseEntity<ApiResponse<SoftwarePackage>> uploadSoftwarePackage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "description", required = false) String description) {
         logger.info("Uploading software package: {}", file.getOriginalFilename());
@@ -136,30 +140,18 @@ public class SoftwarePackageController {
 
             SoftwarePackage softwarePackage = softwarePackageService.uploadSoftwarePackage(file, description, creator);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Upload successful");
-            response.put("data", softwarePackage);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(softwarePackage, "Upload successful"));
         } catch (IllegalArgumentException e) {
             logger.warn("Software package upload failed: {}", e.getMessage());
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (IOException e) {
             logger.error("File I/O error during upload: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "File processing failed");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("FILE_PROCESSING_ERROR", "File processing failed"));
         } catch (DataAccessException e) {
             logger.error("Database error during software package upload: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Upload failed");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "Upload failed"));
         }
     }
 
@@ -172,7 +164,7 @@ public class SoftwarePackageController {
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
     @PostMapping("/upload-zip")
-    public ResponseEntity<Map<String, Object>> uploadZipPackage(
+    public ResponseEntity<ApiResponse<List<SoftwarePackage>>> uploadZipPackage(
             @RequestParam("file") MultipartFile file) {
         logger.info("Uploading ZIP package: {}", file.getOriginalFilename());
         try {
@@ -181,31 +173,18 @@ public class SoftwarePackageController {
 
             List<SoftwarePackage> softwarePackages = softwarePackageService.uploadZipPackage(file, creator);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "ZIP package upload successful");
-            response.put("data", softwarePackages);
-            response.put("count", softwarePackages.size());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(softwarePackages, "ZIP package upload successful"));
         } catch (IllegalArgumentException e) {
             logger.warn("ZIP package upload failed: {}", e.getMessage());
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (IOException e) {
             logger.error("File I/O error during ZIP upload: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "ZIP file processing failed");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("FILE_PROCESSING_ERROR", "ZIP file processing failed"));
         } catch (DataAccessException e) {
             logger.error("Database error during ZIP package upload: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "ZIP upload failed");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "ZIP upload failed"));
         }
     }
 
@@ -292,7 +271,7 @@ public class SoftwarePackageController {
      * @throws IllegalArgumentException 当软件包不存在或参数无效时抛出
      */
     @PutMapping("/{id}")
-    public ResponseEntity<SoftwarePackage> updateSoftwarePackage(
+    public ResponseEntity<ApiResponse<SoftwarePackage>> updateSoftwarePackage(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         logger.info("Updating software package with ID: {}", id);
@@ -302,13 +281,14 @@ public class SoftwarePackageController {
 
             SoftwarePackage updated = softwarePackageService.updateSoftwarePackage(id, softwareName, description);
             logger.info("Software package updated successfully: {}", softwareName);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(ApiResponse.success(updated));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while updating software package: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -318,22 +298,16 @@ public class SoftwarePackageController {
      * @return 包含各平台软件包数量的统计信息
      */
     @GetMapping("/statistics")
-    public ResponseEntity<Map<String, Object>> getStatistics() {
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getStatistics() {
         logger.info("Getting software package statistics");
         try {
             Map<String, Long> statistics = softwarePackageService.getPlatformStatistics();
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", statistics);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(statistics));
         } catch (DataAccessException e) {
             logger.error("Database error while getting statistics: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Failed to get statistics");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("DATABASE_ERROR", "Failed to get statistics"));
         }
     }
 }

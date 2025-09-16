@@ -1,4 +1,4 @@
-import { PermissionCheckRequest, PermissionCheckResult, UserRole, UserRoleFormData } from '../types/userRole';
+import { PermissionCheckRequest, PermissionCheckResult, UserRole, UserRoleFormData, ApiResponse, PagedResponse } from '../types/userRole';
 
 const API_BASE_URL = '/dialingtest/api';
 
@@ -39,13 +39,7 @@ export class UserRoleService {
    * @param search 搜索关键词（可选）
    * @returns 分页的用户角色列表
    */
-  static async getUserRolesWithPagination(page: number = 1, pageSize: number = 10, search?: string): Promise<{
-    data: UserRole[];
-    total: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
-  }> {
+  static async getUserRolesWithPagination(page: number = 1, pageSize: number = 10, search?: string): Promise<PagedResponse<UserRole>> {
     const params = new URLSearchParams({
       page: page.toString(),
       pageSize: pageSize.toString(),
@@ -67,7 +61,12 @@ export class UserRoleService {
       throw new Error(`获取用户角色列表失败: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<PagedResponse<UserRole>> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get user roles');
+    }
+    
+    return result.data!;
   }
   
   /**
@@ -86,11 +85,15 @@ export class UserRoleService {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`创建用户角色失败: ${errorText}`);
+      throw new Error(`创建用户角色失败: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<UserRole> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to create user role');
+    }
+    
+    return result.data!;
   }
   
   /**

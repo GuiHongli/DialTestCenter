@@ -20,13 +20,13 @@ import static org.junit.Assert.*;
  * @since 2025-09-09
  */
 public class UserTest {
-    private User user;
+    private DialUser user;
     private LocalDateTime testTime;
 
     @Before
     public void setUp() {
         testTime = LocalDateTime.now();
-        user = new User();
+        user = new DialUser();
         user.setId(1L);
         user.setUsername("testuser");
         user.setPassword("password123");
@@ -35,7 +35,7 @@ public class UserTest {
 
     @Test
     public void testDefaultConstructor() {
-        User newUser = new User();
+        DialUser newUser = new DialUser();
         assertNotNull(newUser);
         assertNull(newUser.getId());
         assertNull(newUser.getUsername());
@@ -45,7 +45,7 @@ public class UserTest {
 
     @Test
     public void testParameterizedConstructor() {
-        User newUser = new User("newuser", "newpassword");
+        DialUser newUser = new DialUser("newuser", "newpassword");
         assertNotNull(newUser);
         assertNull(newUser.getId());
         assertEquals("newuser", newUser.getUsername());
@@ -79,15 +79,15 @@ public class UserTest {
 
     @Test
     public void testEquals() {
-        User user1 = new User();
+        DialUser user1 = new DialUser();
         user1.setId(1L);
         user1.setUsername("testuser");
 
-        User user2 = new User();
+        DialUser user2 = new DialUser();
         user2.setId(1L);
         user2.setUsername("testuser");
 
-        User user3 = new User();
+        DialUser user3 = new DialUser();
         user3.setId(2L);
         user3.setUsername("testuser");
 
@@ -111,13 +111,13 @@ public class UserTest {
 
     @Test
     public void testHashCode() {
-        User user1 = new User();
+        DialUser user1 = new DialUser();
         user1.setId(1L);
 
-        User user2 = new User();
+        DialUser user2 = new DialUser();
         user2.setId(1L);
 
-        User user3 = new User();
+        DialUser user3 = new DialUser();
         user3.setId(2L);
 
         // Same ID should have same hashCode
@@ -142,7 +142,7 @@ public class UserTest {
 
     @Test
     public void testNullValues() {
-        User nullUser = new User();
+        DialUser nullUser = new DialUser();
         assertNull(nullUser.getId());
         assertNull(nullUser.getUsername());
         assertNull(nullUser.getPassword());

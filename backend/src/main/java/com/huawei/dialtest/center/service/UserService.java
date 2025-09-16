@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.service;
 
-import com.huawei.dialtest.center.entity.User;
+import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.mapper.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +52,12 @@ public class UserService {
      * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public Page<User> getAllUsers(int page, int pageSize, String search) {
+    public Page<DialUser> getAllUsers(int page, int pageSize, String search) {
         try {
             logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
             Pageable pageable = PageRequest.of(page - 1, pageSize);
             
-            List<User> content;
+            List<DialUser> content;
             long total;
             
             if (search != null && !search.trim().isEmpty()) {
@@ -70,7 +70,7 @@ public class UserService {
                 total = userMapper.count();
             }
             
-            Page<User> result = new PageImpl<>(content, pageable, total);
+            Page<DialUser> result = new PageImpl<>(content, pageable, total);
             logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, result.getTotalPages());
             return result;
         } catch (DataAccessException e) {
@@ -86,11 +86,11 @@ public class UserService {
      * @return 用户信息
      */
     @Transactional(readOnly = true)
-    public Optional<User> getUserById(Long id) {
+    public Optional<DialUser> getUserById(Long id) {
         try {
             logger.info("Getting user by ID: {}", id);
-            User user = userMapper.findById(id);
-            Optional<User> userOptional = Optional.ofNullable(user);
+            DialUser user = userMapper.findById(id);
+            Optional<DialUser> userOptional = Optional.ofNullable(user);
             if (userOptional.isPresent()) {
                 logger.info("Successfully retrieved user: {}", userOptional.get().getUsername());
             } else {
@@ -110,11 +110,11 @@ public class UserService {
      * @return 用户信息
      */
     @Transactional(readOnly = true)
-    public Optional<User> getUserByUsername(String username) {
+    public Optional<DialUser> getUserByUsername(String username) {
         try {
             logger.info("Getting user by username: {}", username);
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOptional = Optional.ofNullable(user);
+            DialUser user = userMapper.findByUsername(username);
+            Optional<DialUser> userOptional = Optional.ofNullable(user);
             if (userOptional.isPresent()) {
                 logger.info("Successfully retrieved user: {}", username);
             } else {
@@ -134,7 +134,7 @@ public class UserService {
      * @param password 密码
      * @return 创建的用户
      */
-    public User createUser(String username, String password) {
+    public DialUser createUser(String username, String password) {
         try {
             logger.info("Creating new user: {}", username);
             
@@ -144,8 +144,8 @@ public class UserService {
             }
 
             String encodedPassword = passwordEncoder.encode(password);
-            User user = new User(username, encodedPassword);
-            user.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            DialUser user = new DialUser(username, encodedPassword);
+            // 创建用户时不设置最后登录时间，因为用户还没有登录过
             int result = userMapper.insert(user);
             if (result > 0) {
                 logger.info("Successfully created user: {}", username);
@@ -169,11 +169,11 @@ public class UserService {
      * @param password 新密码
      * @return 更新后的用户
      */
-    public User updateUser(Long id, String username, String password) {
+    public DialUser updateUser(Long id, String username, String password) {
         try {
             logger.info("Updating user with ID: {}", id);
             
-            User user = userMapper.findById(id);
+            DialUser user = userMapper.findById(id);
             if (user == null) {
                 throw new IllegalArgumentException("User not found with ID: " + id);
             }
@@ -215,7 +215,7 @@ public class UserService {
         try {
             logger.info("Deleting user with ID: {}", id);
             
-            User user = userMapper.findById(id);
+            DialUser user = userMapper.findById(id);
             if (user == null) {
                 logger.warn("User not found with ID: {}", id);
                 throw new IllegalArgumentException("User not found with ID: " + id);
@@ -243,10 +243,10 @@ public class UserService {
         try {
             logger.info("Updating last login time for user: {}", username);
             
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOpt = Optional.ofNullable(user);
+            DialUser user = userMapper.findByUsername(username);
+            Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User foundUser = userOpt.get();
+                DialUser foundUser = userOpt.get();
                 foundUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userMapper.update(foundUser);
                 logger.info("Successfully updated last login time for user: {}", username);
@@ -271,10 +271,10 @@ public class UserService {
         try {
             logger.info("Validating password for user: {}", username);
             
-            User user = userMapper.findByUsername(username);
-            Optional<User> userOpt = Optional.ofNullable(user);
+            DialUser user = userMapper.findByUsername(username);
+            Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
-                User foundUser = userOpt.get();
+                DialUser foundUser = userOpt.get();
                 boolean isValid = passwordEncoder.matches(password, foundUser.getPassword());
                 logger.info("Password validation result for user {}: {}", username, isValid);
                 return isValid;
@@ -295,10 +295,10 @@ public class UserService {
      * @return 用户列表
      */
     @Transactional(readOnly = true)
-    public List<User> searchUsersByUsername(String username) {
+    public List<DialUser> searchUsersByUsername(String username) {
         try {
             logger.info("Searching users by username: {}", username);
-            List<User> users = userMapper.findByUsernameContaining(username);
+            List<DialUser> users = userMapper.findByUsernameContaining(username);
             logger.info("Found {} users matching username: {}", users.size(), username);
             return users;
         } catch (DataAccessException e) {

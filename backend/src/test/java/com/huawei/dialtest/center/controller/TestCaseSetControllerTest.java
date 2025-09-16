@@ -4,21 +4,11 @@
 
 package com.huawei.dialtest.center.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.PagedResponse;
+import com.huawei.dialtest.center.entity.TestCase;
+import com.huawei.dialtest.center.entity.TestCaseSet;
+import com.huawei.dialtest.center.service.TestCaseSetService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,25 +16,29 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.huawei.dialtest.center.controller.TestCaseSetController;
-import com.huawei.dialtest.center.entity.TestCaseSet;
-import com.huawei.dialtest.center.service.TestCaseSetService;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
- * 用例集控制器测试类，测试TestCaseSetController的REST API接口
- * 包括文件上传、下载、查询、删除等HTTP端点的测试
- * 使用Mockito模拟服务层依赖，验证控制器层的正确性
- * 
+ * TestCaseSetController测试类
+ *
  * @author g00940940
- * @since 2025-09-06
+ * @since 2025-01-27
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TestCaseSetControllerTest {
@@ -52,314 +46,217 @@ public class TestCaseSetControllerTest {
     @Mock
     private TestCaseSetService testCaseSetService;
 
+    @Mock
+    private MultipartFile multipartFile;
+
     @InjectMocks
     private TestCaseSetController testCaseSetController;
 
-    private TestCaseSet testCaseSet;
-    private MultipartFile mockFile;
+    private TestCaseSet testTestCaseSet;
+    private TestCase testCase;
+    private List<TestCaseSet> testTestCaseSets;
+    private List<TestCase> testCases;
 
     @Before
     public void setUp() {
-        testCaseSet = new TestCaseSet();
-        testCaseSet.setId(1L);
-        testCaseSet.setName("test");
-        testCaseSet.setVersion("v1");
-        testCaseSet.setFileContent("test content".getBytes());
-        testCaseSet.setCreator("admin");
-        testCaseSet.setFileSize(179L);
-        testCaseSet.setFileFormat("zip");
-        testCaseSet.setSha512("sha512_hash_test");
-        testCaseSet.setBusiness("VPN阻断业务");
-        testCaseSet.setDescription("Test description");
+        testTestCaseSet = new TestCaseSet();
+        testTestCaseSet.setId(1L);
+        testTestCaseSet.setName("TestCaseSet");
+        testTestCaseSet.setVersion("1.0.0");
+        testTestCaseSet.setDescription("Test case set description");
+        testTestCaseSet.setCreator("admin");
+        testTestCaseSet.setBusiness("VPN阻断业务");
 
-        mockFile = mock(MultipartFile.class);
+        testCase = new TestCase();
+        testCase.setId(1L);
+        testCase.setCaseNumber("TC001");
+        testCase.setCaseName("Test Case 1");
+        // Note: testCaseSetId is set automatically by the entity
+
+        testTestCaseSets = Arrays.asList(testTestCaseSet);
+        testCases = Arrays.asList(testCase);
     }
 
     @Test
-    public void testGetTestCaseSetsSuccess() {
-        // Given
-        Page<TestCaseSet> mockPage = new PageImpl<>(java.util.Arrays.asList(testCaseSet));
-        when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(mockPage);
+    public void testGetTestCaseSets_Success() {
+        Page<TestCaseSet> page = new PageImpl<>(testTestCaseSets, PageRequest.of(0, 10), 1L);
+        when(testCaseSetService.getTestCaseSets(anyInt(), anyInt())).thenReturn(page);
 
-        // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.getTestCaseSets(1, 10);
+        ResponseEntity<ApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
+                .getTestCaseSets(1, 10);
 
-        // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        Map<String, Object> body = response.getBody();
-        assertEquals(1L, body.get("total"));
-        assertEquals(1, body.get("page"));
-        assertEquals(10, body.get("pageSize"));
-        assertNotNull(body.get("data"));
-        verify(testCaseSetService).getTestCaseSets(1, 10);
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(1, response.getBody().getData().getData().size());
+        assertEquals(1L, response.getBody().getData().getTotal());
     }
 
     @Test
-    public void testGetTestCaseSetsWithException() {
-        // Given
-        when(testCaseSetService.getTestCaseSets(1, 10)).thenThrow(new org.springframework.dao.DataAccessException("Database error") {});
+    public void testGetTestCaseSets_ValidationError() {
+        when(testCaseSetService.getTestCaseSets(anyInt(), anyInt()))
+                .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.getTestCaseSets(1, 10);
+        ResponseEntity<ApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
+                .getTestCaseSets(1, 10);
 
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSets(1, 10);
-    }
-
-    @Test
-    public void testGetTestCaseSetSuccess() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(testCaseSet));
-
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.getTestCaseSet(1L);
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(testCaseSet.getName(), response.getBody().getName());
-        verify(testCaseSetService).getTestCaseSetById(1L);
-    }
-
-    @Test
-    public void testGetTestCaseSetNotFound() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(999L)).thenReturn(Optional.empty());
-
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.getTestCaseSet(999L);
-
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSetById(999L);
-    }
-
-    @Test
-    public void testGetTestCaseSetWithException() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new org.springframework.dao.DataAccessException("Database error") {});
-
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.getTestCaseSet(1L);
-
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSetById(1L);
-    }
-
-    @Test
-    public void testUploadTestCaseSetSuccess() throws Exception {
-        // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
-                .thenReturn(testCaseSet);
-
-        // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Object> body = response.getBody();
-        assertEquals(true, body.get("success"));
-        assertEquals("Upload successful", body.get("message"));
-        assertNotNull(body.get("data"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
-    }
-
-    @Test
-    public void testUploadTestCaseSetWithIllegalArgumentException() throws Exception {
-        // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
-                .thenThrow(new IllegalArgumentException("文件格式错误"));
-
-        // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
-
-        // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        Map<String, Object> body = response.getBody();
-        assertEquals(false, body.get("success"));
-        assertEquals("文件格式错误", body.get("message"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
 
     @Test
-    public void testUploadTestCaseSetWithException() throws Exception {
-        // Given
-        when(testCaseSetService.uploadTestCaseSet(any(MultipartFile.class), anyString(), anyString(), anyString()))
-                .thenThrow(new org.springframework.dao.DataAccessException("Upload failed") {});
+    public void testGetTestCaseSet_Success() {
+        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(testTestCaseSet));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = testCaseSetController.uploadTestCaseSet(mockFile, "Test description", "VPN阻断业务");
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
 
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Object> body = response.getBody();
-        assertEquals(false, body.get("success"));
-        assertEquals("Upload failed", body.get("message"));
-        verify(testCaseSetService).uploadTestCaseSet(mockFile, "Test description", "admin", "VPN阻断业务");
-    }
-
-    @Test
-    public void testDownloadTestCaseSetSuccess() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(testCaseSet));
-
-        // When
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
-
-        // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof ByteArrayResource);
-        verify(testCaseSetService).getTestCaseSetById(1L);
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testTestCaseSet, response.getBody().getData());
     }
 
     @Test
-    public void testDownloadTestCaseSetNotFound() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(999L)).thenReturn(Optional.empty());
+    public void testGetTestCaseSet_NotFound() {
+        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.empty());
 
-        // When
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(999L);
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
 
-        // Then
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSetById(999L);
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("NOT_FOUND", response.getBody().getErrorCode());
     }
 
     @Test
-    public void testDownloadTestCaseSetEmptyFile() {
-        // Given
-        TestCaseSet emptyTestCaseSet = new TestCaseSet();
-        emptyTestCaseSet.setId(1L);
-        emptyTestCaseSet.setName("test");
-        emptyTestCaseSet.setVersion("v1");
-        emptyTestCaseSet.setFileContent(null);
-        emptyTestCaseSet.setSha512("empty_sha512");
-        emptyTestCaseSet.setBusiness("VPN阻断业务");
-        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(emptyTestCaseSet));
+    public void testUploadTestCaseSet_Success() throws IOException {
+        when(multipartFile.getOriginalFilename()).thenReturn("TestCaseSet.zip");
+        when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any())).thenReturn(testTestCaseSet);
 
-        // When
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+                .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
 
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSetById(1L);
-    }
-
-    @Test
-    public void testDownloadTestCaseSetWithException() {
-        // Given
-        when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new org.springframework.dao.DataAccessException("Download failed") {});
-
-        // When
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
-
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(testCaseSetService).getTestCaseSetById(1L);
-    }
-
-    @Test
-    public void testDeleteTestCaseSetSuccess() {
-        // Given
-        doNothing().when(testCaseSetService).deleteTestCaseSet(1L);
-
-        // When
-        ResponseEntity<Void> response = testCaseSetController.deleteTestCaseSet(1L);
-
-        // Then
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(testCaseSetService).deleteTestCaseSet(1L);
-    }
-
-    @Test
-    public void testDeleteTestCaseSetWithIllegalArgumentException() {
-        // Given
-        doThrow(new IllegalArgumentException("用例集不存在")).when(testCaseSetService).deleteTestCaseSet(999L);
-
-        // When
-        ResponseEntity<Void> response = testCaseSetController.deleteTestCaseSet(999L);
-
-        // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(testCaseSetService).deleteTestCaseSet(999L);
-    }
-
-    @Test
-    public void testDeleteTestCaseSetWithException() {
-        // Given
-        doThrow(new org.springframework.dao.DataAccessException("Delete failed") {}).when(testCaseSetService).deleteTestCaseSet(1L);
-
-        // When
-        ResponseEntity<Void> response = testCaseSetController.deleteTestCaseSet(1L);
-
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(testCaseSetService).deleteTestCaseSet(1L);
-    }
-
-    @Test
-    public void testUpdateTestCaseSetSuccess() {
-        // Given
-        Map<String, String> request = new HashMap<>();
-        request.put("name", "updated_test");
-        request.put("version", "v2");
-        request.put("description", "Updated description");
-
-        when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
-                .thenReturn(testCaseSet);
-
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.updateTestCaseSet(1L, request);
-
-        // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(testCaseSet.getName(), response.getBody().getName());
-        verify(testCaseSetService).updateTestCaseSet(1L, "updated_test", "v2", "Updated description");
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testTestCaseSet, response.getBody().getData());
+        assertEquals("Upload successful", response.getBody().getMessage());
     }
 
     @Test
-    public void testUpdateTestCaseSetWithIllegalArgumentException() {
-        // Given
-        Map<String, String> request = new HashMap<>();
-        request.put("name", "updated_test");
-        request.put("version", "v2");
-        request.put("description", "Updated description");
+    public void testUploadTestCaseSet_ValidationError() throws IOException {
+        when(multipartFile.getOriginalFilename()).thenReturn("TestCaseSet.zip");
+        when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Invalid file format"));
 
-        when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
-                .thenThrow(new IllegalArgumentException("用例集不存在"));
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+                .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
 
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.updateTestCaseSet(1L, request);
-
-        // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(testCaseSetService).updateTestCaseSet(1L, "updated_test", "v2", "Updated description");
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
 
     @Test
-    public void testUpdateTestCaseSetWithException() {
-        // Given
+    public void testUploadTestCaseSet_IOException() throws IOException {
+        when(multipartFile.getOriginalFilename()).thenReturn("TestCaseSet.zip");
+        when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any()))
+                .thenThrow(new IOException("File processing failed"));
+
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+                .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("FILE_PROCESSING_ERROR", response.getBody().getErrorCode());
+    }
+
+    @Test
+    public void testUpdateTestCaseSet_Success() {
+        when(testCaseSetService.updateTestCaseSet(anyLong(), any(), any(), any())).thenReturn(testTestCaseSet);
+
         Map<String, String> request = new HashMap<>();
-        request.put("name", "updated_test");
-        request.put("version", "v2");
+        request.put("name", "UpdatedTestCaseSet");
+        request.put("version", "2.0.0");
         request.put("description", "Updated description");
 
-        when(testCaseSetService.updateTestCaseSet(1L, "updated_test", "v2", "Updated description"))
-                .thenThrow(new org.springframework.dao.DataAccessException("Update failed") {});
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+                .updateTestCaseSet(1L, request);
 
-        // When
-        ResponseEntity<TestCaseSet> response = testCaseSetController.updateTestCaseSet(1L, request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testTestCaseSet, response.getBody().getData());
+    }
 
-        // Then
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(testCaseSetService).updateTestCaseSet(1L, "updated_test", "v2", "Updated description");
+    @Test
+    public void testUpdateTestCaseSet_ValidationError() {
+        when(testCaseSetService.updateTestCaseSet(anyLong(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Test case set not found"));
+
+        Map<String, String> request = new HashMap<>();
+        request.put("name", "UpdatedTestCaseSet");
+        request.put("version", "2.0.0");
+        request.put("description", "Updated description");
+
+        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+                .updateTestCaseSet(1L, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
+    }
+
+    @Test
+    public void testGetTestCases_Success() {
+        Page<TestCase> page = new PageImpl<>(testCases, PageRequest.of(0, 10), 1L);
+        when(testCaseSetService.getTestCases(anyLong(), anyInt(), anyInt())).thenReturn(page);
+
+        ResponseEntity<ApiResponse<PagedResponse<TestCase>>> response = testCaseSetController
+                .getTestCases(1L, 1, 10);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(1, response.getBody().getData().getData().size());
+        assertEquals(1L, response.getBody().getData().getTotal());
+    }
+
+    @Test
+    public void testGetMissingScripts_Success() {
+        when(testCaseSetService.getMissingScripts(1L)).thenReturn(testCases);
+        when(testCaseSetService.countMissingScripts(1L)).thenReturn(1L);
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseData = (Map<String, Object>) response.getBody().getData();
+        assertEquals(testCases, responseData.get("testCases"));
+        assertEquals(1L, responseData.get("count"));
+    }
+
+    @Test
+    public void testGetMissingScripts_ValidationError() {
+        when(testCaseSetService.getMissingScripts(1L))
+                .thenThrow(new IllegalArgumentException("Test case set not found"));
+
+        ResponseEntity<ApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
 }

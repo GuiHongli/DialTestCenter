@@ -79,13 +79,11 @@
     <insert id="insert" parameterType="com.huawei.dialtest.center.entity.OperationLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO operation_log (
             username,
-            operation_time,
             operation_type,
             target,
             description
         ) VALUES (
             #{username},
-            #{operationTime},
             #{operationType},
             #{target},
             #{description}

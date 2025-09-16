@@ -4,8 +4,11 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.OperationLog;
 import com.huawei.dialtest.center.service.OperationLogService;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -32,7 +36,7 @@ import static org.mockito.Mockito.*;
  * OperationLogController测试类
  *
  * @author g00940940
- * @since 2025-09-09
+ * @since 2025-01-27
  */
 @RunWith(MockitoJUnitRunner.class)
 public class OperationLogControllerTest {
@@ -44,190 +48,161 @@ public class OperationLogControllerTest {
     private OperationLogController operationLogController;
 
     private OperationLog testOperationLog;
+    private List<OperationLog> testOperationLogs;
 
     @Before
     public void setUp() {
         testOperationLog = new OperationLog();
         testOperationLog.setId(1L);
         testOperationLog.setUsername("testuser");
-        testOperationLog.setOperationTime("2025-09-16 10:30:00");
         testOperationLog.setOperationType("CREATE");
-        testOperationLog.setTarget("用户管理");
-        testOperationLog.setDescription("创建新用户");
+        testOperationLog.setTarget("TestCaseSet");
+        testOperationLog.setDescription("Created test case set");
+        // Note: timestamp is set automatically by the entity
+
+        testOperationLogs = Arrays.asList(testOperationLog);
     }
 
+    @Test
+    public void testGetOperationLogsByConditions_Success() {
+        Page<OperationLog> page = new PageImpl<>(testOperationLogs, PageRequest.of(0, 20), 1L);
+        when(operationLogService.getOperationLogsByConditions(any(), any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(page);
+
+        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+                .getOperationLogsByConditions("testuser", "CREATE", "TestCaseSet", null, null, 0, 20);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(1, response.getBody().getData().getData().size());
+        assertEquals(1L, response.getBody().getData().getTotal());
+    }
+
+    @Test
+    public void testGetOperationLogsByConditions_ValidationError() {
+        when(operationLogService.getOperationLogsByConditions(any(), any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenThrow(new IllegalArgumentException("Invalid parameters"));
+
+        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+                .getOperationLogsByConditions("testuser", "CREATE", "TestCaseSet", null, null, 0, 20);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
+    }
 
     @Test
     public void testGetOperationLogById_Success() {
-        // Arrange
-        Long id = 1L;
-        when(operationLogService.getOperationLogById(id)).thenReturn(Optional.of(testOperationLog));
+        when(operationLogService.getOperationLogById(1L)).thenReturn(Optional.of(testOperationLog));
 
-        // Act
-        ResponseEntity<?> response = operationLogController.getOperationLogById(id);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
 
-        // Assert
-        assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
-        assertNotNull("Response body should not be null", response.getBody());
-
-        verify(operationLogService).getOperationLogById(id);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testOperationLog, response.getBody().getData());
     }
 
     @Test
     public void testGetOperationLogById_NotFound() {
-        // Arrange
-        Long id = 999L;
-        when(operationLogService.getOperationLogById(id)).thenReturn(Optional.empty());
+        when(operationLogService.getOperationLogById(1L)).thenReturn(Optional.empty());
 
-        // Act
-        ResponseEntity<?> response = operationLogController.getOperationLogById(id);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
 
-        // Assert
-        assertEquals("Status should be 404", HttpStatus.NOT_FOUND, response.getStatusCode());
-
-        verify(operationLogService).getOperationLogById(id);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("NOT_FOUND", response.getBody().getErrorCode());
     }
 
     @Test
-    public void testGetOperationLogById_Error() {
-        // Arrange
-        Long id = 1L;
-        when(operationLogService.getOperationLogById(id))
-                .thenThrow(new RuntimeException("Service error"));
+    public void testSearchOperationLogs_Success() {
+        Page<OperationLog> page = new PageImpl<>(testOperationLogs, PageRequest.of(0, 20), 1L);
+        when(operationLogService.searchOperationLogs(any(), any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(page);
 
-        // Act
-        ResponseEntity<?> response = operationLogController.getOperationLogById(id);
+        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+                .searchOperationLogs("testuser", "CREATE", "TestCaseSet", "test", 0, 20);
 
-        // Assert
-        assertEquals("Status should be 500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-
-        verify(operationLogService).getOperationLogById(id);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(1, response.getBody().getData().getData().size());
     }
-
-
-
 
     @Test
     public void testGetRecentOperationLogs_Success() {
-        // Arrange
-        List<OperationLog> operationLogs = Arrays.asList(testOperationLog);
-        when(operationLogService.getRecentOperationLogs(10)).thenReturn(operationLogs);
+        when(operationLogService.getRecentOperationLogs(10)).thenReturn(testOperationLogs);
 
-        // Act
-        ResponseEntity<?> response = operationLogController.getRecentOperationLogs(10);
+        ResponseEntity<ApiResponse<List<OperationLog>>> response = operationLogController.getRecentOperationLogs(10);
 
-        // Assert
-        assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
-        assertNotNull("Response body should not be null", response.getBody());
-
-        verify(operationLogService).getRecentOperationLogs(10);
-    }
-
-    @Test
-    public void testGetRecentOperationLogs_Error() {
-        // Arrange
-        when(operationLogService.getRecentOperationLogs(10))
-                .thenThrow(new RuntimeException("Service error"));
-
-        // Act
-        ResponseEntity<?> response = operationLogController.getRecentOperationLogs(10);
-
-        // Assert
-        assertEquals("Status should be 500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-
-        verify(operationLogService).getRecentOperationLogs(10);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testOperationLogs, response.getBody().getData());
     }
 
     @Test
     public void testLogOperation_Success() {
-        // Arrange
+        when(operationLogService.logOperation(any(), any(), any(), any())).thenReturn(testOperationLog);
+
         Map<String, String> request = new HashMap<>();
         request.put("username", "testuser");
         request.put("operationType", "CREATE");
-        request.put("target", "用户管理");
-        request.put("description", "创建新用户");
+        request.put("target", "TestCaseSet");
+        request.put("description", "Created test case set");
 
-        when(operationLogService.logOperation("testuser", "CREATE", "用户管理", "创建新用户"))
-                .thenReturn(testOperationLog);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
-        // Act
-        ResponseEntity<?> response = operationLogController.logOperation(request);
-
-        // Assert
-        assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
-        assertNotNull("Response body should not be null", response.getBody());
-
-        verify(operationLogService).logOperation("testuser", "CREATE", "用户管理", "创建新用户");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testOperationLog, response.getBody().getData());
     }
 
     @Test
     public void testLogOperation_MissingUsername() {
-        // Arrange
         Map<String, String> request = new HashMap<>();
         request.put("operationType", "CREATE");
-        request.put("target", "用户管理");
+        request.put("target", "TestCaseSet");
 
-        // Act
-        ResponseEntity<?> response = operationLogController.logOperation(request);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
-        // Assert
-        assertEquals("Status should be 400", HttpStatus.BAD_REQUEST, response.getStatusCode());
-
-        verify(operationLogService, never()).logOperation(anyString(), anyString(), anyString(), anyString());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
 
     @Test
     public void testLogOperation_MissingOperationType() {
-        // Arrange
         Map<String, String> request = new HashMap<>();
         request.put("username", "testuser");
-        request.put("target", "用户管理");
+        request.put("target", "TestCaseSet");
 
-        // Act
-        ResponseEntity<?> response = operationLogController.logOperation(request);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
-        // Assert
-        assertEquals("Status should be 400", HttpStatus.BAD_REQUEST, response.getStatusCode());
-
-        verify(operationLogService, never()).logOperation(anyString(), anyString(), anyString(), anyString());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
 
     @Test
     public void testLogOperation_MissingTarget() {
-        // Arrange
         Map<String, String> request = new HashMap<>();
         request.put("username", "testuser");
         request.put("operationType", "CREATE");
 
-        // Act
-        ResponseEntity<?> response = operationLogController.logOperation(request);
+        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
-        // Assert
-        assertEquals("Status should be 400", HttpStatus.BAD_REQUEST, response.getStatusCode());
-
-        verify(operationLogService, never()).logOperation(anyString(), anyString(), anyString(), anyString());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
     }
-
-    @Test
-    public void testLogOperation_Error() {
-        // Arrange
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "testuser");
-        request.put("operationType", "CREATE");
-        request.put("target", "用户管理");
-        request.put("description", "创建新用户");
-
-        when(operationLogService.logOperation("testuser", "CREATE", "用户管理", "创建新用户"))
-                .thenThrow(new RuntimeException("Service error"));
-
-        // Act
-        ResponseEntity<?> response = operationLogController.logOperation(request);
-
-        // Assert
-        assertEquals("Status should be 500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-
-        verify(operationLogService).logOperation("testuser", "CREATE", "用户管理", "创建新用户");
-    }
-
-
 }

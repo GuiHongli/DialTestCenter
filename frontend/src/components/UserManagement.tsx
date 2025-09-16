@@ -157,13 +157,6 @@ const UserManagement: React.FC = () => {
       },
     },
     {
-      title: translateUser('table.createdTime'),
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      render: (time: string) => new Date(time).toLocaleString(),
-      sorter: (a: User, b: User) => new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime(),
-    },
-    {
       title: translateUser('table.actions'),
       key: 'actions',
       width: 120,
@@ -223,41 +216,53 @@ const UserManagement: React.FC = () => {
 
       {/* 搜索和过滤 */}
       <Card style={{ marginBottom: '16px' }}>
-        <Row gutter={16}>
-          <Col span={8}>
-            <Space.Compact style={{ width: '100%' }}>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={8} md={6}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              height: '40px'
+            }}>
+              <SearchOutlined style={{ color: '#1890ff', fontSize: '16px' }} />
               <span style={{ 
-                padding: '4px 8px', 
-                backgroundColor: '#f5f5f5', 
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '200px',
-                justifyContent: 'center'
+                fontSize: '14px', 
+                color: '#262626',
+                fontWeight: 500,
+                whiteSpace: 'nowrap'
               }}>
-                {translateUser('table.username')}
+                {translateUser('filters.searchUsername')}:
               </span>
-              <Input
-                placeholder={translateUser('form.usernamePlaceholder')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                allowClear
-                style={{ borderRadius: '0 6px 6px 0' }}
-                onPressEnter={handleSearch}
-              />
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-                style={{ borderRadius: '0 6px 6px 0' }}
-              >
-                搜索
-              </Button>
-            </Space.Compact>
+            </div>
+          </Col>
+          <Col xs={24} sm={16} md={14}>
+            <Input
+              placeholder={translateUser('form.usernamePlaceholder')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              onPressEnter={handleSearch}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            />
+          </Col>
+          <Col xs={24} sm={24} md={4}>
+            <Button
+              type="primary"
+              onClick={handleSearch}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                minWidth: '100px',
+                boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
+              }}
+            >
+              {translateCommon('search')}
+            </Button>
           </Col>
         </Row>
       </Card>

@@ -60,7 +60,21 @@ export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   message?: string;
-  error?: string;
+  errorCode?: string;
+  timestamp?: string;
+}
+
+/**
+ * 分页响应接口
+ */
+export interface PagedResponse<T = any> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 
 /**

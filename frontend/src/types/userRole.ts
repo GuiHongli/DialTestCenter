@@ -25,6 +25,30 @@ export interface PermissionCheckResult {
   userRoles: string[];
 }
 
+/**
+ * API响应基础接口
+ */
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  errorCode?: string;
+  timestamp?: string;
+}
+
+/**
+ * 分页响应接口
+ */
+export interface PagedResponse<T = any> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 // 角色描述映射
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
   ADMIN: '管理员',

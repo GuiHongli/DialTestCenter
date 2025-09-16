@@ -4,50 +4,41 @@
 
 package com.huawei.dialtest.center.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.PagedResponse;
+import com.huawei.dialtest.center.entity.Role;
+import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.service.UserRoleService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.huawei.dialtest.center.controller.UserRoleController;
-import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
-import com.huawei.dialtest.center.service.UserRoleService;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
- * 用户角色控制器测试类，测试UserRoleController的REST API接口
- * 包括用户角色创建、更新、删除、查询等HTTP端点的测试
- * 使用Mockito模拟服务层依赖，验证控制器层的正确性
- * 
+ * UserRoleController控制器测试
+ * 测试用户角色控制器的REST API接口，包括HTTP请求处理
+ *
  * @author g00940940
- * @since 2025-09-06
+ * @since 2025-09-16
  */
 @RunWith(MockitoJUnitRunner.class)
 public class UserRoleControllerTest {
-
     @Mock
     private UserRoleService userRoleService;
 
@@ -55,7 +46,7 @@ public class UserRoleControllerTest {
     private UserRoleController userRoleController;
 
     private UserRole testUserRole;
-    private UserRoleController.UserRoleRequest testRequest;
+    private List<UserRole> testUserRoles;
 
     @Before
     public void setUp() {
@@ -64,351 +55,231 @@ public class UserRoleControllerTest {
         testUserRole.setUsername("testuser");
         testUserRole.setRole(Role.ADMIN);
 
-        testRequest = new UserRoleController.UserRoleRequest();
-        testRequest.setUsername("testuser");
-        testRequest.setRole(Role.ADMIN);
+        UserRole userRole2 = new UserRole();
+        userRole2.setId(2L);
+        userRole2.setUsername("testuser2");
+        userRole2.setRole(Role.EXECUTOR);
+
+        testUserRoles = Arrays.asList(testUserRole, userRole2);
     }
 
     @Test
-    public void testGetUserRoles_WithSearch() {
-        // Given
-        int page = 1;
-        int pageSize = 10;
-        String search = "testuser";
-        List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
-        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenReturn(expectedPage);
+    public void testGetUserRoles_Success() {
+        Page<UserRole> userRolePage = new PageImpl<>(testUserRoles, PageRequest.of(0, 10), 2);
+        when(userRoleService.getAllUserRoles(1, 10, null)).thenReturn(userRolePage);
 
-        // When
-        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
+        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
-        // Then
-        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals(1, ((List<?>) responseBody.get("data")).size());
-        assertEquals(1L, responseBody.get("total"));
-        assertEquals(page, responseBody.get("page"));
-        assertEquals(pageSize, responseBody.get("pageSize"));
-        verify(userRoleService).getAllUserRoles(page, pageSize, search);
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(testUserRoles, response.getBody().getData().getData());
+        assertEquals(2L, response.getBody().getData().getTotal());
+        assertEquals(1, response.getBody().getData().getPage());
+        assertEquals(10, response.getBody().getData().getPageSize());
+        verify(userRoleService).getAllUserRoles(1, 10, null);
     }
 
     @Test
-    public void testGetUserRoles_WithoutSearch() {
-        // Given
-        int page = 1;
-        int pageSize = 10;
-        List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
-        when(userRoleService.getAllUserRoles(page, pageSize, null)).thenReturn(expectedPage);
+    public void testGetUserRoles_ValidationError() {
+        when(userRoleService.getAllUserRoles(1, 10, null))
+                .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        // When
-        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, null);
+        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals(1, ((List<?>) responseBody.get("data")).size());
-        assertEquals(1L, responseBody.get("total"));
-        assertEquals(page, responseBody.get("page"));
-        assertEquals(pageSize, responseBody.get("pageSize"));
-        verify(userRoleService).getAllUserRoles(page, pageSize, null);
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
+        assertEquals("Invalid parameters", response.getBody().getMessage());
+        verify(userRoleService).getAllUserRoles(1, 10, null);
     }
 
     @Test
-    public void testGetUserRoles_EmptySearch() {
-        // Given
-        int page = 1;
-        int pageSize = 10;
-        List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
-        when(userRoleService.getAllUserRoles(page, pageSize, "")).thenReturn(expectedPage);
+    public void testGetUserRoles_DatabaseError() {
+        when(userRoleService.getAllUserRoles(1, 10, null))
+                .thenThrow(new DataAccessException("Database error") {});
 
-        // When
-        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, "");
+        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals(1, ((List<?>) responseBody.get("data")).size());
-        assertEquals(1L, responseBody.get("total"));
-        assertEquals(page, responseBody.get("page"));
-        assertEquals(pageSize, responseBody.get("pageSize"));
-        verify(userRoleService).getAllUserRoles(page, pageSize, "");
-    }
-
-    @Test
-    public void testGetUserRoles_ServiceException() {
-        // Given
-        int page = 1;
-        int pageSize = 10;
-        String search = "testuser";
-        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
-
-        // When
-        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
-
-        // Then
-        assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userRoleService).getAllUserRoles(page, pageSize, search);
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("DATABASE_ERROR", response.getBody().getErrorCode());
+        verify(userRoleService).getAllUserRoles(1, 10, null);
     }
 
     @Test
     public void testCreateUserRole_Success() {
-        // Given
         when(userRoleService.save(any(UserRole.class))).thenReturn(testUserRole);
 
-        // When
-        ResponseEntity<UserRole> response = userRoleController.createUserRole(testRequest);
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("testuser");
+        request.setRole(Role.ADMIN);
 
-        // Then
-        assertNotNull(response);
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
+
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(testUserRole.getId(), response.getBody().getId());
-        assertEquals(testUserRole.getUsername(), response.getBody().getUsername());
-        assertEquals(testUserRole.getRole(), response.getBody().getRole());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testUserRole, response.getBody().getData());
+        assertEquals("User role created successfully", response.getBody().getMessage());
         verify(userRoleService).save(any(UserRole.class));
     }
 
     @Test
-    public void testCreateUserRole_ServiceException() {
-        // Given
-        when(userRoleService.save(any(UserRole.class))).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
+    public void testCreateUserRole_ValidationError() {
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("");
+        request.setRole(Role.ADMIN);
 
-        // When
-        ResponseEntity<UserRole> response = userRoleController.createUserRole(testRequest);
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
 
-        // Then
-        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
+    }
+
+    @Test
+    public void testCreateUserRole_DatabaseError() {
+        when(userRoleService.save(any(UserRole.class)))
+                .thenThrow(new DataAccessException("Database error") {});
+
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("testuser");
+        request.setRole(Role.ADMIN);
+
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
+
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("DATABASE_ERROR", response.getBody().getErrorCode());
         verify(userRoleService).save(any(UserRole.class));
     }
 
     @Test
     public void testUpdateUserRole_Success() {
-        // Given
-        Long id = 1L;
-        when(userRoleService.findById(id)).thenReturn(Optional.of(testUserRole));
+        when(userRoleService.findById(1L)).thenReturn(Optional.of(testUserRole));
         when(userRoleService.save(any(UserRole.class))).thenReturn(testUserRole);
 
-        // When
-        ResponseEntity<UserRole> response = userRoleController.updateUserRole(id, testRequest);
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("updateduser");
+        request.setRole(Role.EXECUTOR);
 
-        // Then
-        assertNotNull(response);
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(testUserRole.getId(), response.getBody().getId());
-        verify(userRoleService).findById(id);
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(testUserRole, response.getBody().getData());
+        assertEquals("User role updated successfully", response.getBody().getMessage());
+        verify(userRoleService).findById(1L);
         verify(userRoleService).save(any(UserRole.class));
     }
 
     @Test
     public void testUpdateUserRole_NotFound() {
-        // Given
-        Long id = 999L;
-        when(userRoleService.findById(id)).thenReturn(Optional.empty());
+        when(userRoleService.findById(1L)).thenReturn(Optional.empty());
 
-        // When
-        ResponseEntity<UserRole> response = userRoleController.updateUserRole(id, testRequest);
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("updateduser");
+        request.setRole(Role.EXECUTOR);
 
-        // Then
-        assertNotNull(response);
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRoleService).findById(id);
-        verify(userRoleService, never()).save(any(UserRole.class));
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("NOT_FOUND", response.getBody().getErrorCode());
+        verify(userRoleService).findById(1L);
     }
 
     @Test
-    public void testUpdateUserRole_ServiceException() {
-        // Given
-        Long id = 1L;
-        when(userRoleService.findById(id)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
+    public void testUpdateUserRole_ValidationError() {
+        when(userRoleService.findById(1L)).thenReturn(Optional.of(testUserRole));
+        when(userRoleService.save(any(UserRole.class)))
+                .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        // When
-        ResponseEntity<UserRole> response = userRoleController.updateUserRole(id, testRequest);
+        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
+        request.setUsername("updateduser");
+        request.setRole(Role.EXECUTOR);
 
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userRoleService).findById(id);
+        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
+        verify(userRoleService).findById(1L);
+        verify(userRoleService).save(any(UserRole.class));
     }
 
     @Test
     public void testDeleteUserRole_Success() {
-        // Given
-        Long id = 1L;
+        doNothing().when(userRoleService).deleteById(1L);
 
-        // When
-        ResponseEntity<Void> response = userRoleController.deleteUserRole(id);
+        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
 
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userRoleService).deleteById(id);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("User role deleted successfully", response.getBody().getData());
+        verify(userRoleService).deleteById(1L);
     }
 
     @Test
-    public void testDeleteUserRole_ServiceException() {
-        // Given
-        Long id = 1L;
-        // 使用doThrow来模拟void方法的异常
-        org.mockito.Mockito.doThrow(new org.springframework.dao.DataAccessException("Service error") {})
-            .when(userRoleService).deleteById(id);
+    public void testDeleteUserRole_NotFound() {
+        doThrow(new IllegalArgumentException("User role not found")).when(userRoleService).deleteById(1L);
 
-        // When
-        ResponseEntity<Void> response = userRoleController.deleteUserRole(id);
+        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
 
-        // Then
-        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("NOT_FOUND", response.getBody().getErrorCode());
+        verify(userRoleService).deleteById(1L);
+    }
+
+    @Test
+    public void testDeleteUserRole_DatabaseError() {
+        doThrow(new DataAccessException("Database error") {}).when(userRoleService).deleteById(1L);
+
+        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
+
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userRoleService).deleteById(id);
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("DATABASE_ERROR", response.getBody().getErrorCode());
+        verify(userRoleService).deleteById(1L);
     }
 
     @Test
     public void testGetExecutorCount_Success() {
-        // Given
-        long expectedCount = 5L;
-        when(userRoleService.getExecutorUserCount()).thenReturn(expectedCount);
+        when(userRoleService.getExecutorUserCount()).thenReturn(5L);
 
-        // When
-        ResponseEntity<Long> response = userRoleController.getExecutorCount();
+        ResponseEntity<ApiResponse<Long>> response = userRoleController.getExecutorCount();
 
-        // Then
-        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(Long.valueOf(expectedCount), response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(Long.valueOf(5L), response.getBody().getData());
         verify(userRoleService).getExecutorUserCount();
     }
 
     @Test
-    public void testGetExecutorCount_ServiceException() {
-        // Given
-        when(userRoleService.getExecutorUserCount()).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
+    public void testGetExecutorCount_DatabaseError() {
+        when(userRoleService.getExecutorUserCount())
+                .thenThrow(new DataAccessException("Database error") {});
 
-        // When
-        ResponseEntity<Long> response = userRoleController.getExecutorCount();
+        ResponseEntity<ApiResponse<Long>> response = userRoleController.getExecutorCount();
 
-        // Then
-        assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("DATABASE_ERROR", response.getBody().getErrorCode());
         verify(userRoleService).getExecutorUserCount();
-    }
-
-    @Test
-    public void testUserRoleRequest_SettersAndGetters() {
-        // Given
-        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
-        String username = "testuser";
-        Role role = Role.OPERATOR;
-
-        // When
-        request.setUsername(username);
-        request.setRole(role);
-
-        // Then
-        assertEquals(username, request.getUsername());
-        assertEquals(role, request.getRole());
-    }
-
-    @Test
-    public void testGetUserRoles_WithWhitespaceSearch() {
-        // Given
-        int page = 1;
-        int pageSize = 10;
-        String search = "  testuser  ";
-        List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
-        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenReturn(expectedPage);
-
-        // When
-        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
-
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals(1, ((List<?>) responseBody.get("data")).size());
-        assertEquals(1L, responseBody.get("total"));
-        assertEquals(page, responseBody.get("page"));
-        assertEquals(pageSize, responseBody.get("pageSize"));
-        verify(userRoleService).getAllUserRoles(page, pageSize, search);
-    }
-
-    @Test
-    public void testCreateUserRole_WithDifferentRole() {
-        // Given
-        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
-        request.setUsername("newuser");
-        request.setRole(Role.OPERATOR);
-
-        UserRole savedUserRole = new UserRole();
-        savedUserRole.setId(2L);
-        savedUserRole.setUsername("newuser");
-        savedUserRole.setRole(Role.OPERATOR);
-
-        when(userRoleService.save(any(UserRole.class))).thenReturn(savedUserRole);
-
-        // When
-        ResponseEntity<UserRole> response = userRoleController.createUserRole(request);
-
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("newuser", response.getBody().getUsername());
-        assertEquals(Role.OPERATOR, response.getBody().getRole());
-        verify(userRoleService).save(any(UserRole.class));
-    }
-
-    @Test
-    public void testUpdateUserRole_WithDifferentData() {
-        // Given
-        Long id = 1L;
-        UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
-        request.setUsername("updateduser");
-        request.setRole(Role.OPERATOR);
-
-        UserRole existingUserRole = new UserRole();
-        existingUserRole.setId(id);
-        existingUserRole.setUsername("olduser");
-        existingUserRole.setRole(Role.ADMIN);
-
-        UserRole updatedUserRole = new UserRole();
-        updatedUserRole.setId(id);
-        updatedUserRole.setUsername("updateduser");
-        updatedUserRole.setRole(Role.OPERATOR);
-
-        when(userRoleService.findById(id)).thenReturn(Optional.of(existingUserRole));
-        when(userRoleService.save(any(UserRole.class))).thenReturn(updatedUserRole);
-
-        // When
-        ResponseEntity<UserRole> response = userRoleController.updateUserRole(id, request);
-
-        // Then
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("updateduser", response.getBody().getUsername());
-        assertEquals(Role.OPERATOR, response.getBody().getRole());
-        verify(userRoleService).findById(id);
-        verify(userRoleService).save(any(UserRole.class));
     }
 }

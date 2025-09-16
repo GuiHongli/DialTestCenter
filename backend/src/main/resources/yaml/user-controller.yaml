@@ -48,28 +48,16 @@ paths:
         200:
           description: "成功获取用户列表"
           schema:
-            type: "object"
-            properties:
-              data:
-                type: "array"
-                items:
-                  $ref: "#/definitions/User"
-              total:
-                type: "integer"
-                description: "总记录数"
-              page:
-                type: "integer"
-                description: "当前页码"
-              pageSize:
-                type: "integer"
-                description: "每页大小"
-              totalPages:
-                type: "integer"
-                description: "总页数"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/PagedResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
     post:
       tags:
         - "用户管理"
@@ -85,15 +73,20 @@ paths:
         201:
           description: "用户创建成功"
           schema:
-            $ref: "#/definitions/User"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/users/{id}:
     get:
@@ -112,13 +105,20 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/User"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
         404:
           description: "用户不存在"
+          schema:
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
     put:
       tags:
         - "用户管理"
@@ -140,15 +140,20 @@ paths:
         200:
           description: "用户更新成功"
           schema:
-            $ref: "#/definitions/User"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
     delete:
       tags:
         - "用户管理"
@@ -165,15 +170,21 @@ paths:
         200:
           description: "用户删除成功"
           schema:
-            $ref: "#/definitions/SuccessResponse"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    type: "string"
+                    description: "成功消息"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/users/username/{username}:
     get:
@@ -191,13 +202,20 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/User"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
         404:
           description: "用户不存在"
+          schema:
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/users/search:
     get:
@@ -215,13 +233,18 @@ paths:
         200:
           description: "搜索成功"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/User"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/definitions/User"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/users/validate-password:
     post:
@@ -239,15 +262,20 @@ paths:
         200:
           description: "密码验证完成"
           schema:
-            $ref: "#/definitions/PasswordValidationResponse"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/PasswordValidationResponse"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/users/update-login-time:
     post:
@@ -265,17 +293,70 @@ paths:
         200:
           description: "登录时间更新成功"
           schema:
-            $ref: "#/definitions/SuccessResponse"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    type: "string"
+                    description: "成功消息"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
 definitions:
+  ApiResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      data:
+        description: "响应数据"
+      message:
+        type: "string"
+        description: "操作结果消息"
+      errorCode:
+        type: "string"
+        description: "错误代码（仅在失败时存在）"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "响应时间戳"
+
+  PagedResponse:
+    type: "object"
+    properties:
+      data:
+        type: "array"
+        description: "分页数据"
+        items:
+          description: "数据项"
+      total:
+        type: "integer"
+        format: "int64"
+        description: "总记录数"
+      page:
+        type: "integer"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        description: "每页大小"
+      totalPages:
+        type: "integer"
+        description: "总页数"
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
+
   User:
     type: "object"
     properties:
@@ -347,26 +428,3 @@ definitions:
       username:
         type: "string"
         description: "用户名"
-
-  SuccessResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      message:
-        type: "string"
-        description: "操作结果消息"
-
-  ErrorResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      error:
-        type: "string"
-        description: "错误代码"
-      message:
-        type: "string"
-        description: "错误消息"

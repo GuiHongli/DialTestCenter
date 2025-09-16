@@ -11,7 +11,7 @@ package com.huawei.dialtest.center.entity;
  * @author g00940940
  * @since 2025-09-09
  */
-public class User {
+public class DialUser {
     private Long id;
     private String username;
     private String password;
@@ -20,7 +20,7 @@ public class User {
     /**
      * 默认构造函数
      */
-    public User() {
+    public DialUser() {
     }
 
     /**
@@ -29,7 +29,7 @@ public class User {
      * @param username 用户名
      * @param password 密码
      */
-    public User(String username, String password) {
+    public DialUser(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -114,7 +114,7 @@ public class User {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        User user = (User) o;
+        DialUser user = (DialUser) o;
         return id != null && id.equals(user.id);
     }
 
@@ -125,7 +125,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "DialUser{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", lastLoginTime='" + lastLoginTime + '\'' +

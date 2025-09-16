@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.service;
 
-import com.huawei.dialtest.center.entity.User;
+import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.mapper.UserMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,18 +43,18 @@ public class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    private User testUser;
-    private List<User> testUsers;
+    private DialUser testUser;
+    private List<DialUser> testUsers;
 
     @Before
     public void setUp() {
-        testUser = new User();
+        testUser = new DialUser();
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setPassword("$2a$10$encodedpassword");
         testUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        User user2 = new User();
+        DialUser user2 = new DialUser();
         user2.setId(2L);
         user2.setUsername("testuser2");
         user2.setPassword("$2a$10$encodedpassword2");
@@ -67,7 +67,7 @@ public class UserServiceTest {
         when(userMapper.findAllByOrderByCreatedTimeDesc(0, 10)).thenReturn(testUsers);
         when(userMapper.count()).thenReturn(2L);
 
-        Page<User> result = userService.getAllUsers(1, 10, null);
+        Page<DialUser> result = userService.getAllUsers(1, 10, null);
 
         assertNotNull(result);
         assertEquals(2, result.getContent().size());
@@ -87,11 +87,11 @@ public class UserServiceTest {
 
     @Test
     public void testGetAllUsers_WithSearch() {
-        List<User> searchResults = Arrays.asList(testUser);
+        List<DialUser> searchResults = Arrays.asList(testUser);
         when(userMapper.findByUsernameContainingWithPage("test", 0, 10)).thenReturn(searchResults);
         when(userMapper.countByUsernameContaining("test")).thenReturn(1L);
 
-        Page<User> result = userService.getAllUsers(1, 10, "test");
+        Page<DialUser> result = userService.getAllUsers(1, 10, "test");
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -105,7 +105,7 @@ public class UserServiceTest {
     public void testGetUserById_Success() {
         when(userMapper.findById(1L)).thenReturn(testUser);
 
-        Optional<User> result = userService.getUserById(1L);
+        Optional<DialUser> result = userService.getUserById(1L);
 
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
@@ -116,7 +116,7 @@ public class UserServiceTest {
     public void testGetUserById_NotFound() {
         when(userMapper.findById(999L)).thenReturn(null);
 
-        Optional<User> result = userService.getUserById(999L);
+        Optional<DialUser> result = userService.getUserById(999L);
 
         assertFalse(result.isPresent());
         verify(userMapper).findById(999L);
@@ -133,7 +133,7 @@ public class UserServiceTest {
     public void testGetUserByUsername_Success() {
         when(userMapper.findByUsername("testuser")).thenReturn(testUser);
 
-        Optional<User> result = userService.getUserByUsername("testuser");
+        Optional<DialUser> result = userService.getUserByUsername("testuser");
 
         assertTrue(result.isPresent());
         assertEquals("testuser", result.get().getUsername());
@@ -144,7 +144,7 @@ public class UserServiceTest {
     public void testGetUserByUsername_NotFound() {
         when(userMapper.findByUsername("nonexistent")).thenReturn(null);
 
-        Optional<User> result = userService.getUserByUsername("nonexistent");
+        Optional<DialUser> result = userService.getUserByUsername("nonexistent");
 
         assertFalse(result.isPresent());
         verify(userMapper).findByUsername("nonexistent");
@@ -160,14 +160,14 @@ public class UserServiceTest {
     @Test
     public void testCreateUser_Success() {
         when(userMapper.existsByUsername("newuser")).thenReturn(false);
-        when(userMapper.insert(any(User.class))).thenReturn(1);
+        when(userMapper.insert(any(DialUser.class))).thenReturn(1);
 
-        User result = userService.createUser("newuser", "password123");
+        DialUser result = userService.createUser("newuser", "password123");
 
         assertNotNull(result);
         assertEquals("newuser", result.getUsername());
         verify(userMapper).existsByUsername("newuser");
-        verify(userMapper).insert(any(User.class));
+        verify(userMapper).insert(any(DialUser.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -180,7 +180,7 @@ public class UserServiceTest {
     @Test(expected = RuntimeException.class)
     public void testCreateUser_Error() {
         when(userMapper.existsByUsername("newuser")).thenReturn(false);
-        when(userMapper.insert(any(User.class))).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.insert(any(DialUser.class))).thenThrow(new DataAccessException("Database error") {});
 
         userService.createUser("newuser", "password123");
     }
@@ -189,14 +189,14 @@ public class UserServiceTest {
     public void testUpdateUser_Success() {
         when(userMapper.findById(1L)).thenReturn(testUser);
         when(userMapper.existsByUsername("updateduser")).thenReturn(false);
-        when(userMapper.update(any(User.class))).thenReturn(1);
+        when(userMapper.update(any(DialUser.class))).thenReturn(1);
 
-        User result = userService.updateUser(1L, "updateduser", "newpassword");
+        DialUser result = userService.updateUser(1L, "updateduser", "newpassword");
 
         assertNotNull(result);
         verify(userMapper).findById(1L);
         verify(userMapper).existsByUsername("updateduser");
-        verify(userMapper).update(any(User.class));
+        verify(userMapper).update(any(DialUser.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -217,7 +217,7 @@ public class UserServiceTest {
     @Test(expected = RuntimeException.class)
     public void testUpdateUser_Error() {
         when(userMapper.findById(1L)).thenReturn(testUser);
-        when(userMapper.update(any(User.class))).thenThrow(new DataAccessException("Database error") {});
+        when(userMapper.update(any(DialUser.class))).thenThrow(new DataAccessException("Database error") {});
 
         userService.updateUser(1L, "updateduser", "newpassword");
     }
@@ -251,12 +251,12 @@ public class UserServiceTest {
     @Test
     public void testUpdateLastLoginTime_Success() {
         when(userMapper.findByUsername("testuser")).thenReturn(testUser);
-        when(userMapper.update(any(User.class))).thenReturn(1);
+        when(userMapper.update(any(DialUser.class))).thenReturn(1);
 
         userService.updateLastLoginTime("testuser");
 
         verify(userMapper).findByUsername("testuser");
-        verify(userMapper).update(any(User.class));
+        verify(userMapper).update(any(DialUser.class));
     }
 
     @Test
@@ -266,7 +266,7 @@ public class UserServiceTest {
         userService.updateLastLoginTime("nonexistent");
 
         verify(userMapper).findByUsername("nonexistent");
-        verify(userMapper, never()).update(any(User.class));
+        verify(userMapper, never()).update(any(DialUser.class));
     }
 
     @Test(expected = RuntimeException.class)
@@ -279,7 +279,7 @@ public class UserServiceTest {
     @Test
     public void testValidatePassword_Success() {
         // Create a user with properly encoded password
-        User userWithEncodedPassword = new User();
+        DialUser userWithEncodedPassword = new DialUser();
         userWithEncodedPassword.setId(1L);
         userWithEncodedPassword.setUsername("testuser");
         // Use a known BCrypt hash for "admin123"
@@ -324,7 +324,7 @@ public class UserServiceTest {
     public void testSearchUsersByUsername_Success() {
         when(userMapper.findByUsernameContaining("test")).thenReturn(testUsers);
 
-        List<User> result = userService.searchUsersByUsername("test");
+        List<DialUser> result = userService.searchUsersByUsername("test");
 
         assertNotNull(result);
         assertEquals(2, result.size());

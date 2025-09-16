@@ -52,8 +52,7 @@ public class OperationLogService {
             logger.info("Recording operation: user={}, type={}, target={}", username, operationType, target);
             
             OperationLog operationLog = new OperationLog(username, operationType, target, description);
-            // 设置当前时间作为字符串
-            operationLog.setOperationTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            // 不设置操作时间，让数据库自动设置当前时间
             int result = operationLogMapper.insert(operationLog);
             
             if (result > 0) {

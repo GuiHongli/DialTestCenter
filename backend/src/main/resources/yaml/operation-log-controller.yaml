@@ -24,18 +24,6 @@ paths:
       summary: "获取操作日志列表"
       description: "获取系统操作日志列表，支持分页和过滤"
       parameters:
-        - name: "page"
-          in: "query"
-          required: false
-          type: "integer"
-          format: "int32"
-          description: "页码（从0开始）"
-        - name: "size"
-          in: "query"
-          required: false
-          type: "integer"
-          format: "int32"
-          description: "每页大小"
         - name: "username"
           in: "query"
           required: false
@@ -46,15 +34,189 @@ paths:
           required: false
           type: "string"
           description: "操作类型过滤"
+        - name: "target"
+          in: "query"
+          required: false
+          type: "string"
+          description: "操作对象过滤"
+        - name: "startTime"
+          in: "query"
+          required: false
+          type: "string"
+          format: "date-time"
+          description: "开始时间"
+        - name: "endTime"
+          in: "query"
+          required: false
+          type: "string"
+          format: "date-time"
+          description: "结束时间"
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 0
+          description: "页码（从0开始）"
+        - name: "size"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 20
+          description: "每页大小"
       responses:
         200:
           description: "成功获取操作日志列表"
           schema:
-            $ref: "#/definitions/OperationLogPageResponse"
+            $ref: "#/definitions/ApiResponsePagedOperationLog"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
+    post:
+      tags:
+        - "操作日志管理"
+      summary: "记录操作日志"
+      description: "记录系统操作日志"
+      parameters:
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/OperationLogRequest"
+      responses:
+        200:
+          description: "成功记录操作日志"
+          schema:
+            $ref: "#/definitions/ApiResponseOperationLog"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/operation-logs/{id}:
+    get:
+      tags:
+        - "操作日志管理"
+      summary: "获取操作日志详情"
+      description: "根据ID获取操作日志详情"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "操作日志ID"
+      responses:
+        200:
+          description: "成功获取操作日志详情"
+          schema:
+            $ref: "#/definitions/ApiResponseOperationLog"
+        404:
+          description: "操作日志不存在"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/operation-logs/search:
+    get:
+      tags:
+        - "操作日志管理"
+      summary: "搜索操作日志"
+      description: "根据条件搜索操作日志"
+      parameters:
+        - name: "username"
+          in: "query"
+          required: false
+          type: "string"
+          description: "用户名过滤"
+        - name: "operationType"
+          in: "query"
+          required: false
+          type: "string"
+          description: "操作类型过滤"
+        - name: "target"
+          in: "query"
+          required: false
+          type: "string"
+          description: "操作对象过滤"
+        - name: "description"
+          in: "query"
+          required: false
+          type: "string"
+          description: "操作描述过滤"
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 0
+          description: "页码（从0开始）"
+        - name: "size"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 20
+          description: "每页大小"
+      responses:
+        200:
+          description: "成功搜索操作日志"
+          schema:
+            $ref: "#/definitions/ApiResponsePagedOperationLog"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/operation-logs/recent:
+    get:
+      tags:
+        - "操作日志管理"
+      summary: "获取最近的操作日志"
+      description: "获取最近的操作日志列表"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 10
+          description: "限制数量"
+      responses:
+        200:
+          description: "成功获取最近的操作日志"
+          schema:
+            $ref: "#/definitions/ApiResponseOperationLogList"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
 
 definitions:
   OperationLog:
@@ -67,9 +229,30 @@ definitions:
       username:
         type: "string"
         description: "操作用户名"
-      operationTime:
+      operationType:
         type: "string"
-        description: "操作时间（格式：yyyy-MM-dd HH:mm:ss）"
+        description: "操作类型"
+      target:
+        type: "string"
+        description: "操作对象"
+      description:
+        type: "string"
+        description: "操作描述"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "操作时间"
+
+  OperationLogRequest:
+    type: "object"
+    required:
+      - "username"
+      - "operationType"
+      - "target"
+    properties:
+      username:
+        type: "string"
+        description: "操作用户名"
       operationType:
         type: "string"
         description: "操作类型"
@@ -80,39 +263,94 @@ definitions:
         type: "string"
         description: "操作描述"
 
-  OperationLogPageResponse:
+  PagedResponse:
     type: "object"
     properties:
-      content:
+      data:
         type: "array"
         items:
           $ref: "#/definitions/OperationLog"
-      totalElements:
+        description: "数据列表"
+      total:
         type: "integer"
         format: "int64"
         description: "总元素数"
+      page:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
       totalPages:
         type: "integer"
         format: "int32"
         description: "总页数"
-      size:
-        type: "integer"
-        format: "int32"
-        description: "每页大小"
-      number:
-        type: "integer"
-        format: "int32"
-        description: "当前页码"
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
 
-  ErrorResponse:
+  ApiResponse:
     type: "object"
     properties:
       success:
         type: "boolean"
         description: "操作是否成功"
-      error:
-        type: "string"
-        description: "错误代码"
+      data:
+        type: "object"
+        description: "响应数据"
       message:
         type: "string"
-        description: "错误消息"
+        description: "响应消息"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "响应时间戳"
+      errorCode:
+        type: "string"
+        description: "错误代码"
+
+  ApiResponseOperationLog:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/OperationLog"
+
+  ApiResponseOperationLogList:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/OperationLog"
+
+  ApiResponsePagedOperationLog:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedResponse"
+
+  ApiResponseError:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          success:
+            type: "boolean"
+            example: false
+          data:
+            type: "null"
+          errorCode:
+            type: "string"
+            description: "错误代码"
+            example: "VALIDATION_ERROR"

@@ -48,28 +48,20 @@ paths:
         200:
           description: "成功获取用户角色列表"
           schema:
-            type: "object"
-            properties:
-              data:
-                type: "array"
-                items:
-                  $ref: "#/definitions/UserRole"
-              total:
-                type: "integer"
-                description: "总记录数"
-              page:
-                type: "integer"
-                description: "当前页码"
-              pageSize:
-                type: "integer"
-                description: "每页大小"
-              totalPages:
-                type: "integer"
-                description: "总页数"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/PagedResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
     post:
       tags:
         - "用户角色管理"
@@ -85,15 +77,20 @@ paths:
         201:
           description: "用户角色创建成功"
           schema:
-            $ref: "#/definitions/UserRole"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/UserRole"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/user-roles/{id}:
     put:
@@ -117,15 +114,24 @@ paths:
         200:
           description: "用户角色更新成功"
           schema:
-            $ref: "#/definitions/UserRole"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    $ref: "#/definitions/UserRole"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
+        404:
+          description: "用户角色不存在"
+          schema:
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
     delete:
       tags:
         - "用户角色管理"
@@ -142,15 +148,21 @@ paths:
         200:
           description: "用户角色删除成功"
           schema:
-            $ref: "#/definitions/SuccessResponse"
-        400:
-          description: "请求参数错误"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    type: "string"
+                    description: "成功消息"
+        404:
+          description: "用户角色不存在"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
   /api/user-roles/executor-count:
     get:
@@ -162,13 +174,67 @@ paths:
         200:
           description: "成功获取执行机用户数量"
           schema:
-            $ref: "#/definitions/ExecutorCountResponse"
+            allOf:
+              - $ref: "#/definitions/ApiResponse"
+              - type: "object"
+                properties:
+                  data:
+                    type: "integer"
+                    format: "int64"
+                    description: "执行机用户数量"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponse"
 
 definitions:
+  ApiResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      data:
+        description: "响应数据"
+      message:
+        type: "string"
+        description: "操作结果消息"
+      errorCode:
+        type: "string"
+        description: "错误代码（仅在失败时存在）"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "响应时间戳"
+
+  PagedResponse:
+    type: "object"
+    properties:
+      data:
+        type: "array"
+        description: "分页数据"
+        items:
+          description: "数据项"
+      total:
+        type: "integer"
+        format: "int64"
+        description: "总记录数"
+      page:
+        type: "integer"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        description: "每页大小"
+      totalPages:
+        type: "integer"
+        description: "总页数"
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
+
   UserRole:
     type: "object"
     properties:
@@ -197,34 +263,3 @@ definitions:
         type: "string"
         enum: ["ADMIN", "OPERATOR", "BROWSER", "EXECUTOR"]
         description: "角色类型"
-
-  ExecutorCountResponse:
-    type: "object"
-    properties:
-      count:
-        type: "integer"
-        format: "int32"
-        description: "执行机用户数量"
-
-  SuccessResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      message:
-        type: "string"
-        description: "操作结果消息"
-
-  ErrorResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      error:
-        type: "string"
-        description: "错误代码"
-      message:
-        type: "string"
-        description: "错误消息"

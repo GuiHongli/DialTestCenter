@@ -24,34 +24,125 @@ paths:
       tags:
         - "测试用例集管理"
       summary: "获取测试用例集列表"
-      description: "获取测试用例集列表，支持分页和搜索"
+      description: "获取测试用例集列表，支持分页"
       parameters:
         - name: "page"
           in: "query"
           required: false
           type: "integer"
           format: "int32"
-          description: "页码（从0开始）"
-        - name: "size"
+          default: 1
+          description: "页码（从1开始）"
+        - name: "pageSize"
           in: "query"
           required: false
           type: "integer"
           format: "int32"
+          default: 10
           description: "每页大小"
-        - name: "search"
-          in: "query"
-          required: false
-          type: "string"
-          description: "搜索关键字"
       responses:
         200:
           description: "成功获取测试用例集列表"
           schema:
-            $ref: "#/definitions/TestCaseSetPageResponse"
+            $ref: "#/definitions/ApiResponsePagedTestCaseSet"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/test-case-sets/{id}:
+    get:
+      tags:
+        - "测试用例集管理"
+      summary: "获取测试用例集详情"
+      description: "根据ID获取测试用例集的详细信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "成功获取测试用例集详情"
+          schema:
+            $ref: "#/definitions/ApiResponseTestCaseSet"
+        404:
+          description: "测试用例集不存在"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+    put:
+      tags:
+        - "测试用例集管理"
+      summary: "更新测试用例集"
+      description: "更新测试用例集信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TestCaseSetUpdateRequest"
+      responses:
+        200:
+          description: "测试用例集更新成功"
+          schema:
+            $ref: "#/definitions/ApiResponseTestCaseSet"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+    delete:
+      tags:
+        - "测试用例集管理"
+      summary: "删除测试用例集"
+      description: "删除指定的测试用例集"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        204:
+          description: "测试用例集删除成功"
+        404:
+          description: "测试用例集不存在"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/test-case-sets/upload:
     post:
       tags:
         - "测试用例集管理"
@@ -74,100 +165,21 @@ paths:
           in: "formData"
           required: false
           type: "string"
+          default: "VPN阻断业务"
           description: "业务类型"
       responses:
-        201:
+        200:
           description: "测试用例集上传成功"
           schema:
-            $ref: "#/definitions/TestCaseSet"
+            $ref: "#/definitions/ApiResponseTestCaseSet"
         400:
           description: "文件格式错误或参数无效"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
-
-  /api/test-case-sets/{id}:
-    get:
-      tags:
-        - "测试用例集管理"
-      summary: "获取测试用例集详情"
-      description: "根据ID获取测试用例集的详细信息"
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          format: "int64"
-          description: "测试用例集ID"
-      responses:
-        200:
-          description: "成功获取测试用例集详情"
-          schema:
-            $ref: "#/definitions/TestCaseSet"
-        404:
-          description: "测试用例集不存在"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-    put:
-      tags:
-        - "测试用例集管理"
-      summary: "更新测试用例集"
-      description: "更新测试用例集信息"
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          format: "int64"
-          description: "测试用例集ID"
-        - name: "body"
-          in: "body"
-          required: true
-          schema:
-            $ref: "#/definitions/TestCaseSetUpdateRequest"
-      responses:
-        200:
-          description: "测试用例集更新成功"
-          schema:
-            $ref: "#/definitions/TestCaseSet"
-        400:
-          description: "请求参数错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-    delete:
-      tags:
-        - "测试用例集管理"
-      summary: "删除测试用例集"
-      description: "删除指定的测试用例集"
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          format: "int64"
-          description: "测试用例集ID"
-      responses:
-        200:
-          description: "测试用例集删除成功"
-          schema:
-            $ref: "#/definitions/SuccessResponse"
-        400:
-          description: "请求参数错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
 
   /api/test-case-sets/{id}/download:
     get:
@@ -189,10 +201,14 @@ paths:
             type: "file"
         404:
           description: "测试用例集不存在"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
 
   /api/test-case-sets/{id}/test-cases:
     get:
@@ -207,19 +223,68 @@ paths:
           type: "integer"
           format: "int64"
           description: "测试用例集ID"
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 1
+          description: "页码（从1开始）"
+        - name: "pageSize"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          default: 10
+          description: "每页大小"
       responses:
         200:
           description: "成功获取测试用例列表"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/TestCase"
+            $ref: "#/definitions/ApiResponsePagedTestCase"
         404:
           description: "测试用例集不存在"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/ApiResponseError"
+
+  /api/test-case-sets/{id}/missing-scripts:
+    get:
+      tags:
+        - "测试用例管理"
+      summary: "获取缺少脚本的测试用例"
+      description: "获取指定测试用例集中缺少脚本的测试用例列表"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "成功获取缺少脚本的测试用例列表"
+          schema:
+            $ref: "#/definitions/ApiResponseMissingScripts"
+        404:
+          description: "测试用例集不存在"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ApiResponseError"
 
 definitions:
   TestCaseSet:
@@ -252,6 +317,10 @@ definitions:
       description:
         type: "string"
         description: "描述"
+      uploadTime:
+        type: "string"
+        format: "date-time"
+        description: "上传时间"
 
   TestCase:
     type: "object"
@@ -276,7 +345,7 @@ definitions:
       businessCategory:
         type: "string"
         description: "业务大类"
-      appName:
+      app:
         type: "string"
         description: "用例App"
       testSteps:
@@ -292,56 +361,154 @@ definitions:
   TestCaseSetUpdateRequest:
     type: "object"
     properties:
+      name:
+        type: "string"
+        description: "用例集名称"
+      version:
+        type: "string"
+        description: "用例集版本"
       description:
         type: "string"
         description: "描述"
-      business:
-        type: "string"
-        description: "业务类型"
 
-  TestCaseSetPageResponse:
+  PagedResponse:
     type: "object"
     properties:
-      content:
+      data:
         type: "array"
         items:
           $ref: "#/definitions/TestCaseSet"
-      totalElements:
+        description: "数据列表"
+      total:
         type: "integer"
         format: "int64"
         description: "总元素数"
+      page:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
       totalPages:
         type: "integer"
         format: "int32"
         description: "总页数"
-      size:
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
+
+  PagedTestCaseResponse:
+    type: "object"
+    properties:
+      data:
+        type: "array"
+        items:
+          $ref: "#/definitions/TestCase"
+        description: "数据列表"
+      total:
         type: "integer"
-        format: "int32"
-        description: "每页大小"
-      number:
+        format: "int64"
+        description: "总元素数"
+      page:
         type: "integer"
         format: "int32"
         description: "当前页码"
+      pageSize:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
+      totalPages:
+        type: "integer"
+        format: "int32"
+        description: "总页数"
+      hasNext:
+        type: "boolean"
+        description: "是否有下一页"
+      hasPrevious:
+        type: "boolean"
+        description: "是否有上一页"
 
-  SuccessResponse:
+  MissingScriptsResponse:
+    type: "object"
+    properties:
+      testCases:
+        type: "array"
+        items:
+          $ref: "#/definitions/TestCase"
+        description: "缺少脚本的测试用例列表"
+      count:
+        type: "integer"
+        format: "int64"
+        description: "缺少脚本的测试用例数量"
+
+  ApiResponse:
     type: "object"
     properties:
       success:
         type: "boolean"
         description: "操作是否成功"
+      data:
+        type: "object"
+        description: "响应数据"
       message:
         type: "string"
-        description: "操作结果消息"
-
-  ErrorResponse:
-    type: "object"
-    properties:
-      success:
-        type: "boolean"
-        description: "操作是否成功"
-      error:
+        description: "响应消息"
+      timestamp:
+        type: "string"
+        format: "date-time"
+        description: "响应时间戳"
+      errorCode:
         type: "string"
         description: "错误代码"
-      message:
-        type: "string"
-        description: "错误消息"
+
+  ApiResponseTestCaseSet:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/TestCaseSet"
+
+  ApiResponsePagedTestCaseSet:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedResponse"
+
+  ApiResponsePagedTestCase:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedTestCaseResponse"
+
+  ApiResponseMissingScripts:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/MissingScriptsResponse"
+
+  ApiResponseError:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          success:
+            type: "boolean"
+            example: false
+          data:
+            type: "null"
+          errorCode:
+            type: "string"
+            description: "错误代码"
+            example: "VALIDATION_ERROR"

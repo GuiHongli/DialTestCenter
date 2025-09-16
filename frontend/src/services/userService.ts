@@ -8,104 +8,51 @@ import {
   UserUpdateParams, 
   UserSearchParams,
   PasswordValidationParams,
-  PasswordValidationResponse,
-  ApiResponse 
+  PasswordValidationResponse
 } from '../types/user';
+import { handleApiResponse, handlePagedApiResponse, createApiRequestConfig, PagedResponse } from '../utils/apiUtils';
 
 const API_BASE_URL = '/dialingtest/api/users';
 
 /**
  * 获取用户列表（分页）
  */
-export const getUsers = async (page: number = 1, pageSize: number = 10, search?: string): Promise<{
-  data: User[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}> => {
-  try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-    });
-    
-    if (search && search.trim()) {
-      params.append('search', search.trim());
-    }
-    
-    const response = await fetch(`${API_BASE_URL}?${params}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to get users:', error);
-    throw error;
+export const getUsers = async (page: number = 1, pageSize: number = 10, search?: string): Promise<PagedResponse<User>> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+  
+  if (search && search.trim()) {
+    params.append('search', search.trim());
   }
+  
+  const response = await fetch(`${API_BASE_URL}?${params}`);
+  return handlePagedApiResponse<User>(response);
 };
 
 /**
  * 根据ID获取用户
  */
 export const getUserById = async (id: number): Promise<User> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('User not found');
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Failed to get user by ID ${id}:`, error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/${id}`);
+  return handleApiResponse<User>(response);
 };
 
 /**
  * 根据用户名获取用户
  */
 export const getUserByUsername = async (username: string): Promise<User> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/username/${encodeURIComponent(username)}`);
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('User not found');
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Failed to get user by username ${username}:`, error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/username/${encodeURIComponent(username)}`);
+  return handleApiResponse<User>(response);
 };
 
 /**
  * 创建新用户
  */
 export const createUser = async (params: UserCreateParams): Promise<User> => {
-  try {
-    const response = await fetch(API_BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Failed to create user:', error);
-    throw error;
-  }
+  const response = await fetch(API_BASE_URL, createApiRequestConfig('POST', params));
+  return handleApiResponse<User>(response);
 };
 
 /**
@@ -221,4 +168,6 @@ export const updateLastLoginTime = async (username: string): Promise<void> => {
     throw error;
   }
 };
+
+
 
