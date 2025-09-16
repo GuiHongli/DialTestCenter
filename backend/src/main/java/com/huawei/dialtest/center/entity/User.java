@@ -4,8 +4,6 @@
 
 package com.huawei.dialtest.center.entity;
 
-import java.time.LocalDateTime;
-
 /**
  * 用户实体类，用于存储用户基本信息
  * 包含用户名、密码和最后登录时间等字段
@@ -17,9 +15,7 @@ public class User {
     private Long id;
     private String username;
     private String password;
-    private LocalDateTime lastLoginTime;
-    private LocalDateTime createdTime;
-    private LocalDateTime updatedTime;
+    private String lastLoginTime;
 
     /**
      * 默认构造函数
@@ -36,7 +32,6 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        this.createdTime = LocalDateTime.now();
     }
 
     /**
@@ -98,7 +93,7 @@ public class User {
      *
      * @return 最后登录时间
      */
-    public LocalDateTime getLastLoginTime() {
+    public String getLastLoginTime() {
         return lastLoginTime;
     }
 
@@ -107,44 +102,8 @@ public class User {
      *
      * @param lastLoginTime 最后登录时间
      */
-    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+    public void setLastLoginTime(String lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
-    }
-
-    /**
-     * 获取创建时间
-     *
-     * @return 创建时间
-     */
-    public LocalDateTime getCreatedTime() {
-        return createdTime;
-    }
-
-    /**
-     * 设置创建时间
-     *
-     * @param createdTime 创建时间
-     */
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-
-    /**
-     * 获取更新时间
-     *
-     * @return 更新时间
-     */
-    public LocalDateTime getUpdatedTime() {
-        return updatedTime;
-    }
-
-    /**
-     * 设置更新时间
-     *
-     * @param updatedTime 更新时间
-     */
-    public void setUpdatedTime(LocalDateTime updatedTime) {
-        this.updatedTime = updatedTime;
     }
 
     @Override
@@ -169,9 +128,7 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", lastLoginTime=" + lastLoginTime +
-                ", createdTime=" + createdTime +
-                ", updatedTime=" + updatedTime +
+                ", lastLoginTime='" + lastLoginTime + '\'' +
                 '}';
     }
 }

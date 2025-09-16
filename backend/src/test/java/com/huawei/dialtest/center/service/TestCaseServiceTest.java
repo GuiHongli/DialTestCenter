@@ -66,8 +66,6 @@ public class TestCaseServiceTest {
         testCase.setTestSteps("测试步骤");
         testCase.setExpectedResult("预期结果");
         testCase.setScriptExists(true);
-        testCase.setCreatedTime(LocalDateTime.now());
-        testCase.setUpdatedTime(LocalDateTime.now());
     }
 
     /**

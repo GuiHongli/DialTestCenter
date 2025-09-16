@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -51,15 +52,12 @@ public class UserServiceTest {
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setPassword("$2a$10$encodedpassword");
-        testUser.setLastLoginTime(LocalDateTime.now());
-        testUser.setCreatedTime(LocalDateTime.now());
-        testUser.setUpdatedTime(LocalDateTime.now());
+        testUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         User user2 = new User();
         user2.setId(2L);
         user2.setUsername("testuser2");
         user2.setPassword("$2a$10$encodedpassword2");
-        user2.setCreatedTime(LocalDateTime.now());
 
         testUsers = Arrays.asList(testUser, user2);
     }

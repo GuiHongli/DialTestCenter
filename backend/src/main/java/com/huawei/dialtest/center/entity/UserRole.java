@@ -4,13 +4,12 @@
 
 package com.huawei.dialtest.center.entity;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * 用户角色关系实体类，用于管理用户与角色的关联关系
  * 支持用户角色分配、权限管理等功能
- * 包含用户名、角色类型、创建时间、更新时间等字段
+ * 包含用户名、角色类型等字段
  *
  * @author g00940940
  * @since 2025-09-06
@@ -19,8 +18,6 @@ public class UserRole {
     private Long id;
     private String username;
     private Role role;
-    private LocalDateTime createdTime;
-    private LocalDateTime updatedTime;
 
     /**
      * 默认构造函数
@@ -68,22 +65,6 @@ public class UserRole {
         this.role = role;
     }
 
-    public LocalDateTime getCreatedTime() {
-        return createdTime;
-    }
-
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-
-    public LocalDateTime getUpdatedTime() {
-        return updatedTime;
-    }
-
-    public void setUpdatedTime(LocalDateTime updatedTime) {
-        this.updatedTime = updatedTime;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -109,8 +90,6 @@ public class UserRole {
                "id=" + id +
                ", username='" + username + '\'' +
                ", role=" + role +
-               ", createdTime=" + createdTime +
-               ", updatedTime=" + updatedTime +
                '}';
     }
 }

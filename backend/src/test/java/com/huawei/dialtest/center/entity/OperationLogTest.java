@@ -82,7 +82,7 @@ public class OperationLogTest {
         assertEquals("Username getter/setter should work", username, operationLog.getUsername());
         
         // Test operation time
-        LocalDateTime operationTime = LocalDateTime.now();
+        String operationTime = "2025-09-16 10:30:00";
         operationLog.setOperationTime(operationTime);
         assertEquals("Operation time getter/setter should work", operationTime, operationLog.getOperationTime());
         

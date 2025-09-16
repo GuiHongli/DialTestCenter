@@ -50,7 +50,7 @@ public class OperationLogControllerTest {
         testOperationLog = new OperationLog();
         testOperationLog.setId(1L);
         testOperationLog.setUsername("testuser");
-        testOperationLog.setOperationTime(LocalDateTime.now());
+        testOperationLog.setOperationTime("2025-09-16 10:30:00");
         testOperationLog.setOperationType("CREATE");
         testOperationLog.setTarget("用户管理");
         testOperationLog.setDescription("创建新用户");

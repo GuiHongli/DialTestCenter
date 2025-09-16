@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.Before;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.junit.Assert.*;
 
@@ -29,9 +30,7 @@ public class UserTest {
         user.setId(1L);
         user.setUsername("testuser");
         user.setPassword("password123");
-        user.setLastLoginTime(testTime);
-        user.setCreatedTime(testTime);
-        user.setUpdatedTime(testTime);
+        user.setLastLoginTime(testTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     @Test
@@ -42,8 +41,6 @@ public class UserTest {
         assertNull(newUser.getUsername());
         assertNull(newUser.getPassword());
         assertNull(newUser.getLastLoginTime());
-        assertNull(newUser.getCreatedTime());
-        assertNull(newUser.getUpdatedTime());
     }
 
     @Test
@@ -54,8 +51,6 @@ public class UserTest {
         assertEquals("newuser", newUser.getUsername());
         assertEquals("newpassword", newUser.getPassword());
         assertNull(newUser.getLastLoginTime());
-        assertNotNull(newUser.getCreatedTime());
-        assertNull(newUser.getUpdatedTime());
     }
 
     @Test
@@ -76,22 +71,10 @@ public class UserTest {
         assertEquals("newpassword", user.getPassword());
 
         // Test Last Login Time
-        assertEquals(testTime, user.getLastLoginTime());
-        LocalDateTime newTime = LocalDateTime.now().plusHours(1);
+        assertEquals(testTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), user.getLastLoginTime());
+        String newTime = LocalDateTime.now().plusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         user.setLastLoginTime(newTime);
         assertEquals(newTime, user.getLastLoginTime());
-
-        // Test Created Time
-        assertEquals(testTime, user.getCreatedTime());
-        LocalDateTime newCreatedTime = LocalDateTime.now().plusHours(2);
-        user.setCreatedTime(newCreatedTime);
-        assertEquals(newCreatedTime, user.getCreatedTime());
-
-        // Test Updated Time
-        assertEquals(testTime, user.getUpdatedTime());
-        LocalDateTime newUpdatedTime = LocalDateTime.now().plusHours(3);
-        user.setUpdatedTime(newUpdatedTime);
-        assertEquals(newUpdatedTime, user.getUpdatedTime());
     }
 
     @Test
@@ -164,8 +147,6 @@ public class UserTest {
         assertNull(nullUser.getUsername());
         assertNull(nullUser.getPassword());
         assertNull(nullUser.getLastLoginTime());
-        assertNull(nullUser.getCreatedTime());
-        assertNull(nullUser.getUpdatedTime());
     }
 
     @Test

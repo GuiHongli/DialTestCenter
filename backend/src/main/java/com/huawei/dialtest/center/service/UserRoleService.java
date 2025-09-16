@@ -38,6 +38,9 @@ public class UserRoleService {
     @Autowired
     private UserRoleMapper userRoleMapper;
 
+    @Autowired
+    private OperationLogService operationLogService;
+
     /**
      * 根据用户名获取用户角色列表
      *
@@ -122,6 +125,12 @@ public class UserRoleService {
         logger.info("Saving user role relationship: {} - {}", userRole.getUsername(), userRole.getRole());
         int result = userRoleMapper.insert(userRole);
         if (result > 0) {
+            // 记录操作日志
+            String operationType = userRole.getId() != null ? "UPDATE" : "CREATE";
+            String description = operationType.equals("CREATE") ? 
+                "创建用户角色: " + userRole.getUsername() + " - " + userRole.getRole() :
+                "更新用户角色: " + userRole.getUsername() + " - " + userRole.getRole();
+            operationLogService.logOperation(userRole.getUsername(), operationType, "USER_ROLE", description);
             return userRole;
         } else {
             throw new RuntimeException("Failed to save user role relationship");
@@ -167,6 +176,9 @@ public class UserRoleService {
         if (result == 0) {
             throw new RuntimeException("Failed to delete user role relationship");
         }
+        // 记录操作日志
+        operationLogService.logOperation(userRole.getUsername(), "DELETE", "USER_ROLE", 
+            "删除用户角色: " + userRole.getUsername() + " - " + userRole.getRole());
     }
 
     /**

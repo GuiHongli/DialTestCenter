@@ -4,8 +4,6 @@
 
 package com.huawei.dialtest.center.entity;
 
-import java.time.LocalDateTime;
-
 /**
  * 操作记录实体类，用于存储用户所有操作记录
  * 包含用户名、操作时间、操作类型、操作对象和操作描述等字段
@@ -16,7 +14,7 @@ import java.time.LocalDateTime;
 public class OperationLog {
     private Long id;
     private String username;
-    private LocalDateTime operationTime;
+    private String operationTime;
     private String operationType;
     private String target;
     private String description;
@@ -40,7 +38,6 @@ public class OperationLog {
         this.operationType = operationType;
         this.target = target;
         this.description = description;
-        this.operationTime = LocalDateTime.now();
     }
 
     /**
@@ -84,7 +81,7 @@ public class OperationLog {
      *
      * @return 操作时间
      */
-    public LocalDateTime getOperationTime() {
+    public String getOperationTime() {
         return operationTime;
     }
 
@@ -93,7 +90,7 @@ public class OperationLog {
      *
      * @param operationTime 操作时间
      */
-    public void setOperationTime(LocalDateTime operationTime) {
+    public void setOperationTime(String operationTime) {
         this.operationTime = operationTime;
     }
 

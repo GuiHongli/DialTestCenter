@@ -46,8 +46,6 @@ public class TestCaseSetTest {
         testCaseSet1.setSha512("sha512_hash_1");
         testCaseSet1.setBusiness("VPN阻断业务");
         testCaseSet1.setDescription("Test description");
-        testCaseSet1.setCreatedTime(LocalDateTime.now());
-        testCaseSet1.setUpdatedTime(LocalDateTime.now());
 
         testCaseSet2 = new TestCaseSet();
         testCaseSet2.setId(1L);
@@ -60,8 +58,6 @@ public class TestCaseSetTest {
         testCaseSet2.setSha512("sha512_hash_1");
         testCaseSet2.setBusiness("VPN阻断业务");
         testCaseSet2.setDescription("Test description");
-        testCaseSet2.setCreatedTime(LocalDateTime.now());
-        testCaseSet2.setUpdatedTime(LocalDateTime.now());
 
         testCaseSet3 = new TestCaseSet();
         testCaseSet3.setId(2L);
@@ -74,8 +70,6 @@ public class TestCaseSetTest {
         testCaseSet3.setSha512("sha512_hash_2");
         testCaseSet3.setBusiness("VPN阻断业务");
         testCaseSet3.setDescription("Test description 2");
-        testCaseSet3.setCreatedTime(LocalDateTime.now());
-        testCaseSet3.setUpdatedTime(LocalDateTime.now());
     }
 
     @Test
@@ -90,8 +84,6 @@ public class TestCaseSetTest {
         assertNull(testCaseSet.getCreator());
         assertNull(testCaseSet.getFileSize());
         assertNull(testCaseSet.getDescription());
-        assertNull(testCaseSet.getCreatedTime());
-        assertNull(testCaseSet.getUpdatedTime());
     }
 
     @Test
@@ -152,15 +144,6 @@ public class TestCaseSetTest {
         // Test Description
         testCaseSet.setDescription("Test description");
         assertEquals("Test description", testCaseSet.getDescription());
-
-        // Test CreatedTime
-        LocalDateTime now = LocalDateTime.now();
-        testCaseSet.setCreatedTime(now);
-        assertEquals(now, testCaseSet.getCreatedTime());
-
-        // Test UpdatedTime
-        testCaseSet.setUpdatedTime(now);
-        assertEquals(now, testCaseSet.getUpdatedTime());
     }
 
     @Test
@@ -218,8 +201,6 @@ public class TestCaseSetTest {
         testCaseSet.setSha512("sha512_hash_1");
         testCaseSet.setBusiness("VPN阻断业务");
         testCaseSet.setDescription("Test description");
-        testCaseSet.setCreatedTime(LocalDateTime.now());
-        testCaseSet.setUpdatedTime(LocalDateTime.now());
 
         String toString = testCaseSet.toString();
         assertNotNull(toString);
