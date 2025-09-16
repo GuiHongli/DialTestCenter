@@ -5,13 +5,13 @@
 package com.huawei.dialtest.center.entity;
 
 /**
- * 用户实体类，用于存储用户基本信息
+ * 拨测用户实体类，用于存储拨测用户基本信息
  * 包含用户名、密码和最后登录时间等字段
  *
  * @author g00940940
  * @since 2025-09-09
  */
-public class User {
+public class DialUser {
     private Long id;
     private String username;
     private String password;
@@ -20,7 +20,7 @@ public class User {
     /**
      * 默认构造函数
      */
-    public User() {
+    public DialUser() {
     }
 
     /**
@@ -29,7 +29,7 @@ public class User {
      * @param username 用户名
      * @param password 密码
      */
-    public User(String username, String password) {
+    public DialUser(String username, String password) {
         this.username = username;
         this.password = password;
     }
@@ -114,8 +114,8 @@ public class User {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        User user = (User) o;
-        return id != null && id.equals(user.id);
+        DialUser dialUser = (DialUser) o;
+        return id != null && id.equals(dialUser.id);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "DialUser{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", lastLoginTime='" + lastLoginTime + '\'' +

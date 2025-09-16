@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.SoftwarePackage;
 import com.huawei.dialtest.center.service.SoftwarePackageService;
 
@@ -62,7 +63,7 @@ public class SoftwarePackageController {
      * @return 软件包分页数据
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getSoftwarePackages(
+    public ResponseEntity<PagedResponse<SoftwarePackage>> getSoftwarePackages(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String platform,
@@ -74,12 +75,12 @@ public class SoftwarePackageController {
             Page<SoftwarePackage> softwarePackages = softwarePackageService.getSoftwarePackages(
                     page, pageSize, platform, creator, softwareName);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", softwarePackages.getContent());
-            response.put("total", softwarePackages.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
-            response.put("totalPages", softwarePackages.getTotalPages());
+            PagedResponse<SoftwarePackage> response = new PagedResponse<>(
+                    softwarePackages.getContent(),
+                    softwarePackages.getTotalElements(),
+                    page,
+                    pageSize
+            );
 
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {

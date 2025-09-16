@@ -10,15 +10,12 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.mapper.UserRoleMapper;
 
 /**
@@ -280,7 +277,7 @@ public class UserRoleService {
      * @return 分页的用户角色列表
      */
     @Transactional(readOnly = true)
-    public Page<UserRole> getAllUserRoles(int page, int pageSize, String search) {
+    public PagedResponse<UserRole> getAllUserRoles(int page, int pageSize, String search) {
         logger.debug("Getting user roles with pagination: page={}, pageSize={}, search={}", page, pageSize, search);
         
         // 转换为从0开始的页码
@@ -299,7 +296,6 @@ public class UserRoleService {
             total = userRoleMapper.count();
         }
         
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        return new PageImpl<>(userRoles, pageable, total);
+        return new PagedResponse<>(userRoles, total, page, pageSize);
     }
 }

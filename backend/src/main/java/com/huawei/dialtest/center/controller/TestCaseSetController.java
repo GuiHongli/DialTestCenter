@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
 import com.huawei.dialtest.center.service.TestCaseSetService;
@@ -60,18 +61,19 @@ public class TestCaseSetController {
      * @return 用例集分页数据
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getTestCaseSets(
+    public ResponseEntity<PagedResponse<TestCaseSet>> getTestCaseSets(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         logger.info("Getting test case sets - page: {}, size: {}", page, pageSize);
         try {
             Page<TestCaseSet> testCaseSets = testCaseSetService.getTestCaseSets(page, pageSize);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", testCaseSets.getContent());
-            response.put("total", testCaseSets.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
+            PagedResponse<TestCaseSet> response = new PagedResponse<>(
+                    testCaseSets.getContent(),
+                    testCaseSets.getTotalElements(),
+                    page,
+                    pageSize
+            );
 
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -273,7 +275,7 @@ public class TestCaseSetController {
      * @return 测试用例分页数据
      */
     @GetMapping("/{id}/test-cases")
-    public ResponseEntity<Map<String, Object>> getTestCases(
+    public ResponseEntity<PagedResponse<TestCase>> getTestCases(
             @PathVariable Long id,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
@@ -281,11 +283,12 @@ public class TestCaseSetController {
         try {
             Page<TestCase> testCases = testCaseSetService.getTestCases(id, page, pageSize);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", testCases.getContent());
-            response.put("total", testCases.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
+            PagedResponse<TestCase> response = new PagedResponse<>(
+                    testCases.getContent(),
+                    testCases.getTotalElements(),
+                    page,
+                    pageSize
+            );
 
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {

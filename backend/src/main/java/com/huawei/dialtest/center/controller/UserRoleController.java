@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.UserRole;
 import com.huawei.dialtest.center.service.UserRoleService;
@@ -61,18 +62,11 @@ public class UserRoleController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search) {
         try {
-            Page<UserRole> userRolePage = userRoleService.getAllUserRoles(page, pageSize, search);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", userRolePage.getContent());
-            response.put("total", userRolePage.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
-            response.put("totalPages", userRolePage.getTotalPages());
+            PagedResponse<UserRole> userRolePage = userRoleService.getAllUserRoles(page, pageSize, search);
             
             logger.debug("Successfully retrieved user roles: page={}, pageSize={}, total={}", 
-                        page, pageSize, userRolePage.getTotalElements());
-            return ResponseEntity.ok(response);
+                        page, pageSize, userRolePage.getTotal());
+            return ResponseEntity.ok(userRolePage);
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest().build();

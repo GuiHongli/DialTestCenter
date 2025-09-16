@@ -48,24 +48,7 @@ paths:
         200:
           description: "成功获取用户角色列表"
           schema:
-            type: "object"
-            properties:
-              data:
-                type: "array"
-                items:
-                  $ref: "#/definitions/UserRole"
-              total:
-                type: "integer"
-                description: "总记录数"
-              page:
-                type: "integer"
-                description: "当前页码"
-              pageSize:
-                type: "integer"
-                description: "每页大小"
-              totalPages:
-                type: "integer"
-                description: "总页数"
+            $ref: "#/definitions/PagedUserRoleResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -169,6 +152,26 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
 definitions:
+  PagedUserRoleResponse:
+    type: "object"
+    properties:
+      data:
+        type: "array"
+        items:
+          $ref: "#/definitions/UserRole"
+      total:
+        type: "integer"
+        description: "总记录数"
+      page:
+        type: "integer"
+        description: "当前页码"
+      pageSize:
+        type: "integer"
+        description: "每页大小"
+      totalPages:
+        type: "integer"
+        description: "总页数"
+
   UserRole:
     type: "object"
     properties:

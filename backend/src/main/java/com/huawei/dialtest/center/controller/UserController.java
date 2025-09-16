@@ -4,12 +4,11 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.entity.User;
-import com.huawei.dialtest.center.service.UserService;
+import com.huawei.dialtest.center.dto.PagedResponse;
+import com.huawei.dialtest.center.entity.DialDialUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,11 +29,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
-public class UserController {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+public class DialUserController {
+    private static final Logger logger = LoggerFactory.getLogger(DialUserController.class);
 
     @Autowired
-    private UserService userService;
+    private DialUserService userService;
 
     /**
      * 获取用户列表（分页）
@@ -45,23 +44,16 @@ public class UserController {
      * @return 用户分页数据
      */
     @GetMapping
-    public ResponseEntity<?> getAllUsers(
+    public ResponseEntity<?> getAllDialUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search) {
         try {
             logger.info("Received request to get users - page: {}, size: {}, search: {}", page, pageSize, search);
-            Page<User> users = userService.getAllUsers(page, pageSize, search);
+            PagedResponse<DialUser> users = userService.getAllDialUsers(page, pageSize, search);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", users.getContent());
-            response.put("total", users.getTotalElements());
-            response.put("page", page);
-            response.put("pageSize", pageSize);
-            response.put("totalPages", users.getTotalPages());
-            
-            logger.info("Successfully retrieved {} users (page {}/{})", users.getContent().size(), page, users.getTotalPages());
-            return ResponseEntity.ok(response);
+            logger.info("Successfully retrieved {} users (page {}/{})", users.getData().size(), page, users.getTotalPages());
+            return ResponseEntity.ok(users);
         } catch (RuntimeException e) {
             logger.error("Failed to get users", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -76,15 +68,15 @@ public class UserController {
      * @return 用户信息
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getDialUserById(@PathVariable Long id) {
         try {
             logger.info("Received request to get user by ID: {}", id);
-            Optional<User> user = userService.getUserById(id);
+            Optional<DialUser> user = userService.getDialUserById(id);
             if (user.isPresent()) {
-                logger.info("Successfully retrieved user: {}", user.get().getUsername());
+                logger.info("Successfully retrieved user: {}", user.get().getDialUsername());
                 return ResponseEntity.ok(user.get());
             } else {
-                logger.warn("User not found with ID: {}", id);
+                logger.warn("DialUser not found with ID: {}", id);
                 return ResponseEntity.notFound().build();
             }
         } catch (RuntimeException e) {
@@ -101,15 +93,15 @@ public class UserController {
      * @return 用户信息
      */
     @GetMapping("/username/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<?> getDialUserByDialUsername(@PathVariable String username) {
         try {
             logger.info("Received request to get user by username: {}", username);
-            Optional<User> user = userService.getUserByUsername(username);
+            Optional<DialUser> user = userService.getDialUserByDialUsername(username);
             if (user.isPresent()) {
                 logger.info("Successfully retrieved user: {}", username);
                 return ResponseEntity.ok(user.get());
             } else {
-                logger.warn("User not found with username: {}", username);
+                logger.warn("DialUser not found with username: {}", username);
                 return ResponseEntity.notFound().build();
             }
         } catch (RuntimeException e) {
@@ -126,7 +118,7 @@ public class UserController {
      * @return 创建的用户
      */
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> createDialUser(@RequestBody Map<String, String> request) {
         try {
             String username = request.get("username");
             String password = request.get("password");
@@ -134,9 +126,9 @@ public class UserController {
             logger.info("Received request to create user: {}", username);
             
             if (username == null || username.trim().isEmpty()) {
-                logger.warn("Username is required");
+                logger.warn("DialUsername is required");
                 return ResponseEntity.badRequest()
-                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+                    .body(createErrorResponse("VALIDATION_ERROR", "DialUsername is required"));
             }
             
             if (password == null || password.trim().isEmpty()) {
@@ -145,7 +137,7 @@ public class UserController {
                     .body(createErrorResponse("VALIDATION_ERROR", "Password is required"));
             }
 
-            User user = userService.createUser(username.trim(), password);
+            DialUser user = userService.createDialUser(username.trim(), password);
             logger.info("Successfully created user: {}", username);
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } catch (IllegalArgumentException e) {
@@ -167,7 +159,7 @@ public class UserController {
      * @return 更新后的用户
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<?> updateDialUser(@PathVariable Long id, @RequestBody Map<String, String> request) {
         try {
             String username = request.get("username");
             String password = request.get("password");
@@ -175,13 +167,13 @@ public class UserController {
             logger.info("Received request to update user with ID: {}", id);
             
             if (username != null && username.trim().isEmpty()) {
-                logger.warn("Username cannot be empty");
+                logger.warn("DialUsername cannot be empty");
                 return ResponseEntity.badRequest()
-                    .body(createErrorResponse("VALIDATION_ERROR", "Username cannot be empty"));
+                    .body(createErrorResponse("VALIDATION_ERROR", "DialUsername cannot be empty"));
             }
 
-            User user = userService.updateUser(id, username, password);
-            logger.info("Successfully updated user: {}", user.getUsername());
+            DialUser user = userService.updateDialUser(id, username, password);
+            logger.info("Successfully updated user: {}", user.getDialUsername());
             return ResponseEntity.ok(user);
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
@@ -201,12 +193,12 @@ public class UserController {
      * @return 删除结果
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteDialUser(@PathVariable Long id) {
         try {
             logger.info("Received request to delete user with ID: {}", id);
-            userService.deleteUser(id);
+            userService.deleteDialUser(id);
             logger.info("Successfully deleted user with ID: {}", id);
-            return ResponseEntity.ok(createSuccessResponse("User deleted successfully"));
+            return ResponseEntity.ok(createSuccessResponse("DialUser deleted successfully"));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest()
@@ -225,10 +217,10 @@ public class UserController {
      * @return 用户列表
      */
     @GetMapping("/search")
-    public ResponseEntity<?> searchUsers(@RequestParam String username) {
+    public ResponseEntity<?> searchDialUsers(@RequestParam String username) {
         try {
             logger.info("Received request to search users by username: {}", username);
-            List<User> users = userService.searchUsersByUsername(username);
+            List<DialUser> users = userService.searchDialUsersByDialUsername(username);
             logger.info("Found {} users matching username: {}", users.size(), username);
             return ResponseEntity.ok(users);
         } catch (RuntimeException e) {
@@ -253,9 +245,9 @@ public class UserController {
             logger.info("Received request to validate password for user: {}", username);
             
             if (username == null || username.trim().isEmpty()) {
-                logger.warn("Username is required");
+                logger.warn("DialUsername is required");
                 return ResponseEntity.badRequest()
-                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+                    .body(createErrorResponse("VALIDATION_ERROR", "DialUsername is required"));
             }
             
             if (password == null || password.trim().isEmpty()) {
@@ -292,9 +284,9 @@ public class UserController {
             logger.info("Received request to update last login time for user: {}", username);
             
             if (username == null || username.trim().isEmpty()) {
-                logger.warn("Username is required");
+                logger.warn("DialUsername is required");
                 return ResponseEntity.badRequest()
-                    .body(createErrorResponse("VALIDATION_ERROR", "Username is required"));
+                    .body(createErrorResponse("VALIDATION_ERROR", "DialUsername is required"));
             }
 
             userService.updateLastLoginTime(username.trim());

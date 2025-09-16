@@ -4,8 +4,8 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.entity.User;
-import com.huawei.dialtest.center.service.UserService;
+import com.huawei.dialtest.center.entity.DialUser;
+import com.huawei.dialtest.center.service.DialUserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,46 +33,46 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * UserController控制器测试
+ * DialUserController控制器测试
  * 测试用户控制器的REST API接口，包括HTTP请求处理
  *
  * @author g00940940
  * @since 2025-09-09
  */
 @RunWith(MockitoJUnitRunner.class)
-public class UserControllerTest {
+public class DialUserControllerTest {
     @Mock
-    private UserService userService;
+    private DialUserService userService;
 
     @InjectMocks
-    private UserController userController;
+    private DialUserController userController;
 
-    private User testUser;
-    private List<User> testUsers;
+    private DialUser testDialUser;
+    private List<DialUser> testDialUsers;
 
     @Before
     public void setUp() {
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setUsername("testuser");
-        testUser.setPassword("$2a$10$encodedpassword");
-        testUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        testDialUser = new DialUser();
+        testDialUser.setId(1L);
+        testDialUser.setDialUsername("testuser");
+        testDialUser.setPassword("$2a$10$encodedpassword");
+        testDialUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        User user2 = new User();
+        DialUser user2 = new DialUser();
         user2.setId(2L);
-        user2.setUsername("testuser2");
+        user2.setDialUsername("testuser2");
         user2.setPassword("$2a$10$encodedpassword2");
 
-        testUsers = Arrays.asList(testUser, user2);
+        testDialUsers = Arrays.asList(testDialUser, user2);
     }
 
     @Test
-    public void testGetAllUsers_Success() {
+    public void testGetAllDialUsers_Success() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<User> userPage = new PageImpl<>(testUsers, pageable, 2);
-        when(userService.getAllUsers(1, 10, null)).thenReturn(userPage);
+        Page<DialUser> userPage = new PageImpl<>(testDialUsers, pageable, 2);
+        when(userService.getAllDialUsers(1, 10, null)).thenReturn(userPage);
 
-        ResponseEntity<?> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<?> response = userController.getAllDialUsers(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -84,14 +84,14 @@ public class UserControllerTest {
         assertTrue(result.containsKey("page"));
         assertTrue(result.containsKey("pageSize"));
         assertTrue(result.containsKey("totalPages"));
-        verify(userService).getAllUsers(1, 10, null);
+        verify(userService).getAllDialUsers(1, 10, null);
     }
 
     @Test
-    public void testGetAllUsers_Error() {
-        when(userService.getAllUsers(1, 10, null)).thenThrow(new RuntimeException("Service error"));
+    public void testGetAllDialUsers_Error() {
+        when(userService.getAllDialUsers(1, 10, null)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<?> response = userController.getAllDialUsers(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -99,101 +99,101 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> errorResponse = (Map<String, Object>) response.getBody();
         assertEquals("INTERNAL_ERROR", errorResponse.get("error"));
-        verify(userService).getAllUsers(1, 10, null);
+        verify(userService).getAllDialUsers(1, 10, null);
     }
 
     @Test
-    public void testGetUserById_Success() {
-        when(userService.getUserById(1L)).thenReturn(Optional.of(testUser));
+    public void testGetDialUserById_Success() {
+        when(userService.getDialUserById(1L)).thenReturn(Optional.of(testDialUser));
 
-        ResponseEntity<?> response = userController.getUserById(1L);
+        ResponseEntity<?> response = userController.getDialUserById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof User);
-        User result = (User) response.getBody();
-        assertEquals("testuser", result.getUsername());
-        verify(userService).getUserById(1L);
+        assertTrue(response.getBody() instanceof DialUser);
+        DialUser result = (DialUser) response.getBody();
+        assertEquals("testuser", result.getDialUsername());
+        verify(userService).getDialUserById(1L);
     }
 
     @Test
-    public void testGetUserById_NotFound() {
-        when(userService.getUserById(999L)).thenReturn(Optional.empty());
+    public void testGetDialUserById_NotFound() {
+        when(userService.getDialUserById(999L)).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = userController.getUserById(999L);
+        ResponseEntity<?> response = userController.getDialUserById(999L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService).getUserById(999L);
+        verify(userService).getDialUserById(999L);
     }
 
     @Test
-    public void testGetUserById_Error() {
-        when(userService.getUserById(1L)).thenThrow(new RuntimeException("Service error"));
+    public void testGetDialUserById_Error() {
+        when(userService.getDialUserById(1L)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.getUserById(1L);
+        ResponseEntity<?> response = userController.getDialUserById(1L);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).getUserById(1L);
+        verify(userService).getDialUserById(1L);
     }
 
     @Test
-    public void testGetUserByUsername_Success() {
-        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(testUser));
+    public void testGetDialUserByDialUsername_Success() {
+        when(userService.getDialUserByDialUsername("testuser")).thenReturn(Optional.of(testDialUser));
 
-        ResponseEntity<?> response = userController.getUserByUsername("testuser");
+        ResponseEntity<?> response = userController.getDialUserByDialUsername("testuser");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof User);
-        User result = (User) response.getBody();
-        assertEquals("testuser", result.getUsername());
-        verify(userService).getUserByUsername("testuser");
+        assertTrue(response.getBody() instanceof DialUser);
+        DialUser result = (DialUser) response.getBody();
+        assertEquals("testuser", result.getDialUsername());
+        verify(userService).getDialUserByDialUsername("testuser");
     }
 
     @Test
-    public void testGetUserByUsername_NotFound() {
-        when(userService.getUserByUsername("nonexistent")).thenReturn(Optional.empty());
+    public void testGetDialUserByDialUsername_NotFound() {
+        when(userService.getDialUserByDialUsername("nonexistent")).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = userController.getUserByUsername("nonexistent");
+        ResponseEntity<?> response = userController.getDialUserByDialUsername("nonexistent");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userService).getUserByUsername("nonexistent");
+        verify(userService).getDialUserByDialUsername("nonexistent");
     }
 
     @Test
-    public void testGetUserByUsername_Error() {
-        when(userService.getUserByUsername("testuser")).thenThrow(new RuntimeException("Service error"));
+    public void testGetDialUserByDialUsername_Error() {
+        when(userService.getDialUserByDialUsername("testuser")).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.getUserByUsername("testuser");
+        ResponseEntity<?> response = userController.getDialUserByDialUsername("testuser");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).getUserByUsername("testuser");
+        verify(userService).getDialUserByDialUsername("testuser");
     }
 
     @Test
-    public void testCreateUser_Success() {
+    public void testCreateDialUser_Success() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "newuser");
         request.put("password", "password123");
 
-        when(userService.createUser("newuser", "password123")).thenReturn(testUser);
+        when(userService.createDialUser("newuser", "password123")).thenReturn(testDialUser);
 
-        ResponseEntity<?> response = userController.createUser(request);
+        ResponseEntity<?> response = userController.createDialUser(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof User);
-        User result = (User) response.getBody();
-        assertEquals("testuser", result.getUsername());
-        verify(userService).createUser("newuser", "password123");
+        assertTrue(response.getBody() instanceof DialUser);
+        DialUser result = (DialUser) response.getBody();
+        assertEquals("testuser", result.getDialUsername());
+        verify(userService).createDialUser("newuser", "password123");
     }
 
     @Test
-    public void testCreateUser_MissingUsername() {
+    public void testCreateDialUser_MissingDialUsername() {
         Map<String, String> request = new HashMap<>();
         request.put("password", "password123");
 
-        ResponseEntity<?> response = userController.createUser(request);
+        ResponseEntity<?> response = userController.createDialUser(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -201,15 +201,15 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> errorResponse = (Map<String, Object>) response.getBody();
         assertEquals("VALIDATION_ERROR", errorResponse.get("error"));
-        verify(userService, never()).createUser(anyString(), anyString());
+        verify(userService, never()).createDialUser(anyString(), anyString());
     }
 
     @Test
-    public void testCreateUser_MissingPassword() {
+    public void testCreateDialUser_MissingPassword() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "newuser");
 
-        ResponseEntity<?> response = userController.createUser(request);
+        ResponseEntity<?> response = userController.createDialUser(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -217,19 +217,19 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> errorResponse = (Map<String, Object>) response.getBody();
         assertEquals("VALIDATION_ERROR", errorResponse.get("error"));
-        verify(userService, never()).createUser(anyString(), anyString());
+        verify(userService, never()).createDialUser(anyString(), anyString());
     }
 
     @Test
-    public void testCreateUser_ValidationError() {
+    public void testCreateDialUser_ValidationError() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "existinguser");
         request.put("password", "password123");
 
-        when(userService.createUser("existinguser", "password123"))
-            .thenThrow(new IllegalArgumentException("Username already exists"));
+        when(userService.createDialUser("existinguser", "password123"))
+            .thenThrow(new IllegalArgumentException("DialUsername already exists"));
 
-        ResponseEntity<?> response = userController.createUser(request);
+        ResponseEntity<?> response = userController.createDialUser(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -237,89 +237,89 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> errorResponse = (Map<String, Object>) response.getBody();
         assertEquals("VALIDATION_ERROR", errorResponse.get("error"));
-        verify(userService).createUser("existinguser", "password123");
+        verify(userService).createDialUser("existinguser", "password123");
     }
 
     @Test
-    public void testCreateUser_Error() {
+    public void testCreateDialUser_Error() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "newuser");
         request.put("password", "password123");
 
-        when(userService.createUser("newuser", "password123"))
+        when(userService.createDialUser("newuser", "password123"))
             .thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.createUser(request);
+        ResponseEntity<?> response = userController.createDialUser(request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).createUser("newuser", "password123");
+        verify(userService).createDialUser("newuser", "password123");
     }
 
     @Test
-    public void testUpdateUser_Success() {
+    public void testUpdateDialUser_Success() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "updateduser");
         request.put("password", "newpassword");
 
-        when(userService.updateUser(1L, "updateduser", "newpassword")).thenReturn(testUser);
+        when(userService.updateDialUser(1L, "updateduser", "newpassword")).thenReturn(testDialUser);
 
-        ResponseEntity<?> response = userController.updateUser(1L, request);
+        ResponseEntity<?> response = userController.updateDialUser(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof User);
-        User result = (User) response.getBody();
-        assertEquals("testuser", result.getUsername());
-        verify(userService).updateUser(1L, "updateduser", "newpassword");
+        assertTrue(response.getBody() instanceof DialUser);
+        DialUser result = (DialUser) response.getBody();
+        assertEquals("testuser", result.getDialUsername());
+        verify(userService).updateDialUser(1L, "updateduser", "newpassword");
     }
 
     @Test
-    public void testUpdateUser_EmptyUsername() {
+    public void testUpdateDialUser_EmptyDialUsername() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "");
         request.put("password", "newpassword");
 
-        ResponseEntity<?> response = userController.updateUser(1L, request);
+        ResponseEntity<?> response = userController.updateDialUser(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(userService, never()).updateUser(anyLong(), anyString(), anyString());
+        verify(userService, never()).updateDialUser(anyLong(), anyString(), anyString());
     }
 
     @Test
-    public void testUpdateUser_ValidationError() {
+    public void testUpdateDialUser_ValidationError() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "existinguser");
         request.put("password", "newpassword");
 
-        when(userService.updateUser(1L, "existinguser", "newpassword"))
-            .thenThrow(new IllegalArgumentException("Username already exists"));
+        when(userService.updateDialUser(1L, "existinguser", "newpassword"))
+            .thenThrow(new IllegalArgumentException("DialUsername already exists"));
 
-        ResponseEntity<?> response = userController.updateUser(1L, request);
+        ResponseEntity<?> response = userController.updateDialUser(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(userService).updateUser(1L, "existinguser", "newpassword");
+        verify(userService).updateDialUser(1L, "existinguser", "newpassword");
     }
 
     @Test
-    public void testUpdateUser_Error() {
+    public void testUpdateDialUser_Error() {
         Map<String, String> request = new HashMap<>();
         request.put("username", "updateduser");
         request.put("password", "newpassword");
 
-        when(userService.updateUser(1L, "updateduser", "newpassword"))
+        when(userService.updateDialUser(1L, "updateduser", "newpassword"))
             .thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.updateUser(1L, request);
+        ResponseEntity<?> response = userController.updateDialUser(1L, request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).updateUser(1L, "updateduser", "newpassword");
+        verify(userService).updateDialUser(1L, "updateduser", "newpassword");
     }
 
     @Test
-    public void testDeleteUser_Success() {
-        doNothing().when(userService).deleteUser(1L);
+    public void testDeleteDialUser_Success() {
+        doNothing().when(userService).deleteDialUser(1L);
 
-        ResponseEntity<?> response = userController.deleteUser(1L);
+        ResponseEntity<?> response = userController.deleteDialUser(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -327,55 +327,55 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> successResponse = (Map<String, Object>) response.getBody();
         assertEquals(true, successResponse.get("success"));
-        verify(userService).deleteUser(1L);
+        verify(userService).deleteDialUser(1L);
     }
 
     @Test
-    public void testDeleteUser_ValidationError() {
-        doThrow(new IllegalArgumentException("User not found"))
-            .when(userService).deleteUser(999L);
+    public void testDeleteDialUser_ValidationError() {
+        doThrow(new IllegalArgumentException("DialUser not found"))
+            .when(userService).deleteDialUser(999L);
 
-        ResponseEntity<?> response = userController.deleteUser(999L);
+        ResponseEntity<?> response = userController.deleteDialUser(999L);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(userService).deleteUser(999L);
+        verify(userService).deleteDialUser(999L);
     }
 
     @Test
-    public void testDeleteUser_Error() {
+    public void testDeleteDialUser_Error() {
         doThrow(new RuntimeException("Service error"))
-            .when(userService).deleteUser(1L);
+            .when(userService).deleteDialUser(1L);
 
-        ResponseEntity<?> response = userController.deleteUser(1L);
+        ResponseEntity<?> response = userController.deleteDialUser(1L);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).deleteUser(1L);
+        verify(userService).deleteDialUser(1L);
     }
 
     @Test
-    public void testSearchUsers_Success() {
-        when(userService.searchUsersByUsername("test")).thenReturn(testUsers);
+    public void testSearchDialUsers_Success() {
+        when(userService.searchDialUsersByDialUsername("test")).thenReturn(testDialUsers);
 
-        ResponseEntity<?> response = userController.searchUsers("test");
+        ResponseEntity<?> response = userController.searchDialUsers("test");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody() instanceof List);
         @SuppressWarnings("unchecked")
-        List<User> result = (List<User>) response.getBody();
+        List<DialUser> result = (List<DialUser>) response.getBody();
         assertEquals(2, result.size());
-        verify(userService).searchUsersByUsername("test");
+        verify(userService).searchDialUsersByDialUsername("test");
     }
 
     @Test
-    public void testSearchUsers_Error() {
-        when(userService.searchUsersByUsername("test"))
+    public void testSearchDialUsers_Error() {
+        when(userService.searchDialUsersByDialUsername("test"))
             .thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.searchUsers("test");
+        ResponseEntity<?> response = userController.searchDialUsers("test");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userService).searchUsersByUsername("test");
+        verify(userService).searchDialUsersByDialUsername("test");
     }
 
     @Test
@@ -417,7 +417,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testValidatePassword_MissingUsername() {
+    public void testValidatePassword_MissingDialUsername() {
         Map<String, String> request = new HashMap<>();
         request.put("password", "password123");
 
@@ -472,7 +472,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testUpdateLastLoginTime_MissingUsername() {
+    public void testUpdateLastLoginTime_MissingDialUsername() {
         Map<String, String> request = new HashMap<>();
 
         ResponseEntity<?> response = userController.updateLastLoginTime(request);
