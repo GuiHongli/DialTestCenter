@@ -149,4 +149,31 @@ public interface UserRoleMapper {
      * @return 影响行数
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 分页查询所有用户角色，按创建时间倒序排列
+     *
+     * @param pageNo 页码（从0开始）
+     * @param pageSize 每页大小
+     * @return 用户角色列表
+     */
+    List<UserRole> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+
+    /**
+     * 根据用户名分页查询用户角色，按创建时间倒序排列
+     *
+     * @param username 用户名
+     * @param pageNo 页码（从0开始）
+     * @param pageSize 每页大小
+     * @return 用户角色列表
+     */
+    List<UserRole> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+
+    /**
+     * 统计包含指定用户名的用户角色数量
+     *
+     * @param username 用户名
+     * @return 用户角色数量
+     */
+    long countByUsernameContaining(@Param("username") String username);
 }

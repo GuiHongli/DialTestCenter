@@ -1,0 +1,119 @@
+swagger: "2.0"
+info:
+  title: "Operation Log Management API"
+  description: "操作日志管理API文档 - 提供系统操作日志的查询和管理功能"
+  version: "1.0.0"
+  contact:
+    name: "g00940940"
+    email: "g00940940@huawei.com"
+host: "localhost:8087"
+basePath: "/dialingtest"
+schemes:
+  - "https"
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+paths:
+  /api/operation-logs:
+    get:
+      tags:
+        - "操作日志管理"
+      summary: "获取操作日志列表"
+      description: "获取系统操作日志列表，支持分页和过滤"
+      parameters:
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "页码（从0开始）"
+        - name: "size"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "每页大小"
+        - name: "username"
+          in: "query"
+          required: false
+          type: "string"
+          description: "用户名过滤"
+        - name: "operationType"
+          in: "query"
+          required: false
+          type: "string"
+          description: "操作类型过滤"
+      responses:
+        200:
+          description: "成功获取操作日志列表"
+          schema:
+            $ref: "#/definitions/OperationLogPageResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  OperationLog:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "操作记录ID"
+      username:
+        type: "string"
+        description: "操作用户名"
+      operationTime:
+        type: "string"
+        format: "date-time"
+        description: "操作时间"
+      operationType:
+        type: "string"
+        description: "操作类型"
+      target:
+        type: "string"
+        description: "操作对象"
+      description:
+        type: "string"
+        description: "操作描述"
+
+  OperationLogPageResponse:
+    type: "object"
+    properties:
+      content:
+        type: "array"
+        items:
+          $ref: "#/definitions/OperationLog"
+      totalElements:
+        type: "integer"
+        format: "int64"
+        description: "总元素数"
+      totalPages:
+        type: "integer"
+        format: "int32"
+        description: "总页数"
+      size:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
+      number:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      error:
+        type: "string"
+        description: "错误代码"
+      message:
+        type: "string"
+        description: "错误消息"

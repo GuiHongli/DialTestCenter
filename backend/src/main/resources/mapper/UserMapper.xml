@@ -48,12 +48,30 @@
         WHERE username LIKE CONCAT('%', #{username}, '%')
     </select>
 
-    <!-- 获取所有用户，按创建时间倒序排列 -->
-    <select id="findAllOrderByCreatedTimeDesc" resultMap="BaseResultMap">
+    <!-- 分页查询用户列表，按创建时间倒序排列 -->
+    <select id="findAllByOrderByCreatedTimeDesc" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM dial_user
         ORDER BY created_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 根据用户名模糊查询用户列表（分页） -->
+    <select id="findByUsernameContainingWithPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dial_user
+        WHERE username LIKE CONCAT('%', #{username}, '%')
+        ORDER BY created_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 统计用户名模糊查询的总数 -->
+    <select id="countByUsernameContaining" resultType="long">
+        SELECT COUNT(*)
+        FROM dial_user
+        WHERE username LIKE CONCAT('%', #{username}, '%')
     </select>
 
     <!-- 插入用户 -->
@@ -94,3 +112,4 @@
     </select>
 
 </mapper>
+

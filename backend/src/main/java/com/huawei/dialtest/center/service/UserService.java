@@ -10,6 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,19 +40,37 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * 获取所有用户列表
+     * 获取用户列表（分页）
      *
-     * @return 用户列表
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @param search 搜索关键字（可选）
+     * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
+    public Page<User> getAllUsers(int page, int pageSize, String search) {
         try {
-            logger.info("Getting all users");
-            List<User> users = userMapper.findAllOrderByCreatedTimeDesc();
-            logger.info("Successfully retrieved {} users", users.size());
-            return users;
+            logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
+            Pageable pageable = PageRequest.of(page - 1, pageSize);
+            
+            List<User> content;
+            long total;
+            
+            if (search != null && !search.trim().isEmpty()) {
+                // 带搜索条件的分页查询
+                content = userMapper.findByUsernameContainingWithPage(search.trim(), page - 1, pageSize);
+                total = userMapper.countByUsernameContaining(search.trim());
+            } else {
+                // 无搜索条件的分页查询
+                content = userMapper.findAllByOrderByCreatedTimeDesc(page - 1, pageSize);
+                total = userMapper.count();
+            }
+            
+            Page<User> result = new PageImpl<>(content, pageable, total);
+            logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, result.getTotalPages());
+            return result;
         } catch (DataAccessException e) {
-            logger.error("Failed to get all users", e);
+            logger.error("Failed to get users", e);
             throw new RuntimeException("Failed to retrieve users", e);
         }
     }

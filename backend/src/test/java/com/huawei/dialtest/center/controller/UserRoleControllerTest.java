@@ -7,13 +7,16 @@ package com.huawei.dialtest.center.controller;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -22,6 +25,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -63,73 +70,99 @@ public class UserRoleControllerTest {
     }
 
     @Test
-    public void testGetUserRoles_WithUsername() {
+    public void testGetUserRoles_WithSearch() {
         // Given
-        String username = "testuser";
+        int page = 1;
+        int pageSize = 10;
+        String search = "testuser";
         List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        when(userRoleService.getUserRoles(username)).thenReturn(expectedUserRoles);
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
+        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenReturn(expectedPage);
 
         // When
-        ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles(username);
+        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(username, response.getBody().get(0).getUsername());
-        verify(userRoleService).getUserRoles(username);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals(1, ((List<?>) responseBody.get("data")).size());
+        assertEquals(1L, responseBody.get("total"));
+        assertEquals(page, responseBody.get("page"));
+        assertEquals(pageSize, responseBody.get("pageSize"));
+        verify(userRoleService).getAllUserRoles(page, pageSize, search);
     }
 
     @Test
-    public void testGetUserRoles_WithoutUsername() {
+    public void testGetUserRoles_WithoutSearch() {
         // Given
+        int page = 1;
+        int pageSize = 10;
         List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        when(userRoleService.getAllUserRoles()).thenReturn(expectedUserRoles);
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
+        when(userRoleService.getAllUserRoles(page, pageSize, null)).thenReturn(expectedPage);
 
         // When
-        ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles(null);
+        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, null);
 
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        verify(userRoleService).getAllUserRoles();
-        verify(userRoleService, never()).getUserRoles(anyString());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals(1, ((List<?>) responseBody.get("data")).size());
+        assertEquals(1L, responseBody.get("total"));
+        assertEquals(page, responseBody.get("page"));
+        assertEquals(pageSize, responseBody.get("pageSize"));
+        verify(userRoleService).getAllUserRoles(page, pageSize, null);
     }
 
     @Test
-    public void testGetUserRoles_EmptyUsername() {
+    public void testGetUserRoles_EmptySearch() {
         // Given
+        int page = 1;
+        int pageSize = 10;
         List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        when(userRoleService.getAllUserRoles()).thenReturn(expectedUserRoles);
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
+        when(userRoleService.getAllUserRoles(page, pageSize, "")).thenReturn(expectedPage);
 
         // When
-        ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles("");
+        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, "");
 
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        verify(userRoleService).getAllUserRoles();
-        verify(userRoleService, never()).getUserRoles(anyString());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals(1, ((List<?>) responseBody.get("data")).size());
+        assertEquals(1L, responseBody.get("total"));
+        assertEquals(page, responseBody.get("page"));
+        assertEquals(pageSize, responseBody.get("pageSize"));
+        verify(userRoleService).getAllUserRoles(page, pageSize, "");
     }
 
     @Test
     public void testGetUserRoles_ServiceException() {
         // Given
-        String username = "testuser";
-        when(userRoleService.getUserRoles(username)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
+        int page = 1;
+        int pageSize = 10;
+        String search = "testuser";
+        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenThrow(new org.springframework.dao.DataAccessException("Service error") {});
 
         // When
-        ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles(username);
+        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(userRoleService).getUserRoles(username);
+        verify(userRoleService).getAllUserRoles(page, pageSize, search);
     }
 
     @Test
@@ -293,21 +326,30 @@ public class UserRoleControllerTest {
     }
 
     @Test
-    public void testGetUserRoles_WithWhitespaceUsername() {
+    public void testGetUserRoles_WithWhitespaceSearch() {
         // Given
-        String username = "  testuser  ";
+        int page = 1;
+        int pageSize = 10;
+        String search = "  testuser  ";
         List<UserRole> expectedUserRoles = Arrays.asList(testUserRole);
-        when(userRoleService.getUserRoles("testuser")).thenReturn(expectedUserRoles);
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Page<UserRole> expectedPage = new PageImpl<>(expectedUserRoles, pageable, 1);
+        when(userRoleService.getAllUserRoles(page, pageSize, search)).thenReturn(expectedPage);
 
         // When
-        ResponseEntity<List<UserRole>> response = userRoleController.getUserRoles(username);
+        ResponseEntity<?> response = userRoleController.getUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        verify(userRoleService).getUserRoles("testuser");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals(1, ((List<?>) responseBody.get("data")).size());
+        assertEquals(1L, responseBody.get("total"));
+        assertEquals(page, responseBody.get("page"));
+        assertEquals(pageSize, responseBody.get("pageSize"));
+        verify(userRoleService).getAllUserRoles(page, pageSize, search);
     }
 
     @Test

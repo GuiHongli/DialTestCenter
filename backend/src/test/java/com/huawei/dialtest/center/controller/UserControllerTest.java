@@ -13,6 +13,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -66,24 +70,30 @@ public class UserControllerTest {
 
     @Test
     public void testGetAllUsers_Success() {
-        when(userService.getAllUsers()).thenReturn(testUsers);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> userPage = new PageImpl<>(testUsers, pageable, 2);
+        when(userService.getAllUsers(1, 10, null)).thenReturn(userPage);
 
-        ResponseEntity<?> response = userController.getAllUsers();
+        ResponseEntity<?> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof List);
+        assertTrue(response.getBody() instanceof Map);
         @SuppressWarnings("unchecked")
-        List<User> result = (List<User>) response.getBody();
-        assertEquals(2, result.size());
-        verify(userService).getAllUsers();
+        Map<String, Object> result = (Map<String, Object>) response.getBody();
+        assertTrue(result.containsKey("data"));
+        assertTrue(result.containsKey("total"));
+        assertTrue(result.containsKey("page"));
+        assertTrue(result.containsKey("pageSize"));
+        assertTrue(result.containsKey("totalPages"));
+        verify(userService).getAllUsers(1, 10, null);
     }
 
     @Test
     public void testGetAllUsers_Error() {
-        when(userService.getAllUsers()).thenThrow(new RuntimeException("Service error"));
+        when(userService.getAllUsers(1, 10, null)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<?> response = userController.getAllUsers();
+        ResponseEntity<?> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -91,7 +101,7 @@ public class UserControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> errorResponse = (Map<String, Object>) response.getBody();
         assertEquals("INTERNAL_ERROR", errorResponse.get("error"));
-        verify(userService).getAllUsers();
+        verify(userService).getAllUsers(1, 10, null);
     }
 
     @Test

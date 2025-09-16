@@ -1,0 +1,348 @@
+swagger: "2.0"
+info:
+  title: "Software Package Management API"
+  description: "软件包管理API文档 - 提供软件包的上传、下载、查询、删除等操作"
+  version: "1.0.0"
+  contact:
+    name: "g00940940"
+    email: "g00940940@huawei.com"
+host: "localhost:8087"
+basePath: "/dialingtest"
+schemes:
+  - "https"
+  - "http"
+consumes:
+  - "application/json"
+  - "multipart/form-data"
+produces:
+  - "application/json"
+  - "application/octet-stream"
+
+paths:
+  /api/software-packages:
+    get:
+      tags:
+        - "软件包管理"
+      summary: "获取软件包列表"
+      description: "获取软件包列表，支持分页和搜索"
+      parameters:
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "页码（从0开始）"
+        - name: "size"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "每页大小"
+        - name: "search"
+          in: "query"
+          required: false
+          type: "string"
+          description: "搜索关键字"
+        - name: "platform"
+          in: "query"
+          required: false
+          type: "string"
+          enum: ["android", "ios"]
+          description: "平台过滤"
+      responses:
+        200:
+          description: "成功获取软件包列表"
+          schema:
+            $ref: "#/definitions/SoftwarePackagePageResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags:
+        - "软件包管理"
+      summary: "上传软件包"
+      description: "上传新的软件包文件（支持APK和IPA格式）"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          required: true
+          type: "file"
+          description: "软件包文件（APK或IPA格式）"
+        - name: "description"
+          in: "formData"
+          required: false
+          type: "string"
+          description: "软件包描述"
+      responses:
+        201:
+          description: "软件包上传成功"
+          schema:
+            $ref: "#/definitions/SoftwarePackage"
+        400:
+          description: "文件格式错误或参数无效"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/software-packages/{id}:
+    get:
+      tags:
+        - "软件包管理"
+      summary: "获取软件包详情"
+      description: "根据ID获取软件包的详细信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "软件包ID"
+      responses:
+        200:
+          description: "成功获取软件包详情"
+          schema:
+            $ref: "#/definitions/SoftwarePackage"
+        404:
+          description: "软件包不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    put:
+      tags:
+        - "软件包管理"
+      summary: "更新软件包"
+      description: "更新软件包信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "软件包ID"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/SoftwarePackageUpdateRequest"
+      responses:
+        200:
+          description: "软件包更新成功"
+          schema:
+            $ref: "#/definitions/SoftwarePackage"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags:
+        - "软件包管理"
+      summary: "删除软件包"
+      description: "删除指定的软件包"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "软件包ID"
+      responses:
+        200:
+          description: "软件包删除成功"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/software-packages/{id}/download:
+    get:
+      tags:
+        - "软件包管理"
+      summary: "下载软件包文件"
+      description: "下载软件包的原始文件"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "软件包ID"
+      responses:
+        200:
+          description: "文件下载成功"
+          schema:
+            type: "file"
+        404:
+          description: "软件包不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/software-packages/batch-upload:
+    post:
+      tags:
+        - "软件包管理"
+      summary: "批量上传软件包"
+      description: "批量上传多个软件包文件（ZIP格式）"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          required: true
+          type: "file"
+          description: "包含多个软件包的ZIP文件"
+      responses:
+        201:
+          description: "批量上传成功"
+          schema:
+            $ref: "#/definitions/BatchUploadResponse"
+        400:
+          description: "文件格式错误或参数无效"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  SoftwarePackage:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "软件包ID"
+      softwareName:
+        type: "string"
+        description: "软件名称"
+      fileName:
+        type: "string"
+        description: "文件名"
+      fileFormat:
+        type: "string"
+        enum: ["apk", "ipa"]
+        description: "文件格式"
+      platform:
+        type: "string"
+        enum: ["android", "ios"]
+        description: "平台"
+      creator:
+        type: "string"
+        description: "创建者"
+      fileSize:
+        type: "integer"
+        format: "int64"
+        description: "文件大小（字节）"
+      description:
+        type: "string"
+        description: "描述信息"
+      version:
+        type: "string"
+        description: "软件版本"
+      createdTime:
+        type: "string"
+        format: "date-time"
+        description: "创建时间"
+      updatedTime:
+        type: "string"
+        format: "date-time"
+        description: "更新时间"
+
+  SoftwarePackageUpdateRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        description: "描述信息"
+
+  SoftwarePackagePageResponse:
+    type: "object"
+    properties:
+      content:
+        type: "array"
+        items:
+          $ref: "#/definitions/SoftwarePackage"
+      totalElements:
+        type: "integer"
+        format: "int64"
+        description: "总元素数"
+      totalPages:
+        type: "integer"
+        format: "int32"
+        description: "总页数"
+      size:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
+      number:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+
+  BatchUploadResponse:
+    type: "object"
+    properties:
+      successCount:
+        type: "integer"
+        format: "int32"
+        description: "成功上传数量"
+      failedCount:
+        type: "integer"
+        format: "int32"
+        description: "失败数量"
+      details:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            fileName:
+              type: "string"
+              description: "文件名"
+            success:
+              type: "boolean"
+              description: "是否成功"
+            message:
+              type: "string"
+              description: "处理结果消息"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      message:
+        type: "string"
+        description: "操作结果消息"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      error:
+        type: "string"
+        description: "错误代码"
+      message:
+        type: "string"
+        description: "错误消息"

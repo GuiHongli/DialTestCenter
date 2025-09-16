@@ -137,4 +137,30 @@
         DELETE FROM user_role WHERE id = #{id}
     </delete>
 
+    <!-- 分页查询所有用户角色，按创建时间倒序排列 -->
+    <select id="findAllByOrderByCreatedTimeDesc" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        ORDER BY created_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 根据用户名分页查询用户角色，按创建时间倒序排列 -->
+    <select id="findByUsernameContainingWithPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_role
+        WHERE username LIKE CONCAT('%', #{username}, '%')
+        ORDER BY created_time DESC
+        LIMIT #{pageSize} OFFSET #{pageNo}
+    </select>
+
+    <!-- 统计包含指定用户名的用户角色数量 -->
+    <select id="countByUsernameContaining" resultType="long">
+        SELECT COUNT(*)
+        FROM user_role
+        WHERE username LIKE CONCAT('%', #{username}, '%')
+    </select>
+
 </mapper>

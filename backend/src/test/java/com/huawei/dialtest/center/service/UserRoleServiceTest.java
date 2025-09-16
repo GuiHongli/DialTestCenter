@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -25,6 +26,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.UserRole;
@@ -322,6 +327,104 @@ public class UserRoleServiceTest {
         assertNotNull(result);
         assertEquals(2, result.size());
         verify(userRoleMapper).findAllOrderByCreatedTimeDesc();
+    }
+
+    @Test
+    public void testGetAllUserRoles_WithPagination_Success() {
+        // Given
+        int page = 1;
+        int pageSize = 10;
+        String search = null;
+        
+        UserRole userRole1 = new UserRole();
+        userRole1.setId(1L);
+        userRole1.setUsername("user1");
+        userRole1.setRole(Role.ADMIN);
+
+        UserRole userRole2 = new UserRole();
+        userRole2.setId(2L);
+        userRole2.setUsername("user2");
+        userRole2.setRole(Role.OPERATOR);
+
+        List<UserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
+        long totalCount = 2L;
+        
+        when(userRoleMapper.findAllByOrderByCreatedTimeDesc(0, pageSize)).thenReturn(expectedUserRoles);
+        when(userRoleMapper.count()).thenReturn(totalCount);
+
+        // When
+        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(totalCount, result.getTotalElements());
+        assertEquals(page, result.getNumber() + 1);
+        assertEquals(pageSize, result.getSize());
+        verify(userRoleMapper).findAllByOrderByCreatedTimeDesc(0, pageSize);
+        verify(userRoleMapper).count();
+    }
+
+    @Test
+    public void testGetAllUserRoles_WithSearch_Success() {
+        // Given
+        int page = 1;
+        int pageSize = 10;
+        String search = "test";
+        
+        UserRole userRole1 = new UserRole();
+        userRole1.setId(1L);
+        userRole1.setUsername("testuser1");
+        userRole1.setRole(Role.ADMIN);
+
+        List<UserRole> expectedUserRoles = Arrays.asList(userRole1);
+        long totalCount = 1L;
+        
+        when(userRoleMapper.findByUsernameContainingWithPage(search, 0, pageSize)).thenReturn(expectedUserRoles);
+        when(userRoleMapper.countByUsernameContaining(search)).thenReturn(totalCount);
+
+        // When
+        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(totalCount, result.getTotalElements());
+        assertEquals(page, result.getNumber() + 1);
+        assertEquals(pageSize, result.getSize());
+        verify(userRoleMapper).findByUsernameContainingWithPage(search, 0, pageSize);
+        verify(userRoleMapper).countByUsernameContaining(search);
+    }
+
+    @Test
+    public void testGetAllUserRoles_WithEmptySearch_Success() {
+        // Given
+        int page = 1;
+        int pageSize = 10;
+        String search = "";
+        
+        UserRole userRole1 = new UserRole();
+        userRole1.setId(1L);
+        userRole1.setUsername("user1");
+        userRole1.setRole(Role.ADMIN);
+
+        List<UserRole> expectedUserRoles = Arrays.asList(userRole1);
+        long totalCount = 1L;
+        
+        when(userRoleMapper.findAllByOrderByCreatedTimeDesc(0, pageSize)).thenReturn(expectedUserRoles);
+        when(userRoleMapper.count()).thenReturn(totalCount);
+
+        // When
+        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(totalCount, result.getTotalElements());
+        assertEquals(page, result.getNumber() + 1);
+        assertEquals(pageSize, result.getSize());
+        verify(userRoleMapper).findAllByOrderByCreatedTimeDesc(0, pageSize);
+        verify(userRoleMapper).count();
     }
 
     @Test

@@ -1,0 +1,363 @@
+swagger: "2.0"
+info:
+  title: "Test Case Set Management API"
+  description: "测试用例集管理API文档 - 提供测试用例集的上传、下载、查询、删除等操作"
+  version: "1.0.0"
+  contact:
+    name: "g00940940"
+    email: "g00940940@huawei.com"
+host: "localhost:8087"
+basePath: "/dialingtest"
+schemes:
+  - "https"
+  - "http"
+consumes:
+  - "application/json"
+  - "multipart/form-data"
+produces:
+  - "application/json"
+  - "application/octet-stream"
+
+paths:
+  /api/test-case-sets:
+    get:
+      tags:
+        - "测试用例集管理"
+      summary: "获取测试用例集列表"
+      description: "获取测试用例集列表，支持分页和搜索"
+      parameters:
+        - name: "page"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "页码（从0开始）"
+        - name: "size"
+          in: "query"
+          required: false
+          type: "integer"
+          format: "int32"
+          description: "每页大小"
+        - name: "search"
+          in: "query"
+          required: false
+          type: "string"
+          description: "搜索关键字"
+      responses:
+        200:
+          description: "成功获取测试用例集列表"
+          schema:
+            $ref: "#/definitions/TestCaseSetPageResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags:
+        - "测试用例集管理"
+      summary: "上传测试用例集"
+      description: "上传新的测试用例集文件（支持ZIP和TAR.GZ格式）"
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          required: true
+          type: "file"
+          description: "测试用例集文件（ZIP或TAR.GZ格式）"
+        - name: "description"
+          in: "formData"
+          required: false
+          type: "string"
+          description: "用例集描述"
+        - name: "business"
+          in: "formData"
+          required: false
+          type: "string"
+          description: "业务类型"
+      responses:
+        201:
+          description: "测试用例集上传成功"
+          schema:
+            $ref: "#/definitions/TestCaseSet"
+        400:
+          description: "文件格式错误或参数无效"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/test-case-sets/{id}:
+    get:
+      tags:
+        - "测试用例集管理"
+      summary: "获取测试用例集详情"
+      description: "根据ID获取测试用例集的详细信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "成功获取测试用例集详情"
+          schema:
+            $ref: "#/definitions/TestCaseSet"
+        404:
+          description: "测试用例集不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    put:
+      tags:
+        - "测试用例集管理"
+      summary: "更新测试用例集"
+      description: "更新测试用例集信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/TestCaseSetUpdateRequest"
+      responses:
+        200:
+          description: "测试用例集更新成功"
+          schema:
+            $ref: "#/definitions/TestCaseSet"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags:
+        - "测试用例集管理"
+      summary: "删除测试用例集"
+      description: "删除指定的测试用例集"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "测试用例集删除成功"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/test-case-sets/{id}/download:
+    get:
+      tags:
+        - "测试用例集管理"
+      summary: "下载测试用例集文件"
+      description: "下载测试用例集的原始文件"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "文件下载成功"
+          schema:
+            type: "file"
+        404:
+          description: "测试用例集不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/test-case-sets/{id}/test-cases:
+    get:
+      tags:
+        - "测试用例管理"
+      summary: "获取测试用例列表"
+      description: "获取指定测试用例集下的所有测试用例"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "测试用例集ID"
+      responses:
+        200:
+          description: "成功获取测试用例列表"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/TestCase"
+        404:
+          description: "测试用例集不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  TestCaseSet:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "测试用例集ID"
+      name:
+        type: "string"
+        description: "用例集名称"
+      version:
+        type: "string"
+        description: "用例集版本"
+      fileFormat:
+        type: "string"
+        enum: ["zip", "tar.gz"]
+        description: "文件格式"
+      business:
+        type: "string"
+        description: "业务类型"
+      creator:
+        type: "string"
+        description: "创建人"
+      fileSize:
+        type: "integer"
+        format: "int64"
+        description: "文件大小（字节）"
+      description:
+        type: "string"
+        description: "描述"
+      createdTime:
+        type: "string"
+        format: "date-time"
+        description: "创建时间"
+      updatedTime:
+        type: "string"
+        format: "date-time"
+        description: "更新时间"
+
+  TestCase:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "测试用例ID"
+      testCaseSetId:
+        type: "integer"
+        format: "int64"
+        description: "关联的用例集ID"
+      caseName:
+        type: "string"
+        description: "用例名称"
+      caseNumber:
+        type: "string"
+        description: "用例编号"
+      networkTopology:
+        type: "string"
+        description: "逻辑组网"
+      businessCategory:
+        type: "string"
+        description: "业务大类"
+      appName:
+        type: "string"
+        description: "用例App"
+      testSteps:
+        type: "string"
+        description: "测试步骤"
+      expectedResult:
+        type: "string"
+        description: "预期结果"
+      scriptExists:
+        type: "boolean"
+        description: "脚本是否存在"
+      createdTime:
+        type: "string"
+        format: "date-time"
+        description: "创建时间"
+      updatedTime:
+        type: "string"
+        format: "date-time"
+        description: "更新时间"
+
+  TestCaseSetUpdateRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        description: "描述"
+      business:
+        type: "string"
+        description: "业务类型"
+
+  TestCaseSetPageResponse:
+    type: "object"
+    properties:
+      content:
+        type: "array"
+        items:
+          $ref: "#/definitions/TestCaseSet"
+      totalElements:
+        type: "integer"
+        format: "int64"
+        description: "总元素数"
+      totalPages:
+        type: "integer"
+        format: "int32"
+        description: "总页数"
+      size:
+        type: "integer"
+        format: "int32"
+        description: "每页大小"
+      number:
+        type: "integer"
+        format: "int32"
+        description: "当前页码"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      message:
+        type: "string"
+        description: "操作结果消息"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      error:
+        type: "string"
+        description: "错误代码"
+      message:
+        type: "string"
+        description: "错误消息"

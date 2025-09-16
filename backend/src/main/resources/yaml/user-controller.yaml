@@ -1,0 +1,381 @@
+swagger: "2.0"
+info:
+  title: "User Management API"
+  description: "用户管理API文档 - 提供用户的创建、更新、删除、查询等操作"
+  version: "1.0.0"
+  contact:
+    name: "g00940940"
+    email: "g00940940@huawei.com"
+host: "localhost:8087"
+basePath: "/dialingtest"
+schemes:
+  - "https"
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+paths:
+  /api/users:
+    get:
+      tags:
+        - "用户管理"
+      summary: "获取用户列表（分页）"
+      description: "获取用户列表，支持分页和搜索功能"
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+          minimum: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+          minimum: 1
+          maximum: 100
+        - name: "search"
+          in: "query"
+          description: "搜索关键字（用户名）"
+          required: false
+          type: "string"
+      responses:
+        200:
+          description: "成功获取用户列表"
+          schema:
+            type: "object"
+            properties:
+              data:
+                type: "array"
+                items:
+                  $ref: "#/definitions/User"
+              total:
+                type: "integer"
+                description: "总记录数"
+              page:
+                type: "integer"
+                description: "当前页码"
+              pageSize:
+                type: "integer"
+                description: "每页大小"
+              totalPages:
+                type: "integer"
+                description: "总页数"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags:
+        - "用户管理"
+      summary: "创建新用户"
+      description: "创建新的用户账号"
+      parameters:
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/UserCreateRequest"
+      responses:
+        201:
+          description: "用户创建成功"
+          schema:
+            $ref: "#/definitions/User"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/users/{id}:
+    get:
+      tags:
+        - "用户管理"
+      summary: "根据ID获取用户"
+      description: "根据用户ID获取用户详细信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "用户ID"
+      responses:
+        200:
+          description: "成功获取用户信息"
+          schema:
+            $ref: "#/definitions/User"
+        404:
+          description: "用户不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    put:
+      tags:
+        - "用户管理"
+      summary: "更新用户信息"
+      description: "更新指定用户的信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "用户ID"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/UserUpdateRequest"
+      responses:
+        200:
+          description: "用户更新成功"
+          schema:
+            $ref: "#/definitions/User"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags:
+        - "用户管理"
+      summary: "删除用户"
+      description: "删除指定的用户"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "integer"
+          format: "int64"
+          description: "用户ID"
+      responses:
+        200:
+          description: "用户删除成功"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/users/username/{username}:
+    get:
+      tags:
+        - "用户管理"
+      summary: "根据用户名获取用户"
+      description: "根据用户名获取用户详细信息"
+      parameters:
+        - name: "username"
+          in: "path"
+          required: true
+          type: "string"
+          description: "用户名"
+      responses:
+        200:
+          description: "成功获取用户信息"
+          schema:
+            $ref: "#/definitions/User"
+        404:
+          description: "用户不存在"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/users/search:
+    get:
+      tags:
+        - "用户管理"
+      summary: "搜索用户"
+      description: "根据用户名关键字搜索用户"
+      parameters:
+        - name: "username"
+          in: "query"
+          required: true
+          type: "string"
+          description: "用户名关键字"
+      responses:
+        200:
+          description: "搜索成功"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/User"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/users/validate-password:
+    post:
+      tags:
+        - "用户管理"
+      summary: "验证用户密码"
+      description: "验证指定用户的密码是否正确"
+      parameters:
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/PasswordValidationRequest"
+      responses:
+        200:
+          description: "密码验证完成"
+          schema:
+            $ref: "#/definitions/PasswordValidationResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /api/users/update-login-time:
+    post:
+      tags:
+        - "用户管理"
+      summary: "更新最后登录时间"
+      description: "更新用户的最后登录时间"
+      parameters:
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateLoginTimeRequest"
+      responses:
+        200:
+          description: "登录时间更新成功"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  User:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "用户ID"
+      username:
+        type: "string"
+        description: "用户名"
+      password:
+        type: "string"
+        description: "密码（加密存储）"
+      lastLoginTime:
+        type: "string"
+        format: "date-time"
+        description: "最后登录时间"
+      createdTime:
+        type: "string"
+        format: "date-time"
+        description: "创建时间"
+      updatedTime:
+        type: "string"
+        format: "date-time"
+        description: "更新时间"
+
+  UserCreateRequest:
+    type: "object"
+    required:
+      - "username"
+      - "password"
+    properties:
+      username:
+        type: "string"
+        description: "用户名"
+      password:
+        type: "string"
+        description: "密码"
+
+  UserUpdateRequest:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        description: "用户名"
+      password:
+        type: "string"
+        description: "密码"
+
+  PasswordValidationRequest:
+    type: "object"
+    required:
+      - "username"
+      - "password"
+    properties:
+      username:
+        type: "string"
+        description: "用户名"
+      password:
+        type: "string"
+        description: "密码"
+
+  PasswordValidationResponse:
+    type: "object"
+    properties:
+      valid:
+        type: "boolean"
+        description: "密码是否有效"
+      message:
+        type: "string"
+        description: "验证结果消息"
+
+  UpdateLoginTimeRequest:
+    type: "object"
+    required:
+      - "username"
+    properties:
+      username:
+        type: "string"
+        description: "用户名"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      message:
+        type: "string"
+        description: "操作结果消息"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "操作是否成功"
+      error:
+        type: "string"
+        description: "错误代码"
+      message:
+        type: "string"
+        description: "错误消息"
