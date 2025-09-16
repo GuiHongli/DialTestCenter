@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.config;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import com.huawei.dialtest.center.service.UserRoleService;
 
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ public class AdminInitializer implements ApplicationRunner {
     private void initializeDefaultAdmin() {
         try {
             if (!userRoleService.hasAdminUser()) {
-                UserRole adminRole = new UserRole();
+                DialUserRole adminRole = new DialUserRole();
                 adminRole.setUsername(defaultAdminUsername);
                 adminRole.setRole(Role.ADMIN);
 

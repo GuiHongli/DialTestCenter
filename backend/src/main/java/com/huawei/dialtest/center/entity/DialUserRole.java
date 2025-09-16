@@ -14,7 +14,7 @@ import java.util.Objects;
  * @author g00940940
  * @since 2025-09-06
  */
-public class UserRole {
+public class DialUserRole {
     private Long id;
     private String username;
     private Role role;
@@ -25,7 +25,7 @@ public class UserRole {
      * @author g00940940
      * @since 2025-09-06
      */
-    public UserRole() {}
+    public DialUserRole() {}
 
     /**
      * 带参数构造函数，用于创建新的用户角色关系实例
@@ -35,7 +35,7 @@ public class UserRole {
      * @author g00940940
      * @since 2025-09-06
      */
-    public UserRole(String username, Role role) {
+    public DialUserRole(String username, Role role) {
         this.username = username;
         this.role = role;
     }
@@ -73,7 +73,7 @@ public class UserRole {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        UserRole userRole = (UserRole) o;
+        DialUserRole userRole = (DialUserRole) o;
         return Objects.equals(id, userRole.id) &&
                Objects.equals(username, userRole.username) &&
                role == userRole.role;
@@ -86,7 +86,7 @@ public class UserRole {
 
     @Override
     public String toString() {
-        return "UserRole{" +
+        return "DialUserRole{" +
                "id=" + id +
                ", username='" + username + '\'' +
                ", role=" + role +

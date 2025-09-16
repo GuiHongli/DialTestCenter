@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 
 /**
  * 用户角色实体测试类，测试UserRole实体的各种功能
@@ -26,25 +26,25 @@ import com.huawei.dialtest.center.entity.UserRole;
  * @author g00940940
  * @since 2025-09-06
  */
-public class UserRoleTest {
+public class DialUserRoleTest {
 
-    private UserRole userRole1;
-    private UserRole userRole2;
-    private UserRole userRole3;
+    private DialUserRole userRole1;
+    private DialUserRole userRole2;
+    private DialUserRole userRole3;
 
     @Before
     public void setUp() {
-        userRole1 = new UserRole();
+        userRole1 = new DialUserRole();
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
 
-        userRole2 = new UserRole();
+        userRole2 = new DialUserRole();
         userRole2.setId(1L);
         userRole2.setUsername("user1");
         userRole2.setRole(Role.ADMIN);
 
-        userRole3 = new UserRole();
+        userRole3 = new DialUserRole();
         userRole3.setId(2L);
         userRole3.setUsername("user2");
         userRole3.setRole(Role.OPERATOR);
@@ -53,7 +53,7 @@ public class UserRoleTest {
     @Test
     public void testDefaultConstructor() {
         // When
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // Then
         assertNotNull(userRole);
@@ -62,7 +62,7 @@ public class UserRoleTest {
     @Test
     public void testParameterizedConstructor() {
         // When
-        UserRole userRole = new UserRole("testuser", Role.ADMIN);
+        DialUserRole userRole = new DialUserRole("testuser", Role.ADMIN);
 
         // Then
         assertNotNull(userRole);
@@ -73,7 +73,7 @@ public class UserRoleTest {
     @Test
     public void testGettersAndSetters() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
         Long id = 1L;
         String username = "testuser";
         Role role = Role.OPERATOR;
@@ -116,13 +116,13 @@ public class UserRoleTest {
     @Test
     public void testEquals_DifferentClass() {
         // When & Then
-        assertFalse(userRole1.equals("not a UserRole"));
+        assertFalse(userRole1.equals("not a DialUserRole"));
     }
 
     @Test
     public void testEquals_DifferentId() {
         // Given
-        UserRole userRoleWithDifferentId = new UserRole();
+        DialUserRole userRoleWithDifferentId = new DialUserRole();
         userRoleWithDifferentId.setId(999L);
         userRoleWithDifferentId.setUsername("user1");
         userRoleWithDifferentId.setRole(Role.ADMIN);
@@ -134,7 +134,7 @@ public class UserRoleTest {
     @Test
     public void testEquals_DifferentUsername() {
         // Given
-        UserRole userRoleWithDifferentUsername = new UserRole();
+        DialUserRole userRoleWithDifferentUsername = new DialUserRole();
         userRoleWithDifferentUsername.setId(1L);
         userRoleWithDifferentUsername.setUsername("differentuser");
         userRoleWithDifferentUsername.setRole(Role.ADMIN);
@@ -146,7 +146,7 @@ public class UserRoleTest {
     @Test
     public void testEquals_DifferentRole() {
         // Given
-        UserRole userRoleWithDifferentRole = new UserRole();
+        DialUserRole userRoleWithDifferentRole = new DialUserRole();
         userRoleWithDifferentRole.setId(1L);
         userRoleWithDifferentRole.setUsername("user1");
         userRoleWithDifferentRole.setRole(Role.OPERATOR);
@@ -184,7 +184,7 @@ public class UserRoleTest {
 
         // Then
         assertNotNull(toString);
-        assertTrue(toString.contains("UserRole"));
+        assertTrue(toString.contains("DialUserRole"));
         assertTrue(toString.contains("id=1"));
         assertTrue(toString.contains("username='user1'"));
         assertTrue(toString.contains("role=ADMIN"));
@@ -193,7 +193,7 @@ public class UserRoleTest {
     @Test
     public void testToString_WithNullValues() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
         userRole.setId(null);
         userRole.setUsername(null);
         userRole.setRole(null);
@@ -203,7 +203,7 @@ public class UserRoleTest {
 
         // Then
         assertNotNull(toString);
-        assertTrue(toString.contains("UserRole"));
+        assertTrue(toString.contains("DialUserRole"));
         assertTrue(toString.contains("id=null"));
         assertTrue(toString.contains("username='null'"));
         assertTrue(toString.contains("role=null"));
@@ -213,7 +213,7 @@ public class UserRoleTest {
     public void testAllRoleTypes() {
         // Test all role types
         for (Role role : Role.values()) {
-            UserRole userRole = new UserRole();
+            DialUserRole userRole = new DialUserRole();
             userRole.setRole(role);
             assertEquals(role, userRole.getRole());
         }
@@ -223,7 +223,7 @@ public class UserRoleTest {
     public void testUsernameWithSpecialCharacters() {
         // Given
         String specialUsername = "user@domain.com";
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setUsername(specialUsername);
@@ -236,7 +236,7 @@ public class UserRoleTest {
     public void testUsernameWithSpaces() {
         // Given
         String usernameWithSpaces = "  user with spaces  ";
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setUsername(usernameWithSpaces);
@@ -249,7 +249,7 @@ public class UserRoleTest {
     public void testEmptyUsername() {
         // Given
         String emptyUsername = "";
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setUsername(emptyUsername);
@@ -261,7 +261,7 @@ public class UserRoleTest {
     @Test
     public void testNullUsername() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setUsername(null);
@@ -273,7 +273,7 @@ public class UserRoleTest {
     @Test
     public void testNullRole() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setRole(null);
@@ -285,7 +285,7 @@ public class UserRoleTest {
     @Test
     public void testNullId() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setId(null);
@@ -297,7 +297,7 @@ public class UserRoleTest {
     @Test
     public void testNullValues() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
 
         // When
         userRole.setId(null);

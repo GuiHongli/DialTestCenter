@@ -32,7 +32,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import com.huawei.dialtest.center.mapper.UserRoleMapper;
 import com.huawei.dialtest.center.service.UserRoleService;
 
@@ -53,12 +53,12 @@ public class UserRoleServiceTest {
     @InjectMocks
     private UserRoleService userRoleService;
 
-    private UserRole testUserRole;
-    private List<UserRole> testUserRoles;
+    private DialUserRole testUserRole;
+    private List<DialUserRole> testUserRoles;
 
     @Before
     public void setUp() {
-        testUserRole = new UserRole();
+        testUserRole = new DialUserRole();
         testUserRole.setId(1L);
         testUserRole.setUsername("testuser");
         testUserRole.setRole(Role.ADMIN);
@@ -73,7 +73,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(testUserRoles);
 
         // When
-        List<UserRole> result = userRoleService.getUserRoles(username);
+        List<DialUserRole> result = userRoleService.getUserRoles(username);
 
         // Then
         assertNotNull(result);
@@ -102,7 +102,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(username)).thenReturn(Collections.emptyList());
 
         // When
-        List<UserRole> result = userRoleService.getUserRoles(username);
+        List<DialUserRole> result = userRoleService.getUserRoles(username);
 
         // Then
         assertNotNull(result);
@@ -113,16 +113,16 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_Success_NewUserRole() {
         // Given
-        UserRole newUserRole = new UserRole();
+        DialUserRole newUserRole = new DialUserRole();
         newUserRole.setUsername("newuser");
         newUserRole.setRole(Role.OPERATOR);
         // ID为null表示新建
 
         when(userRoleMapper.existsByUsernameAndRole(anyString(), anyString())).thenReturn(false);
-        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
+        when(userRoleMapper.insert(any(DialUserRole.class))).thenReturn(1);
 
         // When
-        UserRole result = userRoleService.save(newUserRole);
+        DialUserRole result = userRoleService.save(newUserRole);
 
         // Then
         assertNotNull(result);
@@ -135,7 +135,7 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_DuplicateRole() {
         // Given
-        UserRole duplicateUserRole = new UserRole();
+        DialUserRole duplicateUserRole = new DialUserRole();
         duplicateUserRole.setUsername("testuser");
         duplicateUserRole.setRole(Role.ADMIN);
 
@@ -307,21 +307,21 @@ public class UserRoleServiceTest {
     @Test
     public void testGetAllUserRoles_Success() {
         // Given
-        UserRole userRole1 = new UserRole();
+        DialUserRole userRole1 = new DialUserRole();
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
 
-        UserRole userRole2 = new UserRole();
+        DialUserRole userRole2 = new DialUserRole();
         userRole2.setId(2L);
         userRole2.setUsername("user2");
         userRole2.setRole(Role.OPERATOR);
 
-        List<UserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
+        List<DialUserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
         when(userRoleMapper.findAllOrderByCreatedTimeDesc()).thenReturn(expectedUserRoles);
 
         // When
-        List<UserRole> result = userRoleService.getAllUserRoles();
+        List<DialUserRole> result = userRoleService.getAllUserRoles();
 
         // Then
         assertNotNull(result);
@@ -336,24 +336,24 @@ public class UserRoleServiceTest {
         int pageSize = 10;
         String search = null;
         
-        UserRole userRole1 = new UserRole();
+        DialUserRole userRole1 = new DialUserRole();
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
 
-        UserRole userRole2 = new UserRole();
+        DialUserRole userRole2 = new DialUserRole();
         userRole2.setId(2L);
         userRole2.setUsername("user2");
         userRole2.setRole(Role.OPERATOR);
 
-        List<UserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
+        List<DialUserRole> expectedUserRoles = Arrays.asList(userRole1, userRole2);
         long totalCount = 2L;
         
         when(userRoleMapper.findAllByOrderByCreatedTimeDesc(0, pageSize)).thenReturn(expectedUserRoles);
         when(userRoleMapper.count()).thenReturn(totalCount);
 
         // When
-        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+        Page<DialUserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(result);
@@ -372,19 +372,19 @@ public class UserRoleServiceTest {
         int pageSize = 10;
         String search = "test";
         
-        UserRole userRole1 = new UserRole();
+        DialUserRole userRole1 = new DialUserRole();
         userRole1.setId(1L);
         userRole1.setUsername("testuser1");
         userRole1.setRole(Role.ADMIN);
 
-        List<UserRole> expectedUserRoles = Arrays.asList(userRole1);
+        List<DialUserRole> expectedUserRoles = Arrays.asList(userRole1);
         long totalCount = 1L;
         
         when(userRoleMapper.findByUsernameContainingWithPage(search, 0, pageSize)).thenReturn(expectedUserRoles);
         when(userRoleMapper.countByUsernameContaining(search)).thenReturn(totalCount);
 
         // When
-        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+        Page<DialUserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(result);
@@ -403,19 +403,19 @@ public class UserRoleServiceTest {
         int pageSize = 10;
         String search = "";
         
-        UserRole userRole1 = new UserRole();
+        DialUserRole userRole1 = new DialUserRole();
         userRole1.setId(1L);
         userRole1.setUsername("user1");
         userRole1.setRole(Role.ADMIN);
 
-        List<UserRole> expectedUserRoles = Arrays.asList(userRole1);
+        List<DialUserRole> expectedUserRoles = Arrays.asList(userRole1);
         long totalCount = 1L;
         
         when(userRoleMapper.findAllByOrderByCreatedTimeDesc(0, pageSize)).thenReturn(expectedUserRoles);
         when(userRoleMapper.count()).thenReturn(totalCount);
 
         // When
-        Page<UserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
+        Page<DialUserRole> result = userRoleService.getAllUserRoles(page, pageSize, search);
 
         // Then
         assertNotNull(result);
@@ -430,7 +430,7 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_Success_UpdateUserRole() {
         // Given
-        UserRole existingUserRole = new UserRole();
+        DialUserRole existingUserRole = new DialUserRole();
         existingUserRole.setId(1L);
         existingUserRole.setUsername("updateduser");
         existingUserRole.setRole(Role.OPERATOR);
@@ -438,10 +438,10 @@ public class UserRoleServiceTest {
         // 模拟查找不到其他相同用户名和角色的记录
         when(userRoleMapper.findByUsernameAndRole("updateduser", Role.OPERATOR.toString()))
             .thenReturn(null);
-        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
+        when(userRoleMapper.insert(any(DialUserRole.class))).thenReturn(1);
 
         // When
-        UserRole result = userRoleService.save(existingUserRole);
+        DialUserRole result = userRoleService.save(existingUserRole);
 
         // Then
         assertNotNull(result);
@@ -454,12 +454,12 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_UpdateWithDuplicateRole() {
         // Given
-        UserRole existingUserRole = new UserRole();
+        DialUserRole existingUserRole = new DialUserRole();
         existingUserRole.setId(1L);
         existingUserRole.setUsername("updateduser");
         existingUserRole.setRole(Role.OPERATOR);
 
-        UserRole duplicateUserRole = new UserRole();
+        DialUserRole duplicateUserRole = new DialUserRole();
         duplicateUserRole.setId(2L); // 不同的ID
         duplicateUserRole.setUsername("updateduser");
         duplicateUserRole.setRole(Role.OPERATOR);
@@ -480,7 +480,7 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_EmptyUsername() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
         userRole.setUsername("");
         userRole.setRole(Role.ADMIN);
 
@@ -496,7 +496,7 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_NullRole() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
         userRole.setUsername("testuser");
         userRole.setRole(null);
 
@@ -516,7 +516,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findById(id)).thenReturn(testUserRole);
 
         // When
-        Optional<UserRole> result = userRoleService.findById(id);
+        Optional<DialUserRole> result = userRoleService.findById(id);
 
         // Then
         assertTrue(result.isPresent());
@@ -532,7 +532,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findById(id)).thenReturn(null);
 
         // When
-        Optional<UserRole> result = userRoleService.findById(id);
+        Optional<DialUserRole> result = userRoleService.findById(id);
 
         // Then
         assertFalse(result.isPresent());
@@ -558,7 +558,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findByRole(role.toString())).thenReturn(testUserRoles);
 
         // When
-        List<UserRole> result = userRoleService.getUserRolesByRole(role);
+        List<DialUserRole> result = userRoleService.getUserRolesByRole(role);
 
         // Then
         assertNotNull(result);
@@ -605,7 +605,7 @@ public class UserRoleServiceTest {
         when(userRoleMapper.findByUsernameOrderByCreatedTimeDesc(trimmedUsername)).thenReturn(testUserRoles);
 
         // When
-        List<UserRole> result = userRoleService.getUserRoles(usernameWithSpaces);
+        List<DialUserRole> result = userRoleService.getUserRoles(usernameWithSpaces);
 
         // Then
         assertNotNull(result);
@@ -633,15 +633,15 @@ public class UserRoleServiceTest {
     @Test
     public void testSaveUserRole_UsernameWithSpaces() {
         // Given
-        UserRole userRole = new UserRole();
+        DialUserRole userRole = new DialUserRole();
         userRole.setUsername("  testuser  ");
         userRole.setRole(Role.ADMIN);
 
         when(userRoleMapper.existsByUsernameAndRole("testuser", Role.ADMIN.toString())).thenReturn(false);
-        when(userRoleMapper.insert(any(UserRole.class))).thenReturn(1);
+        when(userRoleMapper.insert(any(DialUserRole.class))).thenReturn(1);
 
         // When
-        UserRole result = userRoleService.save(userRole);
+        DialUserRole result = userRoleService.save(userRole);
 
         // Then
         assertNotNull(result);

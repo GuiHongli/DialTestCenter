@@ -7,7 +7,7 @@ package com.huawei.dialtest.center.controller;
 import com.huawei.dialtest.center.dto.ApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import com.huawei.dialtest.center.service.UserRoleService;
 
 import org.slf4j.Logger;
@@ -58,14 +58,14 @@ public class UserRoleController {
      * @return 分页的用户角色列表
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<PagedResponse<UserRole>>> getUserRoles(
+    public ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> getUserRoles(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search) {
         try {
-            Page<UserRole> userRolePage = userRoleService.getAllUserRoles(page, pageSize, search);
+            Page<DialUserRole> userRolePage = userRoleService.getAllUserRoles(page, pageSize, search);
             
-            PagedResponse<UserRole> pagedResponse = new PagedResponse<>(
+            PagedResponse<DialUserRole> pagedResponse = new PagedResponse<>(
                 userRolePage.getContent(),
                 userRolePage.getTotalElements(),
                 page,
@@ -98,13 +98,13 @@ public class UserRoleController {
      * @throws IllegalArgumentException 当请求参数无效时抛出
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<UserRole>> createUserRole(@Valid @RequestBody UserRoleRequest request) {
+    public ResponseEntity<ApiResponse<DialUserRole>> createUserRole(@Valid @RequestBody UserRoleRequest request) {
         logger.info("Creating user role: {} - {}", request.getUsername(), request.getRole());
         try {
-            UserRole userRole = new UserRole();
+            DialUserRole userRole = new DialUserRole();
             userRole.setUsername(request.getUsername());
             userRole.setRole(request.getRole());
-            UserRole savedUserRole = userRoleService.save(userRole);
+            DialUserRole savedUserRole = userRoleService.save(userRole);
             logger.info("User role created successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(savedUserRole, "User role created successfully"));
         } catch (IllegalArgumentException e) {
@@ -132,16 +132,16 @@ public class UserRoleController {
      * @throws IllegalArgumentException 当请求参数无效时抛出
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserRole>> updateUserRole(
+    public ResponseEntity<ApiResponse<DialUserRole>> updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UserRoleRequest request) {
         logger.info("Updating user role with ID: {}", id);
         try {
-            UserRole userRole = userRoleService.findById(id)
+            DialUserRole userRole = userRoleService.findById(id)
                 .orElseThrow(() -> new RuntimeException("User role does not exist"));
             userRole.setUsername(request.getUsername());
             userRole.setRole(request.getRole());
-            UserRole updatedUserRole = userRoleService.save(userRole);
+            DialUserRole updatedUserRole = userRoleService.save(userRole);
             logger.info("User role updated successfully: {} - {}", request.getUsername(), request.getRole());
             return ResponseEntity.ok(ApiResponse.success(updatedUserRole, "User role updated successfully"));
         } catch (IllegalArgumentException e) {

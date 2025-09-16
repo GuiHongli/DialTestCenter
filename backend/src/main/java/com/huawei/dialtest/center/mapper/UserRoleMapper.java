@@ -5,7 +5,7 @@
 package com.huawei.dialtest.center.mapper;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -27,7 +27,7 @@ public interface UserRoleMapper {
      * @param id 用户角色关系ID
      * @return 用户角色关系对象
      */
-    UserRole findById(@Param("id") Long id);
+    DialUserRole findById(@Param("id") Long id);
 
     /**
      * 根据用户名查询用户角色列表
@@ -35,7 +35,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 用户角色列表
      */
-    List<UserRole> findByUsername(@Param("username") String username);
+    List<DialUserRole> findByUsername(@Param("username") String username);
 
     /**
      * 根据用户名查询用户角色列表，按创建时间倒序排列
@@ -43,7 +43,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 用户角色列表
      */
-    List<UserRole> findByUsernameOrderByCreatedTimeDesc(@Param("username") String username);
+    List<DialUserRole> findByUsernameOrderByCreatedTimeDesc(@Param("username") String username);
 
     /**
      * 根据用户名查询角色枚举列表
@@ -60,7 +60,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 用户角色关系
      */
-    UserRole findByUsernameAndRole(@Param("username") String username, @Param("role") String role);
+    DialUserRole findByUsernameAndRole(@Param("username") String username, @Param("role") String role);
 
     /**
      * 检查用户名和角色组合是否存在
@@ -77,7 +77,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 用户角色关系列表
      */
-    List<UserRole> findByRole(@Param("role") String role);
+    List<DialUserRole> findByRole(@Param("role") String role);
 
     /**
      * 检查是否存在指定角色的用户
@@ -117,7 +117,7 @@ public interface UserRoleMapper {
      *
      * @return 用户角色列表
      */
-    List<UserRole> findAllOrderByCreatedTimeDesc();
+    List<DialUserRole> findAllOrderByCreatedTimeDesc();
 
     /**
      * 统计用户角色关系总数
@@ -132,7 +132,7 @@ public interface UserRoleMapper {
      * @param userRole 用户角色关系对象
      * @return 影响行数
      */
-    int insert(UserRole userRole);
+    int insert(DialUserRole userRole);
 
     /**
      * 更新用户角色关系
@@ -140,7 +140,7 @@ public interface UserRoleMapper {
      * @param userRole 用户角色关系对象
      * @return 影响行数
      */
-    int update(UserRole userRole);
+    int update(DialUserRole userRole);
 
     /**
      * 根据ID删除用户角色关系
@@ -157,7 +157,7 @@ public interface UserRoleMapper {
      * @param pageSize 每页大小
      * @return 用户角色列表
      */
-    List<UserRole> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+    List<DialUserRole> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
      * 根据用户名分页查询用户角色，按创建时间倒序排列
@@ -167,7 +167,7 @@ public interface UserRoleMapper {
      * @param pageSize 每页大小
      * @return 用户角色列表
      */
-    List<UserRole> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+    List<DialUserRole> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
      * 统计包含指定用户名的用户角色数量

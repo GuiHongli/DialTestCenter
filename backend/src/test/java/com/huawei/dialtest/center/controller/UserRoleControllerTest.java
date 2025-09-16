@@ -7,7 +7,7 @@ package com.huawei.dialtest.center.controller;
 import com.huawei.dialtest.center.dto.ApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import com.huawei.dialtest.center.service.UserRoleService;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,17 +45,17 @@ public class UserRoleControllerTest {
     @InjectMocks
     private UserRoleController userRoleController;
 
-    private UserRole testUserRole;
-    private List<UserRole> testUserRoles;
+    private DialUserRole testUserRole;
+    private List<DialUserRole> testUserRoles;
 
     @Before
     public void setUp() {
-        testUserRole = new UserRole();
+        testUserRole = new DialUserRole();
         testUserRole.setId(1L);
         testUserRole.setUsername("testuser");
         testUserRole.setRole(Role.ADMIN);
 
-        UserRole userRole2 = new UserRole();
+        DialUserRole userRole2 = new DialUserRole();
         userRole2.setId(2L);
         userRole2.setUsername("testuser2");
         userRole2.setRole(Role.EXECUTOR);
@@ -65,10 +65,10 @@ public class UserRoleControllerTest {
 
     @Test
     public void testGetUserRoles_Success() {
-        Page<UserRole> userRolePage = new PageImpl<>(testUserRoles, PageRequest.of(0, 10), 2);
+        Page<DialUserRole> userRolePage = new PageImpl<>(testUserRoles, PageRequest.of(0, 10), 2);
         when(userRoleService.getAllUserRoles(1, 10, null)).thenReturn(userRolePage);
 
-        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -86,7 +86,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllUserRoles(1, 10, null))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -101,7 +101,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllUserRoles(1, 10, null))
                 .thenThrow(new DataAccessException("Database error") {});
 
-        ResponseEntity<ApiResponse<PagedResponse<UserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -112,20 +112,20 @@ public class UserRoleControllerTest {
 
     @Test
     public void testCreateUserRole_Success() {
-        when(userRoleService.save(any(UserRole.class))).thenReturn(testUserRole);
+        when(userRoleService.save(any(DialUserRole.class))).thenReturn(testUserRole);
 
         UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
         request.setUsername("testuser");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         assertEquals(testUserRole, response.getBody().getData());
         assertEquals("User role created successfully", response.getBody().getMessage());
-        verify(userRoleService).save(any(UserRole.class));
+        verify(userRoleService).save(any(DialUserRole.class));
     }
 
     @Test
@@ -134,7 +134,7 @@ public class UserRoleControllerTest {
         request.setUsername("");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -144,32 +144,32 @@ public class UserRoleControllerTest {
 
     @Test
     public void testCreateUserRole_DatabaseError() {
-        when(userRoleService.save(any(UserRole.class)))
+        when(userRoleService.save(any(DialUserRole.class)))
                 .thenThrow(new DataAccessException("Database error") {});
 
         UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
         request.setUsername("testuser");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertEquals("DATABASE_ERROR", response.getBody().getErrorCode());
-        verify(userRoleService).save(any(UserRole.class));
+        verify(userRoleService).save(any(DialUserRole.class));
     }
 
     @Test
     public void testUpdateUserRole_Success() {
         when(userRoleService.findById(1L)).thenReturn(Optional.of(testUserRole));
-        when(userRoleService.save(any(UserRole.class))).thenReturn(testUserRole);
+        when(userRoleService.save(any(DialUserRole.class))).thenReturn(testUserRole);
 
         UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -177,7 +177,7 @@ public class UserRoleControllerTest {
         assertEquals(testUserRole, response.getBody().getData());
         assertEquals("User role updated successfully", response.getBody().getMessage());
         verify(userRoleService).findById(1L);
-        verify(userRoleService).save(any(UserRole.class));
+        verify(userRoleService).save(any(DialUserRole.class));
     }
 
     @Test
@@ -188,7 +188,7 @@ public class UserRoleControllerTest {
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -200,21 +200,21 @@ public class UserRoleControllerTest {
     @Test
     public void testUpdateUserRole_ValidationError() {
         when(userRoleService.findById(1L)).thenReturn(Optional.of(testUserRole));
-        when(userRoleService.save(any(UserRole.class)))
+        when(userRoleService.save(any(DialUserRole.class)))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
         UserRoleController.UserRoleRequest request = new UserRoleController.UserRoleRequest();
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<UserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
         verify(userRoleService).findById(1L);
-        verify(userRoleService).save(any(UserRole.class));
+        verify(userRoleService).save(any(DialUserRole.class));
     }
 
     @Test

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.huawei.dialtest.center.entity.Role;
-import com.huawei.dialtest.center.entity.UserRole;
+import com.huawei.dialtest.center.entity.DialUserRole;
 import com.huawei.dialtest.center.mapper.UserRoleMapper;
 
 /**
@@ -49,7 +49,7 @@ public class UserRoleService {
      * @throws IllegalArgumentException 当用户名为空时抛出
      */
     @Transactional(readOnly = true)
-    public List<UserRole> getUserRoles(String username) {
+    public List<DialUserRole> getUserRoles(String username) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }
@@ -81,7 +81,7 @@ public class UserRoleService {
      * @return 所有用户角色关系列表
      */
     @Transactional(readOnly = true)
-    public List<UserRole> getAllUserRoles() {
+    public List<DialUserRole> getAllUserRoles() {
         logger.debug("Querying all user role relationships");
         return userRoleMapper.findAllOrderByCreatedTimeDesc();
     }
@@ -93,7 +93,7 @@ public class UserRoleService {
      * @return 保存后的用户角色关系
      * @throws IllegalArgumentException 当用户角色为空时抛出
      */
-    public UserRole save(UserRole userRole) {
+    public DialUserRole save(DialUserRole userRole) {
         if (userRole == null) {
             throw new IllegalArgumentException("User role cannot be null");
         }
@@ -110,7 +110,7 @@ public class UserRoleService {
 
         // 如果是更新操作（有ID），需要检查是否存在其他记录有相同的用户名和角色组合
         if (userRole.getId() != null) {
-            UserRole existingUserRole = userRoleMapper.findByUsernameAndRole(
+            DialUserRole existingUserRole = userRoleMapper.findByUsernameAndRole(
                 userRole.getUsername(), userRole.getRole().toString());
             if (existingUserRole != null && !existingUserRole.getId().equals(userRole.getId())) {
                 throw new IllegalArgumentException("User role relationship already exists: " + userRole.getUsername() + " - " + userRole.getRole());
@@ -145,13 +145,13 @@ public class UserRoleService {
      * @throws IllegalArgumentException 当ID为空时抛出
      */
     @Transactional(readOnly = true)
-    public Optional<UserRole> findById(Long id) {
+    public Optional<DialUserRole> findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
 
         logger.debug("Finding user role by ID: {}", id);
-        UserRole userRole = userRoleMapper.findById(id);
+        DialUserRole userRole = userRoleMapper.findById(id);
         return Optional.ofNullable(userRole);
     }
 
@@ -166,7 +166,7 @@ public class UserRoleService {
             throw new IllegalArgumentException("ID cannot be null");
         }
 
-        UserRole userRole = userRoleMapper.findById(id);
+        DialUserRole userRole = userRoleMapper.findById(id);
         if (userRole == null) {
             throw new IllegalArgumentException("User role relationship does not exist: " + id);
         }
@@ -230,7 +230,7 @@ public class UserRoleService {
      * @return 用户角色关系列表
      */
     @Transactional(readOnly = true)
-    public List<UserRole> getUserRolesByRole(Role role) {
+    public List<DialUserRole> getUserRolesByRole(Role role) {
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
@@ -280,13 +280,13 @@ public class UserRoleService {
      * @return 分页的用户角色列表
      */
     @Transactional(readOnly = true)
-    public Page<UserRole> getAllUserRoles(int page, int pageSize, String search) {
+    public Page<DialUserRole> getAllUserRoles(int page, int pageSize, String search) {
         logger.debug("Getting user roles with pagination: page={}, pageSize={}, search={}", page, pageSize, search);
         
         // 转换为从0开始的页码
         int pageNo = page - 1;
         
-        List<UserRole> userRoles;
+        List<DialUserRole> userRoles;
         long total;
         
         if (search != null && !search.trim().isEmpty()) {

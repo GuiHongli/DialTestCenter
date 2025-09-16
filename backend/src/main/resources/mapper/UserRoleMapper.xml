@@ -3,7 +3,7 @@
 <mapper namespace="com.huawei.dialtest.center.mapper.UserRoleMapper">
 
     <!-- 结果映射 -->
-    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.UserRole">
+    <resultMap id="BaseResultMap" type="com.huawei.dialtest.center.entity.DialUserRole">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="username" property="username" jdbcType="VARCHAR"/>
         <result column="role" property="role" jdbcType="VARCHAR"/>
@@ -107,7 +107,7 @@
     </select>
 
     <!-- 插入用户角色关系 -->
-    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.UserRole" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="com.huawei.dialtest.center.entity.DialUserRole" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_role (
             username,
             role
@@ -118,7 +118,7 @@
     </insert>
 
     <!-- 更新用户角色关系 -->
-    <update id="update" parameterType="com.huawei.dialtest.center.entity.UserRole">
+    <update id="update" parameterType="com.huawei.dialtest.center.entity.DialUserRole">
         UPDATE user_role
         SET username = #{username},
             role = #{role}
