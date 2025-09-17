@@ -28,14 +28,7 @@ public interface UserMapper {
      */
     DialUser findById(@Param("id") Long id);
 
-    /**
-     * 根据用户名查找用户
-     *
-     * @param username 用户名
-     * @return 用户信息
-     */
-    DialUser findByUsername(@Param("username") String username);
-
+  
     /**
      * 检查用户名是否存在
      *
@@ -45,21 +38,13 @@ public interface UserMapper {
     boolean existsByUsername(@Param("username") String username);
 
     /**
-     * 根据用户名模糊查询用户列表
-     *
-     * @param username 用户名关键字
-     * @return 用户列表
-     */
-    List<DialUser> findByUsernameContaining(@Param("username") String username);
-
-    /**
-     * 分页查询用户列表，按创建时间倒序排列
+     * 分页查询用户列表，按ID倒序排列
      *
      * @param pageNo 页码（从0开始）
      * @param pageSize 每页大小
      * @return 用户列表
      */
-    List<DialUser> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
+    List<DialUser> findAllByOrderByIdDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
      * 根据用户名模糊查询用户列表（分页）

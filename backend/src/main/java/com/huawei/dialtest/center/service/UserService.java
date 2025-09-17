@@ -62,7 +62,7 @@ public class UserService {
                 total = userMapper.countByUsernameContaining(search.trim());
             } else {
                 // 无搜索条件的分页查询
-                content = userMapper.findAllByOrderByCreatedTimeDesc(page - 1, pageSize);
+                content = userMapper.findAllByOrderByIdDesc(page - 1, pageSize);
                 total = userMapper.count();
             }
             
@@ -76,53 +76,6 @@ public class UserService {
         }
     }
 
-    /**
-     * 根据ID获取用户
-     *
-     * @param id 用户ID
-     * @return 用户信息
-     */
-    @Transactional(readOnly = true)
-    public Optional<DialUser> getUserById(Long id) {
-        try {
-            logger.info("Getting user by ID: {}", id);
-            DialUser user = userMapper.findById(id);
-            Optional<DialUser> userOptional = Optional.ofNullable(user);
-            if (userOptional.isPresent()) {
-                logger.info("Successfully retrieved user: {}", userOptional.get().getUsername());
-            } else {
-                logger.warn("User not found with ID: {}", id);
-            }
-            return userOptional;
-        } catch (DataAccessException e) {
-            logger.error("Failed to get user by ID: {}", id, e);
-            throw new RuntimeException("Failed to retrieve user", e);
-        }
-    }
-
-    /**
-     * 根据用户名获取用户
-     *
-     * @param username 用户名
-     * @return 用户信息
-     */
-    @Transactional(readOnly = true)
-    public Optional<DialUser> getUserByUsername(String username) {
-        try {
-            logger.info("Getting user by username: {}", username);
-            DialUser user = userMapper.findByUsername(username);
-            Optional<DialUser> userOptional = Optional.ofNullable(user);
-            if (userOptional.isPresent()) {
-                logger.info("Successfully retrieved user: {}", username);
-            } else {
-                logger.warn("User not found with username: {}", username);
-            }
-            return userOptional;
-        } catch (DataAccessException e) {
-            logger.error("Failed to get user by username: {}", username, e);
-            throw new RuntimeException("Failed to retrieve user", e);
-        }
-    }
 
     /**
      * 创建新用户
@@ -230,22 +183,5 @@ public class UserService {
     }
 
 
-    /**
-     * 根据用户名搜索用户
-     *
-     * @param username 用户名关键字
-     * @return 用户列表
-     */
-    @Transactional(readOnly = true)
-    public List<DialUser> searchUsersByUsername(String username) {
-        try {
-            logger.info("Searching users by username: {}", username);
-            List<DialUser> users = userMapper.findByUsernameContaining(username);
-            logger.info("Found {} users matching username: {}", users.size(), username);
-            return users;
-        } catch (DataAccessException e) {
-            logger.error("Failed to search users by username: {}", username, e);
-            throw new RuntimeException("Failed to search users", e);
-        }
-    }
+ 
 }

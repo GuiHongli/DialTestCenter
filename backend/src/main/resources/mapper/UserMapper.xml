@@ -23,13 +23,7 @@
         WHERE id = #{id}
     </select>
 
-    <!-- 根据用户名查找用户 -->
-    <select id="findByUsername" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM dial_user
-        WHERE username = #{username}
-    </select>
+   
 
     <!-- 检查用户名是否存在 -->
     <select id="existsByUsername" resultType="boolean">
@@ -38,13 +32,7 @@
         WHERE username = #{username}
     </select>
 
-    <!-- 根据用户名模糊查询用户列表 -->
-    <select id="findByUsernameContaining" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM dial_user
-        WHERE username LIKE CONCAT('%', #{username}, '%')
-    </select>
+   
 
     <!-- 分页查询用户列表，按ID倒序排列 -->
     <select id="findAllByOrderByCreatedTimeDesc" resultMap="BaseResultMap">
