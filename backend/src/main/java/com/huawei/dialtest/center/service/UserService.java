@@ -4,6 +4,7 @@
 
 package com.huawei.dialtest.center.service;
 
+import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.dto.UserCreateRequest;
 import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
@@ -12,16 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,10 +49,9 @@ public class UserService {
      * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public Page<DialUser> getAllUsers(int page, int pageSize, String search) {
+    public PagedResponse<DialUser> getAllUsers(int page, int pageSize, String search) {
         try {
             logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
-            Pageable pageable = PageRequest.of(page - 1, pageSize);
             
             List<DialUser> content;
             long total;
@@ -72,8 +66,8 @@ public class UserService {
                 total = userMapper.count();
             }
             
-            Page<DialUser> result = new PageImpl<>(content, pageable, total);
-            logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, result.getTotalPages());
+            PagedResponse<DialUser> result = new PagedResponse<>(content, total, page, pageSize);
+            logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, (int) Math.ceil((double) total / pageSize));
             return result;
         } catch (DataAccessException e) {
             logger.error("Failed to get users", e);

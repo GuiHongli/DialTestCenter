@@ -16,9 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -26,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -68,8 +64,8 @@ public class UserControllerTest {
 
     @Test
     public void testGetAllUsers_Success() {
-        Page<DialUser> userPage = new PageImpl<>(testUsers, PageRequest.of(0, 10), 2);
-        when(userService.getAllUsers(1, 10, null)).thenReturn(userPage);
+        PagedResponse<DialUser> pagedResponse = new PagedResponse<>(testUsers, 2L, 1, 10);
+        when(userService.getAllUsers(1, 10, null)).thenReturn(pagedResponse);
 
         ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
 

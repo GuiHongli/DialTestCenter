@@ -13,13 +13,9 @@ import com.huawei.dialtest.center.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * 用户控制器，提供用户管理的REST API接口
@@ -53,16 +49,9 @@ public class UserController {
             @RequestParam(required = false) String search) {
         try {
             logger.info("Received request to get users - page: {}, size: {}, search: {}", page, pageSize, search);
-            Page<DialUser> users = userService.getAllUsers(page, pageSize, search);
+            PagedResponse<DialUser> pagedResponse = userService.getAllUsers(page, pageSize, search);
             
-            PagedResponse<DialUser> pagedResponse = new PagedResponse<>(
-                users.getContent(),
-                users.getTotalElements(),
-                page,
-                pageSize
-            );
-            
-            logger.info("Successfully retrieved {} users (page {}/{})", users.getContent().size(), page, users.getTotalPages());
+            logger.info("Successfully retrieved {} users (page {}/{})", pagedResponse.getData().size(), page, pagedResponse.getTotalPages());
             return ResponseEntity.ok(BaseApiResponse.success(pagedResponse));
         } catch (RuntimeException e) {
             logger.error("Failed to get users", e);
