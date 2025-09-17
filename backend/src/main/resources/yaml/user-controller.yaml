@@ -79,31 +79,6 @@ paths:
             $ref: "#/definitions/BaseApiResponse"
 
   /api/users/{id}:
-    get:
-      tags:
-        - "用户管理"
-      summary: "根据ID获取用户"
-      description: "根据用户ID获取用户详细信息"
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          type: "integer"
-          format: "int64"
-          description: "用户ID"
-      responses:
-        200:
-          description: "成功获取用户信息"
-          schema:
-            $ref: "#/definitions/UserResponse"
-        404:
-          description: "用户不存在"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
     put:
       tags:
         - "用户管理"
@@ -160,105 +135,9 @@ paths:
           schema:
             $ref: "#/definitions/BaseApiResponse"
 
-  /api/users/username/{username}:
-    get:
-      tags:
-        - "用户管理"
-      summary: "根据用户名获取用户"
-      description: "根据用户名获取用户详细信息"
-      parameters:
-        - name: "username"
-          in: "path"
-          required: true
-          type: "string"
-          description: "用户名"
-      responses:
-        200:
-          description: "成功获取用户信息"
-          schema:
-            $ref: "#/definitions/UserResponse"
-        404:
-          description: "用户不存在"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
 
-  /api/users/search:
-    get:
-      tags:
-        - "用户管理"
-      summary: "搜索用户"
-      description: "根据用户名关键字搜索用户"
-      parameters:
-        - name: "username"
-          in: "query"
-          required: true
-          type: "string"
-          description: "用户名关键字"
-      responses:
-        200:
-          description: "搜索成功"
-          schema:
-            $ref: "#/definitions/UserSearchResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
 
-  /api/users/validate-password:
-    post:
-      tags:
-        - "用户管理"
-      summary: "验证用户密码"
-      description: "验证指定用户的密码是否正确"
-      parameters:
-        - name: "body"
-          in: "body"
-          required: true
-          schema:
-            $ref: "#/definitions/PasswordValidationRequest"
-      responses:
-        200:
-          description: "密码验证完成"
-          schema:
-            $ref: "#/definitions/PasswordValidationResponse"
-        400:
-          description: "请求参数错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
 
-  /api/users/update-login-time:
-    post:
-      tags:
-        - "用户管理"
-      summary: "更新最后登录时间"
-      description: "更新用户的最后登录时间"
-      parameters:
-        - name: "body"
-          in: "body"
-          required: true
-          schema:
-            $ref: "#/definitions/UpdateLoginTimeRequest"
-      responses:
-        200:
-          description: "登录时间更新成功"
-          schema:
-            $ref: "#/definitions/MessageResponse"
-        400:
-          description: "请求参数错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/BaseApiResponse"
 
 definitions:
   BaseApiResponse:
@@ -329,23 +208,7 @@ definitions:
             type: "string"
             description: "成功消息"
 
-  UserSearchResponse:
-    allOf:
-      - $ref: "#/definitions/BaseApiResponse"
-      - type: "object"
-        properties:
-          data:
-            type: "array"
-            items:
-              $ref: "#/definitions/DialUser"
 
-  PasswordValidationResponse:
-    allOf:
-      - $ref: "#/definitions/BaseApiResponse"
-      - type: "object"
-        properties:
-          data:
-            $ref: "#/definitions/PasswordValidationResult"
 
   DialUser:
     type: "object"
@@ -387,34 +250,4 @@ definitions:
         type: "string"
         description: "密码"
 
-  PasswordValidationRequest:
-    type: "object"
-    required:
-      - "username"
-      - "password"
-    properties:
-      username:
-        type: "string"
-        description: "用户名"
-      password:
-        type: "string"
-        description: "密码"
 
-  PasswordValidationResult:
-    type: "object"
-    properties:
-      valid:
-        type: "boolean"
-        description: "密码是否有效"
-      message:
-        type: "string"
-        description: "验证结果消息"
-
-  UpdateLoginTimeRequest:
-    type: "object"
-    required:
-      - "username"
-    properties:
-      username:
-        type: "string"
-        description: "用户名"

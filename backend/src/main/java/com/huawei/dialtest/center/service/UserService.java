@@ -4,9 +4,6 @@
 
 package com.huawei.dialtest.center.service;
 
-import com.huawei.dialtest.center.dto.PasswordValidationRequest;
-import com.huawei.dialtest.center.dto.PasswordValidationResult;
-import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
 import com.huawei.dialtest.center.dto.UserCreateRequest;
 import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
@@ -237,59 +234,6 @@ public class UserService {
         }
     }
 
-    /**
-     * 更新用户最后登录时间
-     *
-     * @param request 登录时间更新请求
-     */
-    public void updateLastLoginTime(UpdateLoginTimeRequest request) {
-        try {
-            logger.info("Updating last login time for user: {}", request.getUsername());
-            
-            DialUser user = userMapper.findByUsername(request.getUsername());
-            Optional<DialUser> userOpt = Optional.ofNullable(user);
-            if (userOpt.isPresent()) {
-                DialUser foundUser = userOpt.get();
-                foundUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                userMapper.update(foundUser);
-                logger.info("Successfully updated last login time for user: {}", request.getUsername());
-            } else {
-                logger.warn("User not found for updating last login time: {}", request.getUsername());
-            }
-        } catch (DataAccessException e) {
-            logger.error("Failed to update last login time for user: {}", request.getUsername(), e);
-            throw new RuntimeException("Failed to update last login time", e);
-        }
-    }
-
-    /**
-     * 验证用户密码
-     *
-     * @param request 密码验证请求
-     * @return 验证结果
-     */
-    @Transactional(readOnly = true)
-    public PasswordValidationResult validatePassword(PasswordValidationRequest request) {
-        try {
-            logger.info("Validating password for user: {}", request.getUsername());
-            
-            DialUser user = userMapper.findByUsername(request.getUsername());
-            Optional<DialUser> userOpt = Optional.ofNullable(user);
-            if (userOpt.isPresent()) {
-                DialUser foundUser = userOpt.get();
-                boolean isValid = passwordEncoder.matches(request.getPassword(), foundUser.getPassword());
-                String message = isValid ? "Password is valid" : "Password is invalid";
-                logger.info("Password validation result for user {}: {}", request.getUsername(), isValid);
-                return new PasswordValidationResult(isValid, message);
-            } else {
-                logger.warn("User not found for password validation: {}", request.getUsername());
-                return new PasswordValidationResult(false, "User not found");
-            }
-        } catch (DataAccessException e) {
-            logger.error("Failed to validate password for user: {}", request.getUsername(), e);
-            throw new RuntimeException("Failed to validate password", e);
-        }
-    }
 
     /**
      * 根据用户名搜索用户

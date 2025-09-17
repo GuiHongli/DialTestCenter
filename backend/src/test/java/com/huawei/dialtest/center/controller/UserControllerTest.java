@@ -6,9 +6,6 @@ package com.huawei.dialtest.center.controller;
 
 import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
-import com.huawei.dialtest.center.dto.PasswordValidationRequest;
-import com.huawei.dialtest.center.dto.PasswordValidationResult;
-import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
 import com.huawei.dialtest.center.dto.UserCreateRequest;
 import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
@@ -101,45 +98,7 @@ public class UserControllerTest {
         verify(userService).getAllUsers(1, 10, null);
     }
 
-    @Test
-    public void testGetUserById_Success() {
-        when(userService.getUserById(1L)).thenReturn(Optional.of(testUser));
-
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess());
-        assertEquals(testUser, response.getBody().getData());
-        verify(userService).getUserById(1L);
-    }
-
-    @Test
-    public void testGetUserById_NotFound() {
-        when(userService.getUserById(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().isSuccess());
-        assertEquals("NOT_FOUND", response.getBody().getErrorCode());
-        verify(userService).getUserById(1L);
-    }
-
-    @Test
-    public void testGetUserById_Error() {
-        when(userService.getUserById(1L)).thenThrow(new RuntimeException("Service error"));
-
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().isSuccess());
-        assertEquals("INTERNAL_ERROR", response.getBody().getErrorCode());
-        verify(userService).getUserById(1L);
-    }
-
+   
     @Test
     public void testCreateUser_Success() {
         when(userService.createUser(any(UserCreateRequest.class))).thenReturn(testUser);
@@ -198,49 +157,5 @@ public class UserControllerTest {
         verify(userService).deleteUser(1L);
     }
 
-    @Test
-    public void testSearchUsers_Success() {
-        when(userService.searchUsersByUsername("test")).thenReturn(testUsers);
 
-        ResponseEntity<BaseApiResponse<List<DialUser>>> response = userController.searchUsers("test");
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess());
-        assertEquals(testUsers, response.getBody().getData());
-        verify(userService).searchUsersByUsername("test");
-    }
-
-    @Test
-    public void testValidatePassword_Success() {
-        PasswordValidationResult result = new PasswordValidationResult(true, "Password is valid");
-        when(userService.validatePassword(any(PasswordValidationRequest.class))).thenReturn(result);
-
-        PasswordValidationRequest request = new PasswordValidationRequest("testuser", "password123");
-
-        ResponseEntity<BaseApiResponse<PasswordValidationResult>> response = userController.validatePassword(request);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess());
-        assertNotNull(response.getBody().getData());
-        assertTrue(response.getBody().getData().isValid());
-        assertEquals("Password is valid", response.getBody().getData().getMessage());
-        verify(userService).validatePassword(any(PasswordValidationRequest.class));
-    }
-
-    @Test
-    public void testUpdateLastLoginTime_Success() {
-        doNothing().when(userService).updateLastLoginTime(any(UpdateLoginTimeRequest.class));
-
-        UpdateLoginTimeRequest request = new UpdateLoginTimeRequest("testuser");
-
-        ResponseEntity<BaseApiResponse<String>> response = userController.updateLastLoginTime(request);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess());
-        assertEquals("Last login time updated successfully", response.getBody().getData());
-        verify(userService).updateLastLoginTime(any(UpdateLoginTimeRequest.class));
-    }
 }

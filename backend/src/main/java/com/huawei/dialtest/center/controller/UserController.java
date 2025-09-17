@@ -6,9 +6,6 @@ package com.huawei.dialtest.center.controller;
 
 import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
-import com.huawei.dialtest.center.dto.PasswordValidationRequest;
-import com.huawei.dialtest.center.dto.PasswordValidationResult;
-import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
 import com.huawei.dialtest.center.dto.UserCreateRequest;
 import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
@@ -71,58 +68,6 @@ public class UserController {
             logger.error("Failed to get users", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to retrieve users"));
-        }
-    }
-
-    /**
-     * 根据ID获取用户
-     *
-     * @param id 用户ID
-     * @return 用户信息
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<BaseApiResponse<DialUser>> getUserById(@PathVariable Long id) {
-        try {
-            logger.info("Received request to get user by ID: {}", id);
-            Optional<DialUser> user = userService.getUserById(id);
-            if (user.isPresent()) {
-                logger.info("Successfully retrieved user: {}", user.get().getUsername());
-                return ResponseEntity.ok(BaseApiResponse.success(user.get()));
-            } else {
-                logger.warn("User not found with ID: {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseApiResponse.error("NOT_FOUND", "User not found"));
-            }
-        } catch (RuntimeException e) {
-            logger.error("Failed to get user by ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to retrieve user"));
-        }
-    }
-
-    /**
-     * 根据用户名获取用户
-     *
-     * @param username 用户名
-     * @return 用户信息
-     */
-    @GetMapping("/username/{username}")
-    public ResponseEntity<BaseApiResponse<DialUser>> getUserByUsername(@PathVariable String username) {
-        try {
-            logger.info("Received request to get user by username: {}", username);
-            Optional<DialUser> user = userService.getUserByUsername(username);
-            if (user.isPresent()) {
-                logger.info("Successfully retrieved user: {}", username);
-                return ResponseEntity.ok(BaseApiResponse.success(user.get()));
-            } else {
-                logger.warn("User not found with username: {}", username);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseApiResponse.error("NOT_FOUND", "User not found"));
-            }
-        } catch (RuntimeException e) {
-            logger.error("Failed to get user by username: {}", username, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to retrieve user"));
         }
     }
 
@@ -219,85 +164,5 @@ public class UserController {
         }
     }
 
-    /**
-     * 根据用户名搜索用户
-     *
-     * @param username 用户名关键字
-     * @return 用户列表
-     */
-    @GetMapping("/search")
-    public ResponseEntity<BaseApiResponse<List<DialUser>>> searchUsers(@RequestParam String username) {
-        try {
-            logger.info("Received request to search users by username: {}", username);
-            List<DialUser> users = userService.searchUsersByUsername(username);
-            logger.info("Found {} users matching username: {}", users.size(), username);
-            return ResponseEntity.ok(BaseApiResponse.success(users));
-        } catch (RuntimeException e) {
-            logger.error("Failed to search users by username: {}", username, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to search users"));
-        }
-    }
-
-    /**
-     * 验证用户密码
-     *
-     * @param request 密码验证请求
-     * @return 验证结果
-     */
-    @PostMapping("/validate-password")
-    public ResponseEntity<BaseApiResponse<PasswordValidationResult>> validatePassword(@RequestBody PasswordValidationRequest request) {
-        try {
-            logger.info("Received request to validate password for user: {}", request.getUsername());
-            
-            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
-                logger.warn("Username is required");
-                return ResponseEntity.badRequest()
-                    .body(BaseApiResponse.error("VALIDATION_ERROR", "Username is required"));
-            }
-            
-            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
-                logger.warn("Password is required");
-                return ResponseEntity.badRequest()
-                    .body(BaseApiResponse.error("VALIDATION_ERROR", "Password is required"));
-            }
-
-            PasswordValidationResult result = userService.validatePassword(request);
-            
-            logger.info("Password validation result for user {}: {}", request.getUsername(), result.isValid());
-            return ResponseEntity.ok(BaseApiResponse.success(result));
-        } catch (RuntimeException e) {
-            logger.error("Failed to validate password for user: {}", request.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to validate password"));
-        }
-    }
-
-    /**
-     * 更新用户最后登录时间
-     *
-     * @param request 登录时间更新请求
-     * @return 更新结果
-     */
-    @PostMapping("/update-login-time")
-    public ResponseEntity<BaseApiResponse<String>> updateLastLoginTime(@RequestBody UpdateLoginTimeRequest request) {
-        try {
-            logger.info("Received request to update last login time for user: {}", request.getUsername());
-            
-            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
-                logger.warn("Username is required");
-                return ResponseEntity.badRequest()
-                    .body(BaseApiResponse.error("VALIDATION_ERROR", "Username is required"));
-            }
-
-            userService.updateLastLoginTime(request);
-            logger.info("Successfully updated last login time for user: {}", request.getUsername());
-            return ResponseEntity.ok(BaseApiResponse.success("Last login time updated successfully"));
-        } catch (RuntimeException e) {
-            logger.error("Failed to update last login time for user: {}", request.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to update last login time"));
-        }
-    }
 
 }

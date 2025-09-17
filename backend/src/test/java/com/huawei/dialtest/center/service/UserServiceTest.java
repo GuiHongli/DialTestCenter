@@ -4,9 +4,7 @@
 
 package com.huawei.dialtest.center.service;
 
-import com.huawei.dialtest.center.dto.PasswordValidationRequest;
-import com.huawei.dialtest.center.dto.PasswordValidationResult;
-import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
+
 import com.huawei.dialtest.center.dto.UserCreateRequest;
 import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
@@ -45,17 +43,14 @@ public class UserServiceTest {
 
     private UserCreateRequest userCreateRequest;
     private UserUpdateRequest userUpdateRequest;
-    private PasswordValidationRequest passwordValidationRequest;
-    private UpdateLoginTimeRequest updateLoginTimeRequest;
+
     private DialUser testUser;
 
     @Before
     public void setUp() {
         userCreateRequest = new UserCreateRequest("testuser", "testpass");
         userUpdateRequest = new UserUpdateRequest("newuser", "newpass");
-        passwordValidationRequest = new PasswordValidationRequest("testuser", "testpass");
-        updateLoginTimeRequest = new UpdateLoginTimeRequest("testuser");
-        
+      
         testUser = new DialUser("testuser", "encodedpassword");
         testUser.setId(1L);
     }
@@ -110,46 +105,5 @@ public class UserServiceTest {
         verify(userMapper, never()).update(any(DialUser.class));
     }
 
-    @Test
-    public void testValidatePassword_Success() {
-        when(userMapper.findByUsername("testuser")).thenReturn(testUser);
-
-        PasswordValidationResult result = userService.validatePassword(passwordValidationRequest);
-
-        assertNotNull(result);
-        verify(userMapper).findByUsername("testuser");
-    }
-
-    @Test
-    public void testValidatePassword_UserNotFound() {
-        when(userMapper.findByUsername("testuser")).thenReturn(null);
-
-        PasswordValidationResult result = userService.validatePassword(passwordValidationRequest);
-
-        assertNotNull(result);
-        assertFalse(result.isValid());
-        assertEquals("User not found", result.getMessage());
-        verify(userMapper).findByUsername("testuser");
-    }
-
-    @Test
-    public void testUpdateLastLoginTime_Success() {
-        when(userMapper.findByUsername("testuser")).thenReturn(testUser);
-        when(userMapper.update(any(DialUser.class))).thenReturn(1);
-
-        userService.updateLastLoginTime(updateLoginTimeRequest);
-
-        verify(userMapper).findByUsername("testuser");
-        verify(userMapper).update(any(DialUser.class));
-    }
-
-    @Test
-    public void testUpdateLastLoginTime_UserNotFound() {
-        when(userMapper.findByUsername("testuser")).thenReturn(null);
-
-        userService.updateLastLoginTime(updateLoginTimeRequest);
-
-        verify(userMapper).findByUsername("testuser");
-        verify(userMapper, never()).update(any(DialUser.class));
-    }
+   
 }
