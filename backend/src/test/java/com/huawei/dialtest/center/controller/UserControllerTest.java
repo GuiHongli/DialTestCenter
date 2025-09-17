@@ -6,6 +6,11 @@ package com.huawei.dialtest.center.controller;
 
 import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
+import com.huawei.dialtest.center.dto.PasswordValidationRequest;
+import com.huawei.dialtest.center.dto.PasswordValidationResult;
+import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
+import com.huawei.dialtest.center.dto.UserCreateRequest;
+import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.service.UserService;
 import org.junit.Before;
@@ -23,9 +28,7 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
@@ -139,11 +142,9 @@ public class UserControllerTest {
 
     @Test
     public void testCreateUser_Success() {
-        when(userService.createUser(anyString(), anyString())).thenReturn(testUser);
+        when(userService.createUser(any(UserCreateRequest.class))).thenReturn(testUser);
 
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "testuser");
-        request.put("password", "password123");
+        UserCreateRequest request = new UserCreateRequest("testuser", "password123");
 
         ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
 
@@ -152,14 +153,12 @@ public class UserControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals(testUser, response.getBody().getData());
         assertEquals("User created successfully", response.getBody().getMessage());
-        verify(userService).createUser("testuser", "password123");
+        verify(userService).createUser(any(UserCreateRequest.class));
     }
 
     @Test
     public void testCreateUser_ValidationError() {
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "");
-        request.put("password", "password123");
+        UserCreateRequest request = new UserCreateRequest("", "password123");
 
         ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
 
@@ -172,11 +171,9 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser_Success() {
-        when(userService.updateUser(anyLong(), anyString(), anyString())).thenReturn(testUser);
+        when(userService.updateUser(anyLong(), any(UserUpdateRequest.class))).thenReturn(testUser);
 
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "updateduser");
-        request.put("password", "newpassword");
+        UserUpdateRequest request = new UserUpdateRequest("updateduser", "newpassword");
 
         ResponseEntity<BaseApiResponse<DialUser>> response = userController.updateUser(1L, request);
 
@@ -185,7 +182,7 @@ public class UserControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals(testUser, response.getBody().getData());
         assertEquals("User updated successfully", response.getBody().getMessage());
-        verify(userService).updateUser(1L, "updateduser", "newpassword");
+        verify(userService).updateUser(eq(1L), any(UserUpdateRequest.class));
     }
 
     @Test
@@ -216,28 +213,27 @@ public class UserControllerTest {
 
     @Test
     public void testValidatePassword_Success() {
-        when(userService.validatePassword("testuser", "password123")).thenReturn(true);
+        PasswordValidationResult result = new PasswordValidationResult(true, "Password is valid");
+        when(userService.validatePassword(any(PasswordValidationRequest.class))).thenReturn(result);
 
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "testuser");
-        request.put("password", "password123");
+        PasswordValidationRequest request = new PasswordValidationRequest("testuser", "password123");
 
-        ResponseEntity<BaseApiResponse<Map<String, Object>>> response = userController.validatePassword(request);
+        ResponseEntity<BaseApiResponse<PasswordValidationResult>> response = userController.validatePassword(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         assertNotNull(response.getBody().getData());
-        assertTrue((Boolean) response.getBody().getData().get("valid"));
-        verify(userService).validatePassword("testuser", "password123");
+        assertTrue(response.getBody().getData().isValid());
+        assertEquals("Password is valid", response.getBody().getData().getMessage());
+        verify(userService).validatePassword(any(PasswordValidationRequest.class));
     }
 
     @Test
     public void testUpdateLastLoginTime_Success() {
-        doNothing().when(userService).updateLastLoginTime("testuser");
+        doNothing().when(userService).updateLastLoginTime(any(UpdateLoginTimeRequest.class));
 
-        Map<String, String> request = new HashMap<>();
-        request.put("username", "testuser");
+        UpdateLoginTimeRequest request = new UpdateLoginTimeRequest("testuser");
 
         ResponseEntity<BaseApiResponse<String>> response = userController.updateLastLoginTime(request);
 
@@ -245,6 +241,6 @@ public class UserControllerTest {
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         assertEquals("Last login time updated successfully", response.getBody().getData());
-        verify(userService).updateLastLoginTime("testuser");
+        verify(userService).updateLastLoginTime(any(UpdateLoginTimeRequest.class));
     }
 }

@@ -6,6 +6,11 @@ package com.huawei.dialtest.center.controller;
 
 import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
+import com.huawei.dialtest.center.dto.PasswordValidationRequest;
+import com.huawei.dialtest.center.dto.PasswordValidationResult;
+import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
+import com.huawei.dialtest.center.dto.UserCreateRequest;
+import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.service.UserService;
 import org.slf4j.Logger;
@@ -16,9 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -130,27 +133,24 @@ public class UserController {
      * @return 创建的用户
      */
     @PostMapping
-    public ResponseEntity<BaseApiResponse<DialUser>> createUser(@RequestBody Map<String, String> request) {
+    public ResponseEntity<BaseApiResponse<DialUser>> createUser(@RequestBody UserCreateRequest request) {
         try {
-            String username = request.get("username");
-            String password = request.get("password");
+            logger.info("Received request to create user: {}", request.getUsername());
             
-            logger.info("Received request to create user: {}", username);
-            
-            if (username == null || username.trim().isEmpty()) {
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
                 logger.warn("Username is required");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Username is required"));
             }
             
-            if (password == null || password.trim().isEmpty()) {
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
                 logger.warn("Password is required");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Password is required"));
             }
 
-            DialUser user = userService.createUser(username.trim(), password);
-            logger.info("Successfully created user: {}", username);
+            DialUser user = userService.createUser(request);
+            logger.info("Successfully created user: {}", request.getUsername());
             return ResponseEntity.status(HttpStatus.CREATED).body(BaseApiResponse.success(user, "User created successfully"));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
@@ -171,20 +171,17 @@ public class UserController {
      * @return 更新后的用户
      */
     @PutMapping("/{id}")
-    public ResponseEntity<BaseApiResponse<DialUser>> updateUser(@PathVariable Long id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<BaseApiResponse<DialUser>> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
         try {
-            String username = request.get("username");
-            String password = request.get("password");
-            
             logger.info("Received request to update user with ID: {}", id);
             
-            if (username != null && username.trim().isEmpty()) {
+            if (request.getUsername() != null && request.getUsername().trim().isEmpty()) {
                 logger.warn("Username cannot be empty");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Username cannot be empty"));
             }
 
-            DialUser user = userService.updateUser(id, username, password);
+            DialUser user = userService.updateUser(id, request);
             logger.info("Successfully updated user: {}", user.getUsername());
             return ResponseEntity.ok(BaseApiResponse.success(user, "User updated successfully"));
         } catch (IllegalArgumentException e) {
@@ -249,34 +246,28 @@ public class UserController {
      * @return 验证结果
      */
     @PostMapping("/validate-password")
-    public ResponseEntity<BaseApiResponse<Map<String, Object>>> validatePassword(@RequestBody Map<String, String> request) {
+    public ResponseEntity<BaseApiResponse<PasswordValidationResult>> validatePassword(@RequestBody PasswordValidationRequest request) {
         try {
-            String username = request.get("username");
-            String password = request.get("password");
+            logger.info("Received request to validate password for user: {}", request.getUsername());
             
-            logger.info("Received request to validate password for user: {}", username);
-            
-            if (username == null || username.trim().isEmpty()) {
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
                 logger.warn("Username is required");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Username is required"));
             }
             
-            if (password == null || password.trim().isEmpty()) {
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
                 logger.warn("Password is required");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Password is required"));
             }
 
-            boolean isValid = userService.validatePassword(username.trim(), password);
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", isValid);
-            response.put("message", isValid ? "Password is valid" : "Password is invalid");
+            PasswordValidationResult result = userService.validatePassword(request);
             
-            logger.info("Password validation result for user {}: {}", username, isValid);
-            return ResponseEntity.ok(BaseApiResponse.success(response));
+            logger.info("Password validation result for user {}: {}", request.getUsername(), result.isValid());
+            return ResponseEntity.ok(BaseApiResponse.success(result));
         } catch (RuntimeException e) {
-            logger.error("Failed to validate password for user: {}", request.get("username"), e);
+            logger.error("Failed to validate password for user: {}", request.getUsername(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to validate password"));
         }
@@ -289,23 +280,21 @@ public class UserController {
      * @return 更新结果
      */
     @PostMapping("/update-login-time")
-    public ResponseEntity<BaseApiResponse<String>> updateLastLoginTime(@RequestBody Map<String, String> request) {
+    public ResponseEntity<BaseApiResponse<String>> updateLastLoginTime(@RequestBody UpdateLoginTimeRequest request) {
         try {
-            String username = request.get("username");
+            logger.info("Received request to update last login time for user: {}", request.getUsername());
             
-            logger.info("Received request to update last login time for user: {}", username);
-            
-            if (username == null || username.trim().isEmpty()) {
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
                 logger.warn("Username is required");
                 return ResponseEntity.badRequest()
                     .body(BaseApiResponse.error("VALIDATION_ERROR", "Username is required"));
             }
 
-            userService.updateLastLoginTime(username.trim());
-            logger.info("Successfully updated last login time for user: {}", username);
+            userService.updateLastLoginTime(request);
+            logger.info("Successfully updated last login time for user: {}", request.getUsername());
             return ResponseEntity.ok(BaseApiResponse.success("Last login time updated successfully"));
         } catch (RuntimeException e) {
-            logger.error("Failed to update last login time for user: {}", request.get("username"), e);
+            logger.error("Failed to update last login time for user: {}", request.getUsername(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(BaseApiResponse.error("INTERNAL_ERROR", "Failed to update last login time"));
         }

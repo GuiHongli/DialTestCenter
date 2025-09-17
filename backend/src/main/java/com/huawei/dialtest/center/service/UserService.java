@@ -4,6 +4,11 @@
 
 package com.huawei.dialtest.center.service;
 
+import com.huawei.dialtest.center.dto.PasswordValidationRequest;
+import com.huawei.dialtest.center.dto.PasswordValidationResult;
+import com.huawei.dialtest.center.dto.UpdateLoginTimeRequest;
+import com.huawei.dialtest.center.dto.UserCreateRequest;
+import com.huawei.dialtest.center.dto.UserUpdateRequest;
 import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.mapper.UserMapper;
 import org.slf4j.Logger;
@@ -130,33 +135,32 @@ public class UserService {
     /**
      * 创建新用户
      *
-     * @param username 用户名
-     * @param password 密码
+     * @param request 用户创建请求
      * @return 创建的用户
      */
-    public DialUser createUser(String username, String password) {
+    public DialUser createUser(UserCreateRequest request) {
         try {
-            logger.info("Creating new user: {}", username);
+            logger.info("Creating new user: {}", request.getUsername());
             
-            if (userMapper.existsByUsername(username)) {
-                logger.warn("Username already exists: {}", username);
-                throw new IllegalArgumentException("Username already exists: " + username);
+            if (userMapper.existsByUsername(request.getUsername())) {
+                logger.warn("Username already exists: {}", request.getUsername());
+                throw new IllegalArgumentException("Username already exists: " + request.getUsername());
             }
 
-            String encodedPassword = passwordEncoder.encode(password);
-            DialUser user = new DialUser(username, encodedPassword);
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            DialUser user = new DialUser(request.getUsername(), encodedPassword);
             // 创建用户时不设置最后登录时间，因为用户还没有登录过
             int result = userMapper.insert(user);
             if (result > 0) {
-                logger.info("Successfully created user: {}", username);
+                logger.info("Successfully created user: {}", request.getUsername());
                 // 记录操作日志
-                operationLogService.logOperation(username, "CREATE", "USER", "创建用户: " + username);
+                operationLogService.logOperation(request.getUsername(), "CREATE", "USER", "创建用户: " + request.getUsername());
                 return user;
             } else {
                 throw new RuntimeException("Failed to create user");
             }
         } catch (DataAccessException e) {
-            logger.error("Failed to create user: {}", username, e);
+            logger.error("Failed to create user: {}", request.getUsername(), e);
             throw new RuntimeException("Failed to create user", e);
         }
     }
@@ -165,11 +169,10 @@ public class UserService {
      * 更新用户信息
      *
      * @param id 用户ID
-     * @param username 新用户名
-     * @param password 新密码
+     * @param request 用户更新请求
      * @return 更新后的用户
      */
-    public DialUser updateUser(Long id, String username, String password) {
+    public DialUser updateUser(Long id, UserUpdateRequest request) {
         try {
             logger.info("Updating user with ID: {}", id);
             
@@ -178,16 +181,16 @@ public class UserService {
                 throw new IllegalArgumentException("User not found with ID: " + id);
             }
 
-            if (username != null && !username.equals(user.getUsername())) {
-                if (userMapper.existsByUsername(username)) {
-                    logger.warn("Username already exists: {}", username);
-                    throw new IllegalArgumentException("Username already exists: " + username);
+            if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+                if (userMapper.existsByUsername(request.getUsername())) {
+                    logger.warn("Username already exists: {}", request.getUsername());
+                    throw new IllegalArgumentException("Username already exists: " + request.getUsername());
                 }
-                user.setUsername(username);
+                user.setUsername(request.getUsername());
             }
 
-            if (password != null && !password.isEmpty()) {
-                String encodedPassword = passwordEncoder.encode(password);
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                String encodedPassword = passwordEncoder.encode(request.getPassword());
                 user.setPassword(encodedPassword);
             }
 
@@ -237,24 +240,24 @@ public class UserService {
     /**
      * 更新用户最后登录时间
      *
-     * @param username 用户名
+     * @param request 登录时间更新请求
      */
-    public void updateLastLoginTime(String username) {
+    public void updateLastLoginTime(UpdateLoginTimeRequest request) {
         try {
-            logger.info("Updating last login time for user: {}", username);
+            logger.info("Updating last login time for user: {}", request.getUsername());
             
-            DialUser user = userMapper.findByUsername(username);
+            DialUser user = userMapper.findByUsername(request.getUsername());
             Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
                 DialUser foundUser = userOpt.get();
                 foundUser.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userMapper.update(foundUser);
-                logger.info("Successfully updated last login time for user: {}", username);
+                logger.info("Successfully updated last login time for user: {}", request.getUsername());
             } else {
-                logger.warn("User not found for updating last login time: {}", username);
+                logger.warn("User not found for updating last login time: {}", request.getUsername());
             }
         } catch (DataAccessException e) {
-            logger.error("Failed to update last login time for user: {}", username, e);
+            logger.error("Failed to update last login time for user: {}", request.getUsername(), e);
             throw new RuntimeException("Failed to update last login time", e);
         }
     }
@@ -262,28 +265,28 @@ public class UserService {
     /**
      * 验证用户密码
      *
-     * @param username 用户名
-     * @param password 密码
+     * @param request 密码验证请求
      * @return 验证结果
      */
     @Transactional(readOnly = true)
-    public boolean validatePassword(String username, String password) {
+    public PasswordValidationResult validatePassword(PasswordValidationRequest request) {
         try {
-            logger.info("Validating password for user: {}", username);
+            logger.info("Validating password for user: {}", request.getUsername());
             
-            DialUser user = userMapper.findByUsername(username);
+            DialUser user = userMapper.findByUsername(request.getUsername());
             Optional<DialUser> userOpt = Optional.ofNullable(user);
             if (userOpt.isPresent()) {
                 DialUser foundUser = userOpt.get();
-                boolean isValid = passwordEncoder.matches(password, foundUser.getPassword());
-                logger.info("Password validation result for user {}: {}", username, isValid);
-                return isValid;
+                boolean isValid = passwordEncoder.matches(request.getPassword(), foundUser.getPassword());
+                String message = isValid ? "Password is valid" : "Password is invalid";
+                logger.info("Password validation result for user {}: {}", request.getUsername(), isValid);
+                return new PasswordValidationResult(isValid, message);
             } else {
-                logger.warn("User not found for password validation: {}", username);
-                return false;
+                logger.warn("User not found for password validation: {}", request.getUsername());
+                return new PasswordValidationResult(false, "User not found");
             }
         } catch (DataAccessException e) {
-            logger.error("Failed to validate password for user: {}", username, e);
+            logger.error("Failed to validate password for user: {}", request.getUsername(), e);
             throw new RuntimeException("Failed to validate password", e);
         }
     }
