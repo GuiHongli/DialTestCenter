@@ -48,12 +48,7 @@ paths:
         200:
           description: "成功获取用户列表"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/PagedResponse"
+            $ref: "#/definitions/UserListResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -73,12 +68,7 @@ paths:
         201:
           description: "用户创建成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/DialUser"
+            $ref: "#/definitions/UserCreateResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -105,12 +95,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/DialUser"
+            $ref: "#/definitions/UserGetResponse"
         404:
           description: "用户不存在"
           schema:
@@ -140,12 +125,7 @@ paths:
         200:
           description: "用户更新成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/DialUser"
+            $ref: "#/definitions/UserUpdateResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -170,13 +150,7 @@ paths:
         200:
           description: "用户删除成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    type: "string"
-                    description: "成功消息"
+            $ref: "#/definitions/UserDeleteResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -202,12 +176,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/DialUser"
+            $ref: "#/definitions/UserGetResponse"
         404:
           description: "用户不存在"
           schema:
@@ -233,14 +202,7 @@ paths:
         200:
           description: "搜索成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    type: "array"
-                    items:
-                      $ref: "#/definitions/DialUser"
+            $ref: "#/definitions/UserSearchResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -262,12 +224,7 @@ paths:
         200:
           description: "密码验证完成"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/PasswordValidationResponse"
+            $ref: "#/definitions/PasswordValidationResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -293,13 +250,7 @@ paths:
         200:
           description: "登录时间更新成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    type: "string"
-                    description: "成功消息"
+            $ref: "#/definitions/UpdateLoginTimeResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -357,6 +308,74 @@ definitions:
         type: "boolean"
         description: "是否有上一页"
 
+  UserListResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedResponse"
+
+  UserCreateResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/DialUser"
+
+  UserGetResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/DialUser"
+
+  UserUpdateResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/DialUser"
+
+  UserDeleteResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "string"
+            description: "成功消息"
+
+  UserSearchResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/DialUser"
+
+  PasswordValidationResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PasswordValidationResult"
+
+  UpdateLoginTimeResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "string"
+            description: "成功消息"
+
   DialUser:
     type: "object"
     properties:
@@ -410,7 +429,7 @@ definitions:
         type: "string"
         description: "密码"
 
-  PasswordValidationResponse:
+  PasswordValidationResult:
     type: "object"
     properties:
       valid:

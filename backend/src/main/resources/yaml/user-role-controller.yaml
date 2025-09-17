@@ -48,12 +48,7 @@ paths:
         200:
           description: "成功获取用户角色列表"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/PagedResponse"
+            $ref: "#/definitions/UserRoleListResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -77,12 +72,7 @@ paths:
         201:
           description: "用户角色创建成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/UserRole"
+            $ref: "#/definitions/UserRoleCreateResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -114,12 +104,7 @@ paths:
         200:
           description: "用户角色更新成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    $ref: "#/definitions/UserRole"
+            $ref: "#/definitions/UserRoleUpdateResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -148,13 +133,7 @@ paths:
         200:
           description: "用户角色删除成功"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    type: "string"
-                    description: "成功消息"
+            $ref: "#/definitions/UserRoleDeleteResponse"
         404:
           description: "用户角色不存在"
           schema:
@@ -174,14 +153,7 @@ paths:
         200:
           description: "成功获取执行机用户数量"
           schema:
-            allOf:
-              - $ref: "#/definitions/ApiResponse"
-              - type: "object"
-                properties:
-                  data:
-                    type: "integer"
-                    format: "int64"
-                    description: "执行机用户数量"
+            $ref: "#/definitions/UserRoleCountResponse"
         500:
           description: "服务器内部错误"
           schema:
@@ -234,6 +206,66 @@ definitions:
       hasPrevious:
         type: "boolean"
         description: "是否有上一页"
+
+  UserRoleListResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/PagedResponse"
+
+  UserRoleCreateResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/UserRole"
+
+  UserRoleUpdateResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/UserRole"
+
+  UserRoleDeleteResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "string"
+            description: "成功消息"
+
+  UserRoleGetResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            $ref: "#/definitions/UserRole"
+
+  UserRoleSearchResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/UserRole"
+
+  UserRoleCountResponse:
+    allOf:
+      - $ref: "#/definitions/ApiResponse"
+      - type: "object"
+        properties:
+          data:
+            type: "integer"
+            description: "执行机用户数量"
 
   UserRole:
     type: "object"
