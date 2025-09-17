@@ -59,7 +59,7 @@ spring:
 # MyBatis配置
 mybatis:
   config-location: classpath:mybatis-config.xml
-  mapper-locations: classpath:mapper/*.xml
+  # 使用注解方式，不需要mapper-locations配置
   type-aliases-package: com.huawei.dialtest.center.entity
 
 # 日志配置

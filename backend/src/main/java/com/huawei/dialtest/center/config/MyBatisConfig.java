@@ -43,9 +43,7 @@ public class MyBatisConfig {
         sessionFactory.setConfigLocation(
                 new PathMatchingResourcePatternResolver().getResource("classpath:mybatis-config.xml"));
         
-        // 设置Mapper XML文件位置
-        sessionFactory.setMapperLocations(
-                new PathMatchingResourcePatternResolver().getResources("classpath:mapper/*.xml"));
+        // 使用注解方式，不需要XML文件配置
         
         return sessionFactory.getObject();
     }

@@ -5,8 +5,7 @@
 package com.huawei.dialtest.center.mapper;
 
 import com.huawei.dialtest.center.entity.DialUser;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -26,6 +25,7 @@ public interface UserMapper {
      * @param id 用户ID
      * @return 用户信息
      */
+    @Select("SELECT * FROM dial_user WHERE id = #{id}")
     DialUser findById(@Param("id") Long id);
 
   
@@ -35,6 +35,7 @@ public interface UserMapper {
      * @param username 用户名
      * @return 是否存在
      */
+    @Select("SELECT COUNT(*) > 0 FROM dial_user WHERE username = #{username}")
     boolean existsByUsername(@Param("username") String username);
 
     /**
@@ -44,6 +45,7 @@ public interface UserMapper {
      * @param pageSize 每页大小
      * @return 用户列表
      */
+    @Select("SELECT * FROM dial_user ORDER BY id DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<DialUser> findAllByOrderByIdDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
@@ -54,6 +56,7 @@ public interface UserMapper {
      * @param pageSize 每页大小
      * @return 用户列表
      */
+    @Select("SELECT * FROM dial_user WHERE username LIKE CONCAT('%', #{username}, '%') ORDER BY id DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<DialUser> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
@@ -62,6 +65,7 @@ public interface UserMapper {
      * @param username 用户名关键字
      * @return 总数
      */
+    @Select("SELECT COUNT(*) FROM dial_user WHERE username LIKE CONCAT('%', #{username}, '%')")
     long countByUsernameContaining(@Param("username") String username);
 
     /**
@@ -70,6 +74,8 @@ public interface UserMapper {
      * @param user 用户对象
      * @return 影响行数
      */
+    @Insert("INSERT INTO dial_user (username, password) VALUES (#{username}, #{password})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(DialUser user);
 
     /**
@@ -78,6 +84,7 @@ public interface UserMapper {
      * @param user 用户对象
      * @return 影响行数
      */
+    @Update("UPDATE dial_user SET username = #{username}, password = #{password} WHERE id = #{id}")
     int update(DialUser user);
 
     /**
@@ -86,6 +93,7 @@ public interface UserMapper {
      * @param id 用户ID
      * @return 影响行数
      */
+    @Delete("DELETE FROM dial_user WHERE id = #{id}")
     int deleteById(@Param("id") Long id);
 
     /**
@@ -93,5 +101,6 @@ public interface UserMapper {
      *
      * @return 用户总数
      */
+    @Select("SELECT COUNT(*) FROM dial_user")
     long count();
 }

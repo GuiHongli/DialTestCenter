@@ -5,8 +5,7 @@
 package com.huawei.dialtest.center.mapper;
 
 import com.huawei.dialtest.center.entity.OperationLog;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +32,7 @@ public interface OperationLogMapper {
      * @param pageSize 每页大小
      * @return 操作记录列表
      */
+    @SelectProvider(type = OperationLogSqlProvider.class, method = "findByConditions")
     List<OperationLog> findByConditions(@Param("username") String username,
                                        @Param("operationType") String operationType,
                                        @Param("target") String target,
@@ -48,6 +48,7 @@ public interface OperationLogMapper {
      * @param pageSize 每页大小
      * @return 操作记录列表
      */
+    @Select("SELECT * FROM operation_log ORDER BY operation_time DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<OperationLog> findAllOrderByOperationTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
@@ -58,6 +59,7 @@ public interface OperationLogMapper {
      * @param pageSize 每页大小
      * @return 操作记录列表
      */
+    @Select("SELECT * FROM operation_log WHERE username = #{username} ORDER BY operation_time DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<OperationLog> findByUsernameOrderByOperationTimeDesc(@Param("username") String username, 
                                                              @Param("pageNo") int pageNo, 
                                                              @Param("pageSize") int pageSize);
@@ -68,6 +70,7 @@ public interface OperationLogMapper {
      * @param id 操作记录ID
      * @return 操作记录
      */
+    @Select("SELECT * FROM operation_log WHERE id = #{id}")
     OperationLog findById(@Param("id") Long id);
 
     /**
@@ -76,6 +79,9 @@ public interface OperationLogMapper {
      * @param operationLog 操作记录
      * @return 影响行数
      */
+    @Insert("INSERT INTO operation_log (username, operation_type, target, description) " +
+            "VALUES (#{username}, #{operationType}, #{target}, #{description})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(OperationLog operationLog);
 
     /**
@@ -84,6 +90,7 @@ public interface OperationLogMapper {
      * @param limit 限制数量
      * @return 操作记录列表
      */
+    @Select("SELECT * FROM operation_log ORDER BY operation_time DESC LIMIT #{limit}")
     List<OperationLog> findRecentOperationLogs(@Param("limit") int limit);
 
     /**
@@ -96,6 +103,7 @@ public interface OperationLogMapper {
      * @param endTime 结束时间（可选）
      * @return 记录总数
      */
+    @SelectProvider(type = OperationLogSqlProvider.class, method = "countByConditions")
     long countByConditions(@Param("username") String username,
                           @Param("operationType") String operationType,
                           @Param("target") String target,

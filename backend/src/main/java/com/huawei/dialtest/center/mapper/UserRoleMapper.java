@@ -6,8 +6,7 @@ package com.huawei.dialtest.center.mapper;
 
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.DialUserRole;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -27,6 +26,7 @@ public interface UserRoleMapper {
      * @param id 用户角色关系ID
      * @return 用户角色关系对象
      */
+    @Select("SELECT * FROM dial_user_role WHERE id = #{id}")
     DialUserRole findById(@Param("id") Long id);
 
     /**
@@ -35,6 +35,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 用户角色列表
      */
+    @Select("SELECT * FROM dial_user_role WHERE username = #{username}")
     List<DialUserRole> findByUsername(@Param("username") String username);
 
     /**
@@ -43,6 +44,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 用户角色列表
      */
+    @Select("SELECT * FROM dial_user_role WHERE username = #{username} ORDER BY created_time DESC")
     List<DialUserRole> findByUsernameOrderByCreatedTimeDesc(@Param("username") String username);
 
     /**
@@ -51,6 +53,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 角色枚举列表
      */
+    @Select("SELECT DISTINCT role FROM dial_user_role WHERE username = #{username}")
     List<Role> findRolesByUsername(@Param("username") String username);
 
     /**
@@ -60,6 +63,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 用户角色关系
      */
+    @Select("SELECT * FROM dial_user_role WHERE username = #{username} AND role = #{role}")
     DialUserRole findByUsernameAndRole(@Param("username") String username, @Param("role") String role);
 
     /**
@@ -69,6 +73,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 是否存在
      */
+    @Select("SELECT COUNT(*) > 0 FROM dial_user_role WHERE username = #{username} AND role = #{role}")
     boolean existsByUsernameAndRole(@Param("username") String username, @Param("role") String role);
 
     /**
@@ -77,6 +82,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 用户角色关系列表
      */
+    @Select("SELECT * FROM dial_user_role WHERE role = #{role}")
     List<DialUserRole> findByRole(@Param("role") String role);
 
     /**
@@ -85,6 +91,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 是否存在
      */
+    @Select("SELECT COUNT(*) > 0 FROM dial_user_role WHERE role = #{role}")
     boolean existsByRole(@Param("role") String role);
 
     /**
@@ -93,6 +100,7 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 影响行数
      */
+    @Delete("DELETE FROM dial_user_role WHERE username = #{username}")
     int deleteByUsername(@Param("username") String username);
 
     /**
@@ -102,6 +110,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 影响行数
      */
+    @Delete("DELETE FROM dial_user_role WHERE username = #{username} AND role = #{role}")
     int deleteByUsernameAndRole(@Param("username") String username, @Param("role") String role);
 
     /**
@@ -110,6 +119,7 @@ public interface UserRoleMapper {
      * @param role 角色
      * @return 用户数量
      */
+    @Select("SELECT COUNT(*) FROM dial_user_role WHERE role = #{role}")
     long countByRole(@Param("role") String role);
 
     /**
@@ -117,6 +127,7 @@ public interface UserRoleMapper {
      *
      * @return 用户角色列表
      */
+    @Select("SELECT * FROM dial_user_role ORDER BY created_time DESC")
     List<DialUserRole> findAllOrderByCreatedTimeDesc();
 
     /**
@@ -124,6 +135,7 @@ public interface UserRoleMapper {
      *
      * @return 用户角色关系总数
      */
+    @Select("SELECT COUNT(*) FROM dial_user_role")
     long count();
 
     /**
@@ -132,6 +144,8 @@ public interface UserRoleMapper {
      * @param userRole 用户角色关系对象
      * @return 影响行数
      */
+    @Insert("INSERT INTO dial_user_role (username, role, created_time) VALUES (#{username}, #{role}, #{createdTime})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(DialUserRole userRole);
 
     /**
@@ -140,6 +154,7 @@ public interface UserRoleMapper {
      * @param userRole 用户角色关系对象
      * @return 影响行数
      */
+    @Update("UPDATE dial_user_role SET username = #{username}, role = #{role} WHERE id = #{id}")
     int update(DialUserRole userRole);
 
     /**
@@ -148,6 +163,7 @@ public interface UserRoleMapper {
      * @param id 用户角色关系ID
      * @return 影响行数
      */
+    @Delete("DELETE FROM dial_user_role WHERE id = #{id}")
     int deleteById(@Param("id") Long id);
 
     /**
@@ -157,6 +173,7 @@ public interface UserRoleMapper {
      * @param pageSize 每页大小
      * @return 用户角色列表
      */
+    @Select("SELECT * FROM dial_user_role ORDER BY created_time DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<DialUserRole> findAllByOrderByCreatedTimeDesc(@Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
@@ -167,6 +184,7 @@ public interface UserRoleMapper {
      * @param pageSize 每页大小
      * @return 用户角色列表
      */
+    @Select("SELECT * FROM dial_user_role WHERE username LIKE CONCAT('%', #{username}, '%') ORDER BY created_time DESC LIMIT #{pageSize} OFFSET #{pageNo}")
     List<DialUserRole> findByUsernameContainingWithPage(@Param("username") String username, @Param("pageNo") int pageNo, @Param("pageSize") int pageSize);
 
     /**
@@ -175,5 +193,6 @@ public interface UserRoleMapper {
      * @param username 用户名
      * @return 用户角色数量
      */
+    @Select("SELECT COUNT(*) FROM dial_user_role WHERE username LIKE CONCAT('%', #{username}, '%')")
     long countByUsernameContaining(@Param("username") String username);
 }

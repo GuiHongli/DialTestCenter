@@ -106,6 +106,7 @@ public class DialUser {
         this.lastLoginTime = lastLoginTime;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
