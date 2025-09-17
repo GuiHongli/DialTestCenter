@@ -52,11 +52,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
     post:
       tags:
         - "用户角色管理"
@@ -76,11 +76,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/user-roles/{id}:
     put:
@@ -108,15 +108,15 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         404:
           description: "用户角色不存在"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
     delete:
       tags:
         - "用户角色管理"
@@ -137,11 +137,11 @@ paths:
         404:
           description: "用户角色不存在"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/user-roles/executor-count:
     get:
@@ -157,10 +157,10 @@ paths:
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
 definitions:
-  ApiResponse:
+  BaseApiResponse:
     type: "object"
     properties:
       success:
@@ -209,7 +209,7 @@ definitions:
 
   UserRoleListResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -217,7 +217,7 @@ definitions:
 
   UserRoleCreateResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -225,7 +225,7 @@ definitions:
 
   UserRoleUpdateResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -233,7 +233,7 @@ definitions:
 
   UserRoleDeleteResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -242,7 +242,7 @@ definitions:
 
   UserRoleGetResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -250,7 +250,7 @@ definitions:
 
   UserRoleSearchResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -260,7 +260,7 @@ definitions:
 
   UserRoleCountResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:

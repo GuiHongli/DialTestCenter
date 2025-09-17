@@ -12,37 +12,37 @@ import java.time.LocalDateTime;
  * @author g00940940
  * @since 2025-01-27
  */
-public class ApiResponse<T> {
+public class BaseApiResponse<T> {
     private boolean success;
     private T data;
     private String message;
     private LocalDateTime timestamp;
 
-    public ApiResponse() {
+    public BaseApiResponse() {
         this.timestamp = LocalDateTime.now();
     }
 
-    public ApiResponse(boolean success, T data, String message) {
+    public BaseApiResponse(boolean success, T data, String message) {
         this.success = success;
         this.data = data;
         this.message = message;
         this.timestamp = LocalDateTime.now();
     }
 
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, data, "Operation successful");
+    public static <T> BaseApiResponse<T> success(T data) {
+        return new BaseApiResponse<>(true, data, "Operation successful");
     }
 
-    public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, data, message);
+    public static <T> BaseApiResponse<T> success(T data, String message) {
+        return new BaseApiResponse<>(true, data, message);
     }
 
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, null, message);
+    public static <T> BaseApiResponse<T> error(String message) {
+        return new BaseApiResponse<>(false, null, message);
     }
 
-    public static <T> ApiResponse<T> error(String errorCode, String message) {
-        ApiResponse<T> response = new ApiResponse<>(false, null, message);
+    public static <T> BaseApiResponse<T> error(String errorCode, String message) {
+        BaseApiResponse<T> response = new BaseApiResponse<>(false, null, message);
         response.setErrorCode(errorCode);
         return response;
     }

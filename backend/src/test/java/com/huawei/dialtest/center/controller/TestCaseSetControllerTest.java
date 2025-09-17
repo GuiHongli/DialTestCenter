@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
@@ -82,7 +82,7 @@ public class TestCaseSetControllerTest {
         Page<TestCaseSet> page = new PageImpl<>(testTestCaseSets, PageRequest.of(0, 10), 1L);
         when(testCaseSetService.getTestCaseSets(anyInt(), anyInt())).thenReturn(page);
 
-        ResponseEntity<ApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
                 .getTestCaseSets(1, 10);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -98,7 +98,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSets(anyInt(), anyInt()))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        ResponseEntity<ApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<PagedResponse<TestCaseSet>>> response = testCaseSetController
                 .getTestCaseSets(1, 10);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -111,7 +111,7 @@ public class TestCaseSetControllerTest {
     public void testGetTestCaseSet_Success() {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.of(testTestCaseSet));
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -123,7 +123,7 @@ public class TestCaseSetControllerTest {
     public void testGetTestCaseSet_NotFound() {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController.getTestCaseSet(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -136,7 +136,7 @@ public class TestCaseSetControllerTest {
         when(multipartFile.getOriginalFilename()).thenReturn("TestCaseSet.zip");
         when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any())).thenReturn(testTestCaseSet);
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController
                 .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -152,7 +152,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Invalid file format"));
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController
                 .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -167,7 +167,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.uploadTestCaseSet(any(), any(), any(), any()))
                 .thenThrow(new IOException("File processing failed"));
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController
                 .uploadTestCaseSet(multipartFile, "Test description", "VPN阻断业务");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -185,7 +185,7 @@ public class TestCaseSetControllerTest {
         request.put("version", "2.0.0");
         request.put("description", "Updated description");
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController
                 .updateTestCaseSet(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -204,7 +204,7 @@ public class TestCaseSetControllerTest {
         request.put("version", "2.0.0");
         request.put("description", "Updated description");
 
-        ResponseEntity<ApiResponse<TestCaseSet>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<TestCaseSet>> response = testCaseSetController
                 .updateTestCaseSet(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -218,7 +218,7 @@ public class TestCaseSetControllerTest {
         Page<TestCase> page = new PageImpl<>(testCases, PageRequest.of(0, 10), 1L);
         when(testCaseSetService.getTestCases(anyLong(), anyInt(), anyInt())).thenReturn(page);
 
-        ResponseEntity<ApiResponse<PagedResponse<TestCase>>> response = testCaseSetController
+        ResponseEntity<BaseApiResponse<PagedResponse<TestCase>>> response = testCaseSetController
                 .getTestCases(1L, 1, 10);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -234,7 +234,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getMissingScripts(1L)).thenReturn(testCases);
         when(testCaseSetService.countMissingScripts(1L)).thenReturn(1L);
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
+        ResponseEntity<BaseApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -252,7 +252,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getMissingScripts(1L))
                 .thenThrow(new IllegalArgumentException("Test case set not found"));
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
+        ResponseEntity<BaseApiResponse<Map<String, Object>>> response = testCaseSetController.getMissingScripts(1L);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());

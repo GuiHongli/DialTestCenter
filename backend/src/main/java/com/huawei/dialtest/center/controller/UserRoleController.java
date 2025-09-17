@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.DialUserRole;
@@ -58,7 +58,7 @@ public class UserRoleController {
      * @return 分页的用户角色列表
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> getUserRoles(
+    public ResponseEntity<BaseApiResponse<PagedResponse<DialUserRole>>> getUserRoles(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search) {
@@ -74,19 +74,19 @@ public class UserRoleController {
             
             logger.debug("Successfully retrieved user roles: page={}, pageSize={}, total={}", 
                         page, pageSize, userRolePage.getTotalElements());
-            return ResponseEntity.ok(ApiResponse.success(pagedResponse));
+            return ResponseEntity.ok(BaseApiResponse.success(pagedResponse));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+                .body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database access failed while getting user roles: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("DATABASE_ERROR", "Database access failed"));
+                .body(BaseApiResponse.error("DATABASE_ERROR", "Database access failed"));
         } catch (IllegalStateException e) {
             logger.error("Service state error while getting user roles: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("SERVICE_ERROR", "Service state error"));
+                .body(BaseApiResponse.error("SERVICE_ERROR", "Service state error"));
         }
     }
 
@@ -98,7 +98,7 @@ public class UserRoleController {
      * @throws IllegalArgumentException 当请求参数无效时抛出
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<DialUserRole>> createUserRole(@Valid @RequestBody UserRoleRequest request) {
+    public ResponseEntity<BaseApiResponse<DialUserRole>> createUserRole(@Valid @RequestBody UserRoleRequest request) {
         logger.info("Creating user role: {} - {}", request.getUsername(), request.getRole());
         try {
             DialUserRole userRole = new DialUserRole();
@@ -106,19 +106,19 @@ public class UserRoleController {
             userRole.setRole(request.getRole());
             DialUserRole savedUserRole = userRoleService.save(userRole);
             logger.info("User role created successfully: {} - {}", request.getUsername(), request.getRole());
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(savedUserRole, "User role created successfully"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(BaseApiResponse.success(savedUserRole, "User role created successfully"));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+                .body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database access failed while creating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("DATABASE_ERROR", "Database access failed"));
+                .body(BaseApiResponse.error("DATABASE_ERROR", "Database access failed"));
         } catch (IllegalStateException e) {
             logger.error("Service state error while creating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("SERVICE_ERROR", "Service state error"));
+                .body(BaseApiResponse.error("SERVICE_ERROR", "Service state error"));
         }
     }
 
@@ -132,7 +132,7 @@ public class UserRoleController {
      * @throws IllegalArgumentException 当请求参数无效时抛出
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<DialUserRole>> updateUserRole(
+    public ResponseEntity<BaseApiResponse<DialUserRole>> updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UserRoleRequest request) {
         logger.info("Updating user role with ID: {}", id);
@@ -143,23 +143,23 @@ public class UserRoleController {
             userRole.setRole(request.getRole());
             DialUserRole updatedUserRole = userRoleService.save(userRole);
             logger.info("User role updated successfully: {} - {}", request.getUsername(), request.getRole());
-            return ResponseEntity.ok(ApiResponse.success(updatedUserRole, "User role updated successfully"));
+            return ResponseEntity.ok(BaseApiResponse.success(updatedUserRole, "User role updated successfully"));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+                .body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database access failed while updating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("DATABASE_ERROR", "Database access failed"));
+                .body(BaseApiResponse.error("DATABASE_ERROR", "Database access failed"));
         } catch (IllegalStateException e) {
             logger.error("Service state error while updating user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("SERVICE_ERROR", "Service state error"));
+                .body(BaseApiResponse.error("SERVICE_ERROR", "Service state error"));
         } catch (RuntimeException e) {
             logger.warn("User role not found for update: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("NOT_FOUND", "User role not found"));
+                .body(BaseApiResponse.error("NOT_FOUND", "User role not found"));
         }
     }
 
@@ -171,24 +171,24 @@ public class UserRoleController {
      * @throws IllegalArgumentException 当用户角色不存在时抛出
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteUserRole(@PathVariable Long id) {
+    public ResponseEntity<BaseApiResponse<String>> deleteUserRole(@PathVariable Long id) {
         logger.info("Deleting user role with ID: {}", id);
         try {
             userRoleService.deleteById(id);
             logger.info("User role deleted successfully: {}", id);
-            return ResponseEntity.ok(ApiResponse.success("User role deleted successfully"));
+            return ResponseEntity.ok(BaseApiResponse.success("User role deleted successfully"));
         } catch (IllegalArgumentException e) {
             logger.warn("User role not found for deletion: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("NOT_FOUND", "User role not found"));
+                .body(BaseApiResponse.error("NOT_FOUND", "User role not found"));
         } catch (DataAccessException e) {
             logger.error("Database access failed while deleting user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("DATABASE_ERROR", "Database access failed"));
+                .body(BaseApiResponse.error("DATABASE_ERROR", "Database access failed"));
         } catch (IllegalStateException e) {
             logger.error("Service state error while deleting user role: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("SERVICE_ERROR", "Service state error"));
+                .body(BaseApiResponse.error("SERVICE_ERROR", "Service state error"));
         }
     }
 
@@ -198,20 +198,20 @@ public class UserRoleController {
      * @return 执行机用户数量
      */
     @GetMapping("/executor-count")
-    public ResponseEntity<ApiResponse<Long>> getExecutorCount() {
+    public ResponseEntity<BaseApiResponse<Long>> getExecutorCount() {
         logger.debug("Getting executor user count");
         try {
             long count = userRoleService.getExecutorUserCount();
             logger.debug("Executor user count: {}", count);
-            return ResponseEntity.ok(ApiResponse.success(count));
+            return ResponseEntity.ok(BaseApiResponse.success(count));
         } catch (DataAccessException e) {
             logger.error("Database access failed while getting executor user count: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("DATABASE_ERROR", "Database access failed"));
+                .body(BaseApiResponse.error("DATABASE_ERROR", "Database access failed"));
         } catch (IllegalStateException e) {
             logger.error("Service state error while getting executor user count: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("SERVICE_ERROR", "Service state error"));
+                .body(BaseApiResponse.error("SERVICE_ERROR", "Service state error"));
         }
     }
 

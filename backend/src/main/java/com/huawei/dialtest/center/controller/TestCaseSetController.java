@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.TestCase;
 import com.huawei.dialtest.center.entity.TestCaseSet;
@@ -61,7 +61,7 @@ public class TestCaseSetController {
      * @return 用例集分页数据
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<PagedResponse<TestCaseSet>>> getTestCaseSets(
+    public ResponseEntity<BaseApiResponse<PagedResponse<TestCaseSet>>> getTestCaseSets(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         logger.info("Getting test case sets - page: {}, size: {}", page, pageSize);
@@ -75,14 +75,14 @@ public class TestCaseSetController {
                 pageSize
             );
 
-            return ResponseEntity.ok(ApiResponse.success(pagedResponse));
+            return ResponseEntity.ok(BaseApiResponse.success(pagedResponse));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting test case sets: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -93,23 +93,23 @@ public class TestCaseSetController {
      * @return 用例集详情
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TestCaseSet>> getTestCaseSet(@PathVariable Long id) {
+    public ResponseEntity<BaseApiResponse<TestCaseSet>> getTestCaseSet(@PathVariable Long id) {
         logger.info("Getting test case set details for ID: {}", id);
         try {
             Optional<TestCaseSet> testCaseSet = testCaseSetService.getTestCaseSetById(id);
             if (testCaseSet.isPresent()) {
-                return ResponseEntity.ok(ApiResponse.success(testCaseSet.get()));
+                return ResponseEntity.ok(BaseApiResponse.success(testCaseSet.get()));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ApiResponse.error("NOT_FOUND", "Test case set not found"));
+                        .body(BaseApiResponse.error("NOT_FOUND", "Test case set not found"));
             }
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting test case set details: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -124,7 +124,7 @@ public class TestCaseSetController {
      * @throws IllegalArgumentException 当文件格式不正确或参数无效时抛出
      */
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<TestCaseSet>> uploadTestCaseSet(
+    public ResponseEntity<BaseApiResponse<TestCaseSet>> uploadTestCaseSet(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "business", required = false, defaultValue = "VPN阻断业务") String business) {
@@ -135,18 +135,18 @@ public class TestCaseSetController {
 
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, creator, business);
 
-            return ResponseEntity.ok(ApiResponse.success(testCaseSet, "Upload successful"));
+            return ResponseEntity.ok(BaseApiResponse.success(testCaseSet, "Upload successful"));
         } catch (IllegalArgumentException e) {
             logger.warn("Test case set upload failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (IOException e) {
             logger.error("File I/O error during upload: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("FILE_PROCESSING_ERROR", "File processing failed"));
+                    .body(BaseApiResponse.error("FILE_PROCESSING_ERROR", "File processing failed"));
         } catch (DataAccessException e) {
             logger.error("Database error during test case set upload: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Upload failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Upload failed"));
         }
     }
 
@@ -236,7 +236,7 @@ public class TestCaseSetController {
      * @throws IllegalArgumentException 当用例集不存在或参数无效时抛出
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<TestCaseSet>> updateTestCaseSet(
+    public ResponseEntity<BaseApiResponse<TestCaseSet>> updateTestCaseSet(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         logger.info("Updating test case set with ID: {}", id);
@@ -247,14 +247,14 @@ public class TestCaseSetController {
 
             TestCaseSet updated = testCaseSetService.updateTestCaseSet(id, name, version, description);
             logger.info("Test case set updated successfully: {} - {}", name, version);
-            return ResponseEntity.ok(ApiResponse.success(updated));
+            return ResponseEntity.ok(BaseApiResponse.success(updated));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while updating test case set: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -267,7 +267,7 @@ public class TestCaseSetController {
      * @return 测试用例分页数据
      */
     @GetMapping("/{id}/test-cases")
-    public ResponseEntity<ApiResponse<PagedResponse<TestCase>>> getTestCases(
+    public ResponseEntity<BaseApiResponse<PagedResponse<TestCase>>> getTestCases(
             @PathVariable Long id,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
@@ -282,14 +282,14 @@ public class TestCaseSetController {
                 pageSize
             );
 
-            return ResponseEntity.ok(ApiResponse.success(pagedResponse));
+            return ResponseEntity.ok(BaseApiResponse.success(pagedResponse));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting test cases: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 
@@ -300,7 +300,7 @@ public class TestCaseSetController {
      * @return 没有脚本的测试用例列表
      */
     @GetMapping("/{id}/missing-scripts")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getMissingScripts(@PathVariable Long id) {
+    public ResponseEntity<BaseApiResponse<Map<String, Object>>> getMissingScripts(@PathVariable Long id) {
         logger.info("Getting missing scripts for test case set: {}", id);
         try {
             List<TestCase> missingScripts = testCaseSetService.getMissingScripts(id);
@@ -310,14 +310,14 @@ public class TestCaseSetController {
             responseData.put("testCases", missingScripts);
             responseData.put("count", missingCount);
 
-            return ResponseEntity.ok(ApiResponse.success(responseData));
+            return ResponseEntity.ok(BaseApiResponse.success(responseData));
         } catch (IllegalArgumentException e) {
             logger.warn("Invalid request parameters: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", e.getMessage()));
+            return ResponseEntity.badRequest().body(BaseApiResponse.error("VALIDATION_ERROR", e.getMessage()));
         } catch (DataAccessException e) {
             logger.error("Database error while getting missing scripts: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("DATABASE_ERROR", "Database operation failed"));
+                    .body(BaseApiResponse.error("DATABASE_ERROR", "Database operation failed"));
         }
     }
 

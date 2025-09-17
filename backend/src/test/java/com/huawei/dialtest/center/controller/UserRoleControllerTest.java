@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.Role;
 import com.huawei.dialtest.center.entity.DialUserRole;
@@ -68,7 +68,7 @@ public class UserRoleControllerTest {
         Page<DialUserRole> userRolePage = new PageImpl<>(testUserRoles, PageRequest.of(0, 10), 2);
         when(userRoleService.getAllUserRoles(1, 10, null)).thenReturn(userRolePage);
 
-        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<BaseApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -86,7 +86,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllUserRoles(1, 10, null))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<BaseApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -101,7 +101,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllUserRoles(1, 10, null))
                 .thenThrow(new DataAccessException("Database error") {});
 
-        ResponseEntity<ApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
+        ResponseEntity<BaseApiResponse<PagedResponse<DialUserRole>>> response = userRoleController.getUserRoles(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -118,7 +118,7 @@ public class UserRoleControllerTest {
         request.setUsername("testuser");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -134,7 +134,7 @@ public class UserRoleControllerTest {
         request.setUsername("");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -151,7 +151,7 @@ public class UserRoleControllerTest {
         request.setUsername("testuser");
         request.setRole(Role.ADMIN);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.createUserRole(request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -169,7 +169,7 @@ public class UserRoleControllerTest {
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -188,7 +188,7 @@ public class UserRoleControllerTest {
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -207,7 +207,7 @@ public class UserRoleControllerTest {
         request.setUsername("updateduser");
         request.setRole(Role.EXECUTOR);
 
-        ResponseEntity<ApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
+        ResponseEntity<BaseApiResponse<DialUserRole>> response = userRoleController.updateUserRole(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -221,7 +221,7 @@ public class UserRoleControllerTest {
     public void testDeleteUserRole_Success() {
         doNothing().when(userRoleService).deleteById(1L);
 
-        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
+        ResponseEntity<BaseApiResponse<String>> response = userRoleController.deleteUserRole(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -234,7 +234,7 @@ public class UserRoleControllerTest {
     public void testDeleteUserRole_NotFound() {
         doThrow(new IllegalArgumentException("User role not found")).when(userRoleService).deleteById(1L);
 
-        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
+        ResponseEntity<BaseApiResponse<String>> response = userRoleController.deleteUserRole(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -247,7 +247,7 @@ public class UserRoleControllerTest {
     public void testDeleteUserRole_DatabaseError() {
         doThrow(new DataAccessException("Database error") {}).when(userRoleService).deleteById(1L);
 
-        ResponseEntity<ApiResponse<String>> response = userRoleController.deleteUserRole(1L);
+        ResponseEntity<BaseApiResponse<String>> response = userRoleController.deleteUserRole(1L);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -260,7 +260,7 @@ public class UserRoleControllerTest {
     public void testGetExecutorCount_Success() {
         when(userRoleService.getExecutorUserCount()).thenReturn(5L);
 
-        ResponseEntity<ApiResponse<Long>> response = userRoleController.getExecutorCount();
+        ResponseEntity<BaseApiResponse<Long>> response = userRoleController.getExecutorCount();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -274,7 +274,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getExecutorUserCount())
                 .thenThrow(new DataAccessException("Database error") {});
 
-        ResponseEntity<ApiResponse<Long>> response = userRoleController.getExecutorCount();
+        ResponseEntity<BaseApiResponse<Long>> response = userRoleController.getExecutorCount();
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());

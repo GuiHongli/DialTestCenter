@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.OperationLog;
 import com.huawei.dialtest.center.service.OperationLogService;
@@ -69,7 +69,7 @@ public class OperationLogControllerTest {
         when(operationLogService.getOperationLogsByConditions(any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(page);
 
-        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+        ResponseEntity<BaseApiResponse<PagedResponse<OperationLog>>> response = operationLogController
                 .getOperationLogsByConditions("testuser", "CREATE", "TestCaseSet", null, null, 0, 20);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -85,7 +85,7 @@ public class OperationLogControllerTest {
         when(operationLogService.getOperationLogsByConditions(any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+        ResponseEntity<BaseApiResponse<PagedResponse<OperationLog>>> response = operationLogController
                 .getOperationLogsByConditions("testuser", "CREATE", "TestCaseSet", null, null, 0, 20);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -98,7 +98,7 @@ public class OperationLogControllerTest {
     public void testGetOperationLogById_Success() {
         when(operationLogService.getOperationLogById(1L)).thenReturn(Optional.of(testOperationLog));
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -110,7 +110,7 @@ public class OperationLogControllerTest {
     public void testGetOperationLogById_NotFound() {
         when(operationLogService.getOperationLogById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.getOperationLogById(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -124,7 +124,7 @@ public class OperationLogControllerTest {
         when(operationLogService.searchOperationLogs(any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(page);
 
-        ResponseEntity<ApiResponse<PagedResponse<OperationLog>>> response = operationLogController
+        ResponseEntity<BaseApiResponse<PagedResponse<OperationLog>>> response = operationLogController
                 .searchOperationLogs("testuser", "CREATE", "TestCaseSet", "test", 0, 20);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -138,7 +138,7 @@ public class OperationLogControllerTest {
     public void testGetRecentOperationLogs_Success() {
         when(operationLogService.getRecentOperationLogs(10)).thenReturn(testOperationLogs);
 
-        ResponseEntity<ApiResponse<List<OperationLog>>> response = operationLogController.getRecentOperationLogs(10);
+        ResponseEntity<BaseApiResponse<List<OperationLog>>> response = operationLogController.getRecentOperationLogs(10);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -156,7 +156,7 @@ public class OperationLogControllerTest {
         request.put("target", "TestCaseSet");
         request.put("description", "Created test case set");
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -170,7 +170,7 @@ public class OperationLogControllerTest {
         request.put("operationType", "CREATE");
         request.put("target", "TestCaseSet");
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -184,7 +184,7 @@ public class OperationLogControllerTest {
         request.put("username", "testuser");
         request.put("target", "TestCaseSet");
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -198,7 +198,7 @@ public class OperationLogControllerTest {
         request.put("username", "testuser");
         request.put("operationType", "CREATE");
 
-        ResponseEntity<ApiResponse<OperationLog>> response = operationLogController.logOperation(request);
+        ResponseEntity<BaseApiResponse<OperationLog>> response = operationLogController.logOperation(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());

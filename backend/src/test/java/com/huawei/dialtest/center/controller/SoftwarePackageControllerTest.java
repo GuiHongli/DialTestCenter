@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.SoftwarePackage;
 import com.huawei.dialtest.center.service.SoftwarePackageService;
@@ -72,7 +72,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.getSoftwarePackages(anyInt(), anyInt(), any(), any(), any()))
                 .thenReturn(page);
 
-        ResponseEntity<ApiResponse<PagedResponse<SoftwarePackage>>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<PagedResponse<SoftwarePackage>>> response = softwarePackageController
                 .getSoftwarePackages(1, 10, "Android", "admin", "TestApp");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -88,7 +88,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.getSoftwarePackages(anyInt(), anyInt(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Invalid parameters"));
 
-        ResponseEntity<ApiResponse<PagedResponse<SoftwarePackage>>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<PagedResponse<SoftwarePackage>>> response = softwarePackageController
                 .getSoftwarePackages(1, 10, "Android", "admin", "TestApp");
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -101,7 +101,7 @@ public class SoftwarePackageControllerTest {
     public void testGetSoftwarePackage_Success() {
         when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(Optional.of(testSoftwarePackage));
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController.getSoftwarePackage(1L);
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController.getSoftwarePackage(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -113,7 +113,7 @@ public class SoftwarePackageControllerTest {
     public void testGetSoftwarePackage_NotFound() {
         when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController.getSoftwarePackage(1L);
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController.getSoftwarePackage(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -126,7 +126,7 @@ public class SoftwarePackageControllerTest {
         when(multipartFile.getOriginalFilename()).thenReturn("TestApp.apk");
         when(softwarePackageService.uploadSoftwarePackage(any(), any(), any())).thenReturn(testSoftwarePackage);
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController
                 .uploadSoftwarePackage(multipartFile, "Test description");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -142,7 +142,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.uploadSoftwarePackage(any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Invalid file format"));
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController
                 .uploadSoftwarePackage(multipartFile, "Test description");
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -157,7 +157,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.uploadSoftwarePackage(any(), any(), any()))
                 .thenThrow(new IOException("File processing failed"));
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController
                 .uploadSoftwarePackage(multipartFile, "Test description");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -171,7 +171,7 @@ public class SoftwarePackageControllerTest {
         when(multipartFile.getOriginalFilename()).thenReturn("packages.zip");
         when(softwarePackageService.uploadZipPackage(any(), any())).thenReturn(testSoftwarePackages);
 
-        ResponseEntity<ApiResponse<List<SoftwarePackage>>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<List<SoftwarePackage>>> response = softwarePackageController
                 .uploadZipPackage(multipartFile);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -189,7 +189,7 @@ public class SoftwarePackageControllerTest {
         request.put("softwareName", "UpdatedApp");
         request.put("description", "Updated description");
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController
                 .updateSoftwarePackage(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -207,7 +207,7 @@ public class SoftwarePackageControllerTest {
         request.put("softwareName", "UpdatedApp");
         request.put("description", "Updated description");
 
-        ResponseEntity<ApiResponse<SoftwarePackage>> response = softwarePackageController
+        ResponseEntity<BaseApiResponse<SoftwarePackage>> response = softwarePackageController
                 .updateSoftwarePackage(1L, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -223,7 +223,7 @@ public class SoftwarePackageControllerTest {
         statistics.put("iOS", 3L);
         when(softwarePackageService.getPlatformStatistics()).thenReturn(statistics);
 
-        ResponseEntity<ApiResponse<Map<String, Long>>> response = softwarePackageController.getStatistics();
+        ResponseEntity<BaseApiResponse<Map<String, Long>>> response = softwarePackageController.getStatistics();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

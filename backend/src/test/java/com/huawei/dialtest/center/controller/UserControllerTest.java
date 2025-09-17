@@ -4,7 +4,7 @@
 
 package com.huawei.dialtest.center.controller;
 
-import com.huawei.dialtest.center.dto.ApiResponse;
+import com.huawei.dialtest.center.dto.BaseApiResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.DialUser;
 import com.huawei.dialtest.center.service.UserService;
@@ -71,7 +71,7 @@ public class UserControllerTest {
         Page<DialUser> userPage = new PageImpl<>(testUsers, PageRequest.of(0, 10), 2);
         when(userService.getAllUsers(1, 10, null)).thenReturn(userPage);
 
-        ResponseEntity<ApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -88,7 +88,7 @@ public class UserControllerTest {
     public void testGetAllUsers_Error() {
         when(userService.getAllUsers(1, 10, null)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<ApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -102,7 +102,7 @@ public class UserControllerTest {
     public void testGetUserById_Success() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(testUser));
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.getUserById(1L);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -115,7 +115,7 @@ public class UserControllerTest {
     public void testGetUserById_NotFound() {
         when(userService.getUserById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.getUserById(1L);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -128,7 +128,7 @@ public class UserControllerTest {
     public void testGetUserById_Error() {
         when(userService.getUserById(1L)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.getUserById(1L);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.getUserById(1L);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -145,7 +145,7 @@ public class UserControllerTest {
         request.put("username", "testuser");
         request.put("password", "password123");
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.createUser(request);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -161,7 +161,7 @@ public class UserControllerTest {
         request.put("username", "");
         request.put("password", "password123");
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.createUser(request);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -178,7 +178,7 @@ public class UserControllerTest {
         request.put("username", "updateduser");
         request.put("password", "newpassword");
 
-        ResponseEntity<ApiResponse<DialUser>> response = userController.updateUser(1L, request);
+        ResponseEntity<BaseApiResponse<DialUser>> response = userController.updateUser(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -192,7 +192,7 @@ public class UserControllerTest {
     public void testDeleteUser_Success() {
         doNothing().when(userService).deleteUser(1L);
 
-        ResponseEntity<ApiResponse<String>> response = userController.deleteUser(1L);
+        ResponseEntity<BaseApiResponse<String>> response = userController.deleteUser(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -205,7 +205,7 @@ public class UserControllerTest {
     public void testSearchUsers_Success() {
         when(userService.searchUsersByUsername("test")).thenReturn(testUsers);
 
-        ResponseEntity<ApiResponse<List<DialUser>>> response = userController.searchUsers("test");
+        ResponseEntity<BaseApiResponse<List<DialUser>>> response = userController.searchUsers("test");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -222,7 +222,7 @@ public class UserControllerTest {
         request.put("username", "testuser");
         request.put("password", "password123");
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = userController.validatePassword(request);
+        ResponseEntity<BaseApiResponse<Map<String, Object>>> response = userController.validatePassword(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -239,7 +239,7 @@ public class UserControllerTest {
         Map<String, String> request = new HashMap<>();
         request.put("username", "testuser");
 
-        ResponseEntity<ApiResponse<String>> response = userController.updateLastLoginTime(request);
+        ResponseEntity<BaseApiResponse<String>> response = userController.updateLastLoginTime(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

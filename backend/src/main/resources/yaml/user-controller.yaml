@@ -52,7 +52,7 @@ paths:
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
     post:
       tags:
         - "用户管理"
@@ -72,11 +72,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/users/{id}:
     get:
@@ -99,11 +99,11 @@ paths:
         404:
           description: "用户不存在"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
     put:
       tags:
         - "用户管理"
@@ -129,11 +129,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
     delete:
       tags:
         - "用户管理"
@@ -154,11 +154,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/users/username/{username}:
     get:
@@ -180,11 +180,11 @@ paths:
         404:
           description: "用户不存在"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/users/search:
     get:
@@ -206,7 +206,7 @@ paths:
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/users/validate-password:
     post:
@@ -228,11 +228,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/users/update-login-time:
     post:
@@ -254,14 +254,14 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/BaseApiResponse"
 
 definitions:
-  ApiResponse:
+  BaseApiResponse:
     type: "object"
     properties:
       success:
@@ -310,7 +310,7 @@ definitions:
 
   UserListResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -318,7 +318,7 @@ definitions:
 
   UserCreateResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -326,7 +326,7 @@ definitions:
 
   UserGetResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -334,7 +334,7 @@ definitions:
 
   UserUpdateResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -342,7 +342,7 @@ definitions:
 
   UserDeleteResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -351,7 +351,7 @@ definitions:
 
   UserSearchResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -361,7 +361,7 @@ definitions:
 
   PasswordValidationResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -369,7 +369,7 @@ definitions:
 
   UpdateLoginTimeResponse:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:

@@ -19,7 +19,7 @@ public class ApiResponseTest {
 
     @Test
     public void testDefaultConstructor() {
-        ApiResponse<String> response = new ApiResponse<>();
+        BaseApiResponse<String> response = new BaseApiResponse<>();
         
         assertFalse(response.isSuccess());
         assertNull(response.getData());
@@ -31,7 +31,7 @@ public class ApiResponseTest {
     public void testParameterizedConstructor() {
         String testData = "test data";
         String testMessage = "test message";
-        ApiResponse<String> response = new ApiResponse<>(true, testData, testMessage);
+        BaseApiResponse<String> response = new BaseApiResponse<>(true, testData, testMessage);
         
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
@@ -42,7 +42,7 @@ public class ApiResponseTest {
     @Test
     public void testSuccessStaticMethod() {
         String testData = "test data";
-        ApiResponse<String> response = ApiResponse.success(testData);
+        BaseApiResponse<String> response = BaseApiResponse.success(testData);
         
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
@@ -54,7 +54,7 @@ public class ApiResponseTest {
     public void testSuccessWithMessageStaticMethod() {
         String testData = "test data";
         String testMessage = "custom message";
-        ApiResponse<String> response = ApiResponse.success(testData, testMessage);
+        BaseApiResponse<String> response = BaseApiResponse.success(testData, testMessage);
         
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
@@ -65,7 +65,7 @@ public class ApiResponseTest {
     @Test
     public void testErrorStaticMethod() {
         String testMessage = "error message";
-        ApiResponse<String> response = ApiResponse.error(testMessage);
+        BaseApiResponse<String> response = BaseApiResponse.error(testMessage);
         
         assertFalse(response.isSuccess());
         assertNull(response.getData());
@@ -77,7 +77,7 @@ public class ApiResponseTest {
     public void testErrorWithCodeStaticMethod() {
         String errorCode = "ERROR_CODE";
         String testMessage = "error message";
-        ApiResponse<String> response = ApiResponse.error(errorCode, testMessage);
+        BaseApiResponse<String> response = BaseApiResponse.error(errorCode, testMessage);
         
         assertFalse(response.isSuccess());
         assertNull(response.getData());
@@ -88,7 +88,7 @@ public class ApiResponseTest {
 
     @Test
     public void testSettersAndGetters() {
-        ApiResponse<String> response = new ApiResponse<>();
+        BaseApiResponse<String> response = new BaseApiResponse<>();
         
         response.setSuccess(true);
         response.setData("test data");
