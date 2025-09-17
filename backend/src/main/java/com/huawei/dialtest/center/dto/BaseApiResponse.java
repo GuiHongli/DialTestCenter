@@ -10,35 +10,35 @@ package com.huawei.dialtest.center.dto;
  * @author g00940940
  * @since 2025-01-27
  */
-public class BaseApiResponse<T> {
+public class BaseApiResponse {
     private boolean success;
-    private T data;
+    private Object data;
     private String message;
     private String errorCode;
 
     public BaseApiResponse() {
     }
 
-    public BaseApiResponse(boolean success, T data, String message) {
+    public BaseApiResponse(boolean success, Object data, String message) {
         this.success = success;
         this.data = data;
         this.message = message;
     }
 
-    public static <T> BaseApiResponse<T> success(T data) {
-        return new BaseApiResponse<>(true, data, "Operation successful");
+    public static BaseApiResponse success(Object data) {
+        return new BaseApiResponse(true, data, "Operation successful");
     }
 
-    public static <T> BaseApiResponse<T> success(T data, String message) {
-        return new BaseApiResponse<>(true, data, message);
+    public static BaseApiResponse success(Object data, String message) {
+        return new BaseApiResponse(true, data, message);
     }
 
-    public static <T> BaseApiResponse<T> error(String message) {
-        return new BaseApiResponse<>(false, null, message);
+    public static BaseApiResponse error(String message) {
+        return new BaseApiResponse(false, null, message);
     }
 
-    public static <T> BaseApiResponse<T> error(String errorCode, String message) {
-        BaseApiResponse<T> response = new BaseApiResponse<>(false, null, message);
+    public static BaseApiResponse error(String errorCode, String message) {
+        BaseApiResponse response = new BaseApiResponse(false, null, message);
         response.setErrorCode(errorCode);
         return response;
     }
@@ -51,11 +51,11 @@ public class BaseApiResponse<T> {
         this.success = success;
     }
 
-    public T getData() {
+    public Object getData() {
         return data;
     }
 
-    public void setData(T data) {
+    public void setData(Object data) {
         this.data = data;
     }
 

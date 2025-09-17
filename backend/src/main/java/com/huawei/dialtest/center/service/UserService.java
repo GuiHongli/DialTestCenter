@@ -49,7 +49,7 @@ public class UserService {
      * @return 用户分页数据
      */
     @Transactional(readOnly = true)
-    public PagedResponse<DialUser> getAllUsers(int page, int pageSize, String search) {
+    public PagedResponse getAllUsers(int page, int pageSize, String search) {
         try {
             logger.debug("Getting users - page: {}, size: {}, search: {}", page, pageSize, search);
             
@@ -66,7 +66,8 @@ public class UserService {
                 total = userMapper.count();
             }
             
-            PagedResponse<DialUser> result = new PagedResponse<>(content, total, page, pageSize);
+            @SuppressWarnings("unchecked")
+            PagedResponse result = new PagedResponse((List<Object>) (List<?>) content, total, page, pageSize);
             logger.info("Successfully retrieved {} users (page {}/{})", content.size(), page, (int) Math.ceil((double) total / pageSize));
             return result;
         } catch (DataAccessException e) {

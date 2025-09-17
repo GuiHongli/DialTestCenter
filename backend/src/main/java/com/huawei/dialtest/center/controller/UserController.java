@@ -43,13 +43,13 @@ public class UserController {
      * @return 用户分页数据
      */
     @GetMapping
-    public ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> getAllUsers(
+    public ResponseEntity<BaseApiResponse> getAllUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search) {
         try {
             logger.info("Received request to get users - page: {}, size: {}, search: {}", page, pageSize, search);
-            PagedResponse<DialUser> pagedResponse = userService.getAllUsers(page, pageSize, search);
+            PagedResponse pagedResponse = userService.getAllUsers(page, pageSize, search);
             
             logger.info("Successfully retrieved {} users (page {}/{})", pagedResponse.getData().size(), page, pagedResponse.getTotalPages());
             return ResponseEntity.ok(BaseApiResponse.success(pagedResponse));
@@ -67,7 +67,7 @@ public class UserController {
      * @return 创建的用户
      */
     @PostMapping
-    public ResponseEntity<BaseApiResponse<DialUser>> createUser(@RequestBody UserCreateRequest request) {
+    public ResponseEntity<BaseApiResponse> createUser(@RequestBody UserCreateRequest request) {
         try {
             logger.info("Received request to create user: {}", request.getUsername());
             
@@ -105,7 +105,7 @@ public class UserController {
      * @return 更新后的用户
      */
     @PutMapping("/{id}")
-    public ResponseEntity<BaseApiResponse<DialUser>> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+    public ResponseEntity<BaseApiResponse> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
         try {
             logger.info("Received request to update user with ID: {}", id);
             
@@ -136,7 +136,7 @@ public class UserController {
      * @return 删除结果
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseApiResponse<String>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<BaseApiResponse> deleteUser(@PathVariable Long id) {
         try {
             logger.info("Received request to delete user with ID: {}", id);
             userService.deleteUser(id);

@@ -162,7 +162,7 @@ definitions:
         type: "array"
         description: "分页数据"
         items:
-          $ref: "#/definitions/DialUser"
+          type: "object"
       total:
         type: "integer"
         format: "int64"

@@ -64,19 +64,20 @@ public class UserControllerTest {
 
     @Test
     public void testGetAllUsers_Success() {
-        PagedResponse<DialUser> pagedResponse = new PagedResponse<>(testUsers, 2L, 1, 10);
+        @SuppressWarnings("unchecked")
+        PagedResponse pagedResponse = new PagedResponse((List<Object>) (List<?>) testUsers, 2L, 1, 10);
         when(userService.getAllUsers(1, 10, null)).thenReturn(pagedResponse);
 
-        ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<BaseApiResponse> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         assertNotNull(response.getBody().getData());
-        assertEquals(testUsers, response.getBody().getData().getData());
-        assertEquals(2L, response.getBody().getData().getTotal());
-        assertEquals(1, response.getBody().getData().getPage());
-        assertEquals(10, response.getBody().getData().getPageSize());
+        assertEquals(testUsers, ((PagedResponse) response.getBody().getData()).getData());
+        assertEquals(2L, ((PagedResponse) response.getBody().getData()).getTotal());
+        assertEquals(1, ((PagedResponse) response.getBody().getData()).getPage());
+        assertEquals(10, ((PagedResponse) response.getBody().getData()).getPageSize());
         verify(userService).getAllUsers(1, 10, null);
     }
 
@@ -84,7 +85,7 @@ public class UserControllerTest {
     public void testGetAllUsers_Error() {
         when(userService.getAllUsers(1, 10, null)).thenThrow(new RuntimeException("Service error"));
 
-        ResponseEntity<BaseApiResponse<PagedResponse<DialUser>>> response = userController.getAllUsers(1, 10, null);
+        ResponseEntity<BaseApiResponse> response = userController.getAllUsers(1, 10, null);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -101,7 +102,7 @@ public class UserControllerTest {
 
         UserCreateRequest request = new UserCreateRequest("testuser", "password123");
 
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
+        ResponseEntity<BaseApiResponse> response = userController.createUser(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -115,7 +116,7 @@ public class UserControllerTest {
     public void testCreateUser_ValidationError() {
         UserCreateRequest request = new UserCreateRequest("", "password123");
 
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.createUser(request);
+        ResponseEntity<BaseApiResponse> response = userController.createUser(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -130,7 +131,7 @@ public class UserControllerTest {
 
         UserUpdateRequest request = new UserUpdateRequest("updateduser", "newpassword");
 
-        ResponseEntity<BaseApiResponse<DialUser>> response = userController.updateUser(1L, request);
+        ResponseEntity<BaseApiResponse> response = userController.updateUser(1L, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -144,7 +145,7 @@ public class UserControllerTest {
     public void testDeleteUser_Success() {
         doNothing().when(userService).deleteUser(1L);
 
-        ResponseEntity<BaseApiResponse<String>> response = userController.deleteUser(1L);
+        ResponseEntity<BaseApiResponse> response = userController.deleteUser(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

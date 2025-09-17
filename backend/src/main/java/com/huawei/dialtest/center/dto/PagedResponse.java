@@ -12,8 +12,8 @@ import java.util.List;
  * @author g00940940
  * @since 2025-01-27
  */
-public class PagedResponse<T> {
-    private List<T> data;
+public class PagedResponse {
+    private List<Object> data;
     private long total;
     private int page;
     private int pageSize;
@@ -24,7 +24,7 @@ public class PagedResponse<T> {
     public PagedResponse() {
     }
 
-    public PagedResponse(List<T> data, long total, int page, int pageSize) {
+    public PagedResponse(List<Object> data, long total, int page, int pageSize) {
         this.data = data;
         this.total = total;
         this.page = page;
@@ -34,11 +34,11 @@ public class PagedResponse<T> {
         this.hasPrevious = page > 0;
     }
 
-    public List<T> getData() {
+    public List<Object> getData() {
         return data;
     }
 
-    public void setData(List<T> data) {
+    public void setData(List<Object> data) {
         this.data = data;
     }
 
