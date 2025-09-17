@@ -4,8 +4,6 @@
 
 package com.huawei.dialtest.center.dto;
 
-import java.time.LocalDateTime;
-
 /**
  * 统一API响应格式
  *
@@ -16,17 +14,15 @@ public class BaseApiResponse<T> {
     private boolean success;
     private T data;
     private String message;
-    private LocalDateTime timestamp;
+    private String errorCode;
 
     public BaseApiResponse() {
-        this.timestamp = LocalDateTime.now();
     }
 
     public BaseApiResponse(boolean success, T data, String message) {
         this.success = success;
         this.data = data;
         this.message = message;
-        this.timestamp = LocalDateTime.now();
     }
 
     public static <T> BaseApiResponse<T> success(T data) {
@@ -46,8 +42,6 @@ public class BaseApiResponse<T> {
         response.setErrorCode(errorCode);
         return response;
     }
-
-    private String errorCode;
 
     public boolean isSuccess() {
         return success;
@@ -71,14 +65,6 @@ public class BaseApiResponse<T> {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getErrorCode() {

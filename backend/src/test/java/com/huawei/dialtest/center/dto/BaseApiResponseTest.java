@@ -7,15 +7,13 @@ package com.huawei.dialtest.center.dto;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.time.LocalDateTime;
-
 /**
- * ApiResponse测试类
+ * BaseApiResponse测试类
  *
  * @author g00940940
  * @since 2025-01-27
  */
-public class ApiResponseTest {
+public class BaseApiResponseTest {
 
     @Test
     public void testDefaultConstructor() {
@@ -24,7 +22,7 @@ public class ApiResponseTest {
         assertFalse(response.isSuccess());
         assertNull(response.getData());
         assertNull(response.getMessage());
-        assertNotNull(response.getTimestamp());
+        assertNull(response.getErrorCode());
     }
 
     @Test
@@ -36,7 +34,7 @@ public class ApiResponseTest {
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
         assertEquals(testMessage, response.getMessage());
-        assertNotNull(response.getTimestamp());
+        assertNull(response.getErrorCode());
     }
 
     @Test
@@ -47,7 +45,7 @@ public class ApiResponseTest {
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
         assertEquals("Operation successful", response.getMessage());
-        assertNotNull(response.getTimestamp());
+        assertNull(response.getErrorCode());
     }
 
     @Test
@@ -59,7 +57,7 @@ public class ApiResponseTest {
         assertTrue(response.isSuccess());
         assertEquals(testData, response.getData());
         assertEquals(testMessage, response.getMessage());
-        assertNotNull(response.getTimestamp());
+        assertNull(response.getErrorCode());
     }
 
     @Test
@@ -70,7 +68,7 @@ public class ApiResponseTest {
         assertFalse(response.isSuccess());
         assertNull(response.getData());
         assertEquals(testMessage, response.getMessage());
-        assertNotNull(response.getTimestamp());
+        assertNull(response.getErrorCode());
     }
 
     @Test
@@ -83,7 +81,6 @@ public class ApiResponseTest {
         assertNull(response.getData());
         assertEquals(testMessage, response.getMessage());
         assertEquals(errorCode, response.getErrorCode());
-        assertNotNull(response.getTimestamp());
     }
 
     @Test
@@ -95,13 +92,9 @@ public class ApiResponseTest {
         response.setMessage("test message");
         response.setErrorCode("ERROR_CODE");
         
-        LocalDateTime timestamp = LocalDateTime.now();
-        response.setTimestamp(timestamp);
-        
         assertTrue(response.isSuccess());
         assertEquals("test data", response.getData());
         assertEquals("test message", response.getMessage());
         assertEquals("ERROR_CODE", response.getErrorCode());
-        assertEquals(timestamp, response.getTimestamp());
     }
 }

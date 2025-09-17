@@ -11,7 +11,6 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   errorCode?: string;
-  timestamp?: string;
 }
 
 /**

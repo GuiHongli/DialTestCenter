@@ -275,10 +275,6 @@ definitions:
       errorCode:
         type: "string"
         description: "错误代码（仅在失败时存在）"
-      timestamp:
-        type: "string"
-        format: "date-time"
-        description: "响应时间戳"
 
   PagedResponse:
     type: "object"

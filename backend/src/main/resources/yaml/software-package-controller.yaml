@@ -64,11 +64,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/software-packages/{id}:
     get:
@@ -91,15 +91,15 @@ paths:
         404:
           description: "软件包不存在"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
     put:
       tags:
@@ -126,11 +126,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
     delete:
       tags:
@@ -152,11 +152,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/software-packages/upload:
     post:
@@ -185,11 +185,11 @@ paths:
         400:
           description: "文件格式错误或参数无效"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/software-packages/upload-zip:
     post:
@@ -213,11 +213,11 @@ paths:
         400:
           description: "文件格式错误或参数无效"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/software-packages/{id}/download:
     get:
@@ -242,11 +242,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/software-packages/statistics:
     get:
@@ -262,7 +262,7 @@ paths:
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
 definitions:
   SoftwarePackage:
@@ -345,7 +345,7 @@ definitions:
         type: "boolean"
         description: "是否有上一页"
 
-  ApiResponse:
+  BaseApiResponse:
     type: "object"
     properties:
       success:
@@ -357,17 +357,13 @@ definitions:
       message:
         type: "string"
         description: "响应消息"
-      timestamp:
-        type: "string"
-        format: "date-time"
-        description: "响应时间戳"
       errorCode:
         type: "string"
         description: "错误代码"
 
   ApiResponseSoftwarePackage:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -375,7 +371,7 @@ definitions:
 
   ApiResponseSoftwarePackageList:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -385,7 +381,7 @@ definitions:
 
   ApiResponsePagedSoftwarePackage:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -393,7 +389,7 @@ definitions:
 
   ApiResponseStatistics:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -402,18 +398,3 @@ definitions:
               type: "integer"
               format: "int64"
             description: "平台统计信息，键为平台名称，值为数量"
-
-  ApiResponseError:
-    allOf:
-      - $ref: "#/definitions/ApiResponse"
-      - type: "object"
-        properties:
-          success:
-            type: "boolean"
-            example: false
-          data:
-            type: "null"
-          errorCode:
-            type: "string"
-            description: "错误代码"
-            example: "VALIDATION_ERROR"

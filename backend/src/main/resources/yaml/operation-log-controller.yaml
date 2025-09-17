@@ -73,11 +73,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
     post:
       tags:
@@ -98,11 +98,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/operation-logs/{id}:
     get:
@@ -125,15 +125,15 @@ paths:
         404:
           description: "操作日志不存在"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/operation-logs/search:
     get:
@@ -184,11 +184,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
   /api/operation-logs/recent:
     get:
@@ -212,11 +212,11 @@ paths:
         400:
           description: "请求参数错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
         500:
           description: "服务器内部错误"
           schema:
-            $ref: "#/definitions/ApiResponseError"
+            $ref: "#/definitions/BaseApiResponse"
 
 definitions:
   OperationLog:
@@ -294,7 +294,7 @@ definitions:
         type: "boolean"
         description: "是否有上一页"
 
-  ApiResponse:
+  BaseApiResponse:
     type: "object"
     properties:
       success:
@@ -306,17 +306,13 @@ definitions:
       message:
         type: "string"
         description: "响应消息"
-      timestamp:
-        type: "string"
-        format: "date-time"
-        description: "响应时间戳"
       errorCode:
         type: "string"
         description: "错误代码"
 
   ApiResponseOperationLog:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -324,7 +320,7 @@ definitions:
 
   ApiResponseOperationLogList:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
@@ -334,23 +330,8 @@ definitions:
 
   ApiResponsePagedOperationLog:
     allOf:
-      - $ref: "#/definitions/ApiResponse"
+      - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
         properties:
           data:
             $ref: "#/definitions/PagedResponse"
-
-  ApiResponseError:
-    allOf:
-      - $ref: "#/definitions/ApiResponse"
-      - type: "object"
-        properties:
-          success:
-            type: "boolean"
-            example: false
-          data:
-            type: "null"
-          errorCode:
-            type: "string"
-            description: "错误代码"
-            example: "VALIDATION_ERROR"

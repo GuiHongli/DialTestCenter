@@ -5,7 +5,6 @@
 package com.huawei.dialtest.center.controller;
 
 import com.huawei.dialtest.center.dto.BaseApiResponse;
-import com.huawei.dialtest.center.dto.ErrorResponse;
 import com.huawei.dialtest.center.dto.PagedResponse;
 import com.huawei.dialtest.center.entity.OperationLog;
 import com.huawei.dialtest.center.service.OperationLogService;
