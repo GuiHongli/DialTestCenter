@@ -68,7 +68,7 @@ paths:
         201:
           description: "用户创建成功"
           schema:
-            $ref: "#/definitions/UserCreateResponse"
+            $ref: "#/definitions/UserResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -95,7 +95,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/UserGetResponse"
+            $ref: "#/definitions/UserResponse"
         404:
           description: "用户不存在"
           schema:
@@ -125,7 +125,7 @@ paths:
         200:
           description: "用户更新成功"
           schema:
-            $ref: "#/definitions/UserUpdateResponse"
+            $ref: "#/definitions/UserResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -150,7 +150,7 @@ paths:
         200:
           description: "用户删除成功"
           schema:
-            $ref: "#/definitions/UserDeleteResponse"
+            $ref: "#/definitions/MessageResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -176,7 +176,7 @@ paths:
         200:
           description: "成功获取用户信息"
           schema:
-            $ref: "#/definitions/UserGetResponse"
+            $ref: "#/definitions/UserResponse"
         404:
           description: "用户不存在"
           schema:
@@ -250,7 +250,7 @@ paths:
         200:
           description: "登录时间更新成功"
           schema:
-            $ref: "#/definitions/UpdateLoginTimeResponse"
+            $ref: "#/definitions/MessageResponse"
         400:
           description: "请求参数错误"
           schema:
@@ -312,7 +312,7 @@ definitions:
           data:
             $ref: "#/definitions/PagedResponse"
 
-  UserCreateResponse:
+  UserResponse:
     allOf:
       - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
@@ -320,23 +320,7 @@ definitions:
           data:
             $ref: "#/definitions/DialUser"
 
-  UserGetResponse:
-    allOf:
-      - $ref: "#/definitions/BaseApiResponse"
-      - type: "object"
-        properties:
-          data:
-            $ref: "#/definitions/DialUser"
-
-  UserUpdateResponse:
-    allOf:
-      - $ref: "#/definitions/BaseApiResponse"
-      - type: "object"
-        properties:
-          data:
-            $ref: "#/definitions/DialUser"
-
-  UserDeleteResponse:
+  MessageResponse:
     allOf:
       - $ref: "#/definitions/BaseApiResponse"
       - type: "object"
@@ -362,15 +346,6 @@ definitions:
         properties:
           data:
             $ref: "#/definitions/PasswordValidationResult"
-
-  UpdateLoginTimeResponse:
-    allOf:
-      - $ref: "#/definitions/BaseApiResponse"
-      - type: "object"
-        properties:
-          data:
-            type: "string"
-            description: "成功消息"
 
   DialUser:
     type: "object"
