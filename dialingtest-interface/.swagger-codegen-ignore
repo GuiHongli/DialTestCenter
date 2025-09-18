@@ -1,0 +1,6 @@
+
+target/generated-sources/swagger/src/main/java/io/swagger/*
+target/generated-sources/swagger/src/main/java/io/swagger/configuration/*
+target/generated-sources/swagger/src/main/java/io/swagger/api/*Exception*
+target/generated-sources/swagger/src/main/resources/*
+target/generated-sources/swagger/src/main/java/com/huawei/cloududn/dialingtest/api/*Controller*

@@ -7,10 +7,15 @@ host: localhost:8087
 basePath: /dialingtest/api
 schemes:
   - https
+tags:
+  - name: DialUser
+    description: 拨测用户管理API接口
 paths:
   /dialusers:
     get:
       summary: 分页查询拨测用户
+      tags:
+        - DialusersApi
       parameters:
         - name: page
           in: query
@@ -36,6 +41,8 @@ paths:
             $ref: '#/definitions/DialUserPageResponse'
     post:
       summary: 新增拨测用户
+      tags:
+        - DialusersApi
       parameters:
         - name: body
           in: body
@@ -54,6 +61,8 @@ paths:
   /dialusers/{id}:
     get:
       summary: 根据ID查询拨测用户
+      tags:
+        - DialusersApi
       parameters:
         - name: id
           in: path
@@ -69,6 +78,8 @@ paths:
           description: 用户不存在
     put:
       summary: 修改拨测用户
+      tags:
+        - DialusersApi
       parameters:
         - name: id
           in: path
@@ -93,6 +104,8 @@ paths:
           description: 用户名已存在
     delete:
       summary: 删除拨测用户
+      tags:
+        - DialusersApi
       parameters:
         - name: id
           in: path
