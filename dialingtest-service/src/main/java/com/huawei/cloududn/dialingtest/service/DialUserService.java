@@ -47,6 +47,17 @@ public class DialUserService {
     }
     
     /**
+     * 根据ID查询用户
+     * 
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    @Transactional(readOnly = true)
+    public DialUser findById(Integer id) {
+        return dialUserDao.findById(id);
+    }
+    
+    /**
      * 根据用户名查询用户
      * 
      * @param username 用户名

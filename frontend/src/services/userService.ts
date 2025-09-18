@@ -52,6 +52,25 @@ export const getUsers = async (page: number = 0, pageSize: number = 10, username
 };
 
 /**
+ * 根据ID获取用户
+ */
+export const getUserById = async (id: number): Promise<User> => {
+  const response = await fetch(`${API_BASE_URL}/${id}`);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  const result = await response.json();
+  
+  if (!result.success) {
+    throw new Error(result.message || 'Failed to fetch user');
+  }
+  
+  return result.data;
+};
+
+/**
  * 根据用户名获取用户
  */
 export const getUserByUsername = async (username: string): Promise<User> => {

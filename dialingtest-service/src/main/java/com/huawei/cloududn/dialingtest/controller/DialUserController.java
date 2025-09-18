@@ -80,6 +80,47 @@ public class DialUserController implements DialusersApi {
     }
     
     /**
+     * 根据ID查询拨测用户
+     * 
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    @Override
+    public ResponseEntity<DialUserResponse> dialusersIdGet(Integer id) {
+        try {
+            DialUser user = dialUserService.findById(id);
+            
+            if (user == null) {
+                DialUserResponse response = new DialUserResponse();
+                response.setSuccess(false);
+                response.setMessage("用户不存在");
+                
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(response);
+            }
+            
+            DialUserResponse response = new DialUserResponse();
+            response.setSuccess(true);
+            response.setData(user);
+            response.setMessage("查询成功");
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
+            
+        } catch (Exception e) {
+            DialUserResponse response = new DialUserResponse();
+            response.setSuccess(false);
+            response.setMessage("查询失败: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
+        }
+    }
+    
+    /**
      * 修改拨测用户
      * 
      * @param id 用户ID

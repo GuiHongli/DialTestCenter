@@ -56,6 +56,15 @@ public interface DialUserDao {
     long countUsers(@Param("username") String username);
     
     /**
+     * 根据ID查询用户
+     * 
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    @Select("SELECT id, username, password, TO_CHAR(last_login_time, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"') as last_login_time FROM dial_users WHERE id = #{id}")
+    DialUser findById(@Param("id") Integer id);
+    
+    /**
      * 根据用户名查询用户
      * 
      * @param username 用户名
