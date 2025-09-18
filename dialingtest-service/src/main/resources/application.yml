@@ -15,7 +15,7 @@ server:
     enabled-protocols: TLSv1.2,TLSv1.3
     ciphers: TLS_AES_256_GCM_SHA384,TLS_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 
-# 应用信息
+# 跨域配置
 spring:
   application:
     name: dial-test-center
@@ -51,36 +51,8 @@ spring:
   # 跨域配置
   web:
     cors:
-      allowed-origins: https://localhost:3000,https://localhost:5173,https://localhost:4396,http://localhost:3000,http://localhost:5173,http://localhost:4396
+      allowed-origins: "https://localhost:3000,https://localhost:5173,https://localhost:4396,http://localhost:3000,http://localhost:5173,http://localhost:4396"
       allowed-methods: GET,POST,PUT,DELETE,OPTIONS
       allowed-headers: "*"
       allow-credentials: true
-
-# MyBatis配置
-mybatis:
-  config-location: classpath:mybatis-config.xml
-  # 使用注解方式，不需要mapper-locations配置
-  type-aliases-package: com.huawei.dialtest.center.entity
-
-# 日志配置
-logging:
-  level:
-    com.dialtest.center: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-
-# 健康检查
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
-
-# 权限管理配置
-app:
-  admin:
-    default-username: admin
-    auto-create: true
+logging.config: classpath:config/log4j2-spring.xml
