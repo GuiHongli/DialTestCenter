@@ -113,15 +113,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           justifyContent: 'center',
           borderRadius: '4px'
         }}>
-          <img 
-            src="/favicon.svg" 
-            alt="Dial Test Center" 
-            style={{ 
-              width: collapsed ? '20px' : '24px', 
-              height: collapsed ? '20px' : '24px',
-              filter: 'brightness(0) invert(1)'
-            }} 
-          />
+            <img 
+              src="/favicon.ico" 
+              alt="Dial Test Center" 
+              style={{ 
+                width: collapsed ? '20px' : '24px', 
+                height: collapsed ? '20px' : '24px'
+              }} 
+            />
         </div>
         <Menu
           theme="dark"
