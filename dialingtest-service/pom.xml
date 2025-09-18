@@ -50,6 +50,13 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         
+        <!-- OpenAPI 3.0 annotations for generated code -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.2.8</version>
+        </dependency>
+        
         <!-- Spring Data Commons for Page support -->
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -187,6 +194,38 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            
+            <!-- Swagger Codegen Plugin -->
+            <!-- <plugin>
+                <groupId>io.swagger.codegen.v3</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <version>3.0.46</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <inputSpec>${project.basedir}/src/main/resources/yaml/dialuser-api.yaml</inputSpec>
+                    <language>spring</language>
+                    <configOptions>
+                        <sourceFolder>src/gen/java/main</sourceFolder>
+                        <dateLibrary>java8</dateLibrary>
+                        <java8>true</java8>
+                        <library>spring-boot</library>
+                        <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                        <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                        <invokerPackage>com.huawei.cloududn.dialingtest.invoker</invokerPackage>
+                        <configPackage>com.huawei.cloududn.dialingtest.config</configPackage>
+                        <basePackage>com.huawei.cloududn.dialingtest</basePackage>
+                       
+                       
+                    </configOptions>
+                    <output>${project.basedir}/target/generated-sources/swagger</output>
+                </configuration>
+            </plugin> -->
         </plugins>
     </build>
 </project>

@@ -1,0 +1,187 @@
+swagger: '2.0'
+info:
+  title: DialUser Management API
+  version: 1.0.0
+  description: 拨测用户管理API接口
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+paths:
+  /dialusers:
+    get:
+      summary: 分页查询拨测用户
+      parameters:
+        - name: page
+          in: query
+          description: 页码，从0开始
+          required: false
+          type: integer
+          default: 0
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          type: integer
+          default: 10
+        - name: username
+          in: query
+          description: 用户名过滤条件
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/DialUserPageResponse'
+    post:
+      summary: 新增拨测用户
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateDialUserRequest'
+      responses:
+        '201':
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/DialUserResponse'
+        '400':
+          description: 请求参数错误
+        '409':
+          description: 用户名已存在
+  /dialusers/{id}:
+    get:
+      summary: 根据ID查询拨测用户
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          type: integer
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/DialUserResponse'
+        '404':
+          description: 用户不存在
+    put:
+      summary: 修改拨测用户
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          type: integer
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateDialUserRequest'
+      responses:
+        '200':
+          description: 修改成功
+          schema:
+            $ref: '#/definitions/DialUserResponse'
+        '400':
+          description: 请求参数错误
+        '404':
+          description: 用户不存在
+        '409':
+          description: 用户名已存在
+    delete:
+      summary: 删除拨测用户
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          type: integer
+      responses:
+        '204':
+          description: 删除成功
+        '404':
+          description: 用户不存在
+definitions:
+  DialUser:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: 用户ID
+      username:
+        type: string
+        description: 用户名
+      password:
+        type: string
+        description: 密码（加密后）
+      lastLoginTime:
+        type: string
+        format: date-time
+        description: 最后登录时间
+  CreateDialUserRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        description: 用户名
+        maxLength: 50
+      password:
+        type: string
+        description: 密码
+        minLength: 6
+  UpdateDialUserRequest:
+    type: object
+    properties:
+      username:
+        type: string
+        description: 用户名
+        maxLength: 50
+      password:
+        type: string
+        description: 密码
+        minLength: 6
+  DialUserResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        $ref: '#/definitions/DialUser'
+      message:
+        type: string
+        description: 响应消息
+  DialUserPageResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: object
+        properties:
+          content:
+            type: array
+            items:
+              $ref: '#/definitions/DialUser'
+          totalElements:
+            type: integer
+            description: 总记录数
+          totalPages:
+            type: integer
+            description: 总页数
+          size:
+            type: integer
+            description: 每页大小
+          number:
+            type: integer
+            description: 当前页码
+      message:
+        type: string
+        description: 响应消息
