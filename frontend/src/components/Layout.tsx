@@ -104,7 +104,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         collapsed={collapsed}
         style={{ position: 'relative' }}
       >
-        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
+        <div style={{ 
+          height: 32, 
+          margin: 16, 
+          background: 'rgba(255, 255, 255, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '4px'
+        }}>
+          <img 
+            src="/favicon.svg" 
+            alt="Dial Test Center" 
+            style={{ 
+              width: collapsed ? '20px' : '24px', 
+              height: collapsed ? '20px' : '24px',
+              filter: 'brightness(0) invert(1)'
+            }} 
+          />
+        </div>
         <Menu
           theme="dark"
           mode="inline"

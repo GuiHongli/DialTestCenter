@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 export default {
   entry: './src/main.tsx',
   output: {
-    path: path.resolve(__dirname, '../backend/src/main/resources/static'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     clean: true,
     publicPath: '/',
@@ -38,7 +38,7 @@ export default {
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, '../backend/src/main/resources/static'),
+      directory: path.join(__dirname, 'public'),
     },
     port: 4396,
     hot: true,
