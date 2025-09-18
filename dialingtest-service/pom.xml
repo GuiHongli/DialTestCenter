@@ -69,18 +69,11 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
         
-        <!-- MyBatis Core -->
+        <!-- MyBatis Spring Boot Starter -->
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.5.13</version>
-        </dependency>
-        
-        <!-- MyBatis Spring Integration -->
-        <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis-spring</artifactId>
-            <version>2.1.0</version>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.3.2</version>
         </dependency>
         
         <dependency>
@@ -103,6 +96,13 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- DialingTest Interface Dependency -->
+        <dependency>
+            <groupId>com.huawei.cloududn</groupId>
+            <artifactId>dialingtest-interface</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- Test Dependencies -->
@@ -195,37 +195,7 @@
                 </configuration>
             </plugin>
             
-            <!-- Swagger Codegen Plugin -->
-            <plugin>
-                <groupId>io.swagger.codegen.v3</groupId>
-                <artifactId>swagger-codegen-maven-plugin</artifactId>
-                <version>3.0.46</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <inputSpec>${project.basedir}/src/main/resources/yaml/dialuser-api.yaml</inputSpec>
-                    <language>spring</language>
-                    <configOptions>
-                        <sourceFolder>src/gen/java/main</sourceFolder>
-                        <dateLibrary>java8</dateLibrary>
-                        <java8>true</java8>
-                        <library>spring-boot</library>
-                        <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
-                        <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
-                        <invokerPackage>com.huawei.cloududn.dialingtest.invoker</invokerPackage>
-                        <configPackage>com.huawei.cloududn.dialingtest.config</configPackage>
-                        <basePackage>com.huawei.cloududn.dialingtest</basePackage>
-                       
-                       
-                    </configOptions>
-                    <output>${project.basedir}/target/generated-sources/swagger</output>
-                </configuration>
-            </plugin>
+         
         </plugins>
     </build>
 </project>

@@ -10,8 +10,6 @@ export interface User {
   username: string;
   password?: string; // 密码字段通常不在前端显示
   lastLoginTime?: string;
-  createdTime: string;
-  updatedTime?: string;
 }
 
 /**

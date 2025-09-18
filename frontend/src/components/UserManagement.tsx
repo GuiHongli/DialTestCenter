@@ -34,13 +34,13 @@ const UserManagement: React.FC = () => {
   });
 
   // 加载用户列表
-  const loadUsers = async (page: number = 1, pageSize: number = 10, search?: string) => {
+  const loadUsers = async (page: number = 0, pageSize: number = 10, username?: string) => {
     try {
       setLoading(true);
-      const response = await getUsers(page, pageSize, search);
+      const response = await getUsers(page, pageSize, username);
       setUsers(response.data);
       setPagination({
-        current: response.page,
+        current: response.page + 1, // 转换为前端显示页码（从1开始）
         pageSize: response.pageSize,
         total: response.total,
       });
@@ -54,7 +54,7 @@ const UserManagement: React.FC = () => {
 
   // 初始加载
   useEffect(() => {
-    loadUsers(1, 10);
+    loadUsers(0, 10);
   }, []); // 移除loadUsers依赖，避免无限循环
 
   // 处理新增用户
@@ -80,7 +80,7 @@ const UserManagement: React.FC = () => {
         try {
           await deleteUser(user.id);
           message.success(translateUser('deleteSuccess'));
-          loadUsers(pagination.current, pagination.pageSize, searchText);
+          loadUsers(pagination.current - 1, pagination.pageSize, searchText); // 转换为后端页码
         } catch (error) {
           console.error('Failed to delete user:', error);
           message.error(translateUser('deleteFailed'));
@@ -101,7 +101,7 @@ const UserManagement: React.FC = () => {
         message.success(translateUser('createSuccess'));
       }
       setFormVisible(false);
-      loadUsers(pagination.current, pagination.pageSize, searchText);
+      loadUsers(pagination.current - 1, pagination.pageSize, searchText); // 转换为后端页码
     } catch (error) {
       console.error('Failed to submit form:', error);
       message.error(editingUser ? translateUser('updateFailed') : translateUser('createFailed'));
@@ -118,12 +118,12 @@ const UserManagement: React.FC = () => {
 
   // 处理搜索
   const handleSearch = () => {
-    loadUsers(1, pagination.pageSize, searchText);
+    loadUsers(0, pagination.pageSize, searchText); // 搜索时重置到第一页
   };
 
   // 处理分页变化
   const handleTableChange = (pagination: any) => {
-    loadUsers(pagination.current, pagination.pageSize, searchText);
+    loadUsers(pagination.current - 1, pagination.pageSize, searchText); // 转换为后端页码
   };
 
   // 过滤用户（前端过滤已移除，改为后台搜索）
@@ -205,7 +205,7 @@ const UserManagement: React.FC = () => {
           </Button>
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => loadUsers(pagination.current, pagination.pageSize, searchText)}
+            onClick={() => loadUsers(pagination.current - 1, pagination.pageSize, searchText)}
             loading={loading}
           >
             {translateCommon('refresh')}

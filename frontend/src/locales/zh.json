@@ -108,9 +108,9 @@
     }
   },
   "user": {
-    "title": "执行机账号管理",
-    "description": "管理系统执行机，支持执行机账号的增删改查操作",
-    "addUser": "新增执行机账号",
+    "title": "拨测用户管理",
+    "description": "管理拨测用户，支持拨测用户的增删改查操作",
+    "addUser": "新增拨测用户",
     "editUser": "编辑用户",
     "deleteUser": "删除用户",
     "confirmDelete": "确定要删除这个用户吗？",
@@ -124,18 +124,16 @@
     "loadFailed": "加载用户列表失败",
     "table": {
       "id": "ID",
-      "username": "执行机账号",
+      "username": "用户名",
       "lastLoginTime": "最后登录时间",
-      "createdTime": "创建时间",
-      "updatedTime": "更新时间",
       "actions": "操作",
       "edit": "编辑",
       "delete": "删除",
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
     },
     "form": {
-      "username": "执行机账号",
-      "usernamePlaceholder": "请输入执行机账号",
+      "username": "用户名",
+      "usernamePlaceholder": "请输入用户名",
       "password": "密码",
       "passwordPlaceholder": "请输入密码",
       "confirmPassword": "确认密码",
@@ -143,7 +141,7 @@
       "passwordMismatch": "两次输入的密码不一致"
     },
     "filters": {
-      "searchUsername": "搜索执行机账号"
+      "searchUsername": "搜索用户名"
     }
   },
   "softwarePackage": {
