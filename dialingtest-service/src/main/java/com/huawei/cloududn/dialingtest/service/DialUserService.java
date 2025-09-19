@@ -75,6 +75,7 @@ public class DialUserService {
      * @param password 密码
      * @return 创建的用户
      * @throws IllegalArgumentException 如果用户名已存在
+     * @throws IllegalStateException 如果数据库操作失败
      */
     public DialUser createUser(String username, String password) {
         // 检查用户名是否已存在
@@ -90,7 +91,7 @@ public class DialUserService {
         
         int result = dialUserDao.create(user);
         if (result == 0) {
-            throw new RuntimeException("创建用户失败");
+            throw new IllegalStateException("创建用户失败，数据库操作未生效");
         }
         
         return user;
@@ -104,6 +105,7 @@ public class DialUserService {
      * @param password 密码
      * @return 更新后的用户
      * @throws IllegalArgumentException 如果用户不存在或用户名已存在
+     * @throws IllegalStateException 如果数据库操作失败
      */
     public DialUser updateUser(Integer id, String username, String password) {
         // 检查用户是否存在
@@ -128,7 +130,7 @@ public class DialUserService {
         
         int updatedRows = dialUserDao.update(existingUser);
         if (updatedRows == 0) {
-            throw new RuntimeException("更新用户失败");
+            throw new IllegalStateException("更新用户失败，数据库操作未生效");
         }
         
         return existingUser;
@@ -139,6 +141,7 @@ public class DialUserService {
      * 
      * @param id 用户ID
      * @throws IllegalArgumentException 如果用户不存在
+     * @throws IllegalStateException 如果数据库操作失败
      */
     public void deleteUser(Integer id) {
         // 检查用户是否存在
@@ -149,7 +152,7 @@ public class DialUserService {
         
         int deletedRows = dialUserDao.deleteById(id);
         if (deletedRows == 0) {
-            throw new RuntimeException("删除用户失败");
+            throw new IllegalStateException("删除用户失败，数据库操作未生效");
         }
     }
     

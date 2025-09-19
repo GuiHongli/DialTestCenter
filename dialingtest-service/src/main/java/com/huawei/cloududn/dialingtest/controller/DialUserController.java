@@ -160,6 +160,15 @@ public class DialUserController implements DialusersApi {
                         .body(response);
             }
             
+        } catch (IllegalStateException e) {
+            DialUserResponse response = new DialUserResponse();
+            response.setSuccess(false);
+            response.setMessage("服务器内部错误，请稍后重试");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
+            
         } catch (Exception e) {
             DialUserResponse response = new DialUserResponse();
             response.setSuccess(false);
@@ -185,6 +194,9 @@ public class DialUserController implements DialusersApi {
             
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+            
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -225,6 +237,15 @@ public class DialUserController implements DialusersApi {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(response);
             }
+            
+        } catch (IllegalStateException e) {
+            DialUserResponse response = new DialUserResponse();
+            response.setSuccess(false);
+            response.setMessage("服务器内部错误，请稍后重试");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
             
         } catch (Exception e) {
             DialUserResponse response = new DialUserResponse();

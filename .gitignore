@@ -94,3 +94,5 @@ public
 # Temporary folders
 tmp/
 temp/
+/dialingtest-service/src/main/resources/static
+/dialingtest-service/logs
