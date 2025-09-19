@@ -22,7 +22,7 @@ export class OperationLogService {
    * 获取操作记录列表（分页，支持多条件筛选）
    */
   static async getOperationLogs(params: OperationLogQueryParams = {}): Promise<OperationLogPageResponse> {
-    const { page = 0, size = 20, username, operationType, target, startTime, endTime } = params
+    const { page = 0, size = 20, username, operationType, operationTarget, startTime, endTime } = params
     const url = new URL(`${API_BASE_URL}/operation-logs`)
     
     // 添加查询参数
@@ -35,8 +35,8 @@ export class OperationLogService {
     if (operationType) {
       url.searchParams.append('operationType', operationType)
     }
-    if (target) {
-      url.searchParams.append('target', target)
+    if (operationTarget) {
+      url.searchParams.append('operationTarget', operationTarget)
     }
     if (startTime) {
       url.searchParams.append('startTime', startTime)
@@ -51,12 +51,12 @@ export class OperationLogService {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
-      const result: ApiResponse<OperationLogPageResponse> = await response.json()
+      const result: OperationLogPageResponse = await response.json()
       if (!result.success) {
         throw new Error(result.message || 'Failed to get operation logs')
       }
       
-      return result.data
+      return result
     } catch (error) {
       console.error('Error fetching operation logs:', error)
       throw error
@@ -95,17 +95,18 @@ export class OperationLogService {
    * 搜索操作记录
    */
   static async searchOperationLogs(params: OperationLogQueryParams = {}): Promise<OperationLogPageResponse> {
-    const { page = 0, size = 20, username, operationType, target, description } = params
+    const { page = 0, size = 20, username, operationType, operationTarget, startTime, endTime } = params
     const searchParams = new URLSearchParams()
     
     if (page !== undefined) searchParams.append('page', page.toString())
     if (size !== undefined) searchParams.append('size', size.toString())
     if (username) searchParams.append('username', username)
     if (operationType) searchParams.append('operationType', operationType)
-    if (target) searchParams.append('target', target)
-    if (description) searchParams.append('description', description)
+    if (operationTarget) searchParams.append('operationTarget', operationTarget)
+    if (startTime) searchParams.append('startTime', startTime)
+    if (endTime) searchParams.append('endTime', endTime)
     
-    const url = `${API_BASE_URL}/operation-logs/search?${searchParams.toString()}`
+    const url = `${API_BASE_URL}/operation-logs?${searchParams.toString()}`
     
     try {
       const response = await fetch(url)
@@ -145,6 +146,42 @@ export class OperationLogService {
       return result.data
     } catch (error) {
       console.error('Error fetching recent operation logs:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 导出操作记录
+   */
+  static async exportOperationLogs(params: OperationLogQueryParams = {}): Promise<Blob> {
+    const { username, operationType, operationTarget, startTime, endTime } = params
+    const url = new URL(`${API_BASE_URL}/operation-logs/export`)
+    
+    if (username) {
+      url.searchParams.append('username', username)
+    }
+    if (operationType) {
+      url.searchParams.append('operationType', operationType)
+    }
+    if (operationTarget) {
+      url.searchParams.append('operationTarget', operationTarget)
+    }
+    if (startTime) {
+      url.searchParams.append('startTime', startTime)
+    }
+    if (endTime) {
+      url.searchParams.append('endTime', endTime)
+    }
+    
+    try {
+      const response = await fetch(url.toString())
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      return await response.blob()
+    } catch (error) {
+      console.error('Error exporting operation logs:', error)
       throw error
     }
   }

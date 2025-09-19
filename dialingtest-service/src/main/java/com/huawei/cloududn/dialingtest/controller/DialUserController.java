@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -130,7 +131,10 @@ public class DialUserController implements DialusersApi {
     @Override
     public ResponseEntity<DialUserResponse> dialusersIdPut(Integer id, UpdateDialUserRequest body) {
         try {
-            DialUser updatedUser = dialUserService.updateUser(id, body.getUsername(), body.getPassword());
+            // 设置默认值
+            String operatorUsername = "admin"; // 默认操作用户
+            
+            DialUser updatedUser = dialUserService.updateUser(id, body.getUsername(), body.getPassword(), operatorUsername);
             
             DialUserResponse response = new DialUserResponse();
             response.setSuccess(true);
@@ -189,7 +193,10 @@ public class DialUserController implements DialusersApi {
     @Override
     public ResponseEntity<Void> dialusersIdDelete(Integer id) {
         try {
-            dialUserService.deleteUser(id);
+            // 设置默认值
+            String operatorUsername = "admin"; // 默认操作用户
+            
+            dialUserService.deleteUser(id, operatorUsername);
             return ResponseEntity.noContent().build();
             
         } catch (IllegalArgumentException e) {
@@ -212,7 +219,10 @@ public class DialUserController implements DialusersApi {
     @Override
     public ResponseEntity<DialUserResponse> dialusersPost(CreateDialUserRequest body) {
         try {
-            DialUser createdUser = dialUserService.createUser(body.getUsername(), body.getPassword());
+            // 设置默认值
+            String operatorUsername = "admin"; // 默认操作用户
+            
+            DialUser createdUser = dialUserService.createUser(body.getUsername(), body.getPassword(), operatorUsername);
             
             DialUserResponse response = new DialUserResponse();
             response.setSuccess(true);

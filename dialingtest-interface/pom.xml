@@ -93,7 +93,22 @@
                             <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
                             <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
                             <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
- 
+                        </configuration>
+                    </execution>
+                      <execution>
+                    <id>operation-logs-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Swagger 2.0 YAML 文件路径 -->
+                            <inputSpec>${basedir}/src/main/resources/operation-logs-api.yaml</inputSpec>
+                            <!-- 生成代码的语言 -->
+                            <language>spring</language>
+                            <!-- 包名 -->
+                            <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                            <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                            <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
                         </configuration>
                     </execution>
                 </executions>

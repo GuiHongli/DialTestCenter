@@ -8,24 +8,28 @@
 export interface OperationLog {
   id: number
   username: string
-  operationTime: string
   operationType: string
-  target: string
-  description?: string
+  operationTarget: string
+  operationDescriptionZh?: string
+  operationDescriptionEn?: string
+  operationData?: any
+  language: string
+  operationTime: string
 }
 
 /**
  * 操作记录分页响应
  */
 export interface OperationLogPageResponse {
-  content: OperationLog[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
-  numberOfElements: number
+  success: boolean
+  data: {
+    content: OperationLog[]
+    totalElements: number
+    totalPages: number
+    size: number
+    number: number
+  }
+  message?: string
 }
 
 /**
@@ -36,8 +40,7 @@ export interface OperationLogQueryParams {
   size?: number
   username?: string
   operationType?: string
-  target?: string
-  description?: string
+  operationTarget?: string
   startTime?: string
   endTime?: string
 }
@@ -48,8 +51,11 @@ export interface OperationLogQueryParams {
 export interface OperationLogCreateParams {
   username: string
   operationType: string
-  target: string
-  description?: string
+  operationTarget: string
+  operationDescriptionZh?: string
+  operationDescriptionEn?: string
+  operationData?: any
+  language: string
 }
 
 /**
@@ -130,8 +136,7 @@ export interface OperationLogTableColumn {
 export interface OperationLogFilter {
   username?: string
   operationType?: string
-  target?: string
-  description?: string
+  operationTarget?: string
   startTime?: string
   endTime?: string
 }

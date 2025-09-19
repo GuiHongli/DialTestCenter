@@ -163,7 +163,7 @@ public class DialUserControllerTest {
         request.setPassword("newpassword");
         
         DialUser updatedUser = createTestUser(1, "newuser", "newpassword");
-        when(dialUserService.updateUser(1, "newuser", "newpassword")).thenReturn(updatedUser);
+        when(dialUserService.updateUser(1, "newuser", "newpassword", "testuser")).thenReturn(updatedUser);
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut(1, request);
@@ -182,7 +182,7 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("newpassword");
         
-        when(dialUserService.updateUser(999, "newuser", "newpassword"))
+        when(dialUserService.updateUser(999, "newuser", "newpassword", "testuser"))
                 .thenThrow(new IllegalArgumentException("用户不存在"));
 
         // Act
@@ -201,7 +201,7 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(dialUserService.updateUser(1, "existinguser", "password"))
+        when(dialUserService.updateUser(1, "existinguser", "password", "testuser"))
                 .thenThrow(new IllegalArgumentException("用户名已存在"));
 
         // Act
@@ -258,7 +258,7 @@ public class DialUserControllerTest {
         request.setPassword("password");
         
         DialUser createdUser = createTestUser(1, "newuser", "password");
-        when(dialUserService.createUser("newuser", "password")).thenReturn(createdUser);
+        when(dialUserService.createUser("newuser", "password", "testuser")).thenReturn(createdUser);
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost(request);
@@ -277,7 +277,7 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(dialUserService.createUser("existinguser", "password"))
+        when(dialUserService.createUser("existinguser", "password", "testuser"))
                 .thenThrow(new IllegalArgumentException("用户名已存在"));
 
         // Act
@@ -296,7 +296,7 @@ public class DialUserControllerTest {
         request.setUsername("");
         request.setPassword("password");
         
-        when(dialUserService.createUser("", "password"))
+        when(dialUserService.createUser("", "password", "testuser"))
                 .thenThrow(new IllegalArgumentException("用户名不能为空"));
 
         // Act
@@ -315,7 +315,7 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("password");
         
-        when(dialUserService.createUser("newuser", "password"))
+        when(dialUserService.createUser("newuser", "password", "testuser"))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act

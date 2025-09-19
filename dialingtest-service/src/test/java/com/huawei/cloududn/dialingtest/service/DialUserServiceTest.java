@@ -179,7 +179,7 @@ public class DialUserServiceTest {
         when(dialUserDao.create(any(DialUser.class))).thenReturn(1);
 
         // Act
-        DialUser result = dialUserService.createUser("newuser", "password");
+        DialUser result = dialUserService.createUser("newuser", "password", "testuser");
 
         // Assert
         assertNotNull(result);
@@ -198,7 +198,7 @@ public class DialUserServiceTest {
 
         // Act & Assert
         try {
-            dialUserService.createUser("existinguser", "password");
+            dialUserService.createUser("existinguser", "password", "testuser");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("用户名已存在: existinguser", e.getMessage());
@@ -216,7 +216,7 @@ public class DialUserServiceTest {
 
         // Act & Assert
         try {
-            dialUserService.createUser("newuser", "password");
+            dialUserService.createUser("newuser", "password", "testuser");
             fail("Expected RuntimeException");
         } catch (RuntimeException e) {
             assertEquals("创建用户失败", e.getMessage());
@@ -237,7 +237,7 @@ public class DialUserServiceTest {
         when(dialUserDao.update(any(DialUser.class))).thenReturn(1);
 
         // Act
-        DialUser result = dialUserService.updateUser(1, "newuser", "newpassword");
+        DialUser result = dialUserService.updateUser(1, "newuser", "newpassword", "testuser");
 
         // Assert
         assertNotNull(result);
@@ -255,7 +255,7 @@ public class DialUserServiceTest {
 
         // Act & Assert
         try {
-            dialUserService.updateUser(999, "newuser", "newpassword");
+            dialUserService.updateUser(999, "newuser", "newpassword", "testuser");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("用户不存在: 999", e.getMessage());
@@ -277,7 +277,7 @@ public class DialUserServiceTest {
 
         // Act & Assert
         try {
-            dialUserService.updateUser(1, "existinguser", "newpassword");
+            dialUserService.updateUser(1, "existinguser", "newpassword", "testuser");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("用户名已存在: existinguser", e.getMessage());
@@ -299,7 +299,7 @@ public class DialUserServiceTest {
 
         // Act & Assert
         try {
-            dialUserService.updateUser(1, "newuser", "newpassword");
+            dialUserService.updateUser(1, "newuser", "newpassword", "testuser");
             fail("Expected RuntimeException");
         } catch (RuntimeException e) {
             assertEquals("更新用户失败", e.getMessage());

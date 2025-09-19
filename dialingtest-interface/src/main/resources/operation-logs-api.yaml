@@ -1,0 +1,383 @@
+swagger: '2.0'
+info:
+  title: Operation Logs Management API
+  version: 1.0.0
+  description: 操作记录管理API接口
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+paths:
+  /operation-logs:
+    get:
+      summary: 分页查询操作记录
+      parameters:
+        - name: page
+          in: query
+          description: 页码，从0开始
+          required: false
+          type: integer
+          default: 0
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          type: integer
+          default: 20
+        - name: username
+          in: query
+          description: 用户名筛选
+          required: false
+          type: string
+        - name: operationType
+          in: query
+          description: 操作类型筛选
+          required: false
+          type: string
+        - name: operationTarget
+          in: query
+          description: 操作目标筛选
+          required: false
+          type: string
+        - name: startTime
+          in: query
+          description: 开始时间
+          required: false
+          type: string
+        - name: endTime
+          in: query
+          description: 结束时间
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/OperationLogPageResponse'
+        '400':
+          description: 请求参数错误
+        '500':
+          description: 服务器内部错误
+    post:
+      summary: 创建操作记录
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateOperationLogRequest'
+      responses:
+        '201':
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/OperationLogResponse'
+        '400':
+          description: 请求参数错误
+        '500':
+          description: 服务器内部错误
+  /operation-logs/{id}:
+    get:
+      summary: 查询操作记录详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 操作记录ID
+          type: integer
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/OperationLogResponse'
+        '404':
+          description: 记录不存在
+        '500':
+          description: 服务器内部错误
+  /operation-logs/statistics:
+    get:
+      summary: 获取操作记录统计信息
+      parameters:
+        - name: startTime
+          in: query
+          description: 开始时间
+          required: false
+          type: string
+        - name: endTime
+          in: query
+          description: 结束时间
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/OperationLogStatisticsResponse'
+        '500':
+          description: 服务器内部错误
+  /operation-logs/export:
+    get:
+      summary: 导出操作记录
+      parameters:
+        - name: username
+          in: query
+          description: 用户名筛选
+          required: false
+          type: string
+        - name: operationType
+          in: query
+          description: 操作类型筛选
+          required: false
+          type: string
+        - name: operationTarget
+          in: query
+          description: 操作目标筛选
+          required: false
+          type: string
+        - name: startTime
+          in: query
+          description: 开始时间
+          required: false
+          type: string
+        - name: endTime
+          in: query
+          description: 结束时间
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 导出成功
+          schema:
+            type: file
+        '500':
+          description: 服务器内部错误
+  /operation-types:
+    get:
+      summary: 查询操作类型列表
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/OperationTypeListResponse'
+        '500':
+          description: 服务器内部错误
+  /operation-targets:
+    get:
+      summary: 查询操作目标列表
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/OperationTargetListResponse'
+        '500':
+          description: 服务器内部错误
+definitions:
+  OperationLog:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: 操作记录ID
+      username:
+        type: string
+        description: 操作用户名
+      operationType:
+        type: string
+        description: 操作类型代码
+      operationTarget:
+        type: string
+        description: 操作目标代码
+      operationDescriptionZh:
+        type: string
+        description: 中文操作描述
+      operationDescriptionEn:
+        type: string
+        description: 英文操作描述
+      operationData:
+        type: object
+        description: 操作相关数据
+      operationTime:
+        type: string
+        description: 操作时间
+  CreateOperationLogRequest:
+    type: object
+    required:
+      - username
+      - operationType
+      - operationTarget
+    properties:
+      username:
+        type: string
+        description: 操作用户名
+        maxLength: 50
+      operationType:
+        type: string
+        description: 操作类型代码
+        maxLength: 20
+      operationTarget:
+        type: string
+        description: 操作目标代码
+        maxLength: 50
+      operationDescriptionZh:
+        type: string
+        description: 中文操作描述
+      operationDescriptionEn:
+        type: string
+        description: 英文操作描述
+      operationData:
+        type: object
+        description: 操作相关数据
+  OperationLogResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        $ref: '#/definitions/OperationLog'
+      message:
+        type: string
+        description: 响应消息
+  OperationLogPageResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: object
+        properties:
+          content:
+            type: array
+            items:
+              $ref: '#/definitions/OperationLog'
+          totalElements:
+            type: integer
+            description: 总记录数
+          totalPages:
+            type: integer
+            description: 总页数
+          size:
+            type: integer
+            description: 每页大小
+          number:
+            type: integer
+            description: 当前页码
+      message:
+        type: string
+        description: 响应消息
+  OperationLogStatistics:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: 总操作记录数
+      todayCount:
+        type: integer
+        description: 今日操作数
+      activeUsers:
+        type: integer
+        description: 活跃用户数
+      operationTypes:
+        type: integer
+        description: 操作类型数
+      operationTypeStats:
+        type: object
+        additionalProperties:
+          type: integer
+        description: 各操作类型统计
+      targetStats:
+        type: object
+        additionalProperties:
+          type: integer
+        description: 各操作目标统计
+  OperationLogStatisticsResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        $ref: '#/definitions/OperationLogStatistics'
+      message:
+        type: string
+        description: 响应消息
+  OperationType:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: 操作类型ID
+      code:
+        type: string
+        description: 操作类型代码
+      nameZh:
+        type: string
+        description: 中文名称
+      nameEn:
+        type: string
+        description: 英文名称
+      descriptionZh:
+        type: string
+        description: 中文描述
+      descriptionEn:
+        type: string
+        description: 英文描述
+      isActive:
+        type: boolean
+        description: 是否启用
+      createdAt:
+        type: string
+        description: 创建时间
+  OperationTypeListResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OperationType'
+      message:
+        type: string
+        description: 响应消息
+  OperationTarget:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: 操作目标ID
+      code:
+        type: string
+        description: 操作目标代码
+      nameZh:
+        type: string
+        description: 中文名称
+      nameEn:
+        type: string
+        description: 英文名称
+      descriptionZh:
+        type: string
+        description: 中文描述
+      descriptionEn:
+        type: string
+        description: 英文描述
+      isActive:
+        type: boolean
+        description: 是否启用
+      createdAt:
+        type: string
+        description: 创建时间
+  OperationTargetListResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OperationTarget'
+      message:
+        type: string
+        description: 响应消息

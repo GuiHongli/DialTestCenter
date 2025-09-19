@@ -18,6 +18,7 @@ import {
   ReloadOutlined,
   SearchOutlined,
   EyeOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons'
 import { OperationLogService, OperationLogUtils } from '../services/operationLogService'
 import { 
@@ -60,10 +61,10 @@ const OperationLogManagement: React.FC = () => {
       }
       
       const response = await OperationLogService.getOperationLogs(queryParams)
-      setOperationLogs(response.content)
+      setOperationLogs(response.data.content)
       setPagination(prev => ({
         ...prev,
-        total: response.totalElements,
+        total: response.data.totalElements,
       }))
     } catch (error) {
       console.error('Failed to load operation logs:', error)
@@ -83,6 +84,31 @@ const OperationLogManagement: React.FC = () => {
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, current: 1 }))
     loadOperationLogs()
+  }
+
+  // 处理导出
+  const handleExport = async () => {
+    try {
+      setLoading(true)
+      const blob = await OperationLogService.exportOperationLogs(filters)
+      
+      // 创建下载链接
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `operation-logs-${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      message.success('导出成功')
+    } catch (error) {
+      console.error('Failed to export operation logs:', error)
+      message.error('导出失败')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 处理重置
@@ -154,8 +180,8 @@ const OperationLogManagement: React.FC = () => {
     },
     {
       title: '操作对象',
-      dataIndex: 'target',
-      key: 'target',
+      dataIndex: 'operationTarget',
+      key: 'operationTarget',
       width: 150,
       sorter: true,
       filters: Object.values(OperationTarget).map(target => ({
@@ -165,15 +191,17 @@ const OperationLogManagement: React.FC = () => {
     },
     {
       title: '操作描述',
-      dataIndex: 'description',
-      key: 'description',
+      dataIndex: 'operationDescriptionZh',
+      key: 'operationDescriptionZh',
       ellipsis: true,
-      render: (description: string) => (
-        <Tooltip title={description}>
-          {OperationLogUtils.truncateText(description, 50)}
-        </Tooltip>
-      ),
-    },
+      render: (description: string, record: OperationLog) => {
+        const desc = description || record.operationDescriptionEn || ''
+        return (
+          <Tooltip title={desc}>
+            {OperationLogUtils.truncateText(desc, 50)}
+          </Tooltip>
+        )
+      },
     {
       title: '操作',
       key: 'action',
@@ -280,8 +308,8 @@ const OperationLogManagement: React.FC = () => {
               </span>
               <Select
                 placeholder="请选择操作对象"
-                value={filters.target}
-                onChange={(value) => handleFilterChange('target', value)}
+                value={filters.operationTarget}
+                onChange={(value) => handleFilterChange('operationTarget', value)}
                 allowClear
                 style={{ width: '100%', borderRadius: '0 6px 6px 0' }}
               >
@@ -293,6 +321,8 @@ const OperationLogManagement: React.FC = () => {
               </Select>
             </Space.Compact>
           </Col>
+        </Row>
+        <Row gutter={16} style={{ marginTop: '16px' }}>
           <Col span={6}>
             <Space.Compact style={{ width: '100%' }}>
               <span style={{
@@ -348,6 +378,13 @@ const OperationLogManagement: React.FC = () => {
                 onClick={handleReset}
               >
                 重置
+              </Button>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExport}
+                loading={loading}
+              >
+                导出
               </Button>
             </Space>
           </Col>
