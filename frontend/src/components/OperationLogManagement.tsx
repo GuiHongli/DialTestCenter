@@ -19,6 +19,10 @@ import {
   SearchOutlined,
   EyeOutlined,
   DownloadOutlined,
+  ClearOutlined,
+  UserOutlined,
+  SettingOutlined,
+  AimOutlined,
 } from '@ant-design/icons'
 import { OperationLogService, OperationLogUtils } from '../services/operationLogService'
 import { 
@@ -32,7 +36,7 @@ import moment, { Moment } from 'moment'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
-const { Title } = Typography
+const { Title, Text } = Typography
 
 /**
  * 操作记录管理组件
@@ -202,6 +206,7 @@ const OperationLogManagement: React.FC = () => {
           </Tooltip>
         )
       },
+    },
     {
       title: '操作',
       key: 'action',
@@ -229,165 +234,124 @@ const OperationLogManagement: React.FC = () => {
       <Title level={2} style={{ textAlign: 'left' }}>操作记录管理</Title>
 
       {/* 筛选器 */}
-      <Card style={{ marginBottom: '16px' }}>
-        <Row gutter={16}>
-          <Col span={6}>
-            <Space.Compact style={{ width: '100%' }}>
-              <span style={{
-                padding: '4px 8px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '100px',
-                justifyContent: 'center'
-              }}>
-                用户名
-              </span>
-              <Input
-                placeholder="请输入用户名"
-                value={filters.username || ''}
-                onChange={(e) => handleFilterChange('username', e.target.value)}
-                allowClear
-                style={{ borderRadius: '0 6px 6px 0' }}
-              />
-            </Space.Compact>
+      <Card 
+        style={{ 
+          marginBottom: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        }}
+        bodyStyle={{ padding: '20px' }}
+      >
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: '8px' }}>
+              <Text strong style={{ color: '#262626' }}>用户名</Text>
+            </div>
+            <Input
+              placeholder="请输入用户名"
+              value={filters.username || ''}
+              onChange={(e) => handleFilterChange('username', e.target.value)}
+              allowClear
+              prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
+              style={{ borderRadius: '6px' }}
+            />
           </Col>
-          <Col span={6}>
-            <Space.Compact style={{ width: '100%' }}>
-              <span style={{
-                padding: '4px 8px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '100px',
-                justifyContent: 'center'
-              }}>
-                操作类型
-              </span>
-              <Select
-                placeholder="请选择操作类型"
-                value={filters.operationType}
-                onChange={(value) => handleFilterChange('operationType', value)}
-                allowClear
-                style={{ width: '100%', borderRadius: '0 6px 6px 0' }}
-              >
-                {Object.values(OperationType).map(type => (
-                  <Option key={type} value={type}>
-                    {OperationLogUtils.getOperationTypeText(type)}
-                  </Option>
-                ))}
-              </Select>
-            </Space.Compact>
+          
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: '8px' }}>
+              <Text strong style={{ color: '#262626' }}>操作类型</Text>
+            </div>
+            <Select
+              placeholder="请选择操作类型"
+              value={filters.operationType}
+              onChange={(value) => handleFilterChange('operationType', value)}
+              allowClear
+              style={{ width: '100%' }}
+              suffixIcon={<SettingOutlined style={{ color: '#bfbfbf' }} />}
+            >
+              {Object.values(OperationType).map(type => (
+                <Option key={type} value={type}>
+                  {OperationLogUtils.getOperationTypeText(type)}
+                </Option>
+              ))}
+            </Select>
           </Col>
-          <Col span={6}>
-            <Space.Compact style={{ width: '100%' }}>
-              <span style={{
-                padding: '4px 8px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '100px',
-                justifyContent: 'center'
-              }}>
-                操作对象
-              </span>
-              <Select
-                placeholder="请选择操作对象"
-                value={filters.operationTarget}
-                onChange={(value) => handleFilterChange('operationTarget', value)}
-                allowClear
-                style={{ width: '100%', borderRadius: '0 6px 6px 0' }}
-              >
-                {Object.values(OperationTarget).map(target => (
-                  <Option key={target} value={target}>
-                    {target}
-                  </Option>
-                ))}
-              </Select>
-            </Space.Compact>
+          
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: '8px' }}>
+              <Text strong style={{ color: '#262626' }}>操作对象</Text>
+            </div>
+            <Select
+              placeholder="请选择操作对象"
+              value={filters.operationTarget}
+              onChange={(value) => handleFilterChange('operationTarget', value)}
+              allowClear
+              style={{ width: '100%' }}
+              suffixIcon={<AimOutlined style={{ color: '#bfbfbf' }} />}
+            >
+              {Object.values(OperationTarget).map(target => (
+                <Option key={target} value={target}>
+                  {target}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ marginBottom: '8px' }}>
+              <Text strong style={{ color: '#262626' }}>操作时间</Text>
+            </div>
+            <RangePicker
+              style={{ width: '100%' }}
+              showTime={{ format: 'HH:mm:ss' }}
+              format="YYYY-MM-DD HH:mm:ss"
+              placeholder={['开始时间', '结束时间']}
+              value={filters.startTime && filters.endTime ? [
+                moment(filters.startTime),
+                moment(filters.endTime)
+              ] as [Moment, Moment] : null}
+              onChange={(dates: null | [Moment, Moment]) => {
+                if (dates && dates[0] && dates[1]) {
+                  handleFilterChange('startTime', dates[0].format('YYYY-MM-DD HH:mm:ss'))
+                  handleFilterChange('endTime', dates[1].format('YYYY-MM-DD HH:mm:ss'))
+                } else {
+                  handleFilterChange('startTime', undefined)
+                  handleFilterChange('endTime', undefined)
+                }
+              }}
+            />
           </Col>
         </Row>
-        <Row gutter={16} style={{ marginTop: '16px' }}>
-          <Col span={6}>
-            <Space.Compact style={{ width: '100%' }}>
-              <span style={{
-                padding: '4px 8px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '100px',
-                justifyContent: 'center'
-              }}>
-                时间范围
-              </span>
-              <RangePicker
-                style={{ width: '100%', borderRadius: '0 6px 6px 0' }}
-                showTime={{ format: 'HH:mm:ss' }}
-                format="YYYY-MM-DD HH:mm:ss"
-                placeholder={['开始时间', '结束时间']}
-                value={filters.startTime && filters.endTime ? [
-                  moment(filters.startTime),
-                  moment(filters.endTime)
-                ] as [Moment, Moment] : null}
-                onChange={(dates: null | [Moment, Moment]) => {
-                  if (dates && dates[0] && dates[1]) {
-                    handleFilterChange('startTime', dates[0].format('YYYY-MM-DD HH:mm:ss'))
-                    handleFilterChange('endTime', dates[1].format('YYYY-MM-DD HH:mm:ss'))
-                  } else {
-                    handleFilterChange('startTime', undefined)
-                    handleFilterChange('endTime', undefined)
-                  }
-                }}
-              />
-            </Space.Compact>
-          </Col>
-        </Row>
-        <Row style={{ marginTop: '16px' }}>
-          <Col span={24} style={{ textAlign: 'right' }}>
-            <Space>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-                loading={loading}
-              >
-                搜索
-              </Button>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleReset}
-              >
-                重置
-              </Button>
-              <Button
-                icon={<DownloadOutlined />}
-                onClick={handleExport}
-                loading={loading}
-              >
-                导出
-              </Button>
-            </Space>
-          </Col>
+        
+        <Row justify="end" style={{ marginTop: '20px' }}>
+          <Space size="middle">
+            <Button 
+              onClick={() => {
+                setFilters({})
+                setPagination(prev => ({ ...prev, current: 1 }))
+                loadOperationLogs()
+              }}
+              icon={<ClearOutlined />}
+            >
+              重置
+            </Button>
+            <Button 
+              type="primary" 
+              onClick={handleSearch}
+              icon={<SearchOutlined />}
+              style={{ borderRadius: '6px' }}
+            >
+              搜索
+            </Button>
+            <Button 
+              type="default" 
+              onClick={handleExport}
+              icon={<DownloadOutlined />}
+              style={{ borderRadius: '6px' }}
+            >
+              导出
+            </Button>
+          </Space>
         </Row>
       </Card>
 
