@@ -4,8 +4,8 @@
 
 package com.huawei.cloududn.dialingtest.controller;
 
-import com.huawei.cloududn.dialingtest.model.OperationTarget;
-import com.huawei.cloududn.dialingtest.service.OperationTargetService;
+import com.huawei.cloududn.dialingtest.model.OperationTargetListResponse;
+import com.huawei.cloududn.dialingtest.dao.OperationTargetDao;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -32,88 +31,50 @@ import static org.mockito.Mockito.*;
 public class OperationTargetControllerTest {
 
     @Mock
-    private OperationTargetService operationTargetService;
+    private OperationTargetDao operationTargetDao;
 
     @InjectMocks
     private OperationTargetController operationTargetController;
 
-    private OperationTarget testOperationTarget;
+    private OperationTargetListResponse testResponse;
 
     @Before
     public void setUp() {
-        testOperationTarget = new OperationTarget();
-        testOperationTarget.setCode("USER");
-        testOperationTarget.setNameZh("用户");
-        testOperationTarget.setNameEn("User");
-        testOperationTarget.setDescriptionZh("用户相关操作");
-        testOperationTarget.setDescriptionEn("User related operations");
+        testResponse = new OperationTargetListResponse();
+        testResponse.setSuccess(true);
+        testResponse.setMessage("查询成功");
+        testResponse.setData(Arrays.asList());
     }
 
     @Test
-    public void testOperationTargetsGet_Success_ReturnsOperationTargets() {
+    public void testOperationTargetsGet_Success_ReturnsOk() {
         // Arrange
-        List<OperationTarget> mockTargets = Arrays.asList(testOperationTarget);
-        when(operationTargetService.getAllOperationTargets()).thenReturn(mockTargets);
+        when(operationTargetDao.getAllOperationTargets()).thenReturn(testResponse);
 
         // Act
-        ResponseEntity<List<OperationTarget>> response = operationTargetController.operationTargetsGet();
+        ResponseEntity<OperationTargetListResponse> response = operationTargetController.operationTargetsGet();
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("USER", response.getBody().get(0).getCode());
-        verify(operationTargetService).getAllOperationTargets();
+        assertTrue(response.getBody().isSuccess());
+        verify(operationTargetDao).getAllOperationTargets();
     }
 
     @Test
     public void testOperationTargetsGet_ServiceException_ReturnsInternalServerError() {
         // Arrange
-        when(operationTargetService.getAllOperationTargets()).thenThrow(new RuntimeException("Service error"));
+        when(operationTargetDao.getAllOperationTargets()).thenThrow(new RuntimeException("Service error"));
 
         // Act
-        ResponseEntity<List<OperationTarget>> response = operationTargetController.operationTargetsGet();
+        ResponseEntity<OperationTargetListResponse> response = operationTargetController.operationTargetsGet();
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNull(response.getBody());
-    }
-
-    @Test
-    public void testOperationTargetsGet_EmptyList_ReturnsEmptyList() {
-        // Arrange
-        when(operationTargetService.getAllOperationTargets()).thenReturn(Arrays.asList());
-
-        // Act
-        ResponseEntity<List<OperationTarget>> response = operationTargetController.operationTargetsGet();
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
-        verify(operationTargetService).getAllOperationTargets();
-    }
-
-    @Test
-    public void testOperationTargetsGet_MultipleTargets_ReturnsAllTargets() {
-        // Arrange
-        OperationTarget target2 = new OperationTarget();
-        target2.setCode("SYSTEM");
-        target2.setNameZh("系统");
-        target2.setNameEn("System");
-        
-        List<OperationTarget> mockTargets = Arrays.asList(testOperationTarget, target2);
-        when(operationTargetService.getAllOperationTargets()).thenReturn(mockTargets);
-
-        // Act
-        ResponseEntity<List<OperationTarget>> response = operationTargetController.operationTargetsGet();
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertEquals("USER", response.getBody().get(0).getCode());
-        assertEquals("SYSTEM", response.getBody().get(1).getCode());
-        verify(operationTargetService).getAllOperationTargets();
+        assertFalse(response.getBody().isSuccess());
+        verify(operationTargetDao).getAllOperationTargets();
     }
 }

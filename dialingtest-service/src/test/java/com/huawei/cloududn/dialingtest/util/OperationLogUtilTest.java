@@ -233,7 +233,7 @@ public class OperationLogUtilTest {
         String descriptionEn = "Custom operation";
 
         // Act
-        operationLogUtil.logOperation(operatorUsername, operationType, operationTarget, descriptionZh, descriptionEn);
+        operationLogUtil.logOperation(operatorUsername, operationType, operationTarget, descriptionZh, descriptionEn, "操作数据");
 
         // Assert
         verify(operationLogService).createOperationLog(argThat(request -> {

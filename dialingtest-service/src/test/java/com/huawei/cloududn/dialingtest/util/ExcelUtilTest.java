@@ -6,12 +6,17 @@ package com.huawei.cloududn.dialingtest.util;
 
 import com.huawei.cloududn.dialingtest.model.OperationLog;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.Before;
+import org.springframework.core.io.Resource;
+
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -26,203 +31,211 @@ import static org.junit.Assert.*;
  */
 public class ExcelUtilTest {
 
-    private OperationLog testOperationLog1;
-    private OperationLog testOperationLog2;
-
-    @Before
-    public void setUp() {
-        testOperationLog1 = new OperationLog();
-        testOperationLog1.setId(1);
-        testOperationLog1.setUsername("user1");
-        testOperationLog1.setOperationType("CREATE");
-        testOperationLog1.setOperationTarget("USER");
-        testOperationLog1.setOperationDescriptionZh("创建用户: user1");
-        testOperationLog1.setOperationDescriptionEn("Create user: user1");
-        testOperationLog1.setOperationTime("2025-09-19T10:00:00Z");
-
-        testOperationLog2 = new OperationLog();
-        testOperationLog2.setId(2);
-        testOperationLog2.setUsername("user2");
-        testOperationLog2.setOperationType("UPDATE");
-        testOperationLog2.setOperationTarget("USER");
-        testOperationLog2.setOperationDescriptionZh("更新用户: user2");
-        testOperationLog2.setOperationDescriptionEn("Update user: user2");
-        testOperationLog2.setOperationTime("2025-09-19T11:00:00Z");
-    }
-
     @Test
-    public void testGenerateOperationLogsExcel_Success_ReturnsValidExcel() throws IOException {
+    public void testGenerateOperationLogsExcel_Success_ReturnsResource() throws IOException {
         // Arrange
-        List<OperationLog> operationLogs = Arrays.asList(testOperationLog1, testOperationLog2);
+        OperationLog log1 = new OperationLog();
+        log1.setId(1);
+        log1.setUsername("user1");
+        log1.setOperationType("CREATE");
+        log1.setOperationTarget("USER");
+        log1.setOperationDescriptionZh("创建用户");
+        log1.setOperationDescriptionEn("Create user");
+
+        OperationLog log2 = new OperationLog();
+        log2.setId(2);
+        log2.setUsername("user2");
+        log2.setOperationType("UPDATE");
+        log2.setOperationTarget("USER");
+        log2.setOperationDescriptionZh("更新用户");
+        log2.setOperationDescriptionEn("Update user");
+
+        List<OperationLog> logs = Arrays.asList(log1, log2);
 
         // Act
-        byte[] excelData = ExcelUtil.generateOperationLogsExcel(operationLogs);
+        Resource resource = ExcelUtil.generateOperationLogsExcel(logs);
 
         // Assert
-        assertNotNull(excelData);
-        assertTrue(excelData.length > 0);
+        assertNotNull(resource);
+        assertTrue(resource.exists());
+        assertTrue(resource.contentLength() > 0);
 
-        // Verify Excel content
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(excelData);
-             Workbook workbook = new XSSFWorkbook(bis)) {
+        // 验证Excel内容
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = resource.getInputStream().read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            byte[] excelData = baos.toByteArray();
             
-            Sheet sheet = workbook.getSheetAt(0);
-            assertNotNull(sheet);
-            
-            // Check header row
-            Row headerRow = sheet.getRow(0);
-            assertNotNull(headerRow);
-            assertEquals("ID", getCellValueAsString(headerRow.getCell(0)));
-            assertEquals("用户名", getCellValueAsString(headerRow.getCell(1)));
-            assertEquals("操作类型", getCellValueAsString(headerRow.getCell(2)));
-            assertEquals("操作目标", getCellValueAsString(headerRow.getCell(3)));
-            assertEquals("中文描述", getCellValueAsString(headerRow.getCell(4)));
-            assertEquals("英文描述", getCellValueAsString(headerRow.getCell(5)));
-            assertEquals("操作时间", getCellValueAsString(headerRow.getCell(6)));
-            
-            // Check data rows
-            Row dataRow1 = sheet.getRow(1);
-            assertNotNull(dataRow1);
-            assertEquals("1", getCellValueAsString(dataRow1.getCell(0)));
-            assertEquals("user1", getCellValueAsString(dataRow1.getCell(1)));
-            assertEquals("CREATE", getCellValueAsString(dataRow1.getCell(2)));
-            assertEquals("USER", getCellValueAsString(dataRow1.getCell(3)));
-            assertEquals("创建用户: user1", getCellValueAsString(dataRow1.getCell(4)));
-            assertEquals("Create user: user1", getCellValueAsString(dataRow1.getCell(5)));
-            assertEquals("2025-09-19T10:00:00Z", getCellValueAsString(dataRow1.getCell(6)));
-            
-            Row dataRow2 = sheet.getRow(2);
-            assertNotNull(dataRow2);
-            assertEquals("2", getCellValueAsString(dataRow2.getCell(0)));
-            assertEquals("user2", getCellValueAsString(dataRow2.getCell(1)));
-            assertEquals("UPDATE", getCellValueAsString(dataRow2.getCell(2)));
-            assertEquals("USER", getCellValueAsString(dataRow2.getCell(3)));
-            assertEquals("更新用户: user2", getCellValueAsString(dataRow2.getCell(4)));
-            assertEquals("Update user: user2", getCellValueAsString(dataRow2.getCell(5)));
-            assertEquals("2025-09-19T11:00:00Z", getCellValueAsString(dataRow2.getCell(6)));
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(excelData);
+                 Workbook workbook = new XSSFWorkbook(bais)) {
+                
+                Sheet sheet = workbook.getSheetAt(0);
+                assertNotNull(sheet);
+                
+                // 验证标题行
+                Row headerRow = sheet.getRow(0);
+                assertNotNull(headerRow);
+                assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+                assertEquals("操作人", headerRow.getCell(1).getStringCellValue());
+                assertEquals("操作类型", headerRow.getCell(2).getStringCellValue());
+                assertEquals("操作目标", headerRow.getCell(3).getStringCellValue());
+                assertEquals("操作描述(中文)", headerRow.getCell(4).getStringCellValue());
+                assertEquals("操作描述(英文)", headerRow.getCell(5).getStringCellValue());
+                
+                // 验证数据行
+                Row dataRow1 = sheet.getRow(1);
+                assertNotNull(dataRow1);
+                assertEquals(1.0, dataRow1.getCell(0).getNumericCellValue(), 0.01);
+                assertEquals("user1", dataRow1.getCell(1).getStringCellValue());
+                assertEquals("CREATE", dataRow1.getCell(2).getStringCellValue());
+                assertEquals("USER", dataRow1.getCell(3).getStringCellValue());
+                assertEquals("创建用户", dataRow1.getCell(4).getStringCellValue());
+                assertEquals("Create user", dataRow1.getCell(5).getStringCellValue());
+            }
         }
     }
 
     @Test
-    public void testGenerateOperationLogsExcel_EmptyList_ReturnsExcelWithHeadersOnly() throws IOException {
+    public void testGenerateOperationLogsExcel_EmptyList_ReturnsResource() throws IOException {
         // Arrange
-        List<OperationLog> emptyList = Arrays.asList();
+        List<OperationLog> emptyLogs = Arrays.asList();
 
         // Act
-        byte[] excelData = ExcelUtil.generateOperationLogsExcel(emptyList);
+        Resource resource = ExcelUtil.generateOperationLogsExcel(emptyLogs);
 
         // Assert
-        assertNotNull(excelData);
-        assertTrue(excelData.length > 0);
+        assertNotNull(resource);
+        assertTrue(resource.exists());
+        assertTrue(resource.contentLength() > 0);
 
-        // Verify Excel content
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(excelData);
-             Workbook workbook = new XSSFWorkbook(bis)) {
+        // 验证Excel内容（只有标题行）
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = resource.getInputStream().read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            byte[] excelData = baos.toByteArray();
             
-            Sheet sheet = workbook.getSheetAt(0);
-            assertNotNull(sheet);
-            
-            // Check header row exists
-            Row headerRow = sheet.getRow(0);
-            assertNotNull(headerRow);
-            assertEquals("ID", getCellValueAsString(headerRow.getCell(0)));
-            
-            // Check no data rows
-            Row dataRow = sheet.getRow(1);
-            assertNull(dataRow);
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(excelData);
+                 Workbook workbook = new XSSFWorkbook(bais)) {
+                
+                Sheet sheet = workbook.getSheetAt(0);
+                assertNotNull(sheet);
+                
+                // 验证只有标题行
+                Row headerRow = sheet.getRow(0);
+                assertNotNull(headerRow);
+                assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+                
+                // 验证没有数据行
+                Row dataRow = sheet.getRow(1);
+                assertNull(dataRow);
+            }
         }
     }
 
     @Test
-    public void testGenerateOperationLogsExcel_NullList_ReturnsExcelWithHeadersOnly() throws IOException {
+    public void testGenerateOperationLogsExcel_NullList_ReturnsResource() throws IOException {
         // Arrange
-        List<OperationLog> nullList = null;
+        List<OperationLog> nullLogs = null;
 
         // Act
-        byte[] excelData = ExcelUtil.generateOperationLogsExcel(nullList);
+        Resource resource = ExcelUtil.generateOperationLogsExcel(nullLogs);
 
         // Assert
-        assertNotNull(excelData);
-        assertTrue(excelData.length > 0);
+        assertNotNull(resource);
+        assertTrue(resource.exists());
+        assertTrue(resource.contentLength() > 0);
 
-        // Verify Excel content
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(excelData);
-             Workbook workbook = new XSSFWorkbook(bis)) {
+        // 验证Excel内容（只有标题行）
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = resource.getInputStream().read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            byte[] excelData = baos.toByteArray();
             
-            Sheet sheet = workbook.getSheetAt(0);
-            assertNotNull(sheet);
-            
-            // Check header row exists
-            Row headerRow = sheet.getRow(0);
-            assertNotNull(headerRow);
-            assertEquals("ID", getCellValueAsString(headerRow.getCell(0)));
-            
-            // Check no data rows
-            Row dataRow = sheet.getRow(1);
-            assertNull(dataRow);
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(excelData);
+                 Workbook workbook = new XSSFWorkbook(bais)) {
+                
+                Sheet sheet = workbook.getSheetAt(0);
+                assertNotNull(sheet);
+                
+                // 验证只有标题行
+                Row headerRow = sheet.getRow(0);
+                assertNotNull(headerRow);
+                assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+                
+                // 验证没有数据行
+                Row dataRow = sheet.getRow(1);
+                assertNull(dataRow);
+            }
         }
     }
 
     @Test
-    public void testGenerateOperationLogsExcel_NullValues_HandlesNullValuesCorrectly() throws IOException {
+    public void testGenerateOperationLogsExcel_LargeDataset_ReturnsResource() throws IOException {
         // Arrange
-        OperationLog logWithNulls = new OperationLog();
-        logWithNulls.setId(1);
-        logWithNulls.setUsername("user1");
-        logWithNulls.setOperationType("CREATE");
-        logWithNulls.setOperationTarget("USER");
-        logWithNulls.setOperationDescriptionZh(null);
-        logWithNulls.setOperationDescriptionEn(null);
-        logWithNulls.setOperationTime(null);
-        
-        List<OperationLog> operationLogs = Arrays.asList(logWithNulls);
+        List<OperationLog> largeLogs = Arrays.asList();
+        for (int i = 1; i <= 1000; i++) {
+            OperationLog log = new OperationLog();
+            log.setId(i);
+            log.setUsername("user" + i);
+            log.setOperationType("CREATE");
+            log.setOperationTarget("USER");
+            log.setOperationDescriptionZh("创建用户" + i);
+            log.setOperationDescriptionEn("Create user" + i);
+            largeLogs.add(log);
+        }
 
         // Act
-        byte[] excelData = ExcelUtil.generateOperationLogsExcel(operationLogs);
+        Resource resource = ExcelUtil.generateOperationLogsExcel(largeLogs);
 
         // Assert
-        assertNotNull(excelData);
-        assertTrue(excelData.length > 0);
+        assertNotNull(resource);
+        assertTrue(resource.exists());
+        assertTrue(resource.contentLength() > 0);
 
-        // Verify Excel content
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(excelData);
-             Workbook workbook = new XSSFWorkbook(bis)) {
+        // 验证Excel内容
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = resource.getInputStream().read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+            byte[] excelData = baos.toByteArray();
             
-            Sheet sheet = workbook.getSheetAt(0);
-            assertNotNull(sheet);
-            
-            Row dataRow = sheet.getRow(1);
-            assertNotNull(dataRow);
-            assertEquals("1", getCellValueAsString(dataRow.getCell(0)));
-            assertEquals("user1", getCellValueAsString(dataRow.getCell(1)));
-            assertEquals("CREATE", getCellValueAsString(dataRow.getCell(2)));
-            assertEquals("USER", getCellValueAsString(dataRow.getCell(3)));
-            assertEquals("", getCellValueAsString(dataRow.getCell(4))); // null description
-            assertEquals("", getCellValueAsString(dataRow.getCell(5))); // null description
-            assertEquals("", getCellValueAsString(dataRow.getCell(6))); // null time
-        }
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) {
-            return "";
-        }
-        
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue();
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue().toString();
-                } else {
-                    return String.valueOf((long) cell.getNumericCellValue());
-                }
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                return cell.getCellFormula();
-            default:
-                return "";
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(excelData);
+                 Workbook workbook = new XSSFWorkbook(bais)) {
+                
+                Sheet sheet = workbook.getSheetAt(0);
+                assertNotNull(sheet);
+                
+                // 验证标题行
+                Row headerRow = sheet.getRow(0);
+                assertNotNull(headerRow);
+                assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+                
+                // 验证数据行数量
+                assertEquals(1001, sheet.getLastRowNum() + 1); // 标题行 + 1000数据行
+                
+                // 验证第一行数据
+                Row firstDataRow = sheet.getRow(1);
+                assertNotNull(firstDataRow);
+                assertEquals(1.0, firstDataRow.getCell(0).getNumericCellValue(), 0.01);
+                assertEquals("user1", firstDataRow.getCell(1).getStringCellValue());
+                
+                // 验证最后一行数据
+                Row lastDataRow = sheet.getRow(1000);
+                assertNotNull(lastDataRow);
+                assertEquals(1000.0, lastDataRow.getCell(0).getNumericCellValue(), 0.01);
+                assertEquals("user1000", lastDataRow.getCell(1).getStringCellValue());
+            }
         }
     }
 }

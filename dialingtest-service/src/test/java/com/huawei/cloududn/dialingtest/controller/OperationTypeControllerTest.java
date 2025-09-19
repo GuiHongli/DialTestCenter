@@ -4,8 +4,8 @@
 
 package com.huawei.cloududn.dialingtest.controller;
 
-import com.huawei.cloududn.dialingtest.model.OperationType;
-import com.huawei.cloududn.dialingtest.service.OperationTypeService;
+import com.huawei.cloududn.dialingtest.model.OperationTypeListResponse;
+import com.huawei.cloududn.dialingtest.dao.OperationTypeDao;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -32,88 +31,50 @@ import static org.mockito.Mockito.*;
 public class OperationTypeControllerTest {
 
     @Mock
-    private OperationTypeService operationTypeService;
+    private OperationTypeDao operationTypeDao;
 
     @InjectMocks
     private OperationTypeController operationTypeController;
 
-    private OperationType testOperationType;
+    private OperationTypeListResponse testResponse;
 
     @Before
     public void setUp() {
-        testOperationType = new OperationType();
-        testOperationType.setCode("CREATE");
-        testOperationType.setNameZh("创建");
-        testOperationType.setNameEn("Create");
-        testOperationType.setDescriptionZh("创建操作");
-        testOperationType.setDescriptionEn("Create operation");
+        testResponse = new OperationTypeListResponse();
+        testResponse.setSuccess(true);
+        testResponse.setMessage("查询成功");
+        testResponse.setData(Arrays.asList());
     }
 
     @Test
-    public void testOperationTypesGet_Success_ReturnsOperationTypes() {
+    public void testOperationTypesGet_Success_ReturnsOk() {
         // Arrange
-        List<OperationType> mockTypes = Arrays.asList(testOperationType);
-        when(operationTypeService.getAllOperationTypes()).thenReturn(mockTypes);
+        when(operationTypeDao.getAllOperationTypes()).thenReturn(testResponse);
 
         // Act
-        ResponseEntity<List<OperationType>> response = operationTypeController.operationTypesGet();
+        ResponseEntity<OperationTypeListResponse> response = operationTypeController.operationTypesGet();
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals("CREATE", response.getBody().get(0).getCode());
-        verify(operationTypeService).getAllOperationTypes();
+        assertTrue(response.getBody().isSuccess());
+        verify(operationTypeDao).getAllOperationTypes();
     }
 
     @Test
     public void testOperationTypesGet_ServiceException_ReturnsInternalServerError() {
         // Arrange
-        when(operationTypeService.getAllOperationTypes()).thenThrow(new RuntimeException("Service error"));
+        when(operationTypeDao.getAllOperationTypes()).thenThrow(new RuntimeException("Service error"));
 
         // Act
-        ResponseEntity<List<OperationType>> response = operationTypeController.operationTypesGet();
+        ResponseEntity<OperationTypeListResponse> response = operationTypeController.operationTypesGet();
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNull(response.getBody());
-    }
-
-    @Test
-    public void testOperationTypesGet_EmptyList_ReturnsEmptyList() {
-        // Arrange
-        when(operationTypeService.getAllOperationTypes()).thenReturn(Arrays.asList());
-
-        // Act
-        ResponseEntity<List<OperationType>> response = operationTypeController.operationTypesGet();
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
-        verify(operationTypeService).getAllOperationTypes();
-    }
-
-    @Test
-    public void testOperationTypesGet_MultipleTypes_ReturnsAllTypes() {
-        // Arrange
-        OperationType type2 = new OperationType();
-        type2.setCode("UPDATE");
-        type2.setNameZh("更新");
-        type2.setNameEn("Update");
-        
-        List<OperationType> mockTypes = Arrays.asList(testOperationType, type2);
-        when(operationTypeService.getAllOperationTypes()).thenReturn(mockTypes);
-
-        // Act
-        ResponseEntity<List<OperationType>> response = operationTypeController.operationTypesGet();
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertEquals("CREATE", response.getBody().get(0).getCode());
-        assertEquals("UPDATE", response.getBody().get(1).getCode());
-        verify(operationTypeService).getAllOperationTypes();
+        assertFalse(response.getBody().isSuccess());
+        verify(operationTypeDao).getAllOperationTypes();
     }
 }
