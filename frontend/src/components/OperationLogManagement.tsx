@@ -192,6 +192,7 @@ const OperationLogManagement: React.FC = () => {
         text: target,
         value: target,
       })),
+      render: (target: string) => OperationLogUtils.getOperationTargetText(target),
     },
     {
       title: '操作描述',
@@ -291,7 +292,7 @@ const OperationLogManagement: React.FC = () => {
             >
               {Object.values(OperationTarget).map(target => (
                 <Option key={target} value={target}>
-                  {target}
+                  {OperationLogUtils.getOperationTargetText(target)}
                 </Option>
               ))}
             </Select>

@@ -108,9 +108,9 @@
     }
   },
   "user": {
-    "title": "Dial User Management",
-    "description": "Manage dial users, support CRUD operations for dial users",
-    "addUser": "Add Dial User",
+    "title": "Executor Account Management",
+    "description": "Manage executor accounts, support CRUD operations for executor accounts",
+    "addUser": "Add Executor Account",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
     "confirmDelete": "Are you sure you want to delete this user?",

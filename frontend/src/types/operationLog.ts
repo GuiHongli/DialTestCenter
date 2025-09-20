@@ -108,13 +108,13 @@ export enum OperationType {
  * 操作对象类型枚举
  */
 export enum OperationTarget {
-  USER = '用户管理',
-  USER_ROLE = '角色管理',
-  TEST_CASE_SET = '测试用例集',
-  SOFTWARE_PACKAGE = '软件包管理',
-  SYSTEM = '系统',
-  LOGIN = '系统登录',
-  LOGOUT = '系统登出'
+  USER = 'USER',
+  USER_ROLE = 'USER_ROLE',
+  TEST_CASE_SET = 'TEST_CASE_SET',
+  SOFTWARE_PACKAGE = 'SOFTWARE_PACKAGE',
+  SYSTEM = 'SYSTEM',
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT'
 }
 
 /**

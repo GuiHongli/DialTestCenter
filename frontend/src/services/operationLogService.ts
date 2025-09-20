@@ -286,6 +286,32 @@ export class OperationLogUtils {
   }
 
   /**
+   * 获取操作对象显示文本
+   */
+  static getOperationTargetText(operationTarget: string): string {
+    const textMap: Record<string, string> = {
+      USER: '执行机账号',
+      USER_ROLE: '角色管理',
+      TEST_CASE_SET: '测试用例集',
+      SOFTWARE_PACKAGE: '软件包管理',
+      SYSTEM: '系统',
+      LOGIN: '系统登录',
+      LOGOUT: '系统登出',
+      // 兼容中文值
+      '执行机账号': '执行机账号',
+      '拨测用户': '执行机账号', // 兼容旧的拨测用户
+      '用户管理': '执行机账号', // 兼容旧的用户管理
+      '角色管理': '角色管理',
+      '测试用例集': '测试用例集',
+      '软件包管理': '软件包管理',
+      '系统': '系统',
+      '系统登录': '系统登录',
+      '系统登出': '系统登出',
+    }
+    return textMap[operationTarget] || operationTarget
+  }
+
+  /**
    * 截断长文本
    */
   static truncateText(text: string, maxLength: number = 50): string {

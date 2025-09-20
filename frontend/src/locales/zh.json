@@ -108,9 +108,9 @@
     }
   },
   "user": {
-    "title": "拨测用户管理",
-    "description": "管理拨测用户，支持拨测用户的增删改查操作",
-    "addUser": "新增拨测用户",
+    "title": "执行机账号管理",
+    "description": "管理执行机账号，支持执行机账号的增删改查操作",
+    "addUser": "新增执行机账号",
     "editUser": "编辑用户",
     "deleteUser": "删除用户",
     "confirmDelete": "确定要删除这个用户吗？",
