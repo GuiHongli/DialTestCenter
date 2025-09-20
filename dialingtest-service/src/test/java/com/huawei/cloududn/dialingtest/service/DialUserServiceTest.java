@@ -6,6 +6,7 @@ package com.huawei.cloududn.dialingtest.service;
 
 import com.huawei.cloududn.dialingtest.dao.DialUserDao;
 import com.huawei.cloududn.dialingtest.model.DialUser;
+import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,9 @@ public class DialUserServiceTest {
 
     @Mock
     private DialUserDao dialUserDao;
+
+    @Mock
+    private OperationLogUtil operationLogUtil;
 
     @InjectMocks
     private DialUserService dialUserService;
@@ -188,6 +192,7 @@ public class DialUserServiceTest {
         assertNotNull(result.getLastLoginTime());
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
+        verify(operationLogUtil).logUserCreate("testuser", "newuser", "用户名:newuser, 密码:已设置");
     }
 
     @Test
@@ -246,6 +251,7 @@ public class DialUserServiceTest {
         verify(dialUserDao).findById(1);
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).update(any(DialUser.class));
+        verify(operationLogUtil).logUserUpdate("testuser", "newuser", "用户名:olduser, 密码:已设置", "用户名:newuser, 密码:已更新");
     }
 
     @Test
@@ -323,6 +329,7 @@ public class DialUserServiceTest {
         // Assert
         verify(dialUserDao).findById(1);
         verify(dialUserDao).deleteById(1);
+        verify(operationLogUtil).logUserDelete("system", "testuser", "用户名:testuser, 最后登录:" + existingUser.getLastLoginTime());
     }
 
     @Test
@@ -359,6 +366,56 @@ public class DialUserServiceTest {
         
         verify(dialUserDao).findById(1);
         verify(dialUserDao).deleteById(1);
+    }
+
+    @Test
+    public void testDeleteUser_WithOperator_Success_DeletesUser() {
+        // Arrange
+        DialUser existingUser = createTestUser(1, "testuser", "password");
+        when(dialUserDao.findById(1)).thenReturn(existingUser);
+        when(dialUserDao.deleteById(1)).thenReturn(1);
+
+        // Act
+        dialUserService.deleteUser(1, "admin");
+
+        // Assert
+        verify(dialUserDao).findById(1);
+        verify(dialUserDao).deleteById(1);
+        verify(operationLogUtil).logUserDelete("admin", "testuser", "用户名:testuser, 最后登录:" + existingUser.getLastLoginTime());
+    }
+
+    @Test
+    public void testUpdateLastLoginTime_Success_UpdatesTime() {
+        // Arrange
+        DialUser existingUser = createTestUser(1, "testuser", "password");
+        when(dialUserDao.findById(1)).thenReturn(existingUser);
+        when(dialUserDao.updateLastLoginTime(eq(1), any(LocalDateTime.class))).thenReturn(1);
+
+        // Act
+        dialUserService.updateLastLoginTime(1);
+
+        // Assert
+        verify(dialUserDao).findById(1);
+        verify(dialUserDao).updateLastLoginTime(eq(1), any(LocalDateTime.class));
+        verify(operationLogUtil).logUserLogin("testuser");
+    }
+
+    @Test
+    public void testUpdateLastLoginTime_UserNotFound_ThrowsException() {
+        // Arrange
+        when(dialUserDao.findById(999)).thenReturn(null);
+
+        // Act & Assert
+        try {
+            dialUserService.updateLastLoginTime(999);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("用户不存在: 999", e.getMessage());
+        }
+        
+        verify(dialUserDao).findById(999);
+        verify(dialUserDao, never()).updateLastLoginTime(eq(999), any(LocalDateTime.class));
+        verify(operationLogUtil, never()).logUserLogin(anyString());
     }
 
     private DialUser createTestUser(Integer id, String username, String password) {

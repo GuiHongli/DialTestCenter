@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  * 操作记录工具类测试
  *
  * @author g00940940
- * @since 2025-09-19
+ * @since 2025-01-15
  */
 @RunWith(MockitoJUnitRunner.class)
 public class OperationLogUtilTest {
@@ -35,15 +35,19 @@ public class OperationLogUtilTest {
 
     @Before
     public void setUp() {
-        // Mock successful service calls by default
         OperationLogResponse mockResponse = new OperationLogResponse();
         mockResponse.setSuccess(true);
         mockResponse.setMessage("操作记录创建成功");
         when(operationLogService.createOperationLog(any(CreateOperationLogRequest.class))).thenReturn(mockResponse);
     }
 
+    /**
+     * 测试用户创建操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserCreate_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserCreate_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "newuser";
@@ -64,8 +68,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户创建操作记录 - 简化版本
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserCreate_SimplifiedVersion_CallsServiceWithDefaultDetails() {
+    public void testLogUserCreate_SimplifiedVersion_CallsServiceWithDefaultDetails() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "newuser";
@@ -85,8 +94,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户更新操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserUpdate_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserUpdate_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "user1";
@@ -108,8 +122,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户更新操作记录 - 简化版本
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserUpdate_SimplifiedVersion_CallsServiceWithDefaultValues() {
+    public void testLogUserUpdate_SimplifiedVersion_CallsServiceWithDefaultValues() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "user1";
@@ -129,8 +148,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户删除操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserDelete_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserDelete_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "user1";
@@ -151,8 +175,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户删除操作记录 - 简化版本
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserDelete_SimplifiedVersion_CallsServiceWithDefaultInfo() {
+    public void testLogUserDelete_SimplifiedVersion_CallsServiceWithDefaultInfo() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "user1";
@@ -172,8 +201,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户查看操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserView_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserView_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String targetUsername = "user1";
@@ -191,8 +225,13 @@ public class OperationLogUtilTest {
         }));
     }
 
+    /**
+     * 测试用户登录操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserLogin_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserLogin_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "user1";
 
@@ -203,14 +242,19 @@ public class OperationLogUtilTest {
         verify(operationLogService).createOperationLog(argThat(request -> {
             return "user1".equals(request.getUsername()) &&
                    "LOGIN".equals(request.getOperationType()) &&
-                   "USER".equals(request.getOperationTarget()) &&
+                   "SYSTEM".equals(request.getOperationTarget()) &&
                    request.getOperationDescriptionZh().contains("用户登录: user1") &&
                    request.getOperationDescriptionEn().contains("User login: user1");
         }));
     }
 
+    /**
+     * 测试用户登出操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserLogout_Success_CallsServiceWithCorrectParameters() {
+    public void testLogUserLogout_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "user1";
 
@@ -221,23 +265,30 @@ public class OperationLogUtilTest {
         verify(operationLogService).createOperationLog(argThat(request -> {
             return "user1".equals(request.getUsername()) &&
                    "LOGOUT".equals(request.getOperationType()) &&
-                   "USER".equals(request.getOperationTarget()) &&
+                   "SYSTEM".equals(request.getOperationTarget()) &&
                    request.getOperationDescriptionZh().contains("用户登出: user1") &&
                    request.getOperationDescriptionEn().contains("User logout: user1");
         }));
     }
 
+    /**
+     * 测试通用操作记录 - 成功场景
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogOperation_Success_CallsServiceWithCorrectParameters() {
+    public void testLogOperation_Success_CallsServiceWithCorrectParameters() throws Exception {
         // Arrange
         String operatorUsername = "admin";
         String operationType = "CUSTOM";
         String operationTarget = "SYSTEM";
         String descriptionZh = "自定义操作";
         String descriptionEn = "Custom operation";
+        String operationData = "操作数据";
 
         // Act
-        operationLogUtil.logOperation(operatorUsername, operationType, operationTarget, descriptionZh, descriptionEn, "操作数据");
+        operationLogUtil.logOperation(operatorUsername, operationType, operationTarget, 
+                                    descriptionZh, descriptionEn, operationData);
 
         // Assert
         verify(operationLogService).createOperationLog(argThat(request -> {
@@ -245,14 +296,21 @@ public class OperationLogUtilTest {
                    "CUSTOM".equals(request.getOperationType()) &&
                    "SYSTEM".equals(request.getOperationTarget()) &&
                    descriptionZh.equals(request.getOperationDescriptionZh()) &&
-                   descriptionEn.equals(request.getOperationDescriptionEn());
+                   descriptionEn.equals(request.getOperationDescriptionEn()) &&
+                   operationData.equals(request.getOperationData());
         }));
     }
 
+    /**
+     * 测试用户创建操作记录 - 服务异常处理
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserCreate_ServiceException_HandlesExceptionGracefully() {
+    public void testLogUserCreate_ServiceException_HandlesExceptionGracefully() throws Exception {
         // Arrange
-        doThrow(new RuntimeException("Service error")).when(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
+        doThrow(new RuntimeException("Service error"))
+            .when(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
         String operatorUsername = "admin";
         String targetUsername = "newuser";
 
@@ -261,13 +319,18 @@ public class OperationLogUtilTest {
 
         // Assert
         verify(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
-        // Should not throw exception, just log warning
     }
 
+    /**
+     * 测试用户更新操作记录 - 服务异常处理
+     *
+     * @throws Exception 测试异常
+     */
     @Test
-    public void testLogUserUpdate_ServiceException_HandlesExceptionGracefully() {
+    public void testLogUserUpdate_ServiceException_HandlesExceptionGracefully() throws Exception {
         // Arrange
-        doThrow(new RuntimeException("Service error")).when(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
+        doThrow(new RuntimeException("Service error"))
+            .when(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
         String operatorUsername = "admin";
         String targetUsername = "user1";
 
@@ -276,6 +339,5 @@ public class OperationLogUtilTest {
 
         // Assert
         verify(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
-        // Should not throw exception, just log warning
     }
 }

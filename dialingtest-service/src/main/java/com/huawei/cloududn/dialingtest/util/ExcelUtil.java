@@ -48,19 +48,21 @@ public class ExcelUtil {
             
             // 填充数据
             int rowNum = 1;
-            for (OperationLog log : logs) {
-                Row row = sheet.createRow(rowNum++);
-                
-                row.createCell(0).setCellValue(log.getId() != null ? log.getId() : 0);
-                row.createCell(1).setCellValue(log.getUsername() != null ? log.getUsername() : "");
-                row.createCell(2).setCellValue(log.getOperationType() != null ? log.getOperationType() : "");
-                row.createCell(3).setCellValue(log.getOperationTarget() != null ? log.getOperationTarget() : "");
-                
-                // 设置中文描述
-                row.createCell(4).setCellValue(log.getOperationDescriptionZh() != null ? log.getOperationDescriptionZh() : "");
-                // 设置英文描述
-                row.createCell(5).setCellValue(log.getOperationDescriptionEn() != null ? log.getOperationDescriptionEn() : "");
-                row.createCell(6).setCellValue(log.getOperationTime() != null ? log.getOperationTime() : "");
+            if (logs != null) {
+                for (OperationLog log : logs) {
+                    Row row = sheet.createRow(rowNum++);
+                    
+                    row.createCell(0).setCellValue(log.getId() != null ? log.getId() : 0);
+                    row.createCell(1).setCellValue(log.getUsername() != null ? log.getUsername() : "");
+                    row.createCell(2).setCellValue(log.getOperationType() != null ? log.getOperationType() : "");
+                    row.createCell(3).setCellValue(log.getOperationTarget() != null ? log.getOperationTarget() : "");
+                    
+                    // 设置中文描述
+                    row.createCell(4).setCellValue(log.getOperationDescriptionZh() != null ? log.getOperationDescriptionZh() : "");
+                    // 设置英文描述
+                    row.createCell(5).setCellValue(log.getOperationDescriptionEn() != null ? log.getOperationDescriptionEn() : "");
+                    row.createCell(6).setCellValue(log.getOperationTime() != null ? log.getOperationTime() : "");
+                }
             }
             
             // 自动调整列宽
@@ -69,11 +71,11 @@ public class ExcelUtil {
             }
             
             // 生成文件流
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            workbook.write(outputStream);
-            
-            byte[] excelBytes = outputStream.toByteArray();
-            return new ByteArrayResource(excelBytes);
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                workbook.write(outputStream);
+                byte[] excelBytes = outputStream.toByteArray();
+                return new ByteArrayResource(excelBytes);
+            }
             
         } catch (IOException e) {
             throw new RuntimeException("Failed to generate Excel file", e);

@@ -12,7 +12,6 @@ import com.huawei.cloududn.dialingtest.model.OperationLogPageResponseData;
 import com.huawei.cloududn.dialingtest.model.OperationLogResponse;
 import com.huawei.cloududn.dialingtest.model.OperationLogStatistics;
 import com.huawei.cloududn.dialingtest.model.OperationLogStatisticsResponse;
-import com.huawei.cloududn.dialingtest.util.ExcelUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,9 +39,6 @@ public class OperationLogServiceTest {
 
     @Mock
     private OperationLogDao operationLogDao;
-
-    @Mock
-    private ExcelUtil excelUtil;
 
     @InjectMocks
     private OperationLogService operationLogService;
@@ -92,23 +88,93 @@ public class OperationLogServiceTest {
     }
 
     @Test
-    public void testCreateOperationLog_DaoException_ReturnsErrorResponse() {
+    public void testCreateOperationLog_DaoException_ThrowsException() {
         // Arrange
         when(operationLogDao.save(any(OperationLog.class))).thenThrow(new RuntimeException("DAO error"));
 
-        // Act
-        OperationLogResponse response = operationLogService.createOperationLog(testRequest);
-
-        // Assert
-        assertNotNull(response);
-        assertFalse(response.isSuccess());
+        // Act & Assert
+        try {
+            operationLogService.createOperationLog(testRequest);
+            fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
+            assertEquals("DAO error", e.getMessage());
+        }
         verify(operationLogDao).save(any(OperationLog.class));
+    }
+
+    @Test
+    public void testCreateOperationLog_SaveReturnsNull_ThrowsException() {
+        // Arrange
+        when(operationLogDao.save(any(OperationLog.class))).thenReturn(null);
+
+        // Act & Assert
+        try {
+            operationLogService.createOperationLog(testRequest);
+            fail("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertEquals("创建操作记录失败，数据库操作未生效", e.getMessage());
+        }
+        verify(operationLogDao).save(any(OperationLog.class));
+    }
+
+    @Test
+    public void testCreateOperationLog_EmptyUsername_ThrowsException() {
+        // Arrange
+        CreateOperationLogRequest request = new CreateOperationLogRequest();
+        request.setUsername("");
+        request.setOperationType("CREATE");
+        request.setOperationTarget("USER");
+
+        // Act & Assert
+        try {
+            operationLogService.createOperationLog(request);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Username is required", e.getMessage());
+        }
+        verify(operationLogDao, never()).save(any(OperationLog.class));
+    }
+
+    @Test
+    public void testCreateOperationLog_EmptyOperationType_ThrowsException() {
+        // Arrange
+        CreateOperationLogRequest request = new CreateOperationLogRequest();
+        request.setUsername("testuser");
+        request.setOperationType("");
+        request.setOperationTarget("USER");
+
+        // Act & Assert
+        try {
+            operationLogService.createOperationLog(request);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Operation type is required", e.getMessage());
+        }
+        verify(operationLogDao, never()).save(any(OperationLog.class));
+    }
+
+    @Test
+    public void testCreateOperationLog_EmptyOperationTarget_ThrowsException() {
+        // Arrange
+        CreateOperationLogRequest request = new CreateOperationLogRequest();
+        request.setUsername("testuser");
+        request.setOperationType("CREATE");
+        request.setOperationTarget("");
+
+        // Act & Assert
+        try {
+            operationLogService.createOperationLog(request);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Operation target is required", e.getMessage());
+        }
+        verify(operationLogDao, never()).save(any(OperationLog.class));
     }
 
     @Test
     public void testGetOperationLogs_Success_ReturnsPageResponse() {
         // Arrange
-        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Arrays.asList(testOperationLog));
         when(operationLogDao.countOperationLogs(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(1L);
@@ -122,24 +188,24 @@ public class OperationLogServiceTest {
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
         assertEquals(1, response.getData().getContent().size());
-        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(operationLogDao).countOperationLogs(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
-    public void testGetOperationLogs_DaoException_ReturnsErrorResponse() {
+    public void testGetOperationLogs_DaoException_ThrowsException() {
         // Arrange
-        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenThrow(new RuntimeException("DAO error"));
 
-        // Act
-        OperationLogPageResponse response = operationLogService.getOperationLogs(
-            0, 10, "testuser", "CREATE", "USER", "2023-01-01", "2023-12-31");
-
-        // Assert
-        assertNotNull(response);
-        assertFalse(response.isSuccess());
-        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
+        // Act & Assert
+        try {
+            operationLogService.getOperationLogs(0, 10, "testuser", "CREATE", "USER", "2023-01-01", "2023-12-31");
+            fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
+            assertEquals("DAO error", e.getMessage());
+        }
+        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -159,26 +225,68 @@ public class OperationLogServiceTest {
     }
 
     @Test
-    public void testGetOperationLogStatistics_DaoException_ReturnsErrorResponse() {
+    public void testGetOperationLogStatistics_DaoException_ThrowsException() {
         // Arrange
         when(operationLogDao.getStatistics(anyString(), anyString())).thenThrow(new RuntimeException("DAO error"));
 
+        // Act & Assert
+        try {
+            operationLogService.getOperationLogStatistics("2023-01-01", "2023-12-31");
+            fail("Expected RuntimeException");
+        } catch (RuntimeException e) {
+            assertEquals("DAO error", e.getMessage());
+        }
+        verify(operationLogDao).getStatistics(anyString(), anyString());
+    }
+
+    @Test
+    public void testGetOperationLogById_Success_ReturnsResponse() {
+        // Arrange
+        when(operationLogDao.findById(1)).thenReturn(testOperationLog);
+
         // Act
-        OperationLogStatisticsResponse response = operationLogService.getOperationLogStatistics("2023-01-01", "2023-12-31");
+        OperationLogResponse response = operationLogService.getOperationLogById(1);
 
         // Assert
         assertNotNull(response);
-        assertFalse(response.isSuccess());
-        verify(operationLogDao).getStatistics(anyString(), anyString());
+        assertTrue(response.isSuccess());
+        assertNotNull(response.getData());
+        assertEquals(testOperationLog.getId(), response.getData().getId());
+        verify(operationLogDao).findById(1);
+    }
+
+    @Test
+    public void testGetOperationLogById_InvalidId_ThrowsException() {
+        // Act & Assert
+        try {
+            operationLogService.getOperationLogById(0);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Invalid operation log ID", e.getMessage());
+        }
+        verify(operationLogDao, never()).findById(anyInt());
+    }
+
+    @Test
+    public void testGetOperationLogById_NotFound_ThrowsException() {
+        // Arrange
+        when(operationLogDao.findById(999)).thenReturn(null);
+
+        // Act & Assert
+        try {
+            operationLogService.getOperationLogById(999);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Operation log not found", e.getMessage());
+        }
+        verify(operationLogDao).findById(999);
     }
 
     @Test
     public void testExportOperationLogs_Success_ReturnsResource() {
         // Arrange
-        Resource mockResource = mock(Resource.class);
         when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Arrays.asList(testOperationLog));
-        when(excelUtil.generateOperationLogsExcel(any())).thenReturn(mockResource);
 
         // Act
         Resource result = operationLogService.exportOperationLogs(
@@ -186,9 +294,7 @@ public class OperationLogServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(mockResource, result);
         verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
-        verify(excelUtil).generateOperationLogsExcel(anyList());
     }
 
     @Test
@@ -204,6 +310,5 @@ public class OperationLogServiceTest {
         // Assert
         assertNull(result);
         verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
-        verify(excelUtil, never()).generateOperationLogsExcel(any());
     }
 }

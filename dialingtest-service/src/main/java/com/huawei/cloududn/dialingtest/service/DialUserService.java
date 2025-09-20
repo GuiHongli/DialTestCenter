@@ -124,8 +124,11 @@ public class DialUserService {
             throw new IllegalArgumentException("用户不存在: " + id);
         }
         
+        // 保存原始用户名用于日志记录
+        String originalUsername = existingUser.getUsername();
+        
         // 如果用户名发生变化，检查新用户名是否已存在
-        if (!existingUser.getUsername().equals(username)) {
+        if (!originalUsername.equals(username)) {
             DialUser userWithSameName = dialUserDao.findByUsername(username);
             if (userWithSameName != null && !userWithSameName.getId().equals(id)) {
                 throw new IllegalArgumentException("用户名已存在: " + username);
@@ -148,8 +151,8 @@ public class DialUserService {
         StringBuilder newValues = new StringBuilder();
         
         // 记录用户名变更
-        if (!existingUser.getUsername().equals(username)) {
-            oldValues.append("用户名:").append(existingUser.getUsername());
+        if (!originalUsername.equals(username)) {
+            oldValues.append("用户名:").append(originalUsername);
             newValues.append("用户名:").append(username);
         }
         

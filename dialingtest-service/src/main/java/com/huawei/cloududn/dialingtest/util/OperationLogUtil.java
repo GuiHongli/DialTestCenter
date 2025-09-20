@@ -51,7 +51,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user create operation for user: {}", targetUsername);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user create operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user create operation: {}", e.getMessage());
         }
     }
@@ -86,7 +88,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user update operation for user: {}", targetUsername);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user update operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user update operation: {}", e.getMessage());
         }
     }
@@ -120,7 +124,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user delete operation for user: {}", targetUsername);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user delete operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user delete operation: {}", e.getMessage());
         }
     }
@@ -151,7 +157,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user view operation for user: {}", targetUsername);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user view operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user view operation: {}", e.getMessage());
         }
     }
@@ -172,7 +180,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user login operation for user: {}", username);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user login operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user login operation: {}", e.getMessage());
         }
     }
@@ -193,7 +203,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged user logout operation for user: {}", username);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for user logout operation: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log user logout operation: {}", e.getMessage());
         }
     }
@@ -218,7 +230,9 @@ public class OperationLogUtil {
             
             operationLogService.createOperationLog(request);
             logger.debug("Logged operation: {} {} for user: {}", operationType, operationTarget, operatorUsername);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for operation logging: {}", e.getMessage());
+        } catch (RuntimeException e) {
             logger.warn("Failed to log operation: {}", e.getMessage());
         }
     }
