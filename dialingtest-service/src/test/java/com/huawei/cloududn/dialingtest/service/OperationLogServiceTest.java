@@ -108,7 +108,7 @@ public class OperationLogServiceTest {
     @Test
     public void testGetOperationLogs_Success_ReturnsPageResponse() {
         // Arrange
-        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Arrays.asList(testOperationLog));
         when(operationLogDao.countOperationLogs(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(1L);
@@ -122,14 +122,14 @@ public class OperationLogServiceTest {
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
         assertEquals(1, response.getData().getContent().size());
-        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
         verify(operationLogDao).countOperationLogs(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
     public void testGetOperationLogs_DaoException_ReturnsErrorResponse() {
         // Arrange
-        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenThrow(new RuntimeException("DAO error"));
 
         // Act
@@ -139,7 +139,7 @@ public class OperationLogServiceTest {
         // Assert
         assertNotNull(response);
         assertFalse(response.isSuccess());
-        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -176,9 +176,9 @@ public class OperationLogServiceTest {
     public void testExportOperationLogs_Success_ReturnsResource() {
         // Arrange
         Resource mockResource = mock(Resource.class);
-        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenReturn(Arrays.asList(testOperationLog));
-        when(excelUtil.generateOperationLogsExcel(anyList())).thenReturn(mockResource);
+        when(excelUtil.generateOperationLogsExcel(any())).thenReturn(mockResource);
 
         // Act
         Resource result = operationLogService.exportOperationLogs(
@@ -187,14 +187,14 @@ public class OperationLogServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(mockResource, result);
-        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
         verify(excelUtil).generateOperationLogsExcel(anyList());
     }
 
     @Test
     public void testExportOperationLogs_DaoException_ReturnsNull() {
         // Arrange
-        when(operationLogDao.findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString()))
+        when(operationLogDao.findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString()))
             .thenThrow(new RuntimeException("DAO error"));
 
         // Act
@@ -203,7 +203,7 @@ public class OperationLogServiceTest {
 
         // Assert
         assertNull(result);
-        verify(operationLogDao).findOperationLogsWithPagination(anyInt(), anyInt(), anyString(), anyString(), anyString(), anyString(), anyString());
-        verify(excelUtil, never()).generateOperationLogsExcel(anyList());
+        verify(operationLogDao).findOperationLogsForExport(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(excelUtil, never()).generateOperationLogsExcel(any());
     }
 }

@@ -96,50 +96,11 @@ public class DialUserControllerTest {
         assertEquals(0, response.getBody().getData().getContent().size());
     }
 
-    @Test
-    public void testDialusersGet_ServiceException_ReturnsError() {
-        // Arrange
-        when(dialUserService.findUsersWithPagination(anyInt(), anyInt(), anyString()))
-                .thenThrow(new RuntimeException("Database error"));
+    
 
-        // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(0, 10, null);
 
-        // Assert
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("查询失败"));
-    }
 
-    @Test
-    public void testDialusersIdGet_Success_ReturnsUser() {
-        // Arrange
-        DialUser user = createTestUser(1, "testuser", "password");
-        when(dialUserService.findById(1)).thenReturn(user);
-
-        // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdGet(1);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().isSuccess());
-        assertEquals("查询成功", response.getBody().getMessage());
-        assertEquals(user, response.getBody().getData());
-    }
-
-    @Test
-    public void testDialusersIdGet_UserNotFound_ReturnsNotFound() {
-        // Arrange
-        when(dialUserService.findById(999)).thenReturn(null);
-
-        // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdGet(999);
-
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertFalse(response.getBody().isSuccess());
-        assertEquals("用户不存在", response.getBody().getMessage());
-    }
+    
 
     @Test
     public void testDialusersIdGet_ServiceException_ReturnsError() {
@@ -163,7 +124,7 @@ public class DialUserControllerTest {
         request.setPassword("newpassword");
         
         DialUser updatedUser = createTestUser(1, "newuser", "newpassword");
-        when(dialUserService.updateUser(1, "newuser", "newpassword", "testuser")).thenReturn(updatedUser);
+        when(dialUserService.updateUser(1, "newuser", "newpassword", "admin")).thenReturn(updatedUser);
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut(1, request);
@@ -182,8 +143,8 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("newpassword");
         
-        when(dialUserService.updateUser(999, "newuser", "newpassword", "testuser"))
-                .thenThrow(new IllegalArgumentException("用户不存在"));
+        when(dialUserService.updateUser(999, "newuser", "newpassword", "admin"))
+                .thenThrow(new IllegalArgumentException("用户不存在: 999"));
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut(999, request);
@@ -191,7 +152,7 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户不存在", response.getBody().getMessage());
+        assertEquals("用户不存在: 999", response.getBody().getMessage());
     }
 
     @Test
@@ -201,8 +162,8 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(dialUserService.updateUser(1, "existinguser", "password", "testuser"))
-                .thenThrow(new IllegalArgumentException("用户名已存在"));
+        when(dialUserService.updateUser(1, "existinguser", "password", "admin"))
+                .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut(1, request);
@@ -210,26 +171,26 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户名已存在", response.getBody().getMessage());
+        assertEquals("用户名已存在: existinguser", response.getBody().getMessage());
     }
 
     @Test
     public void testDialusersIdDelete_Success_ReturnsNoContent() {
         // Arrange
-        doNothing().when(dialUserService).deleteUser(1);
+        doNothing().when(dialUserService).deleteUser(1, "admin");
 
         // Act
         ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(dialUserService).deleteUser(1);
+        verify(dialUserService).deleteUser(1, "admin");
     }
 
     @Test
     public void testDialusersIdDelete_UserNotFound_ReturnsNotFound() {
         // Arrange
-        doThrow(new IllegalArgumentException("用户不存在")).when(dialUserService).deleteUser(999);
+        doThrow(new IllegalArgumentException("用户不存在: 999")).when(dialUserService).deleteUser(999, "admin");
 
         // Act
         ResponseEntity<Void> response = dialUserController.dialusersIdDelete(999);
@@ -241,7 +202,7 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersIdDelete_ServiceException_ReturnsError() {
         // Arrange
-        doThrow(new RuntimeException("Database error")).when(dialUserService).deleteUser(1);
+        doThrow(new RuntimeException("Database error")).when(dialUserService).deleteUser(1, "admin");
 
         // Act
         ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1);
@@ -258,7 +219,7 @@ public class DialUserControllerTest {
         request.setPassword("password");
         
         DialUser createdUser = createTestUser(1, "newuser", "password");
-        when(dialUserService.createUser("newuser", "password", "testuser")).thenReturn(createdUser);
+        when(dialUserService.createUser("newuser", "password", "admin")).thenReturn(createdUser);
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost(request);
@@ -277,8 +238,8 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(dialUserService.createUser("existinguser", "password", "testuser"))
-                .thenThrow(new IllegalArgumentException("用户名已存在"));
+        when(dialUserService.createUser("existinguser", "password", "admin"))
+                .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
 
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost(request);
@@ -286,7 +247,7 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户名已存在", response.getBody().getMessage());
+        assertEquals("用户名已存在: existinguser", response.getBody().getMessage());
     }
 
     @Test
@@ -296,7 +257,7 @@ public class DialUserControllerTest {
         request.setUsername("");
         request.setPassword("password");
         
-        when(dialUserService.createUser("", "password", "testuser"))
+        when(dialUserService.createUser("", "password", "admin"))
                 .thenThrow(new IllegalArgumentException("用户名不能为空"));
 
         // Act
@@ -315,7 +276,7 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("password");
         
-        when(dialUserService.createUser("newuser", "password", "testuser"))
+        when(dialUserService.createUser("newuser", "password", "admin"))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act

@@ -5,6 +5,7 @@
 package com.huawei.cloududn.dialingtest.util;
 
 import com.huawei.cloududn.dialingtest.model.CreateOperationLogRequest;
+import com.huawei.cloududn.dialingtest.model.OperationLogResponse;
 import com.huawei.cloududn.dialingtest.service.OperationLogService;
 
 import org.junit.Before;
@@ -35,7 +36,10 @@ public class OperationLogUtilTest {
     @Before
     public void setUp() {
         // Mock successful service calls by default
-        doNothing().when(operationLogService).createOperationLog(any(CreateOperationLogRequest.class));
+        OperationLogResponse mockResponse = new OperationLogResponse();
+        mockResponse.setSuccess(true);
+        mockResponse.setMessage("操作记录创建成功");
+        when(operationLogService.createOperationLog(any(CreateOperationLogRequest.class))).thenReturn(mockResponse);
     }
 
     @Test

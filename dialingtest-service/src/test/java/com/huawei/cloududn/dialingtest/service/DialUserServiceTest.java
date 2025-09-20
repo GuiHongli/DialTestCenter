@@ -217,9 +217,9 @@ public class DialUserServiceTest {
         // Act & Assert
         try {
             dialUserService.createUser("newuser", "password", "testuser");
-            fail("Expected RuntimeException");
-        } catch (RuntimeException e) {
-            assertEquals("创建用户失败", e.getMessage());
+            fail("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertEquals("创建用户失败，数据库操作未生效", e.getMessage());
         }
         
         verify(dialUserDao).findByUsername("newuser");
@@ -300,9 +300,9 @@ public class DialUserServiceTest {
         // Act & Assert
         try {
             dialUserService.updateUser(1, "newuser", "newpassword", "testuser");
-            fail("Expected RuntimeException");
-        } catch (RuntimeException e) {
-            assertEquals("更新用户失败", e.getMessage());
+            fail("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertEquals("更新用户失败，数据库操作未生效", e.getMessage());
         }
         
         verify(dialUserDao).findById(1);
@@ -352,9 +352,9 @@ public class DialUserServiceTest {
         // Act & Assert
         try {
             dialUserService.deleteUser(1);
-            fail("Expected RuntimeException");
-        } catch (RuntimeException e) {
-            assertEquals("删除用户失败", e.getMessage());
+            fail("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertEquals("删除用户失败，数据库操作未生效", e.getMessage());
         }
         
         verify(dialUserDao).findById(1);

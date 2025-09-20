@@ -195,15 +195,21 @@ public class OperationLogService {
         
         logger.debug("Exporting operation logs with filters");
         
-        // 查询数据
-        List<OperationLog> logs = operationLogDao.findOperationLogsForExport(
-            username, operationType, operationTarget, startTime, endTime);
-        
-        // 生成Excel文件
-        Resource resource = ExcelUtil.generateOperationLogsExcel(logs);
-        
-        logger.info("Successfully exported {} operation logs", logs.size());
-        return resource;
+        try {
+            // 查询数据
+            List<OperationLog> logs = operationLogDao.findOperationLogsForExport(
+                username, operationType, operationTarget, startTime, endTime);
+            
+            // 生成Excel文件
+            Resource resource = ExcelUtil.generateOperationLogsExcel(logs);
+            
+            logger.info("Successfully exported {} operation logs", logs.size());
+            return resource;
+            
+        } catch (Exception e) {
+            logger.error("Failed to export operation logs", e);
+            return null;
+        }
     }
     
     /**
