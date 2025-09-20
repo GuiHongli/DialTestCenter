@@ -12,7 +12,7 @@ import {
   ApiResponse 
 } from '../types/operationLog'
 
-const API_BASE_URL = 'https://localhost:8087/dialingtest/api'
+const API_BASE_URL = '/dialingtest/api'
 
 /**
  * 操作记录服务类
@@ -23,30 +23,32 @@ export class OperationLogService {
    */
   static async getOperationLogs(params: OperationLogQueryParams = {}): Promise<OperationLogPageResponse> {
     const { page = 0, size = 20, username, operationType, operationTarget, startTime, endTime } = params
-    const url = new URL(`${API_BASE_URL}/operation-logs`)
+    const searchParams = new URLSearchParams()
     
     // 添加查询参数
-    url.searchParams.append('page', page.toString())
-    url.searchParams.append('size', size.toString())
+    searchParams.append('page', page.toString())
+    searchParams.append('size', size.toString())
     
     if (username) {
-      url.searchParams.append('username', username)
+      searchParams.append('username', username)
     }
     if (operationType) {
-      url.searchParams.append('operationType', operationType)
+      searchParams.append('operationType', operationType)
     }
     if (operationTarget) {
-      url.searchParams.append('operationTarget', operationTarget)
+      searchParams.append('operationTarget', operationTarget)
     }
     if (startTime) {
-      url.searchParams.append('startTime', startTime)
+      searchParams.append('startTime', startTime)
     }
     if (endTime) {
-      url.searchParams.append('endTime', endTime)
+      searchParams.append('endTime', endTime)
     }
     
+    const url = `${API_BASE_URL}/operation-logs?${searchParams.toString()}`
+    
     try {
-      const response = await fetch(url.toString())
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -155,26 +157,28 @@ export class OperationLogService {
    */
   static async exportOperationLogs(params: OperationLogQueryParams = {}): Promise<Blob> {
     const { username, operationType, operationTarget, startTime, endTime } = params
-    const url = new URL(`${API_BASE_URL}/operation-logs/export`)
+    const searchParams = new URLSearchParams()
     
     if (username) {
-      url.searchParams.append('username', username)
+      searchParams.append('username', username)
     }
     if (operationType) {
-      url.searchParams.append('operationType', operationType)
+      searchParams.append('operationType', operationType)
     }
     if (operationTarget) {
-      url.searchParams.append('operationTarget', operationTarget)
+      searchParams.append('operationTarget', operationTarget)
     }
     if (startTime) {
-      url.searchParams.append('startTime', startTime)
+      searchParams.append('startTime', startTime)
     }
     if (endTime) {
-      url.searchParams.append('endTime', endTime)
+      searchParams.append('endTime', endTime)
     }
     
+    const url = `${API_BASE_URL}/operation-logs/export?${searchParams.toString()}`
+    
     try {
-      const response = await fetch(url.toString())
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
