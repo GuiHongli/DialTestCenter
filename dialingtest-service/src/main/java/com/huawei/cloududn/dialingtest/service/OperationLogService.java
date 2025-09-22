@@ -21,6 +21,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -111,12 +113,12 @@ public class OperationLogService {
         operationLog.setOperationDescriptionZh(request.getOperationDescriptionZh());
         operationLog.setOperationDescriptionEn(request.getOperationDescriptionEn());
         operationLog.setOperationData(request.getOperationData());
-        operationLog.setOperationTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        operationLog.setOperationTime(ZonedDateTime.now(ZoneId.of("GMT+8")).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         
         // 保存到数据库
-        OperationLog savedLog = operationLogDao.save(operationLog);
+        int result = operationLogDao.save(operationLog);
         
-        if (savedLog == null) {
+        if (result <= 0) {
             throw new IllegalStateException("创建操作记录失败，数据库操作未生效");
         }
         
@@ -124,9 +126,9 @@ public class OperationLogService {
         OperationLogResponse response = new OperationLogResponse();
         response.setSuccess(true);
         response.setMessage("创建成功");
-        response.setData(savedLog);
+        response.setData(operationLog);
         
-        logger.info("Successfully created operation log with ID: {}", savedLog.getId());
+        logger.info("Successfully created operation log with ID: {}", operationLog.getId());
         return response;
     }
     

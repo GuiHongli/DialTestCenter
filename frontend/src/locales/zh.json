@@ -227,8 +227,6 @@
       "id": "ID",
       "username": "用户名",
       "role": "角色",
-      "createdTime": "创建时间",
-      "updatedTime": "更新时间",
       "actions": "操作",
       "edit": "编辑",
       "delete": "删除",
@@ -239,6 +237,9 @@
         "executor": "执行机"
       },
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+    },
+    "filters": {
+      "searchUsername": "搜索用户名"
     },
     "form": {
       "username": "用户名",

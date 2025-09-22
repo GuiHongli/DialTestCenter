@@ -33,7 +33,7 @@ public interface OperationLogDao {
         "    ol.operation_description_zh as operationDescriptionZh, ",
         "    ol.operation_description_en as operationDescriptionEn, ",
         "    ol.operation_data as operationData, ",
-        "    TO_CHAR(ol.operation_time, 'YYYY-MM-DD&quot;T&quot;HH24:MI:SS.MS&quot;Z&quot;') as operationTime ",
+        "    TO_CHAR(ol.operation_time, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS') as operationTime ",
         "FROM operation_logs ol ",
         "WHERE 1=1 ",
         "<if test='username != null and username != &quot;&quot;'>",
@@ -99,14 +99,15 @@ public interface OperationLogDao {
     /**
      * 根据ID查询操作记录
      */
-    @Select("SELECT ol.id, ol.username, ol.operation_type as operationType, ol.operation_target as operationTarget, ol.operation_description_zh as operationDescriptionZh, ol.operation_description_en as operationDescriptionEn, ol.operation_data as operationData, TO_CHAR(ol.operation_time, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"') as operationTime FROM operation_logs ol WHERE ol.id = #{id}")
+    @Select("SELECT ol.id, ol.username, ol.operation_type as operationType, ol.operation_target as operationTarget, ol.operation_description_zh as operationDescriptionZh, ol.operation_description_en as operationDescriptionEn, ol.operation_data as operationData, TO_CHAR(ol.operation_time, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS') as operationTime FROM operation_logs ol WHERE ol.id = #{id}")
     OperationLog findById(@Param("id") Integer id);
     
     /**
      * 保存操作记录
      */
-    @Insert("INSERT INTO operation_logs (username, operation_type, operation_target, operation_description_zh, operation_description_en, operation_data, operation_time) VALUES (#{username}, #{operationType}, #{operationTarget}, #{operationDescriptionZh}, #{operationDescriptionEn}, #{operationData}::jsonb, TO_TIMESTAMP(#{operationTime}, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')) RETURNING *")
-    OperationLog save(OperationLog operationLog);
+    @Insert("INSERT INTO operation_logs (username, operation_type, operation_target, operation_description_zh, operation_description_en, operation_data, operation_time) VALUES (#{username}, #{operationType}, #{operationTarget}, #{operationDescriptionZh}, #{operationDescriptionEn}, #{operationData}::jsonb, TO_TIMESTAMP(#{operationTime}, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS'))")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int save(OperationLog operationLog);
     
     /**
      * 获取操作记录统计信息
@@ -145,7 +146,7 @@ public interface OperationLogDao {
         "    ol.operation_description_zh as operationDescriptionZh, ",
         "    ol.operation_description_en as operationDescriptionEn, ",
         "    ol.operation_data as operationData, ",
-        "    TO_CHAR(ol.operation_time, 'YYYY-MM-DD&quot;T&quot;HH24:MI:SS.MS&quot;Z&quot;') as operationTime ",
+        "    TO_CHAR(ol.operation_time, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS') as operationTime ",
         "FROM operation_logs ol ",
         "WHERE 1=1 ",
         "<if test='username != null and username != &quot;&quot;'>",

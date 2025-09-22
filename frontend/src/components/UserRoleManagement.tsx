@@ -71,13 +71,15 @@ export const UserRoleManagement: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const mockUserName = urlParams.get('user') || 'admin';
       
-      // 调用后台角色查询接口
-      const userRoles = await UserRoleService.getUserRoles(mockUserName);
-      const roleNames = userRoles.map(ur => ur.role);
-      setCurrentUserRoles(roleNames);
+      // 调用权限检查接口获取用户角色
+      const permissionResult = await UserRoleService.checkPermission({
+        username: mockUserName,
+        roles: ['ADMIN', 'OPERATOR', 'BROWSER', 'EXECUTOR']
+      });
+      setCurrentUserRoles(permissionResult.userRoles);
       
       // 获取当前用户角色后，再加载所有用户角色列表
-      await loadUserRoles(1, 10);
+      await loadUserRoles(0, 10);
       // 加载执行机数量
       await loadExecutorCount();
     } catch (err) {
@@ -89,15 +91,15 @@ export const UserRoleManagement: React.FC = () => {
     }
   };
 
-  const loadUserRoles = async (page: number = 1, pageSize: number = 10, search?: string) => {
+  const loadUserRoles = async (page: number = 0, pageSize: number = 10, search?: string) => {
     try {
       setLoading(true);
       const response = await UserRoleService.getUserRolesWithPagination(page, pageSize, search);
-      setUserRoles(response.data);
+      setUserRoles(response.content);
       setPagination({
-        current: response.page,
-        pageSize: response.pageSize,
-        total: response.total,
+        current: response.number + 1, // 转换为1开始的页码
+        pageSize: response.size,
+        total: response.totalElements,
       });
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('loadFailed'));
@@ -108,13 +110,13 @@ export const UserRoleManagement: React.FC = () => {
 
   const loadExecutorCount = async () => {
     try {
-      const count = await UserRoleService.getExecutorCount();
-      setExecutorCount(count);
-    } catch (err) {
-      console.error('获取执行机数量失败:', err);
-      // 如果API调用失败，使用本地计算作为备选
+      // 使用本地计算执行机数量
       const localCount = userRoles.filter(ur => ur.role === 'EXECUTOR').length;
       setExecutorCount(localCount);
+    } catch (err) {
+      console.error('获取执行机数量失败:', err);
+      // 如果计算失败，设置为0
+      setExecutorCount(0);
     }
   };
 
@@ -124,7 +126,7 @@ export const UserRoleManagement: React.FC = () => {
       await UserRoleService.createUserRole(formData);
       setModalVisible(false);
       message.success(translateUserRole('createSuccess'));
-      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
+      await loadUserRoles(pagination.current - 1, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('createFailed'));
@@ -142,7 +144,7 @@ export const UserRoleManagement: React.FC = () => {
       setEditingUserRole(null);
       setModalVisible(false);
       message.success(translateUserRole('updateSuccess'));
-      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
+      await loadUserRoles(pagination.current - 1, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('updateFailed'));
@@ -155,7 +157,7 @@ export const UserRoleManagement: React.FC = () => {
     try {
       await UserRoleService.deleteUserRole(id);
       message.success(translateUserRole('deleteSuccess'));
-      await loadUserRoles(pagination.current, pagination.pageSize, searchText);
+      await loadUserRoles(pagination.current - 1, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
       message.error(err instanceof Error ? err.message : translateUserRole('deleteFailed'));
@@ -177,18 +179,15 @@ export const UserRoleManagement: React.FC = () => {
     setEditingUserRole(null);
   };
 
-  const formatDateTime = (dateTime: string) => {
-    return new Date(dateTime).toLocaleString('zh-CN');
-  };
 
   // 处理搜索
   const handleSearch = () => {
-    loadUserRoles(1, pagination.pageSize, searchText);
+    loadUserRoles(0, pagination.pageSize, searchText);
   };
 
   // 处理分页变化
   const handleTableChange = (pagination: any) => {
-    loadUserRoles(pagination.current, pagination.pageSize, searchText);
+    loadUserRoles(pagination.current - 1, pagination.pageSize, searchText); // 转换为0开始的页码
   };
 
   // 获取角色标签颜色
@@ -254,24 +253,6 @@ export const UserRoleManagement: React.FC = () => {
           {role} - {ROLE_DESCRIPTIONS[role]}
         </Tag>
       ),
-    },
-    {
-      title: translateUserRole('table.createdTime'),
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 180,
-      sorter: (a: UserRole, b: UserRole) => 
-        new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime(),
-      render: (text: string) => formatDateTime(text),
-    },
-    {
-      title: translateUserRole('table.updatedTime'),
-      dataIndex: 'updatedTime',
-      key: 'updatedTime',
-      width: 180,
-      sorter: (a: UserRole, b: UserRole) => 
-        new Date(a.updatedTime).getTime() - new Date(b.updatedTime).getTime(),
-      render: (text: string) => formatDateTime(text),
     },
     ...(canManage ? [{
       title: translateUserRole('table.actions'),
@@ -380,7 +361,7 @@ export const UserRoleManagement: React.FC = () => {
             </Button>
             <Button
               icon={<ReloadOutlined />}
-              onClick={() => loadUserRoles(pagination.current, pagination.pageSize, searchText)}
+              onClick={() => loadUserRoles(pagination.current - 1, pagination.pageSize, searchText)}
             >
               {translateCommon('refresh')}
             </Button>
@@ -434,41 +415,53 @@ export const UserRoleManagement: React.FC = () => {
 
       {/* 搜索和过滤 */}
       <Card style={{ marginBottom: '16px' }}>
-        <Row gutter={16}>
-          <Col span={8}>
-            <Space.Compact style={{ width: '100%' }}>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={8} md={6}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              height: '40px'
+            }}>
+              <SearchOutlined style={{ color: '#1890ff', fontSize: '16px' }} />
               <span style={{ 
-                padding: '4px 8px', 
-                backgroundColor: '#f5f5f5', 
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '200px',
-                justifyContent: 'center'
+                fontSize: '14px', 
+                color: '#262626',
+                fontWeight: 500,
+                whiteSpace: 'nowrap'
               }}>
-                {translateUserRole('table.username')}
+                {translateUserRole('filters.searchUsername')}:
               </span>
-              <Input
-                placeholder={translateUserRole('form.usernamePlaceholder')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                allowClear
-                style={{ borderRadius: '0 6px 6px 0' }}
-                onPressEnter={handleSearch}
-              />
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-                style={{ borderRadius: '0 6px 6px 0' }}
-              >
-                搜索
-              </Button>
-            </Space.Compact>
+            </div>
+          </Col>
+          <Col xs={24} sm={16} md={14}>
+            <Input
+              placeholder={translateUserRole('form.usernamePlaceholder')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              onPressEnter={handleSearch}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}
+              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            />
+          </Col>
+          <Col xs={24} sm={24} md={4}>
+            <Button
+              type="primary"
+              onClick={handleSearch}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                minWidth: '100px',
+                boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
+              }}
+            >
+              {translateCommon('search')}
+            </Button>
           </Col>
         </Row>
       </Card>

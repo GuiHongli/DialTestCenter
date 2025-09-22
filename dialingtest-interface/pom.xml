@@ -108,7 +108,7 @@
                 <version>3.0.46</version>
                 <executions>
                     <execution>
-                    <id>dialuser-api</id>
+                        <id>dialuser-api</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -123,8 +123,8 @@
                             <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
                         </configuration>
                     </execution>
-                      <execution>
-                    <id>operation-logs-api</id>
+                    <execution>
+                        <id>operation-logs-api</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -134,6 +134,19 @@
                             <!-- 生成代码的语言 -->
                             <language>spring</language>
                             <!-- 包名 -->
+                            <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                            <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                            <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>user-role-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${basedir}/src/main/resources/user-role-api.yaml</inputSpec>
+                            <language>spring</language>
                             <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
                             <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
                             <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>

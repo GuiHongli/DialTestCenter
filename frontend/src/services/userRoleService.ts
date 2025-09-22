@@ -1,4 +1,4 @@
-import { PermissionCheckRequest, PermissionCheckResult, UserRole, UserRoleFormData, ApiResponse, PagedResponse } from '../types/userRole';
+import { PermissionCheckRequest, PermissionCheckResult, UserRole, UserRoleFormData, ApiResponse, PagedResponse, RoleDefinition } from '../types/userRole';
 
 const API_BASE_URL = '/dialingtest/api';
 
@@ -8,41 +8,16 @@ const API_BASE_URL = '/dialingtest/api';
 export class UserRoleService {
   
   /**
-   * 获取用户角色列表
-   * @param username 用户名（可选）
-   * @returns 用户角色列表
-   */
-  static async getUserRoles(username?: string): Promise<UserRole[]> {
-    const url = username 
-      ? `${API_BASE_URL}/user-roles?username=${encodeURIComponent(username)}`
-      : `${API_BASE_URL}/user-roles`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`获取用户角色列表失败: ${response.statusText}`);
-    }
-    
-    return response.json();
-  }
-
-  /**
    * 获取用户角色列表（分页）
-   * @param page 页码（从1开始）
-   * @param pageSize 每页大小
+   * @param page 页码（从0开始）
+   * @param size 每页大小
    * @param search 搜索关键词（可选）
    * @returns 分页的用户角色列表
    */
-  static async getUserRolesWithPagination(page: number = 1, pageSize: number = 10, search?: string): Promise<PagedResponse<UserRole>> {
+  static async getUserRolesWithPagination(page: number = 0, size: number = 10, search?: string): Promise<PagedResponse<UserRole>> {
     const params = new URLSearchParams({
       page: page.toString(),
-      pageSize: pageSize.toString(),
+      size: size.toString(),
     });
     
     if (search && search.trim()) {
@@ -85,7 +60,8 @@ export class UserRoleService {
     });
     
     if (!response.ok) {
-      throw new Error(`创建用户角色失败: ${response.statusText}`);
+      const errorResult: ApiResponse = await response.json();
+      throw new Error(errorResult.message || `创建用户角色失败: ${response.statusText}`);
     }
     
     const result: ApiResponse<UserRole> = await response.json();
@@ -113,11 +89,16 @@ export class UserRoleService {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`更新用户角色失败: ${errorText}`);
+      const errorResult: ApiResponse = await response.json();
+      throw new Error(errorResult.message || `更新用户角色失败: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<UserRole> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to update user role');
+    }
+    
+    return result.data!;
   }
   
   /**
@@ -133,8 +114,8 @@ export class UserRoleService {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`删除用户角色失败: ${errorText}`);
+      const errorResult: ApiResponse = await response.json();
+      throw new Error(errorResult.message || `删除用户角色失败: ${response.statusText}`);
     }
   }
   
@@ -157,15 +138,20 @@ export class UserRoleService {
       throw new Error(`权限检查失败: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<PermissionCheckResult> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to check permission');
+    }
+    
+    return result.data!;
   }
   
   /**
-   * 获取执行机用户数量
-   * @returns 执行机用户数量
+   * 获取所有角色定义
+   * @returns 角色列表
    */
-  static async getExecutorCount(): Promise<number> {
-    const response = await fetch(`${API_BASE_URL}/user-roles/executor-count`, {
+  static async getAllRoles(): Promise<RoleDefinition[]> {
+    const response = await fetch(`${API_BASE_URL}/user-roles/roles`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -174,9 +160,14 @@ export class UserRoleService {
     });
     
     if (!response.ok) {
-      throw new Error(`获取执行机数量失败: ${response.statusText}`);
+      throw new Error(`获取角色列表失败: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<RoleDefinition[]> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get roles');
+    }
+    
+    return result.data!;
   }
 }

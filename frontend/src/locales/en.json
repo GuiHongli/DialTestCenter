@@ -227,8 +227,6 @@
       "id": "ID",
       "username": "Username",
       "role": "Role",
-      "createdTime": "Created Time",
-      "updatedTime": "Updated Time",
       "actions": "Actions",
       "edit": "Edit",
       "delete": "Delete",
@@ -239,6 +237,9 @@
         "executor": "Executor"
       },
       "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "filters": {
+      "searchUsername": "Search Username"
     },
     "form": {
       "username": "Username",

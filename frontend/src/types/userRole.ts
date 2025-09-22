@@ -6,8 +6,6 @@ export interface UserRole {
   id: number;
   username: string;
   role: Role;
-  createdTime: string;
-  updatedTime: string;
 }
 
 export interface UserRoleFormData {
@@ -17,12 +15,21 @@ export interface UserRoleFormData {
 
 export interface PermissionCheckRequest {
   username: string;
-  resource: string;
+  roles: string[];
 }
 
 export interface PermissionCheckResult {
   hasPermission: boolean;
   userRoles: string[];
+}
+
+export interface RoleDefinition {
+  id: number;
+  code: string;
+  nameZh: string;
+  nameEn: string;
+  descriptionZh?: string;
+  descriptionEn?: string;
 }
 
 /**
@@ -39,13 +46,13 @@ export interface ApiResponse<T = any> {
  * 分页响应接口
  */
 export interface PagedResponse<T = any> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
+  content: T[];
+  totalElements: number;
   totalPages: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
 // 角色描述映射

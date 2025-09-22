@@ -76,7 +76,7 @@ public class OperationLogServiceTest {
     @Test
     public void testCreateOperationLog_Success_ReturnsResponse() {
         // Arrange
-        when(operationLogDao.save(any(OperationLog.class))).thenReturn(testOperationLog);
+        when(operationLogDao.save(any(OperationLog.class))).thenReturn(1);
 
         // Act
         OperationLogResponse response = operationLogService.createOperationLog(testRequest);
@@ -103,9 +103,9 @@ public class OperationLogServiceTest {
     }
 
     @Test
-    public void testCreateOperationLog_SaveReturnsNull_ThrowsException() {
+    public void testCreateOperationLog_SaveReturnsZero_ThrowsException() {
         // Arrange
-        when(operationLogDao.save(any(OperationLog.class))).thenReturn(null);
+        when(operationLogDao.save(any(OperationLog.class))).thenReturn(0);
 
         // Act & Assert
         try {
