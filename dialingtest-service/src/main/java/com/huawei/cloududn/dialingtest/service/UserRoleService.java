@@ -116,6 +116,7 @@ public class UserRoleService {
             throw new IllegalArgumentException("用户角色关系不存在");
         }
         
+        String oldUsername = existingUserRole.getUsername();
         String oldRole = existingUserRole.getRole().toString();
         
         // 更新用户角色关系
@@ -125,7 +126,7 @@ public class UserRoleService {
         userRoleDao.update(existingUserRole);
         
         // 记录操作日志
-        operationLogUtil.logUserRoleUpdate(operatorUsername, username, oldRole, role);
+        operationLogUtil.logUserRoleUpdate(operatorUsername, oldUsername, username, oldRole, role);
         
         return existingUserRole;
     }
