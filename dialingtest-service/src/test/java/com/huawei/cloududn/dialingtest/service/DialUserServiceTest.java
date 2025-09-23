@@ -36,6 +36,9 @@ public class DialUserServiceTest {
 
     @Mock
     private OperationLogUtil operationLogUtil;
+    
+    @Mock
+    private UserRoleService userRoleService;
 
     @InjectMocks
     private DialUserService dialUserService;
@@ -181,6 +184,7 @@ public class DialUserServiceTest {
         // Arrange
         when(dialUserDao.findByUsername("newuser")).thenReturn(null);
         when(dialUserDao.create(any(DialUser.class))).thenReturn(1);
+        doNothing().when(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
 
         // Act
         DialUser result = dialUserService.createUser("newuser", "password", "testuser");
@@ -192,7 +196,8 @@ public class DialUserServiceTest {
         assertNotNull(result.getLastLoginTime());
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
-        verify(operationLogUtil).logUserCreate("testuser", "newuser", "用户名:newuser, 密码:已设置");
+        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        verify(operationLogUtil).logUserCreate("testuser", "newuser", "用户名:newuser, 密码:已设置, 角色:EXECUTOR");
     }
 
     @Test
@@ -229,6 +234,27 @@ public class DialUserServiceTest {
         
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
+    }
+
+    @Test
+    public void testCreateUser_RoleAssignmentFails_ThrowsException() {
+        // Arrange
+        when(dialUserDao.findByUsername("newuser")).thenReturn(null);
+        when(dialUserDao.create(any(DialUser.class))).thenReturn(1);
+        doThrow(new IllegalArgumentException("Role assignment failed")).when(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+
+        // Act & Assert
+        try {
+            dialUserService.createUser("newuser", "password", "testuser");
+            fail("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("创建用户成功，但角色分配失败"));
+        }
+        
+        verify(dialUserDao).findByUsername("newuser");
+        verify(dialUserDao).create(any(DialUser.class));
+        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        verify(operationLogUtil, never()).logUserCreate(anyString(), anyString(), anyString());
     }
 
     @Test

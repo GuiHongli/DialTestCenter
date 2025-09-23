@@ -25,6 +25,9 @@ public class DialUserService {
     @Autowired
     private OperationLogUtil operationLogUtil;
     
+    @Autowired
+    private UserRoleService userRoleService;
+    
     /**
      * 分页查询用户
      * 
@@ -99,8 +102,17 @@ public class DialUserService {
             throw new IllegalStateException("创建用户失败，数据库操作未生效");
         }
         
+        // 自动为执行机账号分配EXECUTOR角色
+        try {
+            userRoleService.createUserRole(username, "EXECUTOR", operatorUsername);
+        } catch (Exception e) {
+            // 如果角色分配失败，记录警告但不影响用户创建
+            // 这里可以选择抛出异常或记录警告日志
+            throw new IllegalStateException("创建用户成功，但角色分配失败: " + e.getMessage());
+        }
+        
         // 记录操作日志
-        String userDetails = "用户名:" + username + ", 密码:已设置";
+        String userDetails = "用户名:" + username + ", 密码:已设置, 角色:EXECUTOR";
         operationLogUtil.logUserCreate(operatorUsername, username, userDetails);
         
         return user;
