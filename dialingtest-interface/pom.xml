@@ -152,6 +152,19 @@
                             <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>test-case-set-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${basedir}/src/main/resources/test-case-set-api.yaml</inputSpec>
+                            <language>spring</language>
+                            <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                            <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                            <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <!-- Maven Antrun Plugin - 删除不需要的生成文件 -->

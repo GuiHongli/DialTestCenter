@@ -1,0 +1,559 @@
+swagger: "2.0"
+info:
+  title: "拨测用例集管理API"
+  description: "拨测用例集管理模块的RESTful API接口"
+  version: "1.0.0"
+  contact:
+    name: "拨测控制中心开发团队"
+    email: "dev@example.com"
+
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - "https"
+
+consumes:
+  - "application/json"
+  - "multipart/form-data"
+
+produces:
+  - "application/json"
+
+securityDefinitions:
+  bearerAuth:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+
+paths:
+  /test-case-sets:
+    get:
+      tags:
+        - "用例集管理"
+      summary: "获取用例集列表"
+      description: "分页获取用例集列表，支持所有角色查看"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+      responses:
+        200:
+          description: "成功获取用例集列表"
+          schema:
+            $ref: "#/definitions/TestCaseSetListResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    post:
+      tags:
+        - "用例集管理"
+      summary: "上传用例集"
+      description: "上传ZIP格式的用例集包，仅ADMIN和OPERATOR有权限"
+      security:
+        - bearerAuth: []
+      consumes:
+        - "multipart/form-data"
+      parameters:
+        - name: "file"
+          in: "formData"
+          description: "用例集ZIP文件"
+          required: true
+          type: "file"
+        - name: "description"
+          in: "formData"
+          description: "用例集描述"
+          required: false
+          type: "string"
+        - name: "business"
+          in: "formData"
+          description: "业务类型"
+          required: false
+          type: "string"
+          default: "VPN阻断"
+      responses:
+        200:
+          description: "成功上传用例集"
+          schema:
+            $ref: "#/definitions/TestCaseSetUploadResponse"
+        400:
+          description: "请求参数错误或文件格式错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /test-case-sets/{id}:
+    get:
+      tags:
+        - "用例集管理"
+      summary: "获取用例集详情"
+      description: "根据ID获取用例集详细信息"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功获取用例集详情"
+          schema:
+            $ref: "#/definitions/TestCaseSetResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    put:
+      tags:
+        - "用例集管理"
+      summary: "更新用例集"
+      description: "更新用例集信息，仅ADMIN和OPERATOR有权限，只能更新描述和业务类型"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "body"
+          in: "body"
+          description: "更新数据"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateTestCaseSetRequest"
+      responses:
+        200:
+          description: "成功更新用例集"
+          schema:
+            $ref: "#/definitions/TestCaseSetResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    delete:
+      tags:
+        - "用例集管理"
+      summary: "删除用例集"
+      description: "删除用例集，仅ADMIN和OPERATOR有权限"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功删除用例集"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /test-case-sets/{id}/download:
+    get:
+      tags:
+        - "用例集管理"
+      summary: "下载用例集"
+      description: "下载用例集ZIP文件，仅ADMIN和OPERATOR有权限"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功下载用例集文件"
+          schema:
+            type: "file"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /test-case-sets/{id}/test-cases:
+    get:
+      tags:
+        - "测试用例管理"
+      summary: "获取测试用例列表"
+      description: "获取指定用例集的测试用例列表"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+      responses:
+        200:
+          description: "成功获取测试用例列表"
+          schema:
+            $ref: "#/definitions/TestCaseListResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /test-case-sets/{id}/missing-scripts:
+    get:
+      tags:
+        - "测试用例管理"
+      summary: "获取缺失脚本列表"
+      description: "获取指定用例集中缺失脚本的测试用例列表"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "用例集ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功获取缺失脚本列表"
+          schema:
+            $ref: "#/definitions/MissingScriptsResponse"
+        404:
+          description: "用例集不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  TestCaseSet:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "用例集ID"
+      name:
+        type: "string"
+        description: "用例集名称"
+        example: "短视频采集"
+      version:
+        type: "string"
+        description: "用例集版本"
+        example: "v0.1"
+      fileSize:
+        type: "integer"
+        format: "int64"
+        description: "文件大小（字节）"
+        example: 2621440
+      description:
+        type: "string"
+        description: "描述信息"
+        example: "短视频采集测试用例集"
+      sha256:
+        type: "string"
+        description: "文件SHA256哈希值"
+        example: "a1b2c3d4e5f6..."
+      business:
+        type: "string"
+        description: "业务类型（中文）"
+        example: "VPN阻断"
+      businessEn:
+        type: "string"
+        description: "业务类型（英文）"
+        example: "VPN_BLOCK"
+
+  TestCase:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "测试用例ID"
+      testCaseSetId:
+        type: "integer"
+        format: "int64"
+        description: "关联的用例集ID"
+      caseName:
+        type: "string"
+        description: "用例名称"
+        example: "短视频播放测试"
+      caseNumber:
+        type: "string"
+        description: "用例编号"
+        example: "TC001"
+      testSteps:
+        type: "string"
+        description: "测试步骤"
+        example: "1. 打开短视频应用\n2. 播放视频\n3. 检查播放状态"
+      expectedResult:
+        type: "string"
+        description: "预期结果"
+        example: "视频正常播放，无卡顿"
+      businessCategory:
+        type: "string"
+        description: "业务大类"
+        example: "视频业务"
+      appName:
+        type: "string"
+        description: "应用名称"
+        example: "短视频App"
+      dependenciesPackage:
+        type: "string"
+        description: "依赖的软件包"
+        example: "video-player-1.0.0.apk"
+      dependenciesRule:
+        type: "string"
+        description: "依赖的规则"
+        example: "网络环境要求：4G/5G"
+      environmentConfig:
+        type: "object"
+        description: "运行环境配置（JSON）"
+        example: {"network": "4G", "device": "Android"}
+      scriptExists:
+        type: "boolean"
+        description: "脚本是否存在"
+        example: true
+
+  TestCaseSetListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取用例集列表成功"
+      data:
+        type: "object"
+        properties:
+          page:
+            type: "integer"
+            description: "当前页码"
+            example: 1
+          pageSize:
+            type: "integer"
+            description: "每页大小"
+            example: 10
+          total:
+            type: "integer"
+            description: "总记录数"
+            example: 25
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/TestCaseSet"
+
+  TestCaseSetResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取用例集详情成功"
+      data:
+        $ref: "#/definitions/TestCaseSet"
+
+  TestCaseSetUploadResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "上传用例集成功"
+      data:
+        $ref: "#/definitions/TestCaseSet"
+
+  TestCaseListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取测试用例列表成功"
+      data:
+        type: "object"
+        properties:
+          page:
+            type: "integer"
+            description: "当前页码"
+            example: 1
+          pageSize:
+            type: "integer"
+            description: "每页大小"
+            example: 10
+          total:
+            type: "integer"
+            description: "总记录数"
+            example: 25
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/TestCase"
+
+  MissingScriptsResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取缺失脚本列表成功"
+      data:
+        type: "object"
+        properties:
+          count:
+            type: "integer"
+            description: "缺失脚本数量"
+            example: 5
+          testCases:
+            type: "array"
+            items:
+              $ref: "#/definitions/TestCase"
+
+  UpdateTestCaseSetRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        description: "描述信息"
+        example: "更新后的用例集描述"
+      business:
+        type: "string"
+        description: "业务类型（中文）"
+        example: "VPN阻断"
+      businessEn:
+        type: "string"
+        description: "业务类型（英文）"
+        example: "VPN_BLOCK"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "操作成功"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: false
+      message:
+        type: "string"
+        description: "错误消息"
+        example: "操作失败"
+      errorCode:
+        type: "string"
+        description: "错误代码"
+        example: "INVALID_PARAMETER"
