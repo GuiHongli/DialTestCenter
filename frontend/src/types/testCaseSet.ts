@@ -4,14 +4,12 @@ export interface TestCaseSet {
   id: number
   name: string
   version: string
-  zipPath: string // 文件路径，支持 .zip 和 .tar.gz 格式
-  creator: string
-  createdTime: string
-  updatedTime: string
+  fileContent?: string // Base64编码的文件内容
   fileSize: number
   description?: string
-  fileFormat?: 'zip' | 'tar.gz' // 可选的文件格式字段
-  business?: string // 业务类型
+  sha256?: string
+  businessZh?: string // 业务类型（中文）
+  businessEn?: string // 业务类型（英文）
   missingScriptsCount?: number // 缺失脚本数量
 }
 
@@ -19,12 +17,20 @@ export interface TestCaseSetFormData {
   name: string
   version: string
   description?: string
+  businessZh?: string
+  businessEn?: string
+}
+
+export interface TestCaseSetUpdateData {
+  description?: string
+  businessZh?: string
+  businessEn?: string
 }
 
 export interface TestCaseSetUploadData {
   file: File
   description?: string
-  business?: string
+  businessZh?: string
 }
 
 

@@ -1,4 +1,4 @@
-import { TestCaseSet, TestCaseSetFormData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse, ApiResponse, PagedResponse } from '../types/testCaseSet'
+import { TestCaseSet, TestCaseSetFormData, TestCaseSetUpdateData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse, ApiResponse, PagedResponse } from '../types/testCaseSet'
 
 class TestCaseSetService {
   private baseUrl = '/dialingtest/api/test-case-sets'
@@ -46,8 +46,8 @@ class TestCaseSetService {
     if (uploadData.description) {
       formData.append('description', uploadData.description)
     }
-    if (uploadData.business) {
-      formData.append('business', uploadData.business)
+    if (uploadData.businessZh) {
+      formData.append('businessZh', uploadData.businessZh)
     }
 
     const response = await fetch(`${this.baseUrl}/upload`, {
@@ -89,7 +89,7 @@ class TestCaseSetService {
   /**
    * 更新用例集信息
    */
-  async updateTestCaseSet(id: number, data: TestCaseSetFormData): Promise<TestCaseSet> {
+  async updateTestCaseSet(id: number, data: TestCaseSetUpdateData): Promise<TestCaseSet> {
     const response = await fetch(`${this.baseUrl}/${id}`, {
       method: 'PUT',
       headers: {

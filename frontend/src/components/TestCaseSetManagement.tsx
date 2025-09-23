@@ -1,6 +1,7 @@
 import {
   DeleteOutlined,
   DownloadOutlined,
+  EditOutlined,
   ExclamationCircleOutlined,
   FileTextOutlined,
   FileZipOutlined,
@@ -24,6 +25,7 @@ import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
 import TestCaseDetails from './TestCaseDetails'
 import TestCaseSetUpload from './TestCaseSetUpload'
+import TestCaseSetEdit from './TestCaseSetEdit'
 
 const { Title } = Typography
 
@@ -32,6 +34,7 @@ const TestCaseSetManagement: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [uploadVisible, setUploadVisible] = useState(false)
   const [detailsVisible, setDetailsVisible] = useState(false)
+  const [editVisible, setEditVisible] = useState(false)
   const [selectedTestCaseSet, setSelectedTestCaseSet] = useState<TestCaseSet | null>(null)
   const [pagination, setPagination] = useState({
     current: 1,
@@ -99,19 +102,11 @@ const TestCaseSetManagement: React.FC = () => {
       const a = document.createElement('a')
       a.href = url
       
-      // 根据文件格式确定下载文件扩展名
+      // 根据Content-Type确定下载文件扩展名
       let fileExtension = '.zip' // 默认扩展名
-      
-      if (record.fileFormat === 'tar.gz') {
+      const contentType = blob.type
+      if (contentType.includes('gzip') || contentType.includes('tar')) {
         fileExtension = '.tar.gz'
-      } else if (record.fileFormat === 'zip') {
-        fileExtension = '.zip'
-      } else {
-        // 如果没有fileFormat字段，尝试从Content-Type判断
-        const contentType = blob.type
-        if (contentType.includes('gzip') || contentType.includes('tar')) {
-          fileExtension = '.tar.gz'
-        }
       }
       
       a.download = `${record.name}_${record.version}${fileExtension}`
@@ -150,6 +145,12 @@ const TestCaseSetManagement: React.FC = () => {
     setDetailsVisible(true)
   }
 
+  // 编辑用例集
+  const handleEdit = (record: TestCaseSet) => {
+    setSelectedTestCaseSet(record)
+    setEditVisible(true)
+  }
+
   // 格式化文件大小
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B'
@@ -181,11 +182,6 @@ const TestCaseSetManagement: React.FC = () => {
             {text}
           </span>
           <Tag color="blue">{record.version}</Tag>
-          {record.fileFormat && (
-            <Tag color={record.fileFormat === 'tar.gz' ? 'green' : 'blue'}>
-              {record.fileFormat.toUpperCase()}
-            </Tag>
-          )}
           {record.missingScriptsCount && record.missingScriptsCount > 0 && (
             <Tooltip title={translateTestCaseSet('details.missingScriptsTooltip', { count: record.missingScriptsCount })}>
               <Tag 
@@ -246,6 +242,13 @@ const TestCaseSetManagement: React.FC = () => {
               type="text"
               icon={<FileTextOutlined />}
               onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
+          <Tooltip title={translateTestCaseSet('table.edit')}>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
             />
           </Tooltip>
           <Tooltip title={translateTestCaseSet('table.download')}>
@@ -334,6 +337,21 @@ const TestCaseSetManagement: React.FC = () => {
         onCancel={() => {
           setDetailsVisible(false)
           setSelectedTestCaseSet(null)
+        }}
+      />
+
+      {/* 编辑用例集对话框 */}
+      <TestCaseSetEdit
+        visible={editVisible}
+        testCaseSet={selectedTestCaseSet}
+        onCancel={() => {
+          setEditVisible(false)
+          setSelectedTestCaseSet(null)
+        }}
+        onSuccess={() => {
+          setEditVisible(false)
+          setSelectedTestCaseSet(null)
+          loadTestCaseSets(pagination.current, pagination.pageSize)
         }}
       />
     </div>

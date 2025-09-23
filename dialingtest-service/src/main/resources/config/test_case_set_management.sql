@@ -16,7 +16,7 @@ CREATE TABLE test_case_set (
     file_size BIGINT NOT NULL,
     description VARCHAR(1000),
     sha256 VARCHAR(64),
-    business VARCHAR(50) DEFAULT 'VPN阻断',
+    business_zh VARCHAR(50) DEFAULT 'VPN阻断',
     business_en VARCHAR(50) DEFAULT 'VPN_BLOCK',
     CONSTRAINT uk_name_version UNIQUE (name, version)
 );

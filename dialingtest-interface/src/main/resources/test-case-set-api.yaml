@@ -81,9 +81,9 @@ paths:
           description: "用例集描述"
           required: false
           type: "string"
-        - name: "business"
+        - name: "businessZh"
           in: "formData"
-          description: "业务类型"
+          description: "业务类型（中文）"
           required: false
           type: "string"
           default: "VPN阻断"
@@ -327,6 +327,11 @@ definitions:
         type: "string"
         description: "用例集版本"
         example: "v0.1"
+      fileContent:
+        type: "string"
+        format: "byte"
+        description: "文件内容（Base64编码）"
+        example: "UEsDBBQAAAAIAA..."
       fileSize:
         type: "integer"
         format: "int64"
@@ -340,7 +345,7 @@ definitions:
         type: "string"
         description: "文件SHA256哈希值"
         example: "a1b2c3d4e5f6..."
-      business:
+      businessZh:
         type: "string"
         description: "业务类型（中文）"
         example: "VPN阻断"
@@ -360,6 +365,70 @@ definitions:
         type: "integer"
         format: "int64"
         description: "关联的用例集ID"
+      caseName:
+        type: "string"
+        description: "用例名称"
+        example: "短视频播放测试"
+      caseNumber:
+        type: "string"
+        description: "用例编号"
+        example: "TC001"
+      testSteps:
+        type: "string"
+        description: "测试步骤"
+        example: "1. 打开短视频应用\n2. 播放视频\n3. 检查播放状态"
+      expectedResult:
+        type: "string"
+        description: "预期结果"
+        example: "视频正常播放，无卡顿"
+      businessCategory:
+        type: "string"
+        description: "业务大类"
+        example: "视频业务"
+      appName:
+        type: "string"
+        description: "应用名称"
+        example: "短视频App"
+      dependenciesPackage:
+        type: "string"
+        description: "依赖的软件包"
+        example: "video-player-1.0.0.apk"
+      dependenciesRule:
+        type: "string"
+        description: "依赖的规则"
+        example: "网络环境要求：4G/5G"
+      environmentConfig:
+        type: "object"
+        description: "运行环境配置（JSON）"
+        example: {"network": "4G", "device": "Android"}
+      scriptExists:
+        type: "boolean"
+        description: "脚本是否存在"
+        example: true
+
+  AppType:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "应用类型ID"
+      businessCategory:
+        type: "string"
+        description: "业务大类"
+        example: "视频业务"
+      appName:
+        type: "string"
+        description: "应用名称"
+        example: "短视频App"
+      description:
+        type: "string"
+        description: "描述信息"
+        example: "短视频应用类型"
+
+  TestCaseInfo:
+    type: "object"
+    properties:
       caseName:
         type: "string"
         description: "用例名称"
@@ -521,7 +590,7 @@ definitions:
         type: "string"
         description: "描述信息"
         example: "更新后的用例集描述"
-      business:
+      businessZh:
         type: "string"
         description: "业务类型（中文）"
         example: "VPN阻断"

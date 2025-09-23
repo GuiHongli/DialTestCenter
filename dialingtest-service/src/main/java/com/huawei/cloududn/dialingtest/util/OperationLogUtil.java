@@ -6,6 +6,7 @@ package com.huawei.cloududn.dialingtest.util;
 
 import com.huawei.cloududn.dialingtest.model.CreateOperationLogRequest;
 import com.huawei.cloududn.dialingtest.model.OperationLog;
+import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.service.OperationLogService;
 
 import java.time.Instant;
@@ -234,6 +235,81 @@ public class OperationLogUtil {
             logger.warn("Invalid parameters for operation logging: {}", e.getMessage());
         } catch (RuntimeException e) {
             logger.warn("Failed to log operation: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 记录用例集上传操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param testCaseSet 用例集信息
+     */
+    public void logTestCaseSetUpload(String operatorUsername, TestCaseSet testCaseSet) {
+        try {
+            CreateOperationLogRequest request = new CreateOperationLogRequest();
+            request.setUsername(operatorUsername);
+            request.setOperationType("CREATE");
+            request.setOperationTarget("TEST_CASE_SET");
+            request.setOperationDescriptionZh("上传用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationDescriptionEn("Upload test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
+            
+            operationLogService.createOperationLog(request);
+            logger.debug("Logged test case set upload: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for test case set upload logging: {}", e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("Failed to log test case set upload: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 记录用例集更新操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param testCaseSet 用例集信息
+     */
+    public void logTestCaseSetUpdate(String operatorUsername, TestCaseSet testCaseSet) {
+        try {
+            CreateOperationLogRequest request = new CreateOperationLogRequest();
+            request.setUsername(operatorUsername);
+            request.setOperationType("UPDATE");
+            request.setOperationTarget("TEST_CASE_SET");
+            request.setOperationDescriptionZh("更新用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationDescriptionEn("Update test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
+            
+            operationLogService.createOperationLog(request);
+            logger.debug("Logged test case set update: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for test case set update logging: {}", e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("Failed to log test case set update: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 记录用例集删除操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param testCaseSet 用例集信息
+     */
+    public void logTestCaseSetDelete(String operatorUsername, TestCaseSet testCaseSet) {
+        try {
+            CreateOperationLogRequest request = new CreateOperationLogRequest();
+            request.setUsername(operatorUsername);
+            request.setOperationType("DELETE");
+            request.setOperationTarget("TEST_CASE_SET");
+            request.setOperationDescriptionZh("删除用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationDescriptionEn("Delete test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
+            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
+            
+            operationLogService.createOperationLog(request);
+            logger.debug("Logged test case set delete: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parameters for test case set delete logging: {}", e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("Failed to log test case set delete: {}", e.getMessage());
         }
     }
 }

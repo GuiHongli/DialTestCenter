@@ -50,7 +50,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
       const uploadData: TestCaseSetUploadData = {
         file: file as File,
         description: form.getFieldValue('description'),
-        business: form.getFieldValue('business'),
+        businessZh: form.getFieldValue('businessZh'),
       }
 
       const result = await testCaseSetService.uploadTestCaseSet(uploadData)
@@ -160,8 +160,8 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
 
         <Form.Item 
           label="业务类型" 
-          name="business" 
-          initialValue="VPN阻断业务"
+          name="businessZh" 
+          initialValue="VPN阻断"
           rules={[{ required: true, message: '请选择业务类型' }]}
         >
           <Select placeholder="请选择业务类型">
