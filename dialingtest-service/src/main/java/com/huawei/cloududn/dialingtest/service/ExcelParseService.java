@@ -45,12 +45,12 @@ public class ExcelParseService {
                 if (row == null) continue;
                 
                 TestCaseInfo testCase = new TestCaseInfo();
-                testCase.setCaseName(getCellValue(row, columnIndexMap.get("用例名称")));
-                testCase.setCaseNumber(getCellValue(row, columnIndexMap.get("用例编号")));
-                testCase.setTestSteps(getCellValue(row, columnIndexMap.get("测试步骤")));
-                testCase.setExpectedResult(getCellValue(row, columnIndexMap.get("预期结果")));
-                testCase.setBusinessCategory(getCellValue(row, columnIndexMap.get("业务大类")));
-                testCase.setAppName(getCellValue(row, columnIndexMap.get("应用名称")));
+                testCase.setCaseName(getCellValue(row, columnIndexMap.get("用例_名称")));
+                testCase.setCaseNumber(getCellValue(row, columnIndexMap.get("用例_编号")));
+                testCase.setTestSteps(getCellValue(row, columnIndexMap.get("用例_测试步骤")));
+                testCase.setExpectedResult(getCellValue(row, columnIndexMap.get("用例_预期结果")));
+                testCase.setBusinessCategory(getCellValue(row, columnIndexMap.get("用例_业务大类")));
+                testCase.setAppName(getCellValue(row, columnIndexMap.get("用例_App")));
                 testCase.setDependenciesPackage(getCellValue(row, columnIndexMap.get("依赖软件包")));
                 testCase.setDependenciesRule(getCellValue(row, columnIndexMap.get("依赖规则")));
                 testCase.setEnvironmentConfig(parseEnvironmentConfig(getCellValue(row, columnIndexMap.get("环境配置"))));

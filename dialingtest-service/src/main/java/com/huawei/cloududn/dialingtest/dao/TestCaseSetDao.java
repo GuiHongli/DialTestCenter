@@ -17,8 +17,8 @@ public interface TestCaseSetDao {
     /**
      * 插入用例集
      */
-    @Insert("INSERT INTO test_case_set (name, version, file_content, file_size, description, sha256, business, business_en) " +
-            "VALUES (#{name}, #{version}, #{fileContent}, #{fileSize}, #{description}, #{sha256}, #{business}, #{businessEn})")
+    @Insert("INSERT INTO test_case_set (name, version, file_content, file_size, description, sha256, business_zh, business_en) " +
+            "VALUES (#{name}, #{version}, #{fileContent}, #{fileSize}, #{description}, #{sha256}, #{businessZh}, #{businessEn})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(TestCaseSet testCaseSet);
     
@@ -34,7 +34,7 @@ public interface TestCaseSetDao {
         @Result(property = "fileSize", column = "file_size"),
         @Result(property = "description", column = "description"),
         @Result(property = "sha256", column = "sha256"),
-        @Result(property = "business", column = "business"),
+        @Result(property = "businessZh", column = "business_zh"),
         @Result(property = "businessEn", column = "business_en")
     })
     TestCaseSet findById(Long id);
@@ -51,7 +51,7 @@ public interface TestCaseSetDao {
         @Result(property = "fileSize", column = "file_size"),
         @Result(property = "description", column = "description"),
         @Result(property = "sha256", column = "sha256"),
-        @Result(property = "business", column = "business"),
+        @Result(property = "businessZh", column = "business_zh"),
         @Result(property = "businessEn", column = "business_en")
     })
     List<TestCaseSet> findWithPagination(@Param("offset") int offset, @Param("pageSize") int pageSize);
@@ -74,7 +74,7 @@ public interface TestCaseSetDao {
         @Result(property = "fileSize", column = "file_size"),
         @Result(property = "description", column = "description"),
         @Result(property = "sha256", column = "sha256"),
-        @Result(property = "business", column = "business"),
+        @Result(property = "businessZh", column = "business_zh"),
         @Result(property = "businessEn", column = "business_en")
     })
     TestCaseSet findByNameAndVersion(@Param("name") String name, @Param("version") String version);
@@ -82,7 +82,7 @@ public interface TestCaseSetDao {
     /**
      * 更新用例集
      */
-    @Update("UPDATE test_case_set SET description = #{description}, business = #{business}, business_en = #{businessEn} WHERE id = #{id}")
+    @Update("UPDATE test_case_set SET description = #{description}, business_zh = #{businessZh}, business_en = #{businessEn} WHERE id = #{id}")
     int update(TestCaseSet testCaseSet);
     
     /**

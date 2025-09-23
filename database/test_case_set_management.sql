@@ -33,7 +33,7 @@ CREATE TABLE test_case (
     app_name VARCHAR(200),
     dependencies_package TEXT,
     dependencies_rule TEXT,
-    environment_config JSONB,
+    environment_config TEXT,
     script_exists BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_test_case_set_id FOREIGN KEY (test_case_set_id) REFERENCES test_case_set(id) ON DELETE CASCADE,
     CONSTRAINT uk_test_case_set_case_number UNIQUE (test_case_set_id, case_number)

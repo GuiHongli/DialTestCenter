@@ -1,6 +1,7 @@
 import { Button, Form, Input, Modal, Select, message } from 'antd'
 import React, { useEffect } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { useI18n } from '../contexts/I18nContext'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
 
@@ -21,27 +22,36 @@ const TestCaseSetEdit: React.FC<TestCaseSetEditProps> = ({
 }) => {
   const [form] = Form.useForm()
   const { translateTestCaseSet, translateCommon } = useTranslation()
+  const { language } = useI18n()
 
   useEffect(() => {
     if (visible && testCaseSet) {
       form.setFieldsValue({
         description: testCaseSet.description,
-        businessZh: testCaseSet.businessZh,
-        businessEn: testCaseSet.businessEn
+        businessZh: language === 'en' ? testCaseSet.businessEn : testCaseSet.businessZh
       })
     }
-  }, [visible, testCaseSet, form])
+  }, [visible, testCaseSet, form, language])
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
       
       if (testCaseSet) {
-        await testCaseSetService.updateTestCaseSet(testCaseSet.id, {
-          description: values.description,
-          businessZh: values.businessZh,
-          businessEn: values.businessEn
-        })
+        // 根据当前语言环境，将值设置到对应的字段
+        const updateData: any = {
+          description: values.description
+        }
+        
+        if (language === 'en') {
+          updateData.businessEn = values.businessZh
+          updateData.businessZh = testCaseSet.businessZh // 保持中文值不变
+        } else {
+          updateData.businessZh = values.businessZh
+          updateData.businessEn = testCaseSet.businessEn // 保持英文值不变
+        }
+        
+        await testCaseSetService.updateTestCaseSet(testCaseSet.id, updateData)
         
         message.success(translateTestCaseSet('updateSuccess'))
         onSuccess()
@@ -69,9 +79,7 @@ const TestCaseSetEdit: React.FC<TestCaseSetEditProps> = ({
       <Form
         form={form}
         layout="vertical"
-        initialValues={{
-          businessZh: 'VPN阻断'
-        }}
+        initialValues={{}}
       >
         <Form.Item
           label={translateTestCaseSet('table.name')}
@@ -108,27 +116,14 @@ const TestCaseSetEdit: React.FC<TestCaseSetEditProps> = ({
 
         <Form.Item
           name="businessZh"
-          label={translateTestCaseSet('table.businessZh')}
+          label={translateTestCaseSet('table.business')}
           rules={[
-            { required: true, message: translateTestCaseSet('businessZhRequired') }
+            { required: true, message: translateTestCaseSet('businessRequired') }
           ]}
         >
-          <Select placeholder={translateTestCaseSet('table.businessZh')}>
+          <Select placeholder={translateTestCaseSet('table.business')}>
             <Option value="VPN阻断">VPN阻断</Option>
             <Option value="VPN_BLOCK">VPN_BLOCK</Option>
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="businessEn"
-          label={translateTestCaseSet('table.businessEn')}
-          rules={[
-            { required: true, message: translateTestCaseSet('businessEnRequired') }
-          ]}
-        >
-          <Select placeholder={translateTestCaseSet('table.businessEn')}>
-            <Option value="VPN_BLOCK">VPN_BLOCK</Option>
-            <Option value="VPN阻断">VPN阻断</Option>
           </Select>
         </Form.Item>
       </Form>

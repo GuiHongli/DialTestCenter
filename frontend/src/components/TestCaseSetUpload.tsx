@@ -27,6 +27,9 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
 
   const handleUpload = async () => {
     try {
+      // 验证表单
+      const values = await form.validateFields()
+      
       if (fileList.length === 0) {
         message.error('请选择要上传的文件')
         return
@@ -53,16 +56,47 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         businessZh: form.getFieldValue('businessZh'),
       }
 
-      const result = await testCaseSetService.uploadTestCaseSet(uploadData)
+      try {
+        const result = await testCaseSetService.uploadTestCaseSet(uploadData)
 
-      if (result.success) {
-        message.success(translateTestCaseSet('upload.uploadSuccess'))
-        form.resetFields()
-        setFileList([])
-        onSuccess()
-        onCancel()
-      } else {
-        message.error(result.message || translateTestCaseSet('upload.uploadFailed'))
+        if (result.success) {
+          message.success(translateTestCaseSet('upload.uploadSuccess'))
+          form.resetFields()
+          setFileList([])
+          onSuccess()
+          onCancel()
+        } else {
+          message.error(result.message || translateTestCaseSet('upload.uploadFailed'))
+        }
+      } catch (uploadError: any) {
+        // 检查是否是重复上传错误
+        if (uploadError.message && uploadError.message.includes('用例集名称和版本已存在')) {
+          // 显示覆盖确认对话框
+          Modal.confirm({
+            title: '用例集已存在',
+            content: `用例集 "${uploadError.message.split(': ')[1]}" 已存在，是否要覆盖更新？`,
+            okText: '覆盖更新',
+            cancelText: '取消',
+            onOk: async () => {
+              try {
+                const overwriteResult = await testCaseSetService.uploadTestCaseSetWithOverwrite(uploadData)
+                if (overwriteResult.success) {
+                  message.success('覆盖更新成功')
+                  form.resetFields()
+                  setFileList([])
+                  onSuccess()
+                  onCancel()
+                } else {
+                  message.error(overwriteResult.message || '覆盖更新失败')
+                }
+              } catch (overwriteError) {
+                message.error('覆盖更新失败')
+              }
+            }
+          })
+        } else {
+          message.error(uploadError.message || translateTestCaseSet('upload.uploadFailed'))
+        }
       }
     } catch (error) {
       message.error(error instanceof Error ? error.message : translateTestCaseSet('upload.uploadFailed'))
@@ -74,7 +108,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
   const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
-    accept: '.zip,.tar.gz',
+    accept: '.zip',
     fileList,
     beforeUpload: (file) => {
       const validation = testCaseSetService.validateTestCaseSetFile(file as File)
@@ -169,10 +203,14 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
           </Select>
         </Form.Item>
 
-        <Form.Item label={translateCommon('description')} name="description">
+        <Form.Item 
+          label={translateCommon('description')} 
+          name="description"
+          rules={[{ required: true, message: '请输入用例集描述' }]}
+        >
           <TextArea
             rows={3}
-            placeholder="请输入用例集描述（可选）"
+            placeholder="请输入用例集描述"
             maxLength={500}
             showCount
           />

@@ -21,6 +21,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { useI18n } from '../contexts/I18nContext'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
 import TestCaseDetails from './TestCaseDetails'
@@ -43,6 +44,7 @@ const TestCaseSetManagement: React.FC = () => {
   })
 
   const { translateTestCaseSet, translateCommon } = useTranslation()
+  const { language } = useI18n()
 
   // 加载用例集列表
   const loadTestCaseSets = async (page: number = 1, pageSize: number = 10) => {
@@ -56,10 +58,10 @@ const TestCaseSetManagement: React.FC = () => {
           try {
             const missingScriptsResponse = await testCaseSetService.getMissingScripts(testCaseSet.id)
             // 只有当缺失脚本数量大于0时才设置字段
-            if (missingScriptsResponse.count > 0) {
+            if (missingScriptsResponse.data.count > 0) {
               return {
                 ...testCaseSet,
-                missingScriptsCount: missingScriptsResponse.count
+                missingScriptsCount: missingScriptsResponse.data.count
               }
             } else {
               // 没有缺失脚本时，不设置missingScriptsCount字段
@@ -102,12 +104,8 @@ const TestCaseSetManagement: React.FC = () => {
       const a = document.createElement('a')
       a.href = url
       
-      // 根据Content-Type确定下载文件扩展名
-      let fileExtension = '.zip' // 默认扩展名
-      const contentType = blob.type
-      if (contentType.includes('gzip') || contentType.includes('tar')) {
-        fileExtension = '.tar.gz'
-      }
+      // 下载文件扩展名固定为 .zip
+      const fileExtension = '.zip'
       
       a.download = `${record.name}_${record.version}${fileExtension}`
       document.body.appendChild(a)
@@ -198,17 +196,18 @@ const TestCaseSetManagement: React.FC = () => {
       ),
     },
     {
-      title: translateTestCaseSet('table.creator'),
-      dataIndex: 'creator',
-      key: 'creator',
-      width: 120,
-    },
-    {
       title: translateTestCaseSet('table.business'),
       dataIndex: 'business',
       key: 'business',
       width: 120,
-      render: (business: string) => business || 'VPN阻断业务',
+      render: (_, record: TestCaseSet) => {
+        // 根据当前语言环境显示对应的业务类型
+        if (language === 'en') {
+          return record.businessEn || 'VPN_BLOCK'
+        } else {
+          return record.businessZh || 'VPN阻断'
+        }
+      },
     },
     {
       title: translateTestCaseSet('table.fileSize'),
@@ -216,20 +215,6 @@ const TestCaseSetManagement: React.FC = () => {
       key: 'fileSize',
       width: 100,
       render: (size: number) => formatFileSize(size),
-    },
-    {
-      title: translateTestCaseSet('table.createdTime'),
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 180,
-      render: (time: string) => new Date(time).toLocaleString(),
-    },
-    {
-      title: translateTestCaseSet('table.updatedTime'),
-      dataIndex: 'updatedTime',
-      key: 'updatedTime',
-      width: 180,
-      render: (time: string) => new Date(time).toLocaleString(),
     },
     {
       title: translateTestCaseSet('table.actions'),

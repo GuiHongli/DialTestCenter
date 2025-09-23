@@ -267,8 +267,12 @@
     "editFeaturePending": "编辑功能待开发",
     "table": {
       "name": "用例集名称",
+      "version": "版本",
+      "description": "描述",
       "creator": "创建人",
       "business": "业务类型",
+      "businessZh": "业务类型",
+      "businessEn": "业务类型（英文）",
       "fileSize": "文件大小",
       "createdTime": "创建时间",
       "updatedTime": "更新时间",
@@ -302,6 +306,9 @@
       "details": "详情",
       "testCaseDetailTitle": "测试用例详情 - {{caseNumber}}",
       "logicalNetwork": "逻辑组网",
+      "dependenciesPackage": "依赖的软件包",
+      "dependenciesRule": "依赖的规则",
+      "environmentConfig": "依赖的运行环境描述",
       "testSteps": "测试步骤",
       "expectedResult": "预期结果",
       "missingScriptsTooltip": "有 {{count}} 个测试用例缺少脚本文件",
@@ -312,7 +319,7 @@
       "title": "上传用例集",
       "selectFile": "选择文件",
       "dragTip": "点击或拖拽文件到此区域上传",
-      "supportFormat": "支持 .zip 和 .tar.gz 格式",
+      "supportFormat": "支持 .zip 格式",
       "fileSizeLimit": "文件大小不超过 100MB",
       "uploading": "上传中...",
       "uploadSuccess": "上传成功",
@@ -320,7 +327,14 @@
       "fileName": "文件名",
       "fileSize": "文件大小",
       "uploadProgress": "上传进度"
-    }
+    },
+    "businessZhRequired": "请输入业务类型（中文）",
+    "businessEnRequired": "请输入业务类型（英文）",
+    "businessRequired": "请输入业务类型",
+    "editTestCaseSet": "编辑用例集",
+    "updateSuccess": "更新成功",
+    "updateFailed": "更新失败",
+    "descriptionTooLong": "描述不能超过1000个字符"
   },
   "operationLog": {
     "title": "操作记录管理",

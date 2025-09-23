@@ -49,14 +49,23 @@ public class TestCaseSetService {
      * 上传用例集
      */
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh) {
+        return uploadTestCaseSet(file, description, businessZh, false);
+    }
+    
+    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite) {
         // 1. 文件验证
         validateFile(file);
         
         // 2. 文件名解析
         FileNameInfo fileNameInfo = parseFileName(file.getOriginalFilename());
         
-        // 3. 重复性检查
-        checkDuplicate(fileNameInfo.getName(), fileNameInfo.getVersion());
+        // 3. 重复性检查（如果不覆盖）
+        if (!overwrite) {
+            checkDuplicate(fileNameInfo.getName(), fileNameInfo.getVersion());
+        } else {
+            // 如果覆盖，先删除已存在的用例集
+            deleteExistingTestCaseSet(fileNameInfo.getName(), fileNameInfo.getVersion());
+        }
         
         try {
             // 4. 读取文件内容
@@ -254,6 +263,19 @@ public class TestCaseSetService {
         int count = testCaseSetDao.existsByNameAndVersion(name, version);
         if (count > 0) {
             throw new IllegalArgumentException("用例集名称和版本已存在: " + name + "_" + version);
+        }
+    }
+    
+    /**
+     * 删除已存在的用例集
+     */
+    private void deleteExistingTestCaseSet(String name, String version) {
+        TestCaseSet existingTestCaseSet = testCaseSetDao.findByNameAndVersion(name, version);
+        if (existingTestCaseSet != null) {
+            // 删除关联的测试用例（由于外键约束，会自动级联删除）
+            testCaseDao.deleteByTestCaseSetId(existingTestCaseSet.getId());
+            // 删除用例集
+            testCaseSetDao.deleteById(existingTestCaseSet.getId());
         }
     }
     

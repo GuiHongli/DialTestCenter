@@ -50,7 +50,34 @@ class TestCaseSetService {
       formData.append('businessZh', uploadData.businessZh)
     }
 
-    const response = await fetch(`${this.baseUrl}/upload`, {
+    const response = await fetch(`${this.baseUrl}`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || '上传用例集失败')
+    }
+
+    return response.json()
+  }
+
+  /**
+   * 覆盖上传用例集
+   */
+  async uploadTestCaseSetWithOverwrite(uploadData: TestCaseSetUploadData): Promise<TestCaseSetUploadResponse> {
+    const formData = new FormData()
+    formData.append('file', uploadData.file)
+    if (uploadData.description) {
+      formData.append('description', uploadData.description)
+    }
+    if (uploadData.businessZh) {
+      formData.append('businessZh', uploadData.businessZh)
+    }
+    formData.append('overwrite', 'true')
+
+    const response = await fetch(`${this.baseUrl}`, {
       method: 'POST',
       body: formData,
     })
@@ -112,12 +139,12 @@ class TestCaseSetService {
   validateTestCaseSetFile(file: File): { valid: boolean; message?: string } {
     const fileName = file.name.toLowerCase()
     
-    // 检查文件类型 - 支持 .zip 和 .tar.gz
-    const supportedExtensions = ['.zip', '.tar.gz']
+    // 检查文件类型 - 只支持 .zip
+    const supportedExtensions = ['.zip']
     const isValidExtension = supportedExtensions.some(ext => fileName.endsWith(ext))
     
     if (!isValidExtension) {
-      return { valid: false, message: '只支持 ZIP 和 TAR.GZ 格式文件' }
+      return { valid: false, message: '只支持 ZIP 格式文件' }
     }
 
     // 检查文件大小 (100MB)
@@ -126,8 +153,8 @@ class TestCaseSetService {
       return { valid: false, message: '文件大小不能超过100MB' }
     }
 
-    // 检查文件命名格式: 用例集名称_用例集版本.[zip|tar.gz]
-    const fileExtension = fileName.endsWith('.tar.gz') ? '.tar.gz' : '.zip'
+    // 检查文件命名格式: 用例集名称_用例集版本.zip
+    const fileExtension = '.zip'
     const nameWithoutExt = file.name.replace(fileExtension, '')
     const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
     
@@ -143,7 +170,7 @@ class TestCaseSetService {
    */
   parseFileName(fileName: string): { name: string; version: string } | null {
     const lowerFileName = fileName.toLowerCase()
-    const fileExtension = lowerFileName.endsWith('.tar.gz') ? '.tar.gz' : '.zip'
+    const fileExtension = '.zip'
     const nameWithoutExt = fileName.replace(fileExtension, '')
     const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
     

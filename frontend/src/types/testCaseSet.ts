@@ -71,24 +71,34 @@ export interface TestCase {
   testCaseSetId: number
   caseName: string
   caseNumber: string
-  networkTopology?: string
   businessCategory?: string
   appName?: string
   testSteps?: string
   expectedResult?: string
+  dependenciesPackage?: string
+  dependenciesRule?: string
+  environmentConfig?: string
   scriptExists: boolean
   createdTime: string
   updatedTime: string
 }
 
 export interface TestCaseListResponse {
-  data: TestCase[]
-  total: number
-  page: number
-  pageSize: number
+  success: boolean
+  message: string
+  data: {
+    page: number
+    pageSize: number
+    total: number
+    data: TestCase[]
+  }
 }
 
 export interface MissingScriptsResponse {
-  data: TestCase[]
-  count: number
+  success: boolean
+  message: string
+  data: {
+    count: number
+    testCases: TestCase[]
+  }
 }

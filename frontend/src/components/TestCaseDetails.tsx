@@ -58,11 +58,11 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
     try {
       setLoading(true)
       const response = await testCaseSetService.getTestCases(testCaseSet.id, page, pageSize)
-      setTestCases(response.data)
+      setTestCases(response.data.data)
       setPagination({
-        current: response.page,
-        pageSize: response.pageSize,
-        total: response.total,
+        current: response.data.page,
+        pageSize: response.data.pageSize,
+        total: response.data.total,
       })
     } catch (error) {
       message.error(translateTestCaseSet('loadFailed'))
@@ -77,7 +77,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
 
     try {
       const response = await testCaseSetService.getMissingScripts(testCaseSet.id)
-      setMissingScripts(response.data)
+      setMissingScripts(response.data.testCases)
     } catch (error) {
       message.error(translateTestCaseSet('loadFailed'))
     }
@@ -187,13 +187,27 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
         <Descriptions column={1} bordered>
           <Descriptions.Item label={translateTestCaseSet('details.caseName')}>{testCase.caseName}</Descriptions.Item>
           <Descriptions.Item label={translateTestCaseSet('details.caseNumber')}>{testCase.caseNumber}</Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.logicalNetwork')}>{testCase.networkTopology || '-'}</Descriptions.Item>
           <Descriptions.Item label={translateTestCaseSet('details.businessCategory')}>{testCase.businessCategory || '-'}</Descriptions.Item>
           <Descriptions.Item label={translateTestCaseSet('details.appName')}>{testCase.appName || '-'}</Descriptions.Item>
           <Descriptions.Item label={translateTestCaseSet('details.scriptStatus')}>
             <Tag color={testCase.scriptExists ? 'success' : 'error'}>
               {testCase.scriptExists ? translateTestCaseSet('details.matched') : translateTestCaseSet('details.missing')}
             </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.dependenciesPackage')} span={2}>
+            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
+              {testCase.dependenciesPackage || '-'}
+            </div>
+          </Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.dependenciesRule')} span={2}>
+            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
+              {testCase.dependenciesRule || '-'}
+            </div>
+          </Descriptions.Item>
+          <Descriptions.Item label={translateTestCaseSet('details.environmentConfig')} span={2}>
+            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
+              {testCase.environmentConfig || '-'}
+            </div>
           </Descriptions.Item>
           <Descriptions.Item label={translateTestCaseSet('details.testSteps')} span={2}>
             <div style={{ maxHeight: '200px', overflow: 'auto' }}>

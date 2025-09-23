@@ -15,8 +15,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+addimport org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @since 2025-09-23
  */
 @RestController
+@RequestMapping("/api")
 public class TestCaseSetController implements TestCaseSetsApi {
     
     @Autowired
@@ -56,7 +59,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
             TestCaseSetListResponseData data = new TestCaseSetListResponseData();
             data.setPage((Integer) result.get("page"));
             data.setPageSize((Integer) result.get("pageSize"));
-            data.setTotal((Integer) result.get("total"));
+            data.setTotal(((Long) result.get("total")).intValue());
             data.setData((List<TestCaseSet>) result.get("data"));
             response.setData(data);
             
@@ -95,13 +98,14 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(MultipartFile file, String description, String businessZh) {
+    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(MultipartFile file, String description, String businessZh, @RequestParam(value = "overwrite", required = false, defaultValue = "false") String overwrite) {
         try {
-            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh);
+            boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
+            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite);
             
             TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
             response.setSuccess(true);
-            response.setMessage("上传用例集成功");
+            response.setMessage(isOverwrite ? "覆盖更新用例集成功" : "上传用例集成功");
             response.setData(testCaseSet);
             
             return ResponseEntity.ok(response);
@@ -216,7 +220,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
             TestCaseListResponseData data = new TestCaseListResponseData();
             data.setPage((Integer) result.get("page"));
             data.setPageSize((Integer) result.get("pageSize"));
-            data.setTotal((Integer) result.get("total"));
+            data.setTotal(((Long) result.get("total")).intValue());
             data.setData((List<TestCase>) result.get("data"));
             response.setData(data);
             

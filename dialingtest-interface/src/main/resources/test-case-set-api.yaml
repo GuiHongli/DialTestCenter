@@ -79,7 +79,7 @@ paths:
         - name: "description"
           in: "formData"
           description: "用例集描述"
-          required: false
+          required: true
           type: "string"
         - name: "businessZh"
           in: "formData"
@@ -87,6 +87,12 @@ paths:
           required: false
           type: "string"
           default: "VPN阻断"
+        - name: "overwrite"
+          in: "formData"
+          description: "是否覆盖已存在的用例集"
+          required: false
+          type: "string"
+          default: "false"
       responses:
         200:
           description: "成功上传用例集"

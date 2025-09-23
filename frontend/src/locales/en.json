@@ -267,8 +267,12 @@
     "editFeaturePending": "Edit feature pending development",
     "table": {
       "name": "Test Case Set Name",
+      "version": "Version",
+      "description": "Description",
       "creator": "Creator",
       "business": "Business Type",
+      "businessZh": "Business Type (ZH)",
+      "businessEn": "Business Type (EN)",
       "fileSize": "File Size",
       "createdTime": "Created Time",
       "updatedTime": "Updated Time",
@@ -302,6 +306,9 @@
       "details": "Details",
       "testCaseDetailTitle": "Test Case Details - {{caseNumber}}",
       "logicalNetwork": "Logical Network",
+      "dependenciesPackage": "Dependencies Package",
+      "dependenciesRule": "Dependencies Rule",
+      "environmentConfig": "Environment Configuration",
       "testSteps": "Test Steps",
       "expectedResult": "Expected Result",
       "missingScriptsTooltip": "{{count}} test cases are missing script files",
@@ -312,7 +319,7 @@
       "title": "Upload Test Case Set",
       "selectFile": "Select File",
       "dragTip": "Click or drag file to this area to upload",
-      "supportFormat": "Support .zip and .tar.gz formats",
+      "supportFormat": "Support .zip format",
       "fileSizeLimit": "File size should not exceed 100MB",
       "uploading": "Uploading...",
       "uploadSuccess": "Upload successful",
@@ -320,7 +327,14 @@
       "fileName": "File Name",
       "fileSize": "File Size",
       "uploadProgress": "Upload Progress"
-    }
+    },
+    "businessZhRequired": "Please enter business type (Chinese)",
+    "businessEnRequired": "Please enter business type (English)",
+    "businessRequired": "Please enter business type",
+    "editTestCaseSet": "Edit Test Case Set",
+    "updateSuccess": "Update successful",
+    "updateFailed": "Update failed",
+    "descriptionTooLong": "Description cannot exceed 1000 characters"
   },
   "operationLog": {
     "title": "Operation Log Management",
