@@ -184,7 +184,7 @@ public class DialUserServiceTest {
         // Arrange
         when(dialUserDao.findByUsername("newuser")).thenReturn(null);
         when(dialUserDao.create(any(DialUser.class))).thenReturn(1);
-        doNothing().when(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        doNothing().when(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
 
         // Act
         DialUser result = dialUserService.createUser("newuser", "password", "testuser");
@@ -196,7 +196,7 @@ public class DialUserServiceTest {
         assertNotNull(result.getLastLoginTime());
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
-        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
         verify(operationLogUtil).logUserCreate("testuser", "newuser", "用户名:newuser, 密码:已设置, 角色:EXECUTOR");
     }
 
@@ -241,7 +241,7 @@ public class DialUserServiceTest {
         // Arrange
         when(dialUserDao.findByUsername("newuser")).thenReturn(null);
         when(dialUserDao.create(any(DialUser.class))).thenReturn(1);
-        doThrow(new IllegalArgumentException("Role assignment failed")).when(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        doThrow(new IllegalArgumentException("Role assignment failed")).when(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
 
         // Act & Assert
         try {
@@ -253,7 +253,7 @@ public class DialUserServiceTest {
         
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
-        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "testuser");
+        verify(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
         verify(operationLogUtil, never()).logUserCreate(anyString(), anyString(), anyString());
     }
 

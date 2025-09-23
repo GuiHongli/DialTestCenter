@@ -104,7 +104,7 @@ public class DialUserService {
         
         // 自动为执行机账号分配EXECUTOR角色
         try {
-            userRoleService.createUserRole(username, "EXECUTOR", operatorUsername);
+            userRoleService.createUserRole(username, "EXECUTOR", "SYSTEM");
         } catch (Exception e) {
             // 如果角色分配失败，记录警告但不影响用户创建
             // 这里可以选择抛出异常或记录警告日志
