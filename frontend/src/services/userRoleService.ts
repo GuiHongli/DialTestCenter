@@ -128,8 +128,7 @@ export class UserRoleService {
     const response = await fetch(`${API_BASE_URL}/user-roles/check-permission`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(request)
     });
@@ -154,8 +153,7 @@ export class UserRoleService {
     const response = await fetch(`${API_BASE_URL}/user-roles/roles`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
+        'Content-Type': 'application/json'
       }
     });
     
@@ -166,6 +164,30 @@ export class UserRoleService {
     const result: ApiResponse<RoleDefinition[]> = await response.json();
     if (!result.success) {
       throw new Error(result.message || 'Failed to get roles');
+    }
+    
+    return result.data!;
+  }
+  
+  /**
+   * 获取EXECUTOR角色数量
+   * @returns EXECUTOR角色数量
+   */
+  static async getExecutorCount(): Promise<number> {
+    const response = await fetch(`${API_BASE_URL}/user-roles/executor-count`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`获取执行机数量失败: ${response.statusText}`);
+    }
+    
+    const result: ApiResponse<number> = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get executor count');
     }
     
     return result.data!;

@@ -359,4 +359,30 @@ public class UserRoleServiceTest {
         assertEquals("ADMIN", result.get(0).getCode());
         verify(roleDao).findAll();
     }
+    
+    @Test
+    public void testGetExecutorCount_Success_ReturnsCount() {
+        // Arrange
+        when(userRoleDao.countByRole("EXECUTOR")).thenReturn(5);
+
+        // Act
+        int result = userRoleService.getExecutorCount();
+
+        // Assert
+        assertEquals(5, result);
+        verify(userRoleDao).countByRole("EXECUTOR");
+    }
+    
+    @Test
+    public void testGetExecutorCount_NoExecutors_ReturnsZero() {
+        // Arrange
+        when(userRoleDao.countByRole("EXECUTOR")).thenReturn(0);
+
+        // Act
+        int result = userRoleService.getExecutorCount();
+
+        // Assert
+        assertEquals(0, result);
+        verify(userRoleDao).countByRole("EXECUTOR");
+    }
 }

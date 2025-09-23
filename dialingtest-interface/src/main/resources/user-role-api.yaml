@@ -180,20 +180,11 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/CheckPermissionRequest'
-        - name: X-Username
-          in: header
-          required: true
-          type: string
-          description: 操作用户名
       responses:
         200:
           description: 权限检查结果
           schema:
             $ref: '#/definitions/PermissionCheckResponse'
-        401:
-          description: 未提供用户名
-          schema:
-            $ref: '#/definitions/ErrorResponse'
         500:
           description: 服务器内部错误
           schema:
@@ -205,12 +196,6 @@ paths:
       description: 获取系统中定义的所有角色
       tags:
         - UserRole
-      parameters:
-        - name: X-Username
-          in: header
-          required: true
-          type: string
-          description: 操作用户名
       responses:
         200:
           description: 成功返回角色列表
@@ -218,10 +203,22 @@ paths:
             type: array
             items:
               $ref: '#/definitions/RoleResponse'
-        401:
-          description: 未提供用户名
+        500:
+          description: 服务器内部错误
           schema:
             $ref: '#/definitions/ErrorResponse'
+
+  /user-roles/executor-count:
+    get:
+      summary: 获取执行机数量
+      description: 获取系统中EXECUTOR角色的总数量
+      tags:
+        - UserRole
+      responses:
+        200:
+          description: 成功返回执行机数量
+          schema:
+            $ref: '#/definitions/ExecutorCountResponse'
         500:
           description: 服务器内部错误
           schema:
@@ -415,6 +412,23 @@ definitions:
         description: 操作是否成功
       data:
         $ref: '#/definitions/Role'
+      message:
+        type: string
+        description: 响应消息
+    required:
+      - success
+      - data
+      - message
+
+  ExecutorCountResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: integer
+        description: EXECUTOR角色数量
       message:
         type: string
         description: 响应消息

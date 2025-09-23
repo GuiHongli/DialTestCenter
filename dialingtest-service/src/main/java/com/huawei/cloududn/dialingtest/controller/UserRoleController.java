@@ -150,7 +150,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<PermissionCheckResponse> userRolesCheckPermissionPost(String xUsername, CheckPermissionRequest body) {
+    public ResponseEntity<PermissionCheckResponse> userRolesCheckPermissionPost(CheckPermissionRequest body) {
         try {
             List<String> userRoles = userRoleService.getUserRolesByUsername(body.getUsername());
             boolean hasPermission = userRoleService.hasAnyRole(body.getUsername(), body.getRoles());
@@ -174,7 +174,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<List<RoleResponse>> userRolesRolesGet(String xUsername) {
+    public ResponseEntity<List<RoleResponse>> userRolesRolesGet() {
         try {
             List<Role> roles = userRoleService.getAllRoles();
             
@@ -193,6 +193,25 @@ public class UserRoleController implements UserRolesApi {
             errorResponse.setMessage("获取角色列表失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Arrays.asList(errorResponse));
+        }
+    }
+    
+    @Override
+    public ResponseEntity<ExecutorCountResponse> userRolesExecutorCountGet() {
+        try {
+            int executorCount = userRoleService.getExecutorCount();
+            
+            ExecutorCountResponse response = new ExecutorCountResponse();
+            response.setSuccess(true);
+            response.setData(executorCount);
+            response.setMessage("获取执行机数量成功");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ExecutorCountResponse response = new ExecutorCountResponse();
+            response.setSuccess(false);
+            response.setMessage("获取执行机数量失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }

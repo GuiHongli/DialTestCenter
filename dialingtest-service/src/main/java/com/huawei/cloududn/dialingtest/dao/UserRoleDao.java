@@ -102,4 +102,10 @@ public interface UserRoleDao {
      */
     @Select("SELECT id, username, role FROM user_roles WHERE id = #{id}")
     UserRole findById(@Param("id") Integer id);
+    
+    /**
+     * 统计指定角色的数量
+     */
+    @Select("SELECT COUNT(*) FROM user_roles WHERE role = #{role}")
+    int countByRole(@Param("role") String role);
 }

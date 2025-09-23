@@ -1,7 +1,7 @@
 import { Button, Form, Input, Select, Space } from 'antd';
 import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { ROLE_DESCRIPTIONS, UserRoleFormData } from '../types/userRole';
+import { UserRoleFormData, Role } from '../types/userRole';
 
 const { Option } = Select;
 
@@ -26,6 +26,16 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
 
   const handleSubmit = (values: UserRoleFormData) => {
     onSubmit(values);
+  };
+
+  // 获取角色选项
+  const getRoleOptions = () => {
+    const roles: Role[] = ['ADMIN', 'OPERATOR', 'BROWSER', 'EXECUTOR'];
+    return roles.map(role => (
+      <Option key={role} value={role}>
+        {translateUserRole(`form.roleDescriptions.${role}`)}
+      </Option>
+    ));
   };
 
   return (
@@ -53,11 +63,7 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
         rules={[{ required: true, message: translateUserRole('form.rolePlaceholder') }]}
       >
         <Select placeholder={translateUserRole('form.rolePlaceholder')} disabled={isLoading}>
-          {Object.entries(ROLE_DESCRIPTIONS).map(([role, description]) => (
-            <Option key={role} value={role}>
-              {role} - {description}
-            </Option>
-          ))}
+          {getRoleOptions()}
         </Select>
       </Form.Item>
 

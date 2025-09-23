@@ -56,8 +56,8 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
     localStorage.setItem('i18nextLng', lang)
   }
 
-  // 简单的 key 取值函数：支持命名空间用点分隔
-  const t = (fullKey: string): string => {
+  // 简单的 key 取值函数：支持命名空间用点分隔和参数替换
+  const t = (fullKey: string, options?: any): string => {
     const dict = language === 'zh' ? dictionaries.zh : dictionaries.en
     const parts = fullKey.split('.')
     let cur: any = dict
@@ -68,7 +68,18 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
         return fullKey
       }
     }
-    return typeof cur === 'string' ? cur : fullKey
+    
+    let result = typeof cur === 'string' ? cur : fullKey
+    
+    // 处理参数替换
+    if (options && typeof options === 'object') {
+      for (const [key, value] of Object.entries(options)) {
+        const placeholder = `{{${key}}}`
+        result = result.replace(new RegExp(placeholder, 'g'), String(value))
+      }
+    }
+    
+    return result
   }
 
   // Context 值

@@ -159,6 +159,13 @@ public class UserRoleService {
     }
     
     /**
+     * 统计EXECUTOR角色的数量
+     */
+    public int getExecutorCount() {
+        return userRoleDao.countByRole("EXECUTOR");
+    }
+    
+    /**
      * 验证角色是否有效
      */
     private boolean isValidRole(String role) {

@@ -55,18 +55,3 @@ export interface PagedResponse<T = any> {
   last: boolean;
 }
 
-// 角色描述映射
-export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  ADMIN: '管理员',
-  OPERATOR: '操作员',
-  BROWSER: '浏览者',
-  EXECUTOR: '执行机'
-};
-
-// 角色权限描述映射
-export const ROLE_PERMISSIONS: Record<Role, string> = {
-  ADMIN: '拥有所有权限',
-  OPERATOR: '可以执行拨测任务相关的所有操作',
-  BROWSER: '仅查看',
-  EXECUTOR: '执行机注册使用'
-};

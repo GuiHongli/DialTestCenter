@@ -28,7 +28,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { usePermission } from '../hooks/usePermission';
 import { useTranslation } from '../hooks/useTranslation';
 import { UserRoleService } from '../services/userRoleService';
-import { Role, ROLE_DESCRIPTIONS, UserRole, UserRoleFormData } from '../types/userRole';
+import { Role, UserRole, UserRoleFormData } from '../types/userRole';
 import { UserRoleForm } from './UserRoleForm';
 
 const { Title, Text } = Typography;
@@ -110,12 +110,11 @@ export const UserRoleManagement: React.FC = () => {
 
   const loadExecutorCount = async () => {
     try {
-      // 使用本地计算执行机数量
-      const localCount = userRoles.filter(ur => ur.role === 'EXECUTOR').length;
-      setExecutorCount(localCount);
+      const count = await UserRoleService.getExecutorCount();
+      setExecutorCount(count);
     } catch (err) {
       console.error('获取执行机数量失败:', err);
-      // 如果计算失败，设置为0
+      message.error(err instanceof Error ? err.message : '获取执行机数量失败');
       setExecutorCount(0);
     }
   };
@@ -250,7 +249,7 @@ export const UserRoleManagement: React.FC = () => {
       onFilter: (value: any, record: UserRole) => record.role === value,
       render: (role: Role) => (
         <Tag color={getRoleTagColor(role)}>
-          {role} - {ROLE_DESCRIPTIONS[role]}
+          {translateUserRole(`form.roleDescriptions.${role}`)}
         </Tag>
       ),
     },

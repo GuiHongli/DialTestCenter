@@ -340,7 +340,7 @@ public class UserRoleControllerTest {
         when(userRoleService.hasAnyRole("testuser", Arrays.asList("ADMIN", "OPERATOR"))).thenReturn(true);
 
         // Act
-        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost("admin", testPermissionRequest);
+        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost(testPermissionRequest);
 
         // Assert
         assertNotNull(response);
@@ -361,7 +361,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost("admin", testPermissionRequest);
+        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost(testPermissionRequest);
 
         // Assert
         assertNotNull(response);
@@ -380,7 +380,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllRoles()).thenReturn(roles);
 
         // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet("admin");
+        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet();
 
         // Assert
         assertNotNull(response);
@@ -399,7 +399,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllRoles()).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet("admin");
+        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet();
 
         // Assert
         assertNotNull(response);
@@ -409,5 +409,40 @@ public class UserRoleControllerTest {
         assertFalse(response.getBody().get(0).isSuccess());
         assertTrue(response.getBody().get(0).getMessage().contains("获取角色列表失败"));
         verify(userRoleService).getAllRoles();
+    }
+    
+    @Test
+    public void testUserRolesExecutorCountGet_Success_ReturnsExecutorCount() {
+        // Arrange
+        when(userRoleService.getExecutorCount()).thenReturn(5);
+
+        // Act
+        ResponseEntity<ExecutorCountResponse> response = userRoleController.userRolesExecutorCountGet();
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(Integer.valueOf(5), response.getBody().getData());
+        assertEquals("获取执行机数量成功", response.getBody().getMessage());
+        verify(userRoleService).getExecutorCount();
+    }
+    
+    @Test
+    public void testUserRolesExecutorCountGet_ServiceException_ReturnsInternalServerError() {
+        // Arrange
+        when(userRoleService.getExecutorCount()).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        ResponseEntity<ExecutorCountResponse> response = userRoleController.userRolesExecutorCountGet();
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertTrue(response.getBody().getMessage().contains("获取执行机数量失败"));
+        verify(userRoleService).getExecutorCount();
     }
 }
