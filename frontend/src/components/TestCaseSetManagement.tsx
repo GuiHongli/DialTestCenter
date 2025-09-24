@@ -233,6 +233,18 @@ const TestCaseSetManagement: React.FC = () => {
       },
     },
     {
+      title: translateTestCaseSet('table.description'),
+      dataIndex: 'description',
+      key: 'description',
+      width: 200,
+      ellipsis: true,
+      render: (text: string) => (
+        <Tooltip title={text}>
+          <span>{text || '-'}</span>
+        </Tooltip>
+      ),
+    },
+    {
       title: translateTestCaseSet('table.fileSize'),
       dataIndex: 'fileSize',
       key: 'fileSize',

@@ -45,6 +45,16 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
 }
 
 /**
+ * 处理API响应的通用函数（不抛出错误，返回完整响应）
+ * @param response fetch响应对象
+ * @returns 完整的API响应对象
+ */
+export async function handleApiResponseWithError<T>(response: Response): Promise<ApiResponse<T>> {
+  const result: ApiResponse<T> = await response.json();
+  return result;
+}
+
+/**
  * 处理分页API响应的通用函数
  * @param response fetch响应对象
  * @returns 解析后的分页数据

@@ -176,7 +176,7 @@ public class UserRoleController implements UserRolesApi {
             UserPermissionResponseDataPagePermissions testCaseSetPerms = new UserPermissionResponseDataPagePermissions();
             testCaseSetPerms.setHasAccess(true); // 所有用户都能访问页面
             if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
-                testCaseSetPerms.setOperations(Arrays.asList("upload", "download", "delete", "view"));
+                testCaseSetPerms.setOperations(Arrays.asList("upload", "download", "delete", "view","edit"));
             } else if (userRoles.contains("BROWSER")) {
                 testCaseSetPerms.setOperations(Arrays.asList("download", "view"));
             } else {

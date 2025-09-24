@@ -66,37 +66,46 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
           onSuccess()
           onCancel()
         } else {
-          message.error(result.message || translateTestCaseSet('upload.uploadFailed'))
-        }
-      } catch (uploadError: any) {
-        // 检查是否是重复上传错误
-        if (uploadError.message && uploadError.message.includes('用例集名称和版本已存在')) {
-          // 显示覆盖确认对话框
-          Modal.confirm({
-            title: '用例集已存在',
-            content: `用例集 "${uploadError.message.split(': ')[1]}" 已存在，是否要覆盖更新？`,
-            okText: '覆盖更新',
-            cancelText: '取消',
-            onOk: async () => {
-              try {
-                const overwriteResult = await testCaseSetService.uploadTestCaseSetWithOverwrite(uploadData)
-                if (overwriteResult.success) {
-                  message.success('覆盖更新成功')
-                  form.resetFields()
-                  setFileList([])
-                  onSuccess()
-                  onCancel()
-                } else {
-                  message.error(overwriteResult.message || '覆盖更新失败')
-                }
-              } catch (overwriteError) {
-                message.error('覆盖更新失败')
+          // 检查是否是重复上传错误
+          if (result.message && (result.message.includes('用例集名称和版本已存在') || result.message.includes('已存在'))) {
+            // 提取用例集名称
+            let caseSetName = '该用例集'
+            if (result.message.includes(':')) {
+              const parts = result.message.split(': ')
+              if (parts.length > 1) {
+                caseSetName = parts[parts.length - 1]
               }
             }
-          })
-        } else {
-          message.error(uploadError.message || translateTestCaseSet('upload.uploadFailed'))
+            
+            // 显示覆盖确认对话框
+            Modal.confirm({
+              title: '用例集已存在',
+              content: `用例集 "${caseSetName}" 已存在，是否要覆盖更新？`,
+              okText: '覆盖更新',
+              cancelText: '取消',
+              onOk: async () => {
+                try {
+                  const overwriteResult = await testCaseSetService.uploadTestCaseSetWithOverwrite(uploadData)
+                  if (overwriteResult.success) {
+                    message.success('覆盖更新成功')
+                    form.resetFields()
+                    setFileList([])
+                    onSuccess()
+                    onCancel()
+                  } else {
+                    message.error(overwriteResult.message || '覆盖更新失败')
+                  }
+                } catch (overwriteError) {
+                  message.error('覆盖更新失败')
+                }
+              }
+            })
+          } else {
+            message.error(result.message || translateTestCaseSet('upload.uploadFailed'))
+          }
         }
+      } catch (uploadError: any) {
+        message.error(uploadError.message || translateTestCaseSet('upload.uploadFailed'))
       }
     } catch (error) {
       message.error(error instanceof Error ? error.message : translateTestCaseSet('upload.uploadFailed'))
@@ -206,11 +215,10 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         <Form.Item 
           label={translateCommon('description')} 
           name="description"
-          rules={[{ required: true, message: '请输入用例集描述' }]}
         >
           <TextArea
             rows={3}
-            placeholder="请输入用例集描述"
+            placeholder="请输入用例集描述（可选）"
             maxLength={500}
             showCount
           />

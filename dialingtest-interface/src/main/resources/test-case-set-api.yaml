@@ -67,23 +67,11 @@ paths:
           description: "用例集ZIP文件"
           required: true
           type: "file"
-        - name: "description"
+        - name: "uploadRequest"
           in: "formData"
-          description: "用例集描述"
-          required: true
-          type: "string"
-        - name: "businessZh"
-          in: "formData"
-          description: "业务类型（中文）"
+          description: "用例集上传请求参数（JSON字符串）"
           required: false
           type: "string"
-          default: "VPN阻断"
-        - name: "overwrite"
-          in: "formData"
-          description: "是否覆盖已存在的用例集"
-          required: false
-          type: "string"
-          default: "false"
         - name: "X-Username"
           in: "header"
           required: true
@@ -406,25 +394,6 @@ definitions:
         description: "脚本是否存在"
         example: true
 
-  AppType:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-        description: "应用类型ID"
-      businessCategory:
-        type: "string"
-        description: "业务大类"
-        example: "视频业务"
-      appName:
-        type: "string"
-        description: "应用名称"
-        example: "短视频App"
-      description:
-        type: "string"
-        description: "描述信息"
-        example: "短视频应用类型"
 
   TestCaseInfo:
     type: "object"
@@ -582,6 +551,27 @@ definitions:
             type: "array"
             items:
               $ref: "#/definitions/TestCase"
+
+  TestCaseSetUploadRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        description: "用例集描述信息"
+        example: "测试用例集描述"
+      businessZh:
+        type: "string"
+        description: "业务类型（中文），与businessEn二选一"
+        example: "VPN阻断"
+      businessEn:
+        type: "string"
+        description: "业务类型（英文），与businessZh二选一"
+        example: "VPN_BLOCK"
+      overwrite:
+        type: "string"
+        description: "是否覆盖已存在的用例集，默认为false"
+        default: "false"
+        example: "false"
 
   UpdateTestCaseSetRequest:
     type: "object"

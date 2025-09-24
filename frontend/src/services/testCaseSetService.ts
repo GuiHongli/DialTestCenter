@@ -1,5 +1,5 @@
 import { TestCaseSet, TestCaseSetFormData, TestCaseSetUpdateData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse, ApiResponse, PagedResponse } from '../types/testCaseSet'
-import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handlePagedApiResponse } from '../utils/apiUtils'
+import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handleApiResponseWithError, handlePagedApiResponse } from '../utils/apiUtils'
 
 class TestCaseSetService {
   private baseUrl = '/dialingtest/api/test-case-sets'
@@ -26,15 +26,20 @@ class TestCaseSetService {
   async uploadTestCaseSet(uploadData: TestCaseSetUploadData): Promise<TestCaseSetUploadResponse> {
     const formData = new FormData()
     formData.append('file', uploadData.file)
-    if (uploadData.description) {
-      formData.append('description', uploadData.description)
+    
+    // 创建uploadRequest对象，包含除了file之外的所有参数
+    const uploadRequest = {
+      description: uploadData.description || '',
+      businessZh: uploadData.businessZh || '',
+      businessEn: uploadData.businessEn || '',
+      overwrite: 'false'
     }
-    if (uploadData.businessZh) {
-      formData.append('businessZh', uploadData.businessZh)
-    }
+    
+    // 将uploadRequest对象作为JSON字符串添加到formData
+    formData.append('uploadRequest', JSON.stringify(uploadRequest))
 
     const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
-    return handleApiResponse(response)
+    return handleApiResponseWithError(response)
   }
 
   /**
@@ -43,16 +48,20 @@ class TestCaseSetService {
   async uploadTestCaseSetWithOverwrite(uploadData: TestCaseSetUploadData): Promise<TestCaseSetUploadResponse> {
     const formData = new FormData()
     formData.append('file', uploadData.file)
-    if (uploadData.description) {
-      formData.append('description', uploadData.description)
+    
+    // 创建uploadRequest对象，包含除了file之外的所有参数
+    const uploadRequest = {
+      description: uploadData.description || '',
+      businessZh: uploadData.businessZh || '',
+      businessEn: uploadData.businessEn || '',
+      overwrite: 'true'
     }
-    if (uploadData.businessZh) {
-      formData.append('businessZh', uploadData.businessZh)
-    }
-    formData.append('overwrite', 'true')
+    
+    // 将uploadRequest对象作为JSON字符串添加到formData
+    formData.append('uploadRequest', JSON.stringify(uploadRequest))
 
     const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
-    return handleApiResponse(response)
+    return handleApiResponseWithError(response)
   }
 
   /**

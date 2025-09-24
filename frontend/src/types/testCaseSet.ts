@@ -31,6 +31,7 @@ export interface TestCaseSetUploadData {
   file: File
   description?: string
   businessZh?: string
+  businessEn?: string
 }
 
 
@@ -61,7 +62,7 @@ export interface TestCaseSetListResponse {
 
 export interface TestCaseSetUploadResponse {
   success: boolean
-  message: string
+  message?: string
   data?: TestCaseSet
 }
 

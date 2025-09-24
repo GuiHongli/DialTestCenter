@@ -98,8 +98,28 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(String xUsername, MultipartFile file, String description, String businessZh, String overwrite) {
+    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(String xUsername, MultipartFile file, String uploadRequest) {
         try {
+            // 解析uploadRequest参数
+            String description = null;
+            String businessZh = null;
+            String overwrite = "false";
+            
+            if (uploadRequest != null && !uploadRequest.trim().isEmpty()) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(uploadRequest);
+                    description = jsonNode.has("description") ? jsonNode.get("description").asText() : null;
+                    businessZh = jsonNode.has("businessZh") ? jsonNode.get("businessZh").asText() : null;
+                    overwrite = jsonNode.has("overwrite") ? jsonNode.get("overwrite").asText() : "false";
+                } catch (Exception e) {
+                    // JSON解析失败，使用默认值
+                    description = null;
+                    businessZh = null;
+                    overwrite = "false";
+                }
+            }
+            
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite);
             
