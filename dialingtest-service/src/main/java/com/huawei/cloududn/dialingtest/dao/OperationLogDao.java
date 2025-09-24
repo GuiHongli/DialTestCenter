@@ -105,7 +105,7 @@ public interface OperationLogDao {
     /**
      * 保存操作记录
      */
-    @Insert("INSERT INTO operation_logs (username, operation_type, operation_target, operation_description_zh, operation_description_en, operation_data, operation_time) VALUES (#{username}, #{operationType}, #{operationTarget}, #{operationDescriptionZh}, #{operationDescriptionEn}, #{operationData}::jsonb, TO_TIMESTAMP(#{operationTime}, 'YYYY-MM-DD\"T\"HH24:MI:SS.MS'))")
+    @Insert("INSERT INTO operation_logs (username, operation_type, operation_target, operation_description_zh, operation_description_en, operation_data) VALUES (#{username}, #{operationType}, #{operationTarget}, #{operationDescriptionZh}, #{operationDescriptionEn}, #{operationData}::jsonb)")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int save(OperationLog operationLog);
     
