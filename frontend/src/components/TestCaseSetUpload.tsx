@@ -54,6 +54,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         file: file as File,
         description: form.getFieldValue('description'),
         businessZh: form.getFieldValue('businessZh'),
+        businessEn: form.getFieldValue('businessEn'),
       }
 
       try {
