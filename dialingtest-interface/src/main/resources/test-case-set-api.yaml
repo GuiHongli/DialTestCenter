@@ -19,11 +19,6 @@ consumes:
 produces:
   - "application/json"
 
-securityDefinitions:
-  bearerAuth:
-    type: "apiKey"
-    name: "Authorization"
-    in: "header"
 
 paths:
   /test-case-sets:
@@ -32,8 +27,6 @@ paths:
         - "用例集管理"
       summary: "获取用例集列表"
       description: "分页获取用例集列表，支持所有角色查看"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "page"
           in: "query"
@@ -66,8 +59,6 @@ paths:
         - "用例集管理"
       summary: "上传用例集"
       description: "上传ZIP格式的用例集包，仅ADMIN和OPERATOR有权限"
-      security:
-        - bearerAuth: []
       consumes:
         - "multipart/form-data"
       parameters:
@@ -93,6 +84,11 @@ paths:
           required: false
           type: "string"
           default: "false"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         200:
           description: "成功上传用例集"
@@ -117,8 +113,6 @@ paths:
         - "用例集管理"
       summary: "获取用例集详情"
       description: "根据ID获取用例集详细信息"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"
@@ -145,8 +139,6 @@ paths:
         - "用例集管理"
       summary: "更新用例集"
       description: "更新用例集信息，仅ADMIN和OPERATOR有权限，只能更新描述和业务类型"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"
@@ -160,6 +152,11 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/UpdateTestCaseSetRequest"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         200:
           description: "成功更新用例集"
@@ -187,8 +184,6 @@ paths:
         - "用例集管理"
       summary: "删除用例集"
       description: "删除用例集，仅ADMIN和OPERATOR有权限"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"
@@ -196,6 +191,11 @@ paths:
           required: true
           type: "integer"
           format: "int64"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         200:
           description: "成功删除用例集"
@@ -220,8 +220,6 @@ paths:
         - "用例集管理"
       summary: "下载用例集"
       description: "下载用例集ZIP文件，仅ADMIN和OPERATOR有权限"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"
@@ -253,8 +251,6 @@ paths:
         - "测试用例管理"
       summary: "获取测试用例列表"
       description: "获取指定用例集的测试用例列表"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"
@@ -294,8 +290,6 @@ paths:
         - "测试用例管理"
       summary: "获取缺失脚本列表"
       description: "获取指定用例集中缺失脚本的测试用例列表"
-      security:
-        - bearerAuth: []
       parameters:
         - name: "id"
           in: "path"

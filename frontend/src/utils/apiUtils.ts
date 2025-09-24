@@ -63,17 +63,41 @@ export async function handlePagedApiResponse<T>(response: Response): Promise<Pag
 }
 
 /**
+ * 从cookie中获取xUsername
+ * @returns xUsername值，如果不存在则返回默认值
+ */
+export function getXUsernameFromCookie(): string {
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'xUsername') {
+      return decodeURIComponent(value);
+    }
+  }
+  // 如果cookie中不存在，返回默认值
+  return 'admin';
+}
+
+/**
  * 创建API请求的通用配置
  * @param method HTTP方法
  * @param body 请求体（可选）
+ * @param includeXUsername 是否包含X-Username头（默认为true）
  * @returns fetch配置对象
  */
-export function createApiRequestConfig(method: string = 'GET', body?: any): RequestInit {
+export function createApiRequestConfig(method: string = 'GET', body?: any, includeXUsername: boolean = true): RequestInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  // 自动添加X-Username头
+  if (includeXUsername) {
+    headers['X-Username'] = getXUsernameFromCookie();
+  }
+  
   const config: RequestInit = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   };
   
   if (body) {
@@ -81,4 +105,25 @@ export function createApiRequestConfig(method: string = 'GET', body?: any): Requ
   }
   
   return config;
+}
+
+/**
+ * 创建文件上传请求的配置
+ * @param body FormData对象
+ * @param includeXUsername 是否包含X-Username头（默认为true）
+ * @returns fetch配置对象
+ */
+export function createFileUploadConfig(body: FormData, includeXUsername: boolean = true): RequestInit {
+  const headers: Record<string, string> = {};
+  
+  // 自动添加X-Username头
+  if (includeXUsername) {
+    headers['X-Username'] = getXUsernameFromCookie();
+  }
+  
+  return {
+    method: 'POST',
+    headers,
+    body,
+  };
 }

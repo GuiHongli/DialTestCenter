@@ -1,7 +1,18 @@
 package com.huawei.cloududn.dialingtest.controller;
 
 import com.huawei.cloududn.dialingtest.api.UserRolesApi;
-import com.huawei.cloududn.dialingtest.model.*;
+import com.huawei.cloududn.dialingtest.model.UserPermissionResponse;
+import com.huawei.cloududn.dialingtest.model.UserPermissionResponseData;
+import com.huawei.cloududn.dialingtest.model.UserPermissionResponseDataPagePermissions;
+import com.huawei.cloududn.dialingtest.model.UserRolePageResponse;
+import com.huawei.cloududn.dialingtest.model.UserRoleResponse;
+import com.huawei.cloududn.dialingtest.model.CreateUserRoleRequest;
+import com.huawei.cloududn.dialingtest.model.UpdateUserRoleRequest;
+import com.huawei.cloududn.dialingtest.model.UserRole;
+import com.huawei.cloududn.dialingtest.model.Role;
+import com.huawei.cloududn.dialingtest.model.RoleResponse;
+import com.huawei.cloududn.dialingtest.model.ExecutorCountResponse;
+import com.huawei.cloududn.dialingtest.model.UserRolePageResponseData;
 import com.huawei.cloududn.dialingtest.util.UserRoleOperationLogUtil;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -28,17 +41,8 @@ public class UserRoleController implements UserRolesApi {
     private UserRoleOperationLogUtil operationLogUtil;
     
     @Override
-    public ResponseEntity<UserRolePageResponse> userRolesGet(String xUsername, Integer page, Integer size, String search) {
+    public ResponseEntity<UserRolePageResponse> userRolesGet(Integer page, Integer size, String search) {
         try {
-            // 检查权限（需要ADMIN或OPERATOR权限）
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-                UserRolePageResponse response = new UserRolePageResponse();
-                response.setSuccess(false);
-                response.setMessage("权限不足，需要ADMIN或OPERATOR权限");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-            }
-            
             UserRolePageResponseData data = userRoleService.getUserRolesWithPagination(page, size, search);
             
             UserRolePageResponse response = new UserRolePageResponse();
@@ -150,25 +154,62 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<PermissionCheckResponse> userRolesCheckPermissionPost(CheckPermissionRequest body) {
+    public ResponseEntity<UserPermissionResponse> userRolesPermissionGet(String xUsername) {
         try {
-            List<String> userRoles = userRoleService.getUserRolesByUsername(body.getUsername());
-            boolean hasPermission = userRoleService.hasAnyRole(body.getUsername(), body.getRoles());
+            // 获取用户角色
+            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
             
-            PermissionCheckResponseData data = new PermissionCheckResponseData();
-            data.setHasPermission(hasPermission);
-            data.setUserRoles(userRoles);
+            // 构建页面权限映射
+            Map<String, UserPermissionResponseDataPagePermissions> pagePermissions = new HashMap<>();
             
-            PermissionCheckResponse response = new PermissionCheckResponse();
+            // 用户管理页面权限
+            UserPermissionResponseDataPagePermissions userManagementPerms = new UserPermissionResponseDataPagePermissions();
+            userManagementPerms.setHasAccess(true); // 所有用户都能访问页面
+            if (userRoles.contains("ADMIN")) {
+                userManagementPerms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
+            } else {
+                userManagementPerms.setOperations(Arrays.asList("view"));
+            }
+            pagePermissions.put("user-management", userManagementPerms);
+            
+            // 用例集管理页面权限
+            UserPermissionResponseDataPagePermissions testCaseSetPerms = new UserPermissionResponseDataPagePermissions();
+            testCaseSetPerms.setHasAccess(true); // 所有用户都能访问页面
+            if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
+                testCaseSetPerms.setOperations(Arrays.asList("upload", "download", "delete", "view"));
+            } else if (userRoles.contains("BROWSER")) {
+                testCaseSetPerms.setOperations(Arrays.asList("download", "view"));
+            } else {
+                testCaseSetPerms.setOperations(Arrays.asList("view"));
+            }
+            pagePermissions.put("test-case-set", testCaseSetPerms);
+            
+            // 用户角色管理页面权限
+            UserPermissionResponseDataPagePermissions userRolePerms = new UserPermissionResponseDataPagePermissions();
+            userRolePerms.setHasAccess(true); // 所有用户都能访问页面
+            if (userRoles.contains("ADMIN")) {
+                userRolePerms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
+            } else {
+                userRolePerms.setOperations(Arrays.asList("view"));
+            }
+            pagePermissions.put("user-role-management", userRolePerms);
+            
+            // 构建响应数据
+            UserPermissionResponseData data = new UserPermissionResponseData();
+            data.setUsername(xUsername);
+            data.setRoles(userRoles);
+            data.setPagePermissions(pagePermissions);
+            
+            UserPermissionResponse response = new UserPermissionResponse();
             response.setSuccess(true);
             response.setData(data);
-            response.setMessage("权限检查完成");
+            response.setMessage("获取用户权限信息成功");
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            PermissionCheckResponse response = new PermissionCheckResponse();
+            UserPermissionResponse response = new UserPermissionResponse();
             response.setSuccess(false);
-            response.setMessage("权限检查失败: " + e.getMessage());
+            response.setMessage("获取用户权限信息失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

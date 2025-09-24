@@ -3,6 +3,7 @@ package com.huawei.cloududn.dialingtest.controller;
 import com.huawei.cloududn.dialingtest.api.DialusersApi;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.DialUserService;
+import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,9 @@ public class DialUserController implements DialusersApi {
     
     @Autowired
     private DialUserService dialUserService;
+    
+    @Autowired
+    private UserRoleService userRoleService;
     
     /**
      * 分页查询拨测用户
@@ -124,17 +128,32 @@ public class DialUserController implements DialusersApi {
     /**
      * 修改拨测用户
      * 
+     * @param xUsername 操作用户名
      * @param id 用户ID
      * @param body 更新请求
      * @return 更新后的用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> dialusersIdPut(Integer id, UpdateDialUserRequest body) {
+    public ResponseEntity<DialUserResponse> dialusersIdPut(String xUsername, Integer id, UpdateDialUserRequest body) {
         try {
-            // 设置默认值
-            String operatorUsername = "admin"; // 默认操作用户
+            // 检查用户名是否提供
+            if (xUsername == null || xUsername.trim().isEmpty()) {
+                DialUserResponse response = new DialUserResponse();
+                response.setSuccess(false);
+                response.setMessage("未提供用户名");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
             
-            DialUser updatedUser = dialUserService.updateUser(id, body.getUsername(), body.getPassword(), operatorUsername);
+            // 检查权限（需要ADMIN权限）
+            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
+            if (!userRoles.contains("ADMIN")) {
+                DialUserResponse response = new DialUserResponse();
+                response.setSuccess(false);
+                response.setMessage("权限不足，仅ADMIN用户可操作");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+            
+            DialUser updatedUser = dialUserService.updateUser(id, body.getUsername(), body.getPassword(), xUsername);
             
             DialUserResponse response = new DialUserResponse();
             response.setSuccess(true);
@@ -188,15 +207,24 @@ public class DialUserController implements DialusersApi {
      * 删除拨测用户
      * 
      * @param id 用户ID
+     * @param xUsername 操作用户名
      * @return 删除结果
      */
     @Override
-    public ResponseEntity<Void> dialusersIdDelete(Integer id) {
+    public ResponseEntity<Void> dialusersIdDelete(Integer id, String xUsername) {
         try {
-            // 设置默认值
-            String operatorUsername = "admin"; // 默认操作用户
+            // 检查用户名是否提供
+            if (xUsername == null || xUsername.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
             
-            dialUserService.deleteUser(id, operatorUsername);
+            // 检查权限（需要ADMIN权限）
+            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
+            if (!userRoles.contains("ADMIN")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            dialUserService.deleteUser(id, xUsername);
             return ResponseEntity.noContent().build();
             
         } catch (IllegalArgumentException e) {
@@ -213,16 +241,31 @@ public class DialUserController implements DialusersApi {
     /**
      * 新增拨测用户
      * 
+     * @param xUsername 操作用户名
      * @param body 创建请求
      * @return 创建的用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> dialusersPost(CreateDialUserRequest body) {
+    public ResponseEntity<DialUserResponse> dialusersPost(String xUsername, CreateDialUserRequest body) {
         try {
-            // 设置默认值
-            String operatorUsername = "admin"; // 默认操作用户
+            // 检查用户名是否提供
+            if (xUsername == null || xUsername.trim().isEmpty()) {
+                DialUserResponse response = new DialUserResponse();
+                response.setSuccess(false);
+                response.setMessage("未提供用户名");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
             
-            DialUser createdUser = dialUserService.createUser(body.getUsername(), body.getPassword(), operatorUsername);
+            // 检查权限（需要ADMIN权限）
+            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
+            if (!userRoles.contains("ADMIN")) {
+                DialUserResponse response = new DialUserResponse();
+                response.setSuccess(false);
+                response.setMessage("权限不足，仅ADMIN用户可操作");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+            
+            DialUser createdUser = dialUserService.createUser(body.getUsername(), body.getPassword(), xUsername);
             
             DialUserResponse response = new DialUserResponse();
             response.setSuccess(true);

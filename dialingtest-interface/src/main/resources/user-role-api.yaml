@@ -35,11 +35,6 @@ paths:
           in: query
           type: string
           description: 搜索关键词
-        - name: X-Username
-          in: header
-          required: true
-          type: string
-          description: 操作用户名
       responses:
         200:
           description: 成功返回用户角色列表
@@ -168,23 +163,27 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-  /user-roles/check-permission:
-    post:
-      summary: 检查用户权限
-      description: 检查用户是否具有指定权限，自动记录权限检查日志
+  /user-roles/permission:
+    get:
+      summary: 获取用户权限信息
+      description: 获取用户所有角色和权限信息，用于前端权限控制
       tags:
         - UserRole
       parameters:
-        - name: body
-          in: body
+        - name: X-Username
+          in: header
           required: true
-          schema:
-            $ref: '#/definitions/CheckPermissionRequest'
+          type: string
+          description: 用户名
       responses:
         200:
-          description: 权限检查结果
+          description: 用户权限信息
           schema:
-            $ref: '#/definitions/PermissionCheckResponse'
+            $ref: '#/definitions/UserPermissionResponse'
+        401:
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         500:
           description: 服务器内部错误
           schema:
@@ -429,6 +428,49 @@ definitions:
       data:
         type: integer
         description: EXECUTOR角色数量
+      message:
+        type: string
+        description: 响应消息
+    required:
+      - success
+      - data
+      - message
+
+  UserPermissionResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: object
+        properties:
+          username:
+            type: string
+            description: 用户名
+          roles:
+            type: array
+            items:
+              type: string
+            description: 用户拥有的角色列表
+          pagePermissions:
+            type: object
+            description: 页面权限映射
+            additionalProperties:
+              type: object
+              properties:
+                operations:
+                  type: array
+                  items:
+                    type: string
+                  description: 允许的操作列表
+                hasAccess:
+                  type: boolean
+                  description: 是否有页面访问权限
+        required:
+          - username
+          - roles
+          - pagePermissions
       message:
         type: string
         description: 响应消息

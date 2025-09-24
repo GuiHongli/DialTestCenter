@@ -45,7 +45,6 @@ public class UserRoleControllerTest {
     private UserRole testUserRole;
     private CreateUserRoleRequest testCreateRequest;
     private UpdateUserRoleRequest testUpdateRequest;
-    private CheckPermissionRequest testPermissionRequest;
     private Role testRole;
 
     @Before
@@ -64,10 +63,6 @@ public class UserRoleControllerTest {
         testUpdateRequest.setUsername("testuser");
         testUpdateRequest.setRole(UpdateUserRoleRequest.RoleEnum.ADMIN);
 
-        testPermissionRequest = new CheckPermissionRequest();
-        testPermissionRequest.setUsername("testuser");
-        testPermissionRequest.setRoles(Arrays.asList("ADMIN", "OPERATOR"));
-
         testRole = new Role();
         testRole.setId(1);
         testRole.setCode("ADMIN");
@@ -76,7 +71,7 @@ public class UserRoleControllerTest {
     }
 
     @Test
-    public void testUserRolesGet_AdminUser_Success() {
+    public void testUserRolesGet_Success_ReturnsUserRoleList() {
         // Arrange
         UserRolePageResponseData pageData = new UserRolePageResponseData();
         pageData.setContent(Arrays.asList(testUserRole));
@@ -87,11 +82,10 @@ public class UserRoleControllerTest {
         pageData.setFirst(true);
         pageData.setLast(true);
 
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenReturn(pageData);
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet("admin", Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -99,12 +93,11 @@ public class UserRoleControllerTest {
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
         assertEquals("获取用户角色列表成功", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("admin");
         verify(userRoleService).getUserRolesWithPagination(0, 10, null);
     }
 
     @Test
-    public void testUserRolesGet_OperatorUser_Success() {
+    public void testUserRolesGet_WithSearch_Success() {
         // Arrange
         UserRolePageResponseData pageData = new UserRolePageResponseData();
         pageData.setContent(Arrays.asList(testUserRole));
@@ -115,11 +108,10 @@ public class UserRoleControllerTest {
         pageData.setFirst(true);
         pageData.setLast(true);
 
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenReturn(pageData);
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet("operator", Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -131,21 +123,21 @@ public class UserRoleControllerTest {
     }
 
     @Test
-    public void testUserRolesGet_NoPermission_ReturnsForbidden() {
+    public void testUserRolesGet_ServiceException_ReturnsError() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("browser")).thenReturn(Arrays.asList("BROWSER"));
+        when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet("browser", Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("权限不足，需要ADMIN或OPERATOR权限", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("browser");
-        verify(userRoleService, never()).getUserRolesWithPagination(anyInt(), anyInt(), anyString());
+        assertTrue(response.getBody().getMessage().contains("获取用户角色列表失败"));
+        
+        verify(userRoleService).getUserRolesWithPagination(0, 10, null);
     }
 
     @Test
@@ -155,7 +147,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet("admin", Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -163,7 +155,6 @@ public class UserRoleControllerTest {
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertTrue(response.getBody().getMessage().contains("获取用户角色列表失败"));
-        verify(userRoleService).getUserRolesByUsername("admin");
         verify(userRoleService).getUserRolesWithPagination(0, 10, null);
     }
 
@@ -330,47 +321,41 @@ public class UserRoleControllerTest {
     }
 
     @Test
-    public void testUserRolesCheckPermissionPost_Success() {
+    public void testUserRolesPermissionGet_Success() {
         // Arrange
-        PermissionCheckResponseData data = new PermissionCheckResponseData();
-        data.setHasPermission(true);
-        data.setUserRoles(Arrays.asList("ADMIN"));
-
         when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(Arrays.asList("ADMIN"));
-        when(userRoleService.hasAnyRole("testuser", Arrays.asList("ADMIN", "OPERATOR"))).thenReturn(true);
 
         // Act
-        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost(testPermissionRequest);
+        ResponseEntity<UserPermissionResponse> response = userRoleController.userRolesPermissionGet("testuser");
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("权限检查完成", response.getBody().getMessage());
+        assertEquals("获取用户权限信息成功", response.getBody().getMessage());
         assertNotNull(response.getBody().getData());
-        assertTrue(response.getBody().getData().isHasPermission());
-        assertEquals(Arrays.asList("ADMIN"), response.getBody().getData().getUserRoles());
+        assertEquals("testuser", response.getBody().getData().getUsername());
+        assertEquals(Arrays.asList("ADMIN"), response.getBody().getData().getRoles());
+        assertNotNull(response.getBody().getData().getPagePermissions());
         verify(userRoleService).getUserRolesByUsername("testuser");
-        verify(userRoleService).hasAnyRole("testuser", Arrays.asList("ADMIN", "OPERATOR"));
     }
 
     @Test
-    public void testUserRolesCheckPermissionPost_ServiceException_ReturnsInternalServerError() {
+    public void testUserRolesPermissionGet_ServiceException_ReturnsInternalServerError() {
         // Arrange
         when(userRoleService.getUserRolesByUsername("testuser")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<PermissionCheckResponse> response = userRoleController.userRolesCheckPermissionPost(testPermissionRequest);
+        ResponseEntity<UserPermissionResponse> response = userRoleController.userRolesPermissionGet("testuser");
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("权限检查失败"));
+        assertTrue(response.getBody().getMessage().contains("获取用户权限信息失败"));
         verify(userRoleService).getUserRolesByUsername("testuser");
-        verify(userRoleService, never()).hasAnyRole(anyString(), anyList());
     }
 
     @Test

@@ -25,7 +25,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { usePermission } from '../hooks/usePermission';
+import { usePermission, PagePermission } from '../hooks/usePermission';
 import { useTranslation } from '../hooks/useTranslation';
 import { UserRoleService } from '../services/userRoleService';
 import { Role, UserRole, UserRoleFormData } from '../types/userRole';
@@ -42,8 +42,6 @@ export const UserRoleManagement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUserRole, setEditingUserRole] = useState<UserRole | null>(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [currentUserRoles, setCurrentUserRoles] = useState<string[]>([]);
-  const [userRoleLoading, setUserRoleLoading] = useState(true);
   const [executorCount, setExecutorCount] = useState<number>(0);
   const [searchText, setSearchText] = useState('');
   const [pagination, setPagination] = useState({
@@ -52,44 +50,18 @@ export const UserRoleManagement: React.FC = () => {
     total: 0,
   });
 
-  const { canManageUsers } = usePermission();
+  const { hasPagePermission } = usePermission();
   const { translateUserRole, translateCommon } = useTranslation();
 
-  const canManage = canManageUsers(currentUserRoles);
+  const canManage = hasPagePermission('user-role-management', 'create') || 
+                   hasPagePermission('user-role-management', 'edit') || 
+                   hasPagePermission('user-role-management', 'delete');
 
   useEffect(() => {
-    // 页面进入时先获取当前用户角色
-    loadCurrentUserRoles();
+    // 页面进入时加载用户角色列表和执行机数量
+    loadUserRoles(0, 10);
+    loadExecutorCount();
   }, []);
-
-  // 获取当前用户角色
-  const loadCurrentUserRoles = async () => {
-    try {
-      setUserRoleLoading(true);
-      // 模拟调用外部接口获取userName，暂时使用admin
-      // 可以通过URL参数或localStorage来模拟不同用户
-      const urlParams = new URLSearchParams(window.location.search);
-      const mockUserName = urlParams.get('user') || 'admin';
-      
-      // 调用权限检查接口获取用户角色
-      const permissionResult = await UserRoleService.checkPermission({
-        username: mockUserName,
-        roles: ['ADMIN', 'OPERATOR', 'BROWSER', 'EXECUTOR']
-      });
-      setCurrentUserRoles(permissionResult.userRoles);
-      
-      // 获取当前用户角色后，再加载所有用户角色列表
-      await loadUserRoles(0, 10);
-      // 加载执行机数量
-      await loadExecutorCount();
-    } catch (err) {
-      message.error(err instanceof Error ? err.message : translateUserRole('getUserRolesFailed'));
-      // 如果获取用户角色失败，默认设置为非管理员权限
-      setCurrentUserRoles([]);
-    } finally {
-      setUserRoleLoading(false);
-    }
-  };
 
   const loadUserRoles = async (page: number = 0, pageSize: number = 10, search?: string) => {
     try {
@@ -253,56 +225,41 @@ export const UserRoleManagement: React.FC = () => {
         </Tag>
       ),
     },
-    ...(canManage ? [{
+    {
       title: translateUserRole('table.actions'),
       key: 'action',
       width: 120,
       render: (_: any, record: UserRole) => (
         <Space size="small">
-          <Tooltip title={translateUserRole('table.edit')}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Popconfirm
-            title={translateUserRole('confirmDelete')}
-            onConfirm={() => handleDeleteUserRole(record.id)}
-            okText={translateCommon('confirm')}
-            cancelText={translateCommon('cancel')}
-          >
-            <Tooltip title={translateUserRole('table.delete')}>
+          <PagePermission pageId="user-role-management" operation="edit">
+            <Tooltip title={translateUserRole('table.edit')}>
               <Button
                 type="text"
-                danger
-                icon={<DeleteOutlined />}
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
               />
             </Tooltip>
-          </Popconfirm>
+          </PagePermission>
+          <PagePermission pageId="user-role-management" operation="delete">
+            <Popconfirm
+              title={translateUserRole('confirmDelete')}
+              onConfirm={() => handleDeleteUserRole(record.id)}
+              okText={translateCommon('confirm')}
+              cancelText={translateCommon('cancel')}
+            >
+              <Tooltip title={translateUserRole('table.delete')}>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          </PagePermission>
         </Space>
       ),
-    }] : []),
+    },
   ], [translateUserRole, translateCommon, canManage]);
-
-  // 如果正在加载用户角色，显示加载状态
-  if (userRoleLoading) {
-    return (
-      <div style={{ 
-        padding: '24px', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '400px' 
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '16px', color: '#666', marginBottom: '16px' }}>
-            {translateUserRole('gettingUserPermission')}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ padding: '24px' }}>
@@ -318,39 +275,9 @@ export const UserRoleManagement: React.FC = () => {
             <TeamOutlined style={{ marginRight: '8px' }} />
             {translateUserRole('title')}
           </Title>
-          <Text type="secondary" style={{ fontSize: '14px', textAlign: 'left' }}>
-            {translateUserRole('currentUserRoles')}: {currentUserRoles.length > 0 ? currentUserRoles.join(', ') : translateUserRole('noPermission')}
-          </Text>
-          {/* 测试用角色切换按钮 */}
-          <div style={{ marginTop: '8px' }}>
-            <Space size="small">
-              <Text type="secondary" style={{ fontSize: '12px' }}>{translateUserRole('testSwitchUser')}:</Text>
-              <Button 
-                size="small" 
-                type={currentUserRoles.includes('ADMIN') ? 'primary' : 'default'}
-                onClick={() => window.location.href = '/user-roles?user=admin'}
-              >
-                admin
-              </Button>
-              <Button 
-                size="small" 
-                type={currentUserRoles.includes('OPERATOR') && !currentUserRoles.includes('ADMIN') ? 'primary' : 'default'}
-                onClick={() => window.location.href = '/user-roles?user=operator1'}
-              >
-                operator1
-              </Button>
-              <Button 
-                size="small" 
-                type={currentUserRoles.includes('BROWSER') && !currentUserRoles.includes('ADMIN') ? 'primary' : 'default'}
-                onClick={() => window.location.href = '/user-roles?user=browser1'}
-              >
-                browser1
-              </Button>
-            </Space>
-          </div>
         </div>
-        {canManage && (
-          <Space>
+        <Space>
+          <PagePermission pageId="user-role-management" operation="create">
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -358,14 +285,14 @@ export const UserRoleManagement: React.FC = () => {
             >
               {translateUserRole('addUserRole')}
             </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => loadUserRoles(pagination.current - 1, pagination.pageSize, searchText)}
-            >
-              {translateCommon('refresh')}
-            </Button>
-          </Space>
-        )}
+          </PagePermission>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => loadUserRoles(pagination.current - 1, pagination.pageSize, searchText)}
+          >
+            {translateCommon('refresh')}
+          </Button>
+        </Space>
       </div>
 
       {/* 统计信息卡片 - 只有管理员才能看到 */}

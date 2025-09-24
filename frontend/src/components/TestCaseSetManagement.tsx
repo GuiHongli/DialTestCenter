@@ -21,6 +21,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { usePermission, PagePermission } from '../hooks/usePermission'
 import { useI18n } from '../contexts/I18nContext'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSet } from '../types/testCaseSet'
@@ -45,6 +46,13 @@ const TestCaseSetManagement: React.FC = () => {
 
   const { translateTestCaseSet, translateCommon } = useTranslation()
   const { language } = useI18n()
+  const { hasPagePermission } = usePermission()
+
+  // 检查各种操作权限
+  const canUpload = hasPagePermission('test-case-set', 'upload')
+  const canEdit = hasPagePermission('test-case-set', 'edit')
+  const canDelete = hasPagePermission('test-case-set', 'delete')
+  const canDownload = hasPagePermission('test-case-set', 'download')
 
   // 加载用例集列表
   const loadTestCaseSets = async (page: number = 1, pageSize: number = 10) => {
@@ -58,10 +66,10 @@ const TestCaseSetManagement: React.FC = () => {
           try {
             const missingScriptsResponse = await testCaseSetService.getMissingScripts(testCaseSet.id)
             // 只有当缺失脚本数量大于0时才设置字段
-            if (missingScriptsResponse.data.count > 0) {
+            if (missingScriptsResponse.count > 0) {
               return {
                 ...testCaseSet,
-                missingScriptsCount: missingScriptsResponse.data.count
+                missingScriptsCount: missingScriptsResponse.count
               }
             } else {
               // 没有缺失脚本时，不设置missingScriptsCount字段
@@ -98,6 +106,11 @@ const TestCaseSetManagement: React.FC = () => {
 
   // 下载用例集
   const handleDownload = async (record: TestCaseSet) => {
+    if (!canDownload) {
+      message.warning('权限不足，无法下载用例集')
+      return
+    }
+    
     try {
       const blob = await testCaseSetService.downloadTestCaseSet(record.id)
       const url = window.URL.createObjectURL(blob)
@@ -120,6 +133,11 @@ const TestCaseSetManagement: React.FC = () => {
 
   // 删除用例集
   const handleDelete = (record: TestCaseSet) => {
+    if (!canDelete) {
+      message.warning('权限不足，无法删除用例集')
+      return
+    }
+    
     Modal.confirm({
       title: translateTestCaseSet('confirmDelete'),
       content: translateTestCaseSet('deleteDescription', { name: record.name, version: record.version }),
@@ -145,6 +163,11 @@ const TestCaseSetManagement: React.FC = () => {
 
   // 编辑用例集
   const handleEdit = (record: TestCaseSet) => {
+    if (!canEdit) {
+      message.warning('权限不足，无法编辑用例集')
+      return
+    }
+    
     setSelectedTestCaseSet(record)
     setEditVisible(true)
   }
@@ -229,28 +252,34 @@ const TestCaseSetManagement: React.FC = () => {
               onClick={() => handleViewDetails(record)}
             />
           </Tooltip>
-          <Tooltip title={translateTestCaseSet('table.edit')}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title={translateTestCaseSet('table.download')}>
-            <Button
-              type="text"
-              icon={<DownloadOutlined />}
-              onClick={() => handleDownload(record)}
-            />
-          </Tooltip>
-          <Tooltip title={translateTestCaseSet('table.delete')}>
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            />
-          </Tooltip>
+          <PagePermission pageId="test-case-set" operation="edit">
+            <Tooltip title={translateTestCaseSet('table.edit')}>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            </Tooltip>
+          </PagePermission>
+          <PagePermission pageId="test-case-set" operation="download">
+            <Tooltip title={translateTestCaseSet('table.download')}>
+              <Button
+                type="text"
+                icon={<DownloadOutlined />}
+                onClick={() => handleDownload(record)}
+              />
+            </Tooltip>
+          </PagePermission>
+          <PagePermission pageId="test-case-set" operation="delete">
+            <Tooltip title={translateTestCaseSet('table.delete')}>
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              />
+            </Tooltip>
+          </PagePermission>
         </Space>
       ),
     },
@@ -272,13 +301,15 @@ const TestCaseSetManagement: React.FC = () => {
           </Title>
         </div>
         <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setUploadVisible(true)}
-          >
-            {translateTestCaseSet('uploadTestCaseSet')}
-          </Button>
+          <PagePermission pageId="test-case-set" operation="upload">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setUploadVisible(true)}
+            >
+              {translateTestCaseSet('uploadTestCaseSet')}
+            </Button>
+          </PagePermission>
           <Button
             icon={<ReloadOutlined />}
             onClick={() => {

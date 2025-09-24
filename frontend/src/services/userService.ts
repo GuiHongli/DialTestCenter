@@ -27,7 +27,7 @@ export const getUsers = async (page: number = 0, pageSize: number = 10, username
     params.append('username', username.trim());
   }
   
-  const response = await fetch(`${API_BASE_URL}?${params}`);
+  const response = await fetch(`${API_BASE_URL}?${params}`, createApiRequestConfig('GET', undefined, false));
   
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,7 +55,7 @@ export const getUsers = async (page: number = 0, pageSize: number = 10, username
  * 根据ID获取用户
  */
 export const getUserById = async (id: number): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`);
+  const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('GET', undefined, false));
   
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -74,7 +74,7 @@ export const getUserById = async (id: number): Promise<User> => {
  * 根据用户名获取用户
  */
 export const getUserByUsername = async (username: string): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/username/${encodeURIComponent(username)}`);
+  const response = await fetch(`${API_BASE_URL}/username/${encodeURIComponent(username)}`, createApiRequestConfig('GET'));
   return handleApiResponse<User>(response);
 };
 
@@ -82,13 +82,7 @@ export const getUserByUsername = async (username: string): Promise<User> => {
  * 创建新用户
  */
 export const createUser = async (params: UserCreateParams): Promise<User> => {
-  const response = await fetch(API_BASE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  });
+  const response = await fetch(API_BASE_URL, createApiRequestConfig('POST', params));
   
   if (!response.ok) {
     const errorData = await response.json();
@@ -108,13 +102,7 @@ export const createUser = async (params: UserCreateParams): Promise<User> => {
  * 更新用户信息
  */
 export const updateUser = async (id: number, params: UserUpdateParams): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  });
+  const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('PUT', params));
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -134,9 +122,7 @@ export const updateUser = async (id: number, params: UserUpdateParams): Promise<
  * 删除用户
  */
 export const deleteUser = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'DELETE',
-  });
+  const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('DELETE'));
 
   if (!response.ok) {
     const errorData = await response.json();

@@ -58,11 +58,11 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
     try {
       setLoading(true)
       const response = await testCaseSetService.getTestCases(testCaseSet.id, page, pageSize)
-      setTestCases(response.data.data)
+      setTestCases(response.data)
       setPagination({
-        current: response.data.page,
-        pageSize: response.data.pageSize,
-        total: response.data.total,
+        current: response.page,
+        pageSize: response.pageSize,
+        total: response.total,
       })
     } catch (error) {
       message.error(translateTestCaseSet('loadFailed'))
@@ -77,7 +77,7 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({
 
     try {
       const response = await testCaseSetService.getMissingScripts(testCaseSet.id)
-      setMissingScripts(response.data.testCases)
+      setMissingScripts(response.testCases)
     } catch (error) {
       message.error(translateTestCaseSet('loadFailed'))
     }

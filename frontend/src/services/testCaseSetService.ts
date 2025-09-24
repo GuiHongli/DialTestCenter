@@ -1,4 +1,5 @@
 import { TestCaseSet, TestCaseSetFormData, TestCaseSetUpdateData, TestCaseSetListResponse, TestCaseSetUploadData, TestCaseSetUploadResponse, TestCase, TestCaseListResponse, MissingScriptsResponse, ApiResponse, PagedResponse } from '../types/testCaseSet'
+import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handlePagedApiResponse } from '../utils/apiUtils'
 
 class TestCaseSetService {
   private baseUrl = '/dialingtest/api/test-case-sets'
@@ -7,34 +8,16 @@ class TestCaseSetService {
    * 获取用例集列表
    */
   async getTestCaseSets(page: number = 1, pageSize: number = 10): Promise<PagedResponse<TestCaseSet>> {
-    const response = await fetch(`${this.baseUrl}?page=${page}&pageSize=${pageSize}`)
-    if (!response.ok) {
-      throw new Error('获取用例集列表失败')
-    }
-    
-    const result: ApiResponse<PagedResponse<TestCaseSet>> = await response.json()
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to get test case sets')
-    }
-    
-    return result.data!
+    const response = await fetch(`${this.baseUrl}?page=${page}&pageSize=${pageSize}`, createApiRequestConfig('GET', undefined, false))
+    return handlePagedApiResponse(response)
   }
 
   /**
    * 获取用例集详情
    */
   async getTestCaseSet(id: number): Promise<TestCaseSet> {
-    const response = await fetch(`${this.baseUrl}/${id}`)
-    if (!response.ok) {
-      throw new Error('获取用例集详情失败')
-    }
-    
-    const result: ApiResponse<TestCaseSet> = await response.json()
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to get test case set')
-    }
-    
-    return result.data!
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponse(response)
   }
 
   /**
@@ -50,17 +33,8 @@ class TestCaseSetService {
       formData.append('businessZh', uploadData.businessZh)
     }
 
-    const response = await fetch(`${this.baseUrl}`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || '上传用例集失败')
-    }
-
-    return response.json()
+    const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
+    return handleApiResponse(response)
   }
 
   /**
@@ -77,24 +51,15 @@ class TestCaseSetService {
     }
     formData.append('overwrite', 'true')
 
-    const response = await fetch(`${this.baseUrl}`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || '上传用例集失败')
-    }
-
-    return response.json()
+    const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
+    return handleApiResponse(response)
   }
 
   /**
    * 下载用例集
    */
   async downloadTestCaseSet(id: number): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/${id}/download`)
+    const response = await fetch(`${this.baseUrl}/${id}/download`, createApiRequestConfig('GET', undefined, false))
     if (!response.ok) {
       throw new Error('下载用例集失败')
     }
@@ -105,9 +70,7 @@ class TestCaseSetService {
    * 删除用例集
    */
   async deleteTestCaseSet(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'DELETE',
-    })
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('DELETE'))
     if (!response.ok) {
       throw new Error('删除用例集失败')
     }
@@ -117,19 +80,8 @@ class TestCaseSetService {
    * 更新用例集信息
    */
   async updateTestCaseSet(id: number, data: TestCaseSetUpdateData): Promise<TestCaseSet> {
-    const response = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      throw new Error('更新用例集失败')
-    }
-
-    return response.json()
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('PUT', data))
+    return handleApiResponse(response)
   }
 
 
@@ -187,23 +139,17 @@ class TestCaseSetService {
   /**
    * 获取用例集的测试用例列表
    */
-  async getTestCases(testCaseSetId: number, page: number = 1, pageSize: number = 10): Promise<TestCaseListResponse> {
-    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/test-cases?page=${page}&pageSize=${pageSize}`)
-    if (!response.ok) {
-      throw new Error('获取测试用例列表失败')
-    }
-    return response.json()
+  async getTestCases(testCaseSetId: number, page: number = 1, pageSize: number = 10): Promise<{ page: number; pageSize: number; total: number; data: TestCase[] }> {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/test-cases?page=${page}&pageSize=${pageSize}`, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponse(response)
   }
 
   /**
    * 获取用例集中没有脚本的测试用例列表
    */
-  async getMissingScripts(testCaseSetId: number): Promise<MissingScriptsResponse> {
-    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`)
-    if (!response.ok) {
-      throw new Error('获取缺失脚本信息失败')
-    }
-    return response.json()
+  async getMissingScripts(testCaseSetId: number): Promise<{ count: number; testCases: TestCase[] }> {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponse(response)
   }
 }
 

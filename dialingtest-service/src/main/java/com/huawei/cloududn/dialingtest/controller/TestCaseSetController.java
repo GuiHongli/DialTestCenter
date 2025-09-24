@@ -15,7 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-addimport org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -98,7 +98,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(MultipartFile file, String description, String businessZh, @RequestParam(value = "overwrite", required = false, defaultValue = "false") String overwrite) {
+    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(String xUsername, MultipartFile file, String description, String businessZh, String overwrite) {
         try {
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite);
@@ -151,7 +151,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetResponse> testCaseSetsIdPut(Long id, UpdateTestCaseSetRequest body) {
+    public ResponseEntity<TestCaseSetResponse> testCaseSetsIdPut(String xUsername, Long id, UpdateTestCaseSetRequest body) {
         try {
             TestCaseSet testCaseSet = testCaseSetService.updateTestCaseSet(id, body);
             if (testCaseSet == null) {
@@ -181,7 +181,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<SuccessResponse> testCaseSetsIdDelete(Long id) {
+    public ResponseEntity<SuccessResponse> testCaseSetsIdDelete(Long id, String xUsername) {
         try {
             boolean deleted = testCaseSetService.deleteTestCaseSet(id);
             if (!deleted) {

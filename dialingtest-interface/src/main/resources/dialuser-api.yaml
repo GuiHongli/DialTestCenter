@@ -7,10 +7,17 @@ host: localhost:8087
 basePath: /dialingtest/api
 schemes:
   - https
+
+consumes:
+  - "application/json"
+
+produces:
+  - "application/json"
 paths:
   /dialusers:
     get:
       summary: 分页查询拨测用户
+      description: 分页查询拨测用户列表，支持用户名过滤
       parameters:
         - name: page
           in: query
@@ -34,14 +41,28 @@ paths:
           description: 查询成功
           schema:
             $ref: '#/definitions/DialUserPageResponse'
+        '401':
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     post:
       summary: 新增拨测用户
+      description: 新增拨测用户，仅ADMIN权限的用户有操作权限
       parameters:
         - name: body
           in: body
           required: true
           schema:
             $ref: '#/definitions/CreateDialUserRequest'
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         '201':
           description: 创建成功
@@ -49,11 +70,28 @@ paths:
             $ref: '#/definitions/DialUserResponse'
         '400':
           description: 请求参数错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: 权限不足，仅ADMIN用户可操作
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '409':
           description: 用户名已存在
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /dialusers/{id}:
     get:
       summary: 根据ID查询拨测用户
+      description: 根据ID查询拨测用户详情
       parameters:
         - name: id
           in: path
@@ -65,10 +103,21 @@ paths:
           description: 查询成功
           schema:
             $ref: '#/definitions/DialUserResponse'
+        '401':
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '404':
           description: 用户不存在
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     put:
       summary: 修改拨测用户
+      description: 修改拨测用户信息，仅ADMIN权限的用户有操作权限
       parameters:
         - name: id
           in: path
@@ -80,6 +129,11 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/UpdateDialUserRequest'
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         '200':
           description: 修改成功
@@ -87,23 +141,61 @@ paths:
             $ref: '#/definitions/DialUserResponse'
         '400':
           description: 请求参数错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: 权限不足，仅ADMIN用户可操作
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '404':
           description: 用户不存在
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '409':
           description: 用户名已存在
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
     delete:
       summary: 删除拨测用户
+      description: 删除拨测用户，仅ADMIN权限的用户有操作权限
       parameters:
         - name: id
           in: path
           required: true
           description: 用户ID
           type: integer
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         '204':
           description: 删除成功
+        '401':
+          description: 未提供用户名
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: 权限不足，仅ADMIN用户可操作
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '404':
           description: 用户不存在
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 definitions:
   DialUser:
     type: object
@@ -184,3 +276,19 @@ definitions:
       message:
         type: string
         description: 响应消息
+
+  ErrorResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 请求是否成功
+        example: false
+      message:
+        type: string
+        description: 错误消息
+        example: "操作失败"
+      errorCode:
+        type: string
+        description: 错误代码
+        example: "INVALID_PARAMETER"

@@ -13,7 +13,9 @@ import {
 import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { usePermission, PagePermission } from '../hooks/usePermission';
 import { createUser, deleteUser, getUsers, updateUser } from '../services/userService';
+import { UserRoleService } from '../services/userRoleService';
 import { User, UserCreateParams, UserUpdateParams } from '../types/user';
 import UserForm from './UserForm';
 
@@ -21,6 +23,7 @@ const { Title, Text } = Typography;
 
 const UserManagement: React.FC = () => {
   const { translateUser, translateCommon } = useTranslation();
+  const { hasPagePermission } = usePermission();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
@@ -32,6 +35,11 @@ const UserManagement: React.FC = () => {
     pageSize: 10,
     total: 0,
   });
+
+  useEffect(() => {
+    // 页面进入时加载用户列表
+    loadUsers(0, 10);
+  }, []);
 
   // 加载用户列表
   const loadUsers = async (page: number = 0, pageSize: number = 10, username?: string) => {
@@ -54,23 +62,39 @@ const UserManagement: React.FC = () => {
 
   // 初始加载
   useEffect(() => {
-    loadUsers(0, 10);
-  }, []); // 移除loadUsers依赖，避免无限循环
+    const initializeData = async () => {
+      await loadUsers(0, 10);
+    };
+    initializeData();
+  }, []);
 
   // 处理新增用户
   const handleAddUser = () => {
+    if (!hasPagePermission('user-management', 'create')) {
+      message.warning('权限不足，仅ADMIN用户可操作');
+      return;
+    }
     setEditingUser(null);
     setFormVisible(true);
   };
 
   // 处理编辑用户
   const handleEditUser = (user: User) => {
+    if (!hasPagePermission('user-management', 'edit')) {
+      message.warning('权限不足，仅ADMIN用户可操作');
+      return;
+    }
     setEditingUser(user);
     setFormVisible(true);
   };
 
   // 处理删除用户
   const handleDeleteUser = (user: User) => {
+    if (!hasPagePermission('user-management', 'delete')) {
+      message.warning('权限不足，仅ADMIN用户可操作');
+      return;
+    }
+    
     Modal.confirm({
       title: translateUser('confirmDelete'),
       content: translateUser('deleteDescription'),
@@ -130,59 +154,71 @@ const UserManagement: React.FC = () => {
   const filteredUsers = users;
 
   // 表格列定义
-  const columns = useMemo(() => [
-    {
-      title: translateUser('table.id'),
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      sorter: (a: User, b: User) => a.id - b.id,
-    },
-    {
-      title: translateUser('table.username'),
-      dataIndex: 'username',
-      key: 'username',
-      sorter: (a: User, b: User) => a.username.localeCompare(b.username),
-    },
-    {
-      title: translateUser('table.lastLoginTime'),
-      dataIndex: 'lastLoginTime',
-      key: 'lastLoginTime',
-      render: (time: string) => time ? new Date(time).toLocaleString() : '-',
-      sorter: (a: User, b: User) => {
-        if (!a.lastLoginTime && !b.lastLoginTime) return 0;
-        if (!a.lastLoginTime) return 1;
-        if (!b.lastLoginTime) return -1;
-        return new Date(a.lastLoginTime).getTime() - new Date(b.lastLoginTime).getTime();
+  const columns = useMemo(() => {
+    const baseColumns: any[] = [
+      {
+        title: translateUser('table.id'),
+        dataIndex: 'id',
+        key: 'id',
+        width: 80,
+        sorter: (a: User, b: User) => a.id - b.id,
       },
-    },
-    {
-      title: translateUser('table.actions'),
-      key: 'actions',
-      width: 120,
-      render: (_: any, record: User) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditUser(record)}
-            size="small"
-          >
-            {translateUser('table.edit')}
-          </Button>
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteUser(record)}
-            size="small"
-          >
-            {translateUser('table.delete')}
-          </Button>
-        </Space>
-      ),
-    },
-  ], [translateUser]);
+      {
+        title: translateUser('table.username'),
+        dataIndex: 'username',
+        key: 'username',
+        sorter: (a: User, b: User) => a.username.localeCompare(b.username),
+      },
+      {
+        title: translateUser('table.lastLoginTime'),
+        dataIndex: 'lastLoginTime',
+        key: 'lastLoginTime',
+        render: (time: string) => time ? new Date(time).toLocaleString() : '-',
+        sorter: (a: User, b: User) => {
+          if (!a.lastLoginTime && !b.lastLoginTime) return 0;
+          if (!a.lastLoginTime) return 1;
+          if (!b.lastLoginTime) return -1;
+          return new Date(a.lastLoginTime).getTime() - new Date(b.lastLoginTime).getTime();
+        },
+      },
+    ];
+
+    // 操作列 - 根据权限控制显示
+    if (hasPagePermission('user-management', 'edit') || hasPagePermission('user-management', 'delete')) {
+      baseColumns.push({
+        title: translateUser('table.actions'),
+        key: 'actions',
+        width: 120,
+        render: (_: any, record: User) => (
+          <Space>
+            <PagePermission pageId="user-management" operation="edit">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEditUser(record)}
+                size="small"
+              >
+                {translateUser('table.edit')}
+              </Button>
+            </PagePermission>
+            <PagePermission pageId="user-management" operation="delete">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDeleteUser(record)}
+                size="small"
+              >
+                {translateUser('table.delete')}
+              </Button>
+            </PagePermission>
+          </Space>
+        ),
+      });
+    }
+
+    return baseColumns;
+  }, [translateUser, hasPagePermission]);
 
   return (
     <div style={{ textAlign: 'left' }}>
@@ -196,13 +232,15 @@ const UserManagement: React.FC = () => {
           </Text>
         </div>
         <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddUser}
-          >
-            {translateUser('addUser')}
-          </Button>
+          <PagePermission pageId="user-management" operation="create">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddUser}
+            >
+              {translateUser('addUser')}
+            </Button>
+          </PagePermission>
           <Button
             icon={<ReloadOutlined />}
             onClick={() => loadUsers(pagination.current - 1, pagination.pageSize, searchText)}
