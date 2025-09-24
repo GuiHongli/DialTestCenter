@@ -10,7 +10,7 @@ import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
-import com.huawei.cloududn.dialingtest.model.AppType;
+import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.service.ArchiveParseResult;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;

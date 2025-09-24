@@ -5,7 +5,7 @@ import com.huawei.cloududn.dialingtest.dao.TestCaseDao;
 import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
-import com.huawei.cloududn.dialingtest.model.AppType;
+import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -49,10 +49,14 @@ public class TestCaseSetService {
      * 上传用例集
      */
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh) {
-        return uploadTestCaseSet(file, description, businessZh, false);
+        return uploadTestCaseSet(file, description, businessZh, false, "admin");
     }
     
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite) {
+        return uploadTestCaseSet(file, description, businessZh, overwrite, "admin");
+    }
+    
+    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite, String operatorUsername) {
         // 1. 文件验证
         validateFile(file);
         
@@ -100,7 +104,7 @@ public class TestCaseSetService {
             saveTestCases(testCaseSet.getId(), matchedTestCases);
             
             // 11. 记录操作日志
-            operationLogUtil.logTestCaseSetUpload("admin", testCaseSet);
+            operationLogUtil.logTestCaseSetUpload(operatorUsername, testCaseSet);
             
             return testCaseSet;
         } catch (Exception e) {
@@ -142,6 +146,10 @@ public class TestCaseSetService {
      * 更新用例集
      */
     public TestCaseSet updateTestCaseSet(Long id, UpdateTestCaseSetRequest request) {
+        return updateTestCaseSet(id, request, "admin");
+    }
+    
+    public TestCaseSet updateTestCaseSet(Long id, UpdateTestCaseSetRequest request, String operatorUsername) {
         TestCaseSet testCaseSet = getTestCaseSetById(id);
         
         if (request.getDescription() != null) {
@@ -157,7 +165,7 @@ public class TestCaseSetService {
         testCaseSetDao.update(testCaseSet);
         
         // 记录操作日志
-        operationLogUtil.logTestCaseSetUpdate("admin", testCaseSet);
+        operationLogUtil.logTestCaseSetUpdate(operatorUsername, testCaseSet);
         
         return testCaseSet;
     }
@@ -166,6 +174,10 @@ public class TestCaseSetService {
      * 删除用例集
      */
     public boolean deleteTestCaseSet(Long id) {
+        return deleteTestCaseSet(id, "admin");
+    }
+    
+    public boolean deleteTestCaseSet(Long id, String operatorUsername) {
         TestCaseSet testCaseSet = getTestCaseSetById(id);
         if (testCaseSet == null) {
             return false;
@@ -178,7 +190,7 @@ public class TestCaseSetService {
         testCaseSetDao.deleteById(id);
         
         // 记录操作日志
-        operationLogUtil.logTestCaseSetDelete("admin", testCaseSet);
+        operationLogUtil.logTestCaseSetDelete(operatorUsername, testCaseSet);
         
         return true;
     }

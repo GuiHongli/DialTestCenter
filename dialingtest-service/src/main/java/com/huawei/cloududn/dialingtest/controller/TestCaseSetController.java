@@ -121,7 +121,8 @@ public class TestCaseSetController implements TestCaseSetsApi {
             }
             
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
-            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite);
+            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
+            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite, operatorUsername);
             
             TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
             response.setSuccess(true);
@@ -173,7 +174,8 @@ public class TestCaseSetController implements TestCaseSetsApi {
     @Override
     public ResponseEntity<TestCaseSetResponse> testCaseSetsIdPut(String xUsername, Long id, UpdateTestCaseSetRequest body) {
         try {
-            TestCaseSet testCaseSet = testCaseSetService.updateTestCaseSet(id, body);
+            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
+            TestCaseSet testCaseSet = testCaseSetService.updateTestCaseSet(id, body, operatorUsername);
             if (testCaseSet == null) {
                 TestCaseSetResponse response = new TestCaseSetResponse();
                 response.setSuccess(false);
@@ -203,7 +205,8 @@ public class TestCaseSetController implements TestCaseSetsApi {
     @Override
     public ResponseEntity<SuccessResponse> testCaseSetsIdDelete(Long id, String xUsername) {
         try {
-            boolean deleted = testCaseSetService.deleteTestCaseSet(id);
+            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
+            boolean deleted = testCaseSetService.deleteTestCaseSet(id, operatorUsername);
             if (!deleted) {
                 SuccessResponse response = new SuccessResponse();
                 response.setSuccess(false);

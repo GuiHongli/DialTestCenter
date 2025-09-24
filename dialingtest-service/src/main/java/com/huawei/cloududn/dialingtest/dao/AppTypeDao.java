@@ -1,6 +1,6 @@
 package com.huawei.cloududn.dialingtest.dao;
 
-import com.huawei.cloududn.dialingtest.model.AppType;
+import com.huawei.cloududn.dialingtest.entity.AppType;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
