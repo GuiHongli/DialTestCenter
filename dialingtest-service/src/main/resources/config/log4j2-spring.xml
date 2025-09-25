@@ -44,6 +44,13 @@
             <AppenderRef ref="ErrorFileAppender"/>
         </Logger>
         
+        <!-- Exception Handler Logger -->
+        <Logger name="com.huawei.cloududn.dialingtest.exception" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Logger>
+        
         <!-- Spring Framework Loggers -->
         <Logger name="org.springframework" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
