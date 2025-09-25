@@ -5,11 +5,15 @@
 package com.huawei.cloududn.dialingtest.util;
 
 import com.huawei.cloududn.dialingtest.model.CreateOperationLogRequest;
+import com.huawei.cloududn.dialingtest.model.DialUser;
 import com.huawei.cloududn.dialingtest.model.OperationLog;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
+import com.huawei.cloududn.dialingtest.model.UserRole;
 import com.huawei.cloududn.dialingtest.service.OperationLogService;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +22,13 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * 操作记录工具类
  * 用于在业务操作中自动记录操作历史
+ * 支持用户操作、用例集操作、用户角色操作等
  *
  * @author g00940940
  * @since 2025-01-15
@@ -33,193 +40,39 @@ public class OperationLogUtil {
     @Autowired
     private OperationLogService operationLogService;
     
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectWriter objectWriter = objectMapper.writer();
+    
     /**
-     * 记录用户创建操作
+     * 将对象转换为JSON字符串
      *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     * @param userDetails 用户详细信息
+     * @param obj 要转换的对象
+     * @return JSON字符串
      */
-    public void logUserCreate(String operatorUsername, String targetUsername, String userDetails) {
+    private String objectToJson(Object obj) {
         try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("CREATE");
-            request.setOperationTarget("USER");
-            request.setOperationDescriptionZh("创建用户: " + targetUsername + "，详细信息: " + userDetails);
-            request.setOperationDescriptionEn("Create user: " + targetUsername + ", details: " + userDetails);
-            request.setOperationData("{\"targetUsername\": \"" + targetUsername + "\", \"userDetails\": \"" + userDetails + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user create operation for user: {}", targetUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user create operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user create operation: {}", e.getMessage());
+            return objectWriter.writeValueAsString(obj);
+        } catch (Exception e) {
+            logger.warn("Failed to convert object to JSON: {}", e.getMessage());
+            return "{}";
         }
     }
     
     /**
-     * 记录用户创建操作（简化版本）
-     *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     */
-    public void logUserCreate(String operatorUsername, String targetUsername) {
-        logUserCreate(operatorUsername, targetUsername, "新用户");
-    }
-    
-    /**
-     * 记录用户更新操作
-     *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     * @param oldValues 更新前的值
-     * @param newValues 更新后的值
-     */
-    public void logUserUpdate(String operatorUsername, String targetUsername, String oldValues, String newValues) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("UPDATE");
-            request.setOperationTarget("USER");
-            request.setOperationDescriptionZh("更新用户: " + targetUsername + "，由 " + oldValues + " 更改为 " + newValues);
-            request.setOperationDescriptionEn("Update user: " + targetUsername + ", changed from " + oldValues + " to " + newValues);
-            request.setOperationData("{\"targetUsername\": \"" + targetUsername + "\", \"oldValues\": \"" + oldValues + "\", \"newValues\": \"" + newValues + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user update operation for user: {}", targetUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user update operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user update operation: {}", e.getMessage());
-        }
-    }
-    
-    /**
-     * 记录用户更新操作（简化版本）
-     *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     */
-    public void logUserUpdate(String operatorUsername, String targetUsername) {
-        logUserUpdate(operatorUsername, targetUsername, "原值", "新值");
-    }
-    
-    /**
-     * 记录用户删除操作
-     *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     * @param userInfo 被删除用户的信息
-     */
-    public void logUserDelete(String operatorUsername, String targetUsername, String userInfo) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("DELETE");
-            request.setOperationTarget("USER");
-            request.setOperationDescriptionZh("删除用户: " + targetUsername + "，用户信息: " + userInfo);
-            request.setOperationDescriptionEn("Delete user: " + targetUsername + ", user info: " + userInfo);
-            request.setOperationData("{\"targetUsername\": \"" + targetUsername + "\", \"userInfo\": \"" + userInfo + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user delete operation for user: {}", targetUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user delete operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user delete operation: {}", e.getMessage());
-        }
-    }
-    
-    /**
-     * 记录用户删除操作（简化版本）
-     *
-     * @param operatorUsername 操作用户名
-     * @param targetUsername 目标用户名
-     */
-    public void logUserDelete(String operatorUsername, String targetUsername) {
-        logUserDelete(operatorUsername, targetUsername, "用户已删除");
-    }
-    
-    /**
-     * 记录用户查看操作
-     *
-     */
-    public void logUserView(String operatorUsername, String targetUsername) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("VIEW");
-            request.setOperationTarget("USER");
-            request.setOperationDescriptionZh("查看用户: " + targetUsername);
-            request.setOperationDescriptionEn("View user: " + targetUsername);
-            request.setOperationData("{\"targetUsername\": \"" + targetUsername + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user view operation for user: {}", targetUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user view operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user view operation: {}", e.getMessage());
-        }
-    }
-    
-    /**
-     * 记录用户登录操作
-     *
-     */
-    public void logUserLogin(String username) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(username);
-            request.setOperationType("LOGIN");
-            request.setOperationTarget("SYSTEM");
-            request.setOperationDescriptionZh("用户登录: " + username);
-            request.setOperationDescriptionEn("User login: " + username);
-            request.setOperationData("{\"username\": \"" + username + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user login operation for user: {}", username);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user login operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user login operation: {}", e.getMessage());
-        }
-    }
-    
-    /**
-     * 记录用户登出操作
-     *
-     */
-    public void logUserLogout(String username) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(username);
-            request.setOperationType("LOGOUT");
-            request.setOperationTarget("SYSTEM");
-            request.setOperationDescriptionZh("用户登出: " + username);
-            request.setOperationDescriptionEn("User logout: " + username);
-            request.setOperationData("{\"username\": \"" + username + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged user logout operation for user: {}", username);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for user logout operation: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log user logout operation: {}", e.getMessage());
-        }
-    }
-    
-    /**
-     * 记录通用操作
+     * 通用的操作记录方法
      *
      * @param operatorUsername 操作用户名
      * @param operationType 操作类型
      * @param operationTarget 操作目标
+     * @param descriptionZh 中文描述
+     * @param descriptionEn 英文描述
+     * @param operationDataBuilder 操作数据构建器函数
+     * @param debugMessage 调试日志消息
      */
-    public void logOperation(String operatorUsername, String operationType, String operationTarget,
-                           String descriptionZh, String descriptionEn, String operationData) {
+    private void logOperation(String operatorUsername, String operationType, String operationTarget,
+                            String descriptionZh, String descriptionEn,
+                            Function<OperationDataBuilder, OperationDataBuilder> operationDataBuilder,
+                            String debugMessage) {
         try {
             CreateOperationLogRequest request = new CreateOperationLogRequest();
             request.setUsername(operatorUsername);
@@ -227,16 +80,70 @@ public class OperationLogUtil {
             request.setOperationTarget(operationTarget);
             request.setOperationDescriptionZh(descriptionZh);
             request.setOperationDescriptionEn(descriptionEn);
-            request.setOperationData(operationData);
+            
+            Map<String, Object> operationData = operationDataBuilder.apply(new OperationDataBuilder()).build();
+            request.setOperationData(objectToJson(operationData));
             
             operationLogService.createOperationLog(request);
-            logger.debug("Logged operation: {} {} for user: {}", operationType, operationTarget, operatorUsername);
+            logger.debug(debugMessage);
         } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for operation logging: {}", e.getMessage());
+            logger.warn("Invalid parameters for {} operation: {}", operationType, e.getMessage());
         } catch (RuntimeException e) {
-            logger.warn("Failed to log operation: {}", e.getMessage());
+            logger.warn("Failed to log {} operation: {}", operationType, e.getMessage());
         }
     }
+    
+    /**
+     * 记录用户创建操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param targetUsername 目标用户名
+     * @param userDetails 用户详细信息对象
+     */
+    public void logUserCreate(String operatorUsername, String targetUsername, DialUser userDetails) {
+        logOperation(operatorUsername, "CREATE", "USER",
+            "创建用户: " + targetUsername,
+            "Create user: " + targetUsername,
+            builder -> builder.userCreate(userDetails),
+            "Logged user create operation for user: " + targetUsername);
+    }
+    
+
+    
+    /**
+     * 记录用户更新操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param targetUsername 目标用户名
+     * @param oldValues 更新前的DialUser对象
+     * @param newValues 更新后的DialUser对象
+     */
+    public void logUserUpdate(String operatorUsername, String targetUsername, DialUser oldValues, DialUser newValues) {
+        logOperation(operatorUsername, "UPDATE", "USER",
+            "更新用户: " + targetUsername,
+            "Update user: " + targetUsername,
+            builder -> builder.userUpdate(oldValues, newValues),
+            "Logged user update operation for user: " + targetUsername);
+    }
+    
+
+    
+    /**
+     * 记录用户删除操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param targetUsername 目标用户名
+     * @param userInfo 被删除用户的DialUser对象
+     */
+    public void logUserDelete(String operatorUsername, String targetUsername, DialUser userInfo) {
+        logOperation(operatorUsername, "DELETE", "USER",
+            "删除用户: " + targetUsername,
+            "Delete user: " + targetUsername,
+            builder -> builder.userDelete(userInfo),
+            "Logged user delete operation for user: " + targetUsername);
+    }
+    
+  
     
     /**
      * 记录用例集上传操作
@@ -245,47 +152,26 @@ public class OperationLogUtil {
      * @param testCaseSet 用例集信息
      */
     public void logTestCaseSetUpload(String operatorUsername, TestCaseSet testCaseSet) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("CREATE");
-            request.setOperationTarget("TEST_CASE_SET");
-            request.setOperationDescriptionZh("上传用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationDescriptionEn("Upload test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged test case set upload: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for test case set upload logging: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log test case set upload: {}", e.getMessage());
-        }
+        logOperation(operatorUsername, "CREATE", "TEST_CASE_SET",
+            "上传用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+            "Upload test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+            builder -> builder.testCaseSetCreate(testCaseSet),
+            "Logged test case set upload: " + testCaseSet.getName() + " v" + testCaseSet.getVersion() + " by user: " + operatorUsername);
     }
     
     /**
      * 记录用例集更新操作
      *
      * @param operatorUsername 操作用户名
-     * @param testCaseSet 用例集信息
+     * @param oldValues 更新前的TestCaseSet对象
+     * @param newValues 更新后的TestCaseSet对象
      */
-    public void logTestCaseSetUpdate(String operatorUsername, TestCaseSet testCaseSet) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("UPDATE");
-            request.setOperationTarget("TEST_CASE_SET");
-            request.setOperationDescriptionZh("更新用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationDescriptionEn("Update test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged test case set update: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for test case set update logging: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log test case set update: {}", e.getMessage());
-        }
+    public void logTestCaseSetUpdate(String operatorUsername, TestCaseSet oldValues, TestCaseSet newValues) {
+        logOperation(operatorUsername, "UPDATE", "TEST_CASE_SET",
+            "更新用例集: " + newValues.getName() + " v" + newValues.getVersion(),
+            "Update test case set: " + newValues.getName() + " v" + newValues.getVersion(),
+            builder -> builder.testCaseSetUpdate(oldValues, newValues),
+            "Logged test case set update: " + newValues.getName() + " v" + newValues.getVersion() + " by user: " + operatorUsername);
     }
     
     /**
@@ -295,21 +181,66 @@ public class OperationLogUtil {
      * @param testCaseSet 用例集信息
      */
     public void logTestCaseSetDelete(String operatorUsername, TestCaseSet testCaseSet) {
-        try {
-            CreateOperationLogRequest request = new CreateOperationLogRequest();
-            request.setUsername(operatorUsername);
-            request.setOperationType("DELETE");
-            request.setOperationTarget("TEST_CASE_SET");
-            request.setOperationDescriptionZh("删除用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationDescriptionEn("Delete test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion());
-            request.setOperationData("{\"testCaseSetId\": " + testCaseSet.getId() + ", \"name\": \"" + testCaseSet.getName() + "\", \"version\": \"" + testCaseSet.getVersion() + "\"}");
-            
-            operationLogService.createOperationLog(request);
-            logger.debug("Logged test case set delete: {} v{} by user: {}", testCaseSet.getName(), testCaseSet.getVersion(), operatorUsername);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parameters for test case set delete logging: {}", e.getMessage());
-        } catch (RuntimeException e) {
-            logger.warn("Failed to log test case set delete: {}", e.getMessage());
-        }
+        logOperation(operatorUsername, "DELETE", "TEST_CASE_SET",
+            "删除用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+            "Delete test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+            builder -> builder.testCaseSetDelete(testCaseSet),
+            "Logged test case set delete: " + testCaseSet.getName() + " v" + testCaseSet.getVersion() + " by user: " + operatorUsername);
     }
+    
+    /**
+     * 记录用户角色创建操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param userRole 用户角色对象
+     */
+    public void logUserRoleCreate(String operatorUsername, UserRole userRole) {
+        logOperation(operatorUsername, "CREATE", "USER_ROLE",
+            "创建用户角色: " + userRole.getUsername() + " -> " + userRole.getRole(),
+            "Create user role: " + userRole.getUsername() + " -> " + userRole.getRole(),
+            builder -> builder.userRoleCreate(userRole),
+            "Logged user role create operation for user: " + userRole.getUsername() + " with role: " + userRole.getRole());
+    }
+    
+    /**
+     * 记录用户角色更新操作
+     *
+     * @param operatorUsername 操作用户名
+     * @param oldValues 更新前的UserRole对象
+     * @param newValues 更新后的UserRole对象
+     */
+    public void logUserRoleUpdate(String operatorUsername, UserRole oldValues, UserRole newValues) {
+        logOperation(operatorUsername, "UPDATE", "USER_ROLE",
+            "更新用户角色: " + oldValues.getUsername() + " " + oldValues.getRole() + " -> " + newValues.getRole(),
+            "Update user role: " + oldValues.getUsername() + " " + oldValues.getRole() + " -> " + newValues.getRole(),
+            builder -> builder.userRoleUpdate(oldValues, newValues),
+            "Logged user role update operation: " + oldValues + " -> " + newValues);
+    }
+    
+  /**
+   * 记录用户角色删除操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param userRole 被删除的用户角色对象
+   */
+  public void logUserRoleDelete(String operatorUsername, UserRole userRole) {
+    logOperation(operatorUsername, "DELETE", "USER_ROLE",
+        "删除用户角色: " + userRole.getUsername() + " -> " + userRole.getRole(),
+        "Delete user role: " + userRole.getUsername() + " -> " + userRole.getRole(),
+        builder -> builder.userRoleDelete(userRole),
+        "Logged user role delete operation for user: " + userRole.getUsername() + " with role: " + userRole.getRole());
+  }
+
+  /**
+   * 记录用户登录操作
+   *
+   * @param username 用户名
+   */
+  public void logUserLogin(String username) {
+    logOperation(username, "LOGIN", "SYSTEM",
+        "用户登录: " + username,
+        "User login: " + username,
+        builder -> builder.userLogin(username),
+        "Logged user login operation for user: " + username);
+  }
 }

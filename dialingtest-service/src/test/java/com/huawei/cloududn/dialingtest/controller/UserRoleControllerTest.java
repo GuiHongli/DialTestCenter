@@ -6,7 +6,7 @@ package com.huawei.cloududn.dialingtest.controller;
 
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
-import com.huawei.cloududn.dialingtest.util.UserRoleOperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class UserRoleControllerTest {
     private UserRoleService userRoleService;
 
     @Mock
-    private UserRoleOperationLogUtil operationLogUtil;
+    private OperationLogUtil operationLogUtil;
 
     @InjectMocks
     private UserRoleController userRoleController;

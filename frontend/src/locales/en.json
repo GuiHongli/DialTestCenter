@@ -393,6 +393,18 @@
       "deleteConfirm": "Are you sure to delete this operation log?",
       "noData": "No operation logs",
       "searchPlaceholder": "Please enter search keyword"
+    },
+    "detail": {
+      "title": "Operation Log Details",
+      "basicInfo": "Basic Information",
+      "operationData": "Operation Data Details",
+      "operationDataTitle": "Operation Data (operationData)",
+      "hasData": "Has Data",
+      "noData": "No Data",
+      "noOperationData": "No operation data available",
+      "close": "Close",
+      "viewDetail": "View Details",
+      "loadDetailFailed": "Failed to load details"
     }
   },
   "language": {

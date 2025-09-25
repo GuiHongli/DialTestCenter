@@ -13,7 +13,7 @@ import com.huawei.cloududn.dialingtest.model.Role;
 import com.huawei.cloududn.dialingtest.model.RoleResponse;
 import com.huawei.cloududn.dialingtest.model.ExecutorCountResponse;
 import com.huawei.cloududn.dialingtest.model.UserRolePageResponseData;
-import com.huawei.cloududn.dialingtest.util.UserRoleOperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +38,7 @@ public class UserRoleController implements UserRolesApi {
     private UserRoleService userRoleService;
     
     @Autowired
-    private UserRoleOperationLogUtil operationLogUtil;
+    private OperationLogUtil operationLogUtil;
     
     @Override
     public ResponseEntity<UserRolePageResponse> userRolesGet(Integer page, Integer size, String search) {

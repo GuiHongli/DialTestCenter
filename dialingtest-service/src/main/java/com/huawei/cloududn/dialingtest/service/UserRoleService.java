@@ -3,7 +3,7 @@ package com.huawei.cloududn.dialingtest.service;
 import com.huawei.cloududn.dialingtest.dao.RoleDao;
 import com.huawei.cloududn.dialingtest.dao.UserRoleDao;
 import com.huawei.cloududn.dialingtest.model.*;
-import com.huawei.cloududn.dialingtest.util.UserRoleOperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,7 @@ public class UserRoleService {
     private RoleDao roleDao;
     
     @Autowired
-    private UserRoleOperationLogUtil operationLogUtil;
+    private OperationLogUtil operationLogUtil;
     
     /**
      * 创建用户角色关系
@@ -51,7 +51,7 @@ public class UserRoleService {
         userRoleDao.insert(userRole);
         
         // 记录操作日志到操作记录模块
-        operationLogUtil.logUserRoleCreate(operatorUsername, username, role);
+        operationLogUtil.logUserRoleCreate(operatorUsername, userRole);
         
         return userRole;
     }
@@ -125,8 +125,15 @@ public class UserRoleService {
         
         userRoleDao.update(existingUserRole);
         
+      
+        
+        UserRole newUserRole = new UserRole();
+        newUserRole.setId(existingUserRole.getId());
+        newUserRole.setUsername(username);
+        newUserRole.setRole(UserRole.RoleEnum.fromValue(role));
+        
         // 记录操作日志
-        operationLogUtil.logUserRoleUpdate(operatorUsername, oldUsername, username, oldRole, role);
+        operationLogUtil.logUserRoleUpdate(operatorUsername, existingUserRole, newUserRole);
         
         return existingUserRole;
     }
@@ -148,7 +155,7 @@ public class UserRoleService {
         userRoleDao.deleteById(id);
         
         // 记录操作日志
-        operationLogUtil.logUserRoleDelete(operatorUsername, username, role);
+        operationLogUtil.logUserRoleDelete(operatorUsername, existingUserRole);
     }
     
     /**

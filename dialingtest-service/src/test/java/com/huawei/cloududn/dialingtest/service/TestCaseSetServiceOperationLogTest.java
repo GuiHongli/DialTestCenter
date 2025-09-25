@@ -112,7 +112,7 @@ public class TestCaseSetServiceOperationLogTest {
         testCaseSetService.updateTestCaseSet(testCaseSetId, request, operatorUsername);
 
         // Assert
-        verify(operationLogUtil, times(1)).logTestCaseSetUpdate(eq(operatorUsername), any(TestCaseSet.class));
+        verify(operationLogUtil, times(1)).logTestCaseSetUpdate(eq(operatorUsername), any(TestCaseSet.class), any(TestCaseSet.class));
     }
 
     /**

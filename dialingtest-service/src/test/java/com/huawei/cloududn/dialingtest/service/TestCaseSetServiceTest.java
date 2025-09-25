@@ -381,7 +381,7 @@ public class TestCaseSetServiceTest {
 
         verify(testCaseSetDao, times(1)).findById(testId);
         verify(testCaseSetDao, times(1)).update(any(TestCaseSet.class));
-        verify(operationLogUtil, times(1)).logTestCaseSetUpdate(eq("admin"), any(TestCaseSet.class));
+        verify(operationLogUtil, times(1)).logTestCaseSetUpdate(eq("admin"), any(TestCaseSet.class), any(TestCaseSet.class));
     }
 
     /**

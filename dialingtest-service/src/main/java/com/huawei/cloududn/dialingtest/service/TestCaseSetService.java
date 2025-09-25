@@ -152,6 +152,18 @@ public class TestCaseSetService {
     public TestCaseSet updateTestCaseSet(Long id, UpdateTestCaseSetRequest request, String operatorUsername) {
         TestCaseSet testCaseSet = getTestCaseSetById(id);
         
+        // 创建更新前的对象用于操作记录
+        TestCaseSet oldTestCaseSet = new TestCaseSet();
+        oldTestCaseSet.setId(testCaseSet.getId());
+        oldTestCaseSet.setName(testCaseSet.getName());
+        oldTestCaseSet.setVersion(testCaseSet.getVersion());
+        oldTestCaseSet.setDescription(testCaseSet.getDescription());
+        oldTestCaseSet.setBusinessZh(testCaseSet.getBusinessZh());
+        oldTestCaseSet.setBusinessEn(testCaseSet.getBusinessEn());
+        oldTestCaseSet.setFileSize(testCaseSet.getFileSize());
+        oldTestCaseSet.setSha256(testCaseSet.getSha256());
+        
+        // 更新字段
         if (request.getDescription() != null) {
             testCaseSet.setDescription(request.getDescription());
         }
@@ -165,7 +177,7 @@ public class TestCaseSetService {
         testCaseSetDao.update(testCaseSet);
         
         // 记录操作日志
-        operationLogUtil.logTestCaseSetUpdate(operatorUsername, testCaseSet);
+        operationLogUtil.logTestCaseSetUpdate(operatorUsername, oldTestCaseSet, testCaseSet);
         
         return testCaseSet;
     }

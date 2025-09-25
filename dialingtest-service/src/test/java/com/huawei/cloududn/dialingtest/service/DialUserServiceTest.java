@@ -197,7 +197,7 @@ public class DialUserServiceTest {
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
         verify(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
-        verify(operationLogUtil).logUserCreate("testuser", "newuser", "用户名:newuser, 密码:已设置, 角色:EXECUTOR");
+        verify(operationLogUtil).logUserCreate("testuser", "newuser", any(DialUser.class));
     }
 
     @Test
@@ -254,7 +254,7 @@ public class DialUserServiceTest {
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).create(any(DialUser.class));
         verify(userRoleService).createUserRole("newuser", "EXECUTOR", "SYSTEM");
-        verify(operationLogUtil, never()).logUserCreate(anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserCreate(anyString(), anyString(), any(DialUser.class));
     }
 
     @Test
@@ -277,7 +277,7 @@ public class DialUserServiceTest {
         verify(dialUserDao).findById(1);
         verify(dialUserDao).findByUsername("newuser");
         verify(dialUserDao).update(any(DialUser.class));
-        verify(operationLogUtil).logUserUpdate("testuser", "newuser", "用户名:olduser, 密码:已设置", "用户名:newuser, 密码:已更新");
+        verify(operationLogUtil).logUserUpdate("testuser", "newuser", any(DialUser.class), any(DialUser.class));
     }
 
     @Test
@@ -355,7 +355,7 @@ public class DialUserServiceTest {
         // Assert
         verify(dialUserDao).findById(1);
         verify(dialUserDao).deleteById(1);
-        verify(operationLogUtil).logUserDelete("system", "testuser", "用户名:testuser, 最后登录:" + existingUser.getLastLoginTime());
+        verify(operationLogUtil).logUserDelete("system", "testuser", existingUser);
     }
 
     @Test
@@ -407,7 +407,7 @@ public class DialUserServiceTest {
         // Assert
         verify(dialUserDao).findById(1);
         verify(dialUserDao).deleteById(1);
-        verify(operationLogUtil).logUserDelete("admin", "testuser", "用户名:testuser, 最后登录:" + existingUser.getLastLoginTime());
+        verify(operationLogUtil).logUserDelete("admin", "testuser", existingUser);
     }
 
     @Test

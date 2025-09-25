@@ -13,6 +13,10 @@ import {
   message,
   Tooltip,
   Typography,
+  Modal,
+  Descriptions,
+  Collapse,
+  Badge,
 } from 'antd'
 import {
   ReloadOutlined,
@@ -23,6 +27,7 @@ import {
   UserOutlined,
   SettingOutlined,
   AimOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons'
 import { OperationLogService, OperationLogUtils } from '../services/operationLogService'
 import { 
@@ -37,6 +42,7 @@ import moment, { Moment } from 'moment'
 const { Option } = Select
 const { RangePicker } = DatePicker
 const { Title, Text } = Typography
+const { Panel } = Collapse
 
 /**
  * 操作记录管理组件
@@ -52,6 +58,10 @@ const OperationLogManagement: React.FC = () => {
     total: 0,
   })
   const [filters, setFilters] = useState<OperationLogFilter>({})
+  
+  // 详情模态框状态
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
+  const [selectedOperationLog, setSelectedOperationLog] = useState<OperationLog | null>(null)
 
   // 加载操作记录
   const loadOperationLogs = useCallback(async (params: OperationLogQueryParams = {}) => {
@@ -136,6 +146,28 @@ const OperationLogManagement: React.FC = () => {
     }))
   }
 
+  // 处理查看详情
+  const handleViewDetail = async (record: OperationLog) => {
+    try {
+      setLoading(true)
+      // 获取完整的操作记录详情
+      const fullRecord = await OperationLogService.getOperationLogById(record.id)
+      setSelectedOperationLog(fullRecord)
+      setDetailModalVisible(true)
+    } catch (error) {
+      console.error('Failed to load operation log detail:', error)
+      message.error('加载详情失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 关闭详情模态框
+  const handleCloseDetailModal = () => {
+    setDetailModalVisible(false)
+    setSelectedOperationLog(null)
+  }
+
 
   // 表格列配置
   const columns = [
@@ -212,17 +244,14 @@ const OperationLogManagement: React.FC = () => {
       title: '操作',
       key: 'action',
       width: 120,
-      render: () => (
+      render: (_, record: OperationLog) => (
         <Space size="small">
           <Tooltip title="查看详情">
             <Button
               type="text"
               icon={<EyeOutlined />}
               size="small"
-              onClick={() => {
-                // TODO: 实现查看详情功能
-                message.info('查看详情功能待实现')
-              }}
+              onClick={() => handleViewDetail(record)}
             />
           </Tooltip>
         </Space>
@@ -373,6 +402,112 @@ const OperationLogManagement: React.FC = () => {
           scroll={{ x: 1200, y: 520 }}
         />
       </Card>
+
+      {/* 操作记录详情模态框 */}
+      <Modal
+        title={
+          <Space>
+            <InfoCircleOutlined style={{ color: '#1890ff' }} />
+            <span>操作记录详情</span>
+          </Space>
+        }
+        open={detailModalVisible}
+        onCancel={handleCloseDetailModal}
+        footer={[
+          <Button key="close" onClick={handleCloseDetailModal}>
+            关闭
+          </Button>
+        ]}
+        width={800}
+        style={{ top: 20 }}
+      >
+        {selectedOperationLog && (
+          <div>
+            {/* 基本信息 */}
+            <Card 
+              title="基本信息" 
+              size="small" 
+              style={{ marginBottom: 16 }}
+              headStyle={{ backgroundColor: '#f5f5f5' }}
+            >
+              <Descriptions column={2} size="small">
+                <Descriptions.Item label="记录ID">
+                  <Badge count={selectedOperationLog.id} style={{ backgroundColor: '#52c41a' }} />
+                </Descriptions.Item>
+                <Descriptions.Item label="操作用户">
+                  <Space>
+                    <UserOutlined />
+                    {selectedOperationLog.username}
+                  </Space>
+                </Descriptions.Item>
+                <Descriptions.Item label="操作时间">
+                  {OperationLogUtils.formatOperationTime(selectedOperationLog.operationTime)}
+                </Descriptions.Item>
+                <Descriptions.Item label="操作类型">
+                  <Tag color={OperationLogUtils.getOperationTypeColor(selectedOperationLog.operationType)}>
+                    {OperationLogUtils.getOperationTypeText(selectedOperationLog.operationType)}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="操作对象">
+                  <Space>
+                    <AimOutlined />
+                    {OperationLogUtils.getOperationTargetText(selectedOperationLog.operationTarget)}
+                  </Space>
+                </Descriptions.Item>
+                <Descriptions.Item label="操作描述" span={2}>
+                  <Text>{selectedOperationLog.operationDescriptionZh || selectedOperationLog.operationDescriptionEn}</Text>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* 操作数据详情 */}
+            <Card 
+              title="操作数据详情" 
+              size="small"
+              headStyle={{ backgroundColor: '#f5f5f5' }}
+            >
+              <Collapse defaultActiveKey={['operationData']}>
+                <Panel 
+                  header={
+                    <Space>
+                      <SettingOutlined />
+                      <span>操作数据 (operationData)</span>
+                      <Badge 
+                        count={selectedOperationLog.operationData ? '有数据' : '无数据'} 
+                        style={{ 
+                          backgroundColor: selectedOperationLog.operationData ? '#52c41a' : '#d9d9d9',
+                          color: selectedOperationLog.operationData ? '#fff' : '#666'
+                        }} 
+                      />
+                    </Space>
+                  } 
+                  key="operationData"
+                >
+                  {selectedOperationLog.operationData ? (
+                    <div>
+                      <pre style={{ 
+                        background: '#f5f5f5', 
+                        padding: '12px', 
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        lineHeight: '1.5',
+                        maxHeight: '400px',
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                      }}>
+                        {JSON.stringify(selectedOperationLog.operationData, null, 2)}
+                      </pre>
+                    </div>
+                  ) : (
+                    <Text type="secondary">暂无操作数据</Text>
+                  )}
+                </Panel>
+              </Collapse>
+            </Card>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

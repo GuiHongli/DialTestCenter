@@ -393,6 +393,18 @@
       "deleteConfirm": "确定要删除这条操作记录吗？",
       "noData": "暂无操作记录",
       "searchPlaceholder": "请输入搜索关键词"
+    },
+    "detail": {
+      "title": "操作记录详情",
+      "basicInfo": "基本信息",
+      "operationData": "操作数据详情",
+      "operationDataTitle": "操作数据 (operationData)",
+      "hasData": "有数据",
+      "noData": "无数据",
+      "noOperationData": "暂无操作数据",
+      "close": "关闭",
+      "viewDetail": "查看详情",
+      "loadDetailFailed": "加载详情失败"
     }
   },
   "language": {

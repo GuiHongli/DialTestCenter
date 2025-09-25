@@ -7,7 +7,7 @@ package com.huawei.cloududn.dialingtest.service;
 import com.huawei.cloududn.dialingtest.dao.RoleDao;
 import com.huawei.cloududn.dialingtest.dao.UserRoleDao;
 import com.huawei.cloududn.dialingtest.model.*;
-import com.huawei.cloududn.dialingtest.util.UserRoleOperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class UserRoleServiceTest {
     private RoleDao roleDao;
 
     @Mock
-    private UserRoleOperationLogUtil operationLogUtil;
+    private OperationLogUtil operationLogUtil;
 
     @InjectMocks
     private UserRoleService userRoleService;
@@ -82,7 +82,7 @@ public class UserRoleServiceTest {
         assertEquals(UserRole.RoleEnum.ADMIN, result.getRole());
         verify(userRoleDao).existsByUsernameAndRole("testuser", "ADMIN");
         verify(userRoleDao).insert(any(UserRole.class));
-        verify(operationLogUtil).logUserRoleCreate("admin", "testuser", "ADMIN");
+        verify(operationLogUtil).logUserRoleCreate("admin", any(UserRole.class));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class UserRoleServiceTest {
 
         verify(userRoleDao, never()).existsByUsernameAndRole(anyString(), anyString());
         verify(userRoleDao, never()).insert(any(UserRole.class));
-        verify(operationLogUtil, never()).logUserRoleCreate(anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserRoleCreate(anyString(), any(UserRole.class));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class UserRoleServiceTest {
 
         verify(userRoleDao).existsByUsernameAndRole("testuser", "ADMIN");
         verify(userRoleDao, never()).insert(any(UserRole.class));
-        verify(operationLogUtil, never()).logUserRoleCreate(anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserRoleCreate(anyString(), any(UserRole.class));
     }
 
     @Test
@@ -262,7 +262,7 @@ public class UserRoleServiceTest {
         assertEquals(UserRole.RoleEnum.ADMIN, result.getRole());
         verify(userRoleDao).findById(1);
         verify(userRoleDao).update(any(UserRole.class));
-        verify(operationLogUtil).logUserRoleUpdate("admin", "testuser", "testuser", "OPERATOR", "ADMIN");
+        verify(operationLogUtil).logUserRoleUpdate("admin", any(UserRole.class), any(UserRole.class));
     }
 
     @Test
@@ -285,7 +285,7 @@ public class UserRoleServiceTest {
 
         verify(userRoleDao).findById(1);
         verify(userRoleDao, never()).update(any(UserRole.class));
-        verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), any(UserRole.class), any(UserRole.class));
     }
 
     @Test
@@ -303,7 +303,7 @@ public class UserRoleServiceTest {
 
         verify(userRoleDao).findById(1);
         verify(userRoleDao, never()).update(any(UserRole.class));
-        verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), any(UserRole.class), any(UserRole.class));
     }
 
     @Test
@@ -323,7 +323,7 @@ public class UserRoleServiceTest {
         // Assert
         verify(userRoleDao).findById(1);
         verify(userRoleDao).deleteById(1);
-        verify(operationLogUtil).logUserRoleDelete("admin", "testuser", "ADMIN");
+        verify(operationLogUtil).logUserRoleDelete("admin", any(UserRole.class));
     }
 
     @Test
@@ -341,7 +341,7 @@ public class UserRoleServiceTest {
 
         verify(userRoleDao).findById(1);
         verify(userRoleDao, never()).deleteById(anyInt());
-        verify(operationLogUtil, never()).logUserRoleDelete(anyString(), anyString(), anyString());
+        verify(operationLogUtil, never()).logUserRoleDelete(anyString(), any(UserRole.class));
     }
 
     @Test

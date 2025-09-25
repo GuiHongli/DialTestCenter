@@ -112,8 +112,7 @@ public class DialUserService {
         }
         
         // 记录操作日志
-        String userDetails = "用户名:" + username + ", 密码:已设置, 角色:EXECUTOR";
-        operationLogUtil.logUserCreate(operatorUsername, username, userDetails);
+        operationLogUtil.logUserCreate(operatorUsername, username, user);
         
         return user;
     }
@@ -158,31 +157,21 @@ public class DialUserService {
             throw new IllegalStateException("更新用户失败，数据库操作未生效");
         }
         
-        // 构建变更信息
-        StringBuilder oldValues = new StringBuilder();
-        StringBuilder newValues = new StringBuilder();
+        // 创建更新前后的DialUser对象用于操作记录
+        DialUser oldUser = new DialUser();
+        oldUser.setId(existingUser.getId());
+        oldUser.setUsername(originalUsername);
+        oldUser.setPassword("已设置");
+        oldUser.setLastLoginTime(existingUser.getLastLoginTime());
         
-        // 记录用户名变更
-        if (!originalUsername.equals(username)) {
-            oldValues.append("用户名:").append(originalUsername);
-            newValues.append("用户名:").append(username);
-        }
-        
-        // 记录密码变更
-        if (password != null && !password.trim().isEmpty()) {
-            if (oldValues.length() > 0) {
-                oldValues.append(", ");
-                newValues.append(", ");
-            }
-            oldValues.append("密码:已设置");
-            newValues.append("密码:已更新");
-        }
-        
-        String oldValuesStr = oldValues.length() > 0 ? oldValues.toString() : "无变更";
-        String newValuesStr = newValues.length() > 0 ? newValues.toString() : "无变更";
+        DialUser newUser = new DialUser();
+        newUser.setId(existingUser.getId());
+        newUser.setUsername(username);
+        newUser.setPassword(password != null && !password.trim().isEmpty() ? "已更新" : "未变更");
+        newUser.setLastLoginTime(existingUser.getLastLoginTime());
         
         // 记录操作日志
-        operationLogUtil.logUserUpdate(operatorUsername, username, oldValuesStr, newValuesStr);
+        operationLogUtil.logUserUpdate(operatorUsername, username, oldUser, newUser);
         
         return existingUser;
     }
@@ -210,8 +199,7 @@ public class DialUserService {
         }
         
         // 记录操作日志
-        String userInfo = "用户名:" + username + ", 最后登录:" + user.getLastLoginTime();
-        operationLogUtil.logUserDelete(operatorUsername, username, userInfo);
+        operationLogUtil.logUserDelete(operatorUsername, username, user);
     }
     
     /**
