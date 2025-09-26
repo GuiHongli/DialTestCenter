@@ -35,6 +35,9 @@ paths:
                 businessZh:
                   type: string
                   description: "业务类型（中文）"
+                businessEn:
+                  type: string
+                  description: "业务类型（英文）"
                 overwrite:
                   type: string
                   description: "是否覆盖已存在的用例集，默认为false"

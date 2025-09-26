@@ -45,10 +45,21 @@ public class FileUploadController {
      * 上传用例集文件
      *
      * @param request HTTP请求对象
+     * @param description 用例集描述信息（可选）
+     * @param businessZh 业务类型中文（可选）
+     * @param businessEn 业务类型英文（可选）
+     * @param overwrite 是否覆盖已存在的用例集（可选，默认为false）
+     * @param xUsername 操作用户名（可选，默认为admin）
      * @return 上传结果响应
      */
-    @PostMapping("/test-case-sets")
-    public ResponseEntity<TestCaseSetUploadResponse> uploadTestCaseSet(HttpServletRequest request) {
+    @PostMapping("/upload")
+    public ResponseEntity<TestCaseSetUploadResponse> uploadTestCaseSet(
+            HttpServletRequest request,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "businessZh", required = false) String businessZh,
+            @RequestParam(value = "businessEn", required = false) String businessEn,
+            @RequestParam(value = "overwrite", required = false, defaultValue = "false") String overwrite,
+            @RequestHeader(value = "X-Username", required = false) String xUsername) {
         logger.info("Received file upload request");
         
         try {
@@ -79,16 +90,7 @@ public class FileUploadController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 获取其他参数
-            String description = multipartRequest.getParameter("description");
-            String businessZh = multipartRequest.getParameter("businessZh");
-            String overwrite = multipartRequest.getParameter("overwrite");
-            String xUsername = request.getHeader("X-Username");
-            
             // 设置默认值
-            if (overwrite == null) {
-                overwrite = "false";
-            }
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             
@@ -96,7 +98,7 @@ public class FileUploadController {
             
             // 调用服务层处理文件上传
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(
-                file, description, businessZh, isOverwrite, operatorUsername);
+                file, description, businessZh, businessEn, isOverwrite, operatorUsername);
             
             TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
             response.setSuccess(true);

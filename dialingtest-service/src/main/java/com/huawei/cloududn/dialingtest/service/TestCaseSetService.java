@@ -49,14 +49,18 @@ public class TestCaseSetService {
      * 上传用例集
      */
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh) {
-        return uploadTestCaseSet(file, description, businessZh, false, "admin");
+        return uploadTestCaseSet(file, description, businessZh, null, false, "admin");
     }
     
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite) {
-        return uploadTestCaseSet(file, description, businessZh, overwrite, "admin");
+        return uploadTestCaseSet(file, description, businessZh, null, overwrite, "admin");
     }
     
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite, String operatorUsername) {
+        return uploadTestCaseSet(file, description, businessZh, null, overwrite, operatorUsername);
+    }
+    
+    public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, String businessEn, boolean overwrite, String operatorUsername) {
         // 1. 文件验证
         validateFile(file);
         

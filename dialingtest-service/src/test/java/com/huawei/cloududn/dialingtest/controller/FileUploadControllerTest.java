@@ -83,7 +83,8 @@ public class FileUploadControllerTest {
         )).thenReturn(mockTestCaseSet);
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "testuser");
         
         // Assert
         assertNotNull(response);
@@ -118,7 +119,8 @@ public class FileUploadControllerTest {
         )).thenReturn(mockTestCaseSet);
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "true", "testuser");
         
         // Assert
         assertNotNull(response);
@@ -141,7 +143,8 @@ public class FileUploadControllerTest {
         MockHttpServletRequest nonMultipartRequest = new MockHttpServletRequest();
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(nonMultipartRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            nonMultipartRequest, null, null, null, "false", null);
         
         // Assert
         assertNotNull(response);
@@ -171,7 +174,8 @@ public class FileUploadControllerTest {
         mockRequest.addFile(emptyFile);
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "testuser");
         
         // Assert
         assertNotNull(response);
@@ -204,7 +208,8 @@ public class FileUploadControllerTest {
         )).thenReturn(mockTestCaseSet);
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", null);
         
         // Assert
         assertNotNull(response);
@@ -235,7 +240,8 @@ public class FileUploadControllerTest {
         )).thenThrow(new IllegalArgumentException("Invalid file format"));
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "testuser");
         
         // Assert
         assertNotNull(response);
@@ -260,7 +266,8 @@ public class FileUploadControllerTest {
         )).thenThrow(new RuntimeException("Unexpected error"));
         
         // Act
-        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(mockRequest);
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "testuser");
         
         // Assert
         assertNotNull(response);
