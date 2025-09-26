@@ -54,46 +54,6 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
 
-    post:
-      tags:
-        - "用例集管理"
-      summary: "上传用例集"
-      description: "上传ZIP格式的用例集包，仅ADMIN和OPERATOR有权限"
-      consumes:
-        - "multipart/form-data"
-      parameters:
-        - name: "file"
-          in: "formData"
-          description: "用例集ZIP文件"
-          required: true
-          type: "file"
-        - name: "uploadRequest"
-          in: "formData"
-          description: "用例集上传请求参数（JSON字符串）"
-          required: false
-          type: "string"
-        - name: "X-Username"
-          in: "header"
-          required: true
-          type: "string"
-          description: "操作用户名"
-      responses:
-        200:
-          description: "成功上传用例集"
-          schema:
-            $ref: "#/definitions/TestCaseSetUploadResponse"
-        400:
-          description: "请求参数错误或文件格式错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        403:
-          description: "权限不足"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
 
   /test-case-sets/{id}:
     get:
