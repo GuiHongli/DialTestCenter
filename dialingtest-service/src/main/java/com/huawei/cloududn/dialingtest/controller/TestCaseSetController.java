@@ -97,51 +97,6 @@ public class TestCaseSetController implements TestCaseSetsApi {
         }
     }
     
-    @Override
-    public ResponseEntity<TestCaseSetUploadResponse> testCaseSetsPost(String xUsername, MultipartFile file, String uploadRequest) {
-        try {
-            // 解析uploadRequest参数
-            String description = null;
-            String businessZh = null;
-            String overwrite = "false";
-            
-            if (uploadRequest != null && !uploadRequest.trim().isEmpty()) {
-                try {
-                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                    com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(uploadRequest);
-                    description = jsonNode.has("description") ? jsonNode.get("description").asText() : null;
-                    businessZh = jsonNode.has("businessZh") ? jsonNode.get("businessZh").asText() : null;
-                    overwrite = jsonNode.has("overwrite") ? jsonNode.get("overwrite").asText() : "false";
-                } catch (Exception e) {
-                    // JSON解析失败，使用默认值
-                    description = null;
-                    businessZh = null;
-                    overwrite = "false";
-                }
-            }
-            
-            boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
-            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
-            TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(file, description, businessZh, isOverwrite, operatorUsername);
-            
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(true);
-            response.setMessage(isOverwrite ? "覆盖更新用例集成功" : "上传用例集成功");
-            response.setData(testCaseSet);
-            
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(false);
-            response.setMessage("上传失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception e) {
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(false);
-            response.setMessage("上传失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
     
     @Override
     public ResponseEntity<Resource> testCaseSetsIdDownloadGet(Long id) {
