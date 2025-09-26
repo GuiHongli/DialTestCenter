@@ -52,7 +52,7 @@ public class FileUploadController {
      * @param xUsername 操作用户名（可选，默认为admin）
      * @return 上传结果响应
      */
-    @PostMapping("/upload")
+    @PostMapping("/test-case-sets")
     public ResponseEntity<TestCaseSetUploadResponse> uploadTestCaseSet(
             HttpServletRequest request,
             @RequestParam(value = "description", required = false) String description,
