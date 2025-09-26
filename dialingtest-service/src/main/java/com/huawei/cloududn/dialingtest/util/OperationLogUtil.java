@@ -153,10 +153,10 @@ public class OperationLogUtil {
      */
     public void logTestCaseSetUpload(String operatorUsername, TestCaseSet testCaseSet) {
         logOperation(operatorUsername, "CREATE", "TEST_CASE_SET",
-            "上传用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
-            "Upload test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+            "上传用例集: " + testCaseSet.getName() + " 版本：" + testCaseSet.getVersion(),
+            "Upload test case set: " + testCaseSet.getName() + " version: " + testCaseSet.getVersion(),
             builder -> builder.testCaseSetCreate(testCaseSet),
-            "Logged test case set upload: " + testCaseSet.getName() + " v" + testCaseSet.getVersion() + " by user: " + operatorUsername);
+            "Logged test case set upload: " + testCaseSet.getName() + " version: " + testCaseSet.getVersion() + " by user: " + operatorUsername);
     }
     
     /**

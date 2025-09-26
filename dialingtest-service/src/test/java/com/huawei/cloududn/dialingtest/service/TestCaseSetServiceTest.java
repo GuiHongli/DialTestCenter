@@ -83,7 +83,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
         when(mockFile.getSize()).thenReturn(1024L);
@@ -97,7 +99,7 @@ public class TestCaseSetServiceTest {
         when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
 
         // Act
-        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
 
         // Assert
         assertNotNull(result);
@@ -105,7 +107,7 @@ public class TestCaseSetServiceTest {
         assertEquals("v1.0", result.getVersion());
         assertEquals(description, result.getDescription());
         assertEquals(businessZh, result.getBusinessZh());
-        assertEquals("VPN_BLOCK", result.getBusinessEn());
+        assertEquals(businessEn, result.getBusinessEn());
         assertEquals(1024L, result.getFileSize().longValue());
         assertNotNull(result.getFileContent());
         assertNotNull(result.getSha256());
@@ -116,7 +118,7 @@ public class TestCaseSetServiceTest {
         verify(testCaseSetDao, times(1)).insert(any(TestCaseSet.class));
         verify(testCaseDao, times(1)).batchInsert(anyList());
         verify(appTypeDao, times(1)).insert(any(AppType.class));
-        verify(operationLogUtil, times(1)).logTestCaseSetUpload(eq("admin"), any(TestCaseSet.class));
+        verify(operationLogUtil, times(1)).logTestCaseSetUpload(eq(operatorUsername), any(TestCaseSet.class));
     }
 
     /**
@@ -127,7 +129,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = true;
+        String operatorUsername = "testuser";
         
         when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
         when(mockFile.getSize()).thenReturn(1024L);
@@ -143,7 +147,7 @@ public class TestCaseSetServiceTest {
         when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
 
         // Act
-        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
 
         // Assert
         assertNotNull(result);
@@ -160,13 +164,15 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.isEmpty()).thenReturn(true);
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("文件不能为空", e.getMessage());
@@ -181,14 +187,16 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.isEmpty()).thenReturn(false);
         when(mockFile.getSize()).thenReturn(101L * 1024 * 1024); // 101MB
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("文件大小不能超过100MB", e.getMessage());
@@ -203,7 +211,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.isEmpty()).thenReturn(false);
         when(mockFile.getSize()).thenReturn(1024L);
@@ -211,7 +221,7 @@ public class TestCaseSetServiceTest {
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("只支持ZIP格式文件", e.getMessage());
@@ -226,7 +236,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.isEmpty()).thenReturn(false);
         when(mockFile.getSize()).thenReturn(1024L);
@@ -234,7 +246,7 @@ public class TestCaseSetServiceTest {
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("文件名格式错误，应为：用例集名称_版本号.zip", e.getMessage());
@@ -249,7 +261,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
         when(mockFile.getSize()).thenReturn(1024L);
@@ -257,7 +271,7 @@ public class TestCaseSetServiceTest {
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("用例集名称和版本已存在: testcaseset_v1.0", e.getMessage());
@@ -272,7 +286,9 @@ public class TestCaseSetServiceTest {
         // Arrange
         String description = "测试用例集";
         String businessZh = "VPN阻断";
+        String businessEn = "VPN_BLOCK";
         boolean overwrite = false;
+        String operatorUsername = "testuser";
         
         when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
         when(mockFile.getSize()).thenReturn(1024L);
@@ -281,12 +297,55 @@ public class TestCaseSetServiceTest {
 
         // Act & Assert
         try {
-            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, overwrite);
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
             fail("应该抛出RuntimeException");
         } catch (RuntimeException e) {
             assertTrue(e.getMessage().contains("上传用例集失败"));
             assertTrue(e.getMessage().contains("文件读取失败"));
         }
+    }
+
+    /**
+     * 测试上传用例集 - businessEn为null
+     */
+    @Test
+    public void testUploadTestCaseSet_BusinessEnNull_ReturnsTestCaseSet() throws Exception {
+        // Arrange
+        String description = "测试用例集";
+        String businessZh = "VPN阻断";
+        String businessEn = null;
+        boolean overwrite = false;
+        String operatorUsername = "testuser";
+        
+        when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
+        when(mockFile.getSize()).thenReturn(1024L);
+        when(mockFile.getBytes()).thenReturn("test content".getBytes());
+        when(testCaseSetDao.existsByNameAndVersion("testcaseset", "v1.0")).thenReturn(0);
+        when(archiveParseService.parseArchive(any(byte[].class))).thenReturn(mockArchiveResult);
+        when(excelParseService.parseExcel(any(byte[].class))).thenReturn(Arrays.asList(testTestCaseInfo));
+        when(testCaseSetDao.insert(any(TestCaseSet.class))).thenReturn(1);
+        when(testCaseDao.batchInsert(anyList())).thenReturn(1);
+        when(appTypeDao.existsByBusinessCategoryAndAppName("VPN", "TestApp")).thenReturn(0);
+        when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
+
+        // Act
+        TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("testcaseset", result.getName());
+        assertEquals("v1.0", result.getVersion());
+        assertEquals(description, result.getDescription());
+        assertEquals(businessZh, result.getBusinessZh());
+        assertEquals(businessEn, result.getBusinessEn());
+
+        verify(testCaseSetDao, times(1)).existsByNameAndVersion("testcaseset", "v1.0");
+        verify(archiveParseService, times(1)).parseArchive(any(byte[].class));
+        verify(excelParseService, times(1)).parseExcel(any(byte[].class));
+        verify(testCaseSetDao, times(1)).insert(any(TestCaseSet.class));
+        verify(testCaseDao, times(1)).batchInsert(anyList());
+        verify(appTypeDao, times(1)).insert(any(AppType.class));
+        verify(operationLogUtil, times(1)).logTestCaseSetUpload(eq(operatorUsername), any(TestCaseSet.class));
     }
 
     /**
