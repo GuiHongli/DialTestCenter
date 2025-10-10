@@ -166,6 +166,7 @@
       "softwareName": "Software Name",
       "platform": "Platform",
       "fileSize": "File Size",
+      "description": "Description",
       "creator": "Creator",
       "createdTime": "Created Time",
       "actions": "Actions",
@@ -178,11 +179,14 @@
       "editTitle": "Edit Software Package Information",
       "uploadSingleTitle": "Upload Single Package",
       "uploadZipTitle": "Upload ZIP Package",
+      "selectFile": "Select File",
       "softwareName": "Software Name",
       "softwareNamePlaceholder": "Please enter software name",
       "description": "Description",
+      "descriptionPlaceholder": "Please enter software package description (optional)",
       "uploadText": "Click or drag file to this area to upload",
-      "uploadHint": "Support file upload"
+      "uploadHintSingle": "Support .apk and .ipa file upload, maximum 100MB per file",
+      "uploadHintZip": "Support .zip file upload, ZIP package should contain .apk or .ipa files, maximum 100MB per ZIP file"
     },
     "messages": {
       "loadFailed": "Failed to load software package list",
@@ -195,6 +199,13 @@
       "uploadSuccess": "Upload successful",
       "uploadFailed": "Upload failed",
       "zipUploadSuccess": "ZIP package upload successful, uploaded {{count}} software packages",
+      "packageExists": "Software Package Exists",
+      "packageExistsContent": "ZIP package contains existing software package \"{{packageName}}\", do you want to overwrite it?",
+      "overwriteUpdate": "Overwrite",
+      "skip": "Skip",
+      "overwriteSuccess": "Overwrite successful",
+      "overwriteFailed": "Overwrite failed",
+      "skippedDuplicate": "Skipped duplicate software package",
       "confirmDelete": "Are you sure you want to delete this software package?"
     }
   },
@@ -380,7 +391,7 @@
       "USER": "User Management",
       "USER_ROLE": "Role Management",
       "TEST_CASE_SET": "Test Case Set",
-      "SOFTWARE_PACKAGE": "Software Package Management",
+      "SOFTWARE_PACKAGE": "Software Package",
       "SYSTEM": "System",
       "LOGIN": "System Login",
       "LOGOUT": "System Logout"

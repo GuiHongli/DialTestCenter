@@ -1,0 +1,327 @@
+swagger: "2.0"
+info:
+  title: "软件包管理API"
+  description: "软件包管理模块的RESTful API接口"
+  version: "1.0.0"
+  contact:
+    name: "拨测控制中心开发团队"
+    email: "dev@example.com"
+
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - "https"
+
+consumes:
+  - "application/json"
+
+produces:
+  - "application/json"
+
+paths:
+  /software-packages:
+    get:
+      tags:
+        - "软件包管理"
+      summary: "获取软件包列表"
+      description: "分页获取软件包列表，支持所有角色查看"
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+        - name: "keyword"
+          in: "query"
+          type: string
+          description: "搜索关键字"
+      responses:
+        200:
+          description: "成功获取软件包列表"
+          schema:
+            $ref: "#/definitions/SoftwarePackageListResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /software-packages/{id}:
+    get:
+      tags:
+        - "软件包管理"
+      summary: "获取软件包详情"
+      description: "根据ID获取软件包详细信息"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "软件包ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功获取软件包详情"
+          schema:
+            $ref: "#/definitions/SoftwarePackagePayload"
+        404:
+          description: "软件包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    put:
+      tags:
+        - "软件包管理"
+      summary: "更新软件包信息"
+      description: "更新软件包描述信息，仅ADMIN和OPERATOR有权限"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "软件包ID"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "updateSoftwarePackageBody"
+          in: "body"
+          description: "更新数据"
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateSoftwarePackageBody"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        200:
+          description: "成功更新软件包"
+          schema:
+            $ref: "#/definitions/SoftwarePackagePayload"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "软件包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+    delete:
+      tags:
+        - "软件包管理"
+      summary: "删除软件包"
+      description: "删除软件包，仅ADMIN和OPERATOR有权限，无法删除被用例集引用的软件包"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "软件包ID"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        200:
+          description: "成功删除软件包"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        400:
+          description: "软件包被用例集引用，无法删除"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "软件包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /software-packages/download:
+    post:
+      tags:
+        - "软件包管理"
+      summary: "下载软件包"
+      description: "下载软件包文件，支持单个或批量下载，批量下载时打包为ZIP文件，仅ADMIN和OPERATOR有权限"
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "下载请求数据"
+          required: true
+          schema:
+            $ref: "#/definitions/BatchDownloadRequest"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        200:
+          description: "成功下载ZIP文件"
+          schema:
+            type: "file"
+        400:
+          description: "请求参数错误或部分软件包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  SoftwarePackageInfo:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "软件包ID"
+      softwareName:
+        type: "string"
+        description: "软件包名称"
+        example: "TestApp_1.0.0.apk"
+      description:
+        type: "string"
+        description: "软件包描述"
+        example: "Android测试应用"
+      fileSize:
+        type: "integer"
+        format: "int64"
+        description: "文件大小（字节）"
+        example: 10485760
+      fileSha256:
+        type: "string"
+        description: "文件SHA256哈希值"
+        example: "a1b2c3d4e5f6789012345678901234567890abcdef1234567890123456789012"
+
+  SoftwarePackagePayload:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取软件包详情成功"
+      data:
+        $ref: "#/definitions/SoftwarePackageInfo"
+
+  SoftwarePackageListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取软件包列表成功"
+      data:
+        type: "object"
+        properties:
+          page:
+            type: "integer"
+            description: "当前页码"
+            example: 1
+          pageSize:
+            type: "integer"
+            description: "每页大小"
+            example: 10
+          total:
+            type: "integer"
+            description: "总记录数"
+            example: 25
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/SoftwarePackageInfo"
+
+  UpdateSoftwarePackageBody:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        description: "描述信息"
+        example: "更新后的软件包描述"
+
+  BatchDownloadRequest:
+    type: "object"
+    properties:
+      packageIds:
+        type: "array"
+        items:
+          type: "integer"
+          format: "int64"
+        description: "软件包ID列表，支持单个或多个ID"
+        example: [1, 2, 3]
+      zipFileName:
+        type: "string"
+        description: "ZIP文件名（不包含.zip后缀），单个文件下载时无效"
+        example: "batch_packages"
+        default: "software_packages_patch"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "操作成功"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: false
+      message:
+        type: "string"
+        description: "错误消息"
+        example: "操作失败"
+      errorCode:
+        type: "string"
+        description: "错误代码"
+        example: "INVALID_PARAMETER"

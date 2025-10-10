@@ -293,7 +293,7 @@ export class OperationLogUtils {
       USER: '执行机账号',
       USER_ROLE: '角色管理',
       TEST_CASE_SET: '测试用例集',
-      SOFTWARE_PACKAGE: '软件包管理',
+      SOFTWARE_PACKAGE: '软件包',
       SYSTEM: '系统',
       LOGIN: '系统登录',
       LOGOUT: '系统登出',
@@ -303,7 +303,8 @@ export class OperationLogUtils {
       '用户管理': '执行机账号', // 兼容旧的用户管理
       '角色管理': '角色管理',
       '测试用例集': '测试用例集',
-      '软件包管理': '软件包管理',
+      '软件包管理': '软件包', // 兼容旧的软件包管理
+      '软件包': '软件包',
       '系统': '系统',
       '系统登录': '系统登录',
       '系统登出': '系统登出',

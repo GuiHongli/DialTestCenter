@@ -5,14 +5,17 @@
 export interface SoftwarePackage {
   id: number;
   softwareName: string; // 完整文件名（带后缀）
-  fileFormat: 'apk' | 'ipa';
-  platform: 'android' | 'ios';
-  creator: string;
-  fileSize: number;
-  sha512: string;
   description?: string;
-  createdTime: string;
-  updatedTime: string;
+  fileSize: number;
+  fileSHA256: string;
+}
+
+export interface SoftwarePackageInfo {
+  id: number;
+  softwareName: string;
+  description?: string;
+  fileSize: number;
+  fileSHA256: string;
 }
 
 export interface SoftwarePackageListResponse {

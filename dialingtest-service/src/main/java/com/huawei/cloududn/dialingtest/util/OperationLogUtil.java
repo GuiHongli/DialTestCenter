@@ -4,9 +4,11 @@
 
 package com.huawei.cloududn.dialingtest.util;
 
+import com.huawei.cloududn.dialingtest.entity.SoftwarePackage;
 import com.huawei.cloududn.dialingtest.model.CreateOperationLogRequest;
 import com.huawei.cloududn.dialingtest.model.DialUser;
 import com.huawei.cloududn.dialingtest.model.OperationLog;
+import com.huawei.cloududn.dialingtest.model.SoftwarePackageInfo;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.UserRole;
 import com.huawei.cloududn.dialingtest.service.OperationLogService;
@@ -242,5 +244,82 @@ public class OperationLogUtil {
         "User login: " + username,
         builder -> builder.userLogin(username),
         "Logged user login operation for user: " + username);
+  }
+
+  /**
+   * 记录软件包上传操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param softwarePackage 软件包信息
+   */
+  public void logSoftwarePackageCreate(String operatorUsername, SoftwarePackage softwarePackage) {
+    logOperation(operatorUsername, "CREATE", "SOFTWARE_PACKAGE",
+        "上传软件包: " + softwarePackage.getSoftwareName(),
+        "Upload software package: " + softwarePackage.getSoftwareName(),
+        builder -> builder.softwarePackageCreate(softwarePackage),
+        "Logged software package upload: " + softwarePackage.getSoftwareName() + " by user: " + operatorUsername);
+  }
+
+  /**
+   * 记录软件包批量上传操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param softwarePackages 软件包列表
+   */
+  public void logSoftwarePackageBatchCreate(String operatorUsername, java.util.List<SoftwarePackage> softwarePackages) {
+    String packageNames = softwarePackages.stream()
+        .map(SoftwarePackage::getSoftwareName)
+        .reduce((a, b) -> a + ", " + b)
+        .orElse("");
+    
+    logOperation(operatorUsername, "BATCH_CREATE", "SOFTWARE_PACKAGE",
+        "批量上传软件包: " + packageNames + " (共" + softwarePackages.size() + "个)",
+        "Batch upload software packages: " + packageNames + " (" + softwarePackages.size() + " packages)",
+        builder -> builder.softwarePackageBatchCreate(softwarePackages),
+        "Logged software package batch upload: " + softwarePackages.size() + " packages by user: " + operatorUsername);
+  }
+
+  /**
+   * 记录软件包更新操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param oldPackage 更新前的软件包信息
+   * @param newPackage 更新后的软件包信息
+   */
+  public void logSoftwarePackageUpdate(String operatorUsername, SoftwarePackageInfo oldPackage, SoftwarePackageInfo newPackage) {
+    logOperation(operatorUsername, "UPDATE", "SOFTWARE_PACKAGE",
+        "更新软件包: " + newPackage.getSoftwareName(),
+        "Update software package: " + newPackage.getSoftwareName(),
+        builder -> builder.softwarePackageUpdate(oldPackage, newPackage),
+        "Logged software package update: " + newPackage.getSoftwareName() + " by user: " + operatorUsername);
+  }
+
+  /**
+   * 记录软件包删除操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param softwarePackage 被删除的软件包信息
+   */
+  public void logSoftwarePackageDelete(String operatorUsername, SoftwarePackageInfo softwarePackage) {
+    logOperation(operatorUsername, "DELETE", "SOFTWARE_PACKAGE",
+        "删除软件包: " + softwarePackage.getSoftwareName(),
+        "Delete software package: " + softwarePackage.getSoftwareName(),
+        builder -> builder.softwarePackageDelete(softwarePackage),
+        "Logged software package delete: " + softwarePackage.getSoftwareName() + " by user: " + operatorUsername);
+  }
+
+  /**
+   * 记录软件包覆盖操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param oldPackage 被覆盖的软件包信息
+   * @param newPackage 新的软件包信息
+   */
+  public void logSoftwarePackageOverwrite(String operatorUsername, SoftwarePackageInfo oldPackage, SoftwarePackage newPackage) {
+    logOperation(operatorUsername, "OVERWRITE", "SOFTWARE_PACKAGE",
+        "覆盖软件包: " + newPackage.getSoftwareName(),
+        "Overwrite software package: " + newPackage.getSoftwareName(),
+        builder -> builder.softwarePackageOverwrite(oldPackage, newPackage),
+        "Logged software package overwrite: " + newPackage.getSoftwareName() + " by user: " + operatorUsername);
   }
 }

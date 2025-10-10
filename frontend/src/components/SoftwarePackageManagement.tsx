@@ -13,9 +13,7 @@ import {
   Modal,
   Form,
   Input,
-  Select,
   Card,
-  Statistic,
   Row,
   Col,
   Tag,
@@ -52,7 +50,6 @@ import {
 import { useTranslation } from '../hooks/useTranslation';
 
 const { Dragger } = Upload;
-const { Option } = Select;
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
@@ -74,8 +71,8 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
   const [editingPackage, setEditingPackage] = useState<SoftwarePackage | null>(null);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploadType, setUploadType] = useState<'single' | 'zip'>('single');
-  const [statistics, setStatistics] = useState({ android: 0, ios: 0, total: 0 });
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<any[]>([]);
 
   // 加载软件包列表
   const loadSoftwarePackages = async (params: SoftwarePackageListParams = {}) => {
@@ -106,9 +103,8 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
   const loadStatistics = async () => {
     try {
       const response = await getSoftwarePackageStatistics();
-      if (response.success) {
-        setStatistics(response.data);
-      }
+      // 这里可以设置统计信息状态，如果需要显示统计信息的话
+      console.log('Statistics loaded:', response.data);
     } catch (error) {
       console.error('Error loading statistics:', error);
     }
@@ -116,7 +112,6 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
 
   useEffect(() => {
     loadSoftwarePackages();
-    loadStatistics();
   }, []);
 
   // 删除软件包
@@ -125,7 +120,6 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
       await deleteSoftwarePackage(id);
       message.success(translateSoftwarePackage('messages.deleteSuccess'));
       loadSoftwarePackages();
-      loadStatistics();
     } catch (error) {
       message.error(translateSoftwarePackage('messages.deleteFailed'));
       console.error('Error deleting software package:', error);
@@ -135,7 +129,7 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
   // 下载软件包
   const handleDownload = async (record: SoftwarePackage) => {
     try {
-      await downloadSoftwarePackage(record.id, record.softwareName);
+      await downloadSoftwarePackage([record.id], record.softwareName);
       message.success(translateSoftwarePackage('messages.downloadSuccess'));
     } catch (error) {
       message.error(translateSoftwarePackage('messages.downloadFailed'));
@@ -147,7 +141,6 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
   const handleEdit = (record: SoftwarePackage) => {
     setEditingPackage(record);
     form.setFieldsValue({
-      softwareName: record.softwareName,
       description: record.description,
     });
     setEditModalVisible(true);
@@ -181,7 +174,6 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
         message.success(translateSoftwarePackage('messages.uploadSuccess'));
         onSuccess?.(response);
         loadSoftwarePackages();
-        loadStatistics();
       } else {
         message.error(response.message || translateSoftwarePackage('messages.uploadFailed'));
         onError?.(new Error(response.message || 'Upload failed'));
@@ -208,6 +200,151 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
     } catch (error) {
       message.error(translateSoftwarePackage('messages.uploadFailed'));
       onError?.(error as Error);
+    }
+  };
+
+  // 带描述信息的上传处理
+  const handleUploadWithDescription = async () => {
+    try {
+      // 检查文件是否已选择
+      if (fileList.length === 0) {
+        message.error('请选择要上传的文件');
+        return;
+      }
+
+      const file = fileList[0].originFileObj || fileList[0];
+      if (!file) {
+        message.error('文件无效');
+        return;
+      }
+
+      // 获取描述信息
+      const description = form.getFieldValue('description');
+      
+      if (uploadType === 'single') {
+        try {
+          const response = await uploadSoftwarePackage(file, description);
+          if (response.success) {
+            message.success(translateSoftwarePackage('messages.uploadSuccess'));
+            form.resetFields();
+            setFileList([]);
+            setUploadModalVisible(false);
+            loadSoftwarePackages();
+          } else {
+            message.error(response.message || translateSoftwarePackage('messages.uploadFailed'));
+          }
+        } catch (error: any) {
+          // 检查是否是重复上传错误
+          if (error.message && (error.message.includes('已存在的软件名称') || error.message.includes('软件名称已存在'))) {
+            // 提取软件包名称
+            let packageName = '该软件包';
+            if (error.message.includes('软件名称已存在:')) {
+              const parts = error.message.split('软件名称已存在: ');
+              if (parts.length > 1) {
+                packageName = parts[parts.length - 1];
+              }
+            } else if (error.message.includes(':')) {
+              const parts = error.message.split(': ');
+              if (parts.length > 1) {
+                packageName = parts[parts.length - 1];
+              }
+            }
+            
+            // 显示覆盖确认对话框
+            Modal.confirm({
+              title: translateSoftwarePackage('messages.packageExists'),
+              content: translateSoftwarePackage('messages.packageExistsContent', { packageName }),
+              okText: translateSoftwarePackage('messages.overwriteUpdate'),
+              cancelText: translateSoftwarePackage('messages.skip'),
+              onOk: async () => {
+                try {
+                  const overwriteResponse = await uploadSoftwarePackage(file, description, true);
+                  if (overwriteResponse.success) {
+                    message.success(translateSoftwarePackage('messages.uploadSuccess'));
+                    form.resetFields();
+                    setFileList([]);
+                    setUploadModalVisible(false);
+                    loadSoftwarePackages();
+                  } else {
+                    message.error(overwriteResponse.message || translateSoftwarePackage('messages.overwriteFailed'));
+                  }
+                } catch (overwriteError) {
+                  message.error(translateSoftwarePackage('messages.overwriteFailed'));
+                }
+              },
+              onCancel: () => {
+                message.info(translateSoftwarePackage('messages.skippedDuplicate'));
+              }
+            });
+          } else {
+            message.error(error.message || translateSoftwarePackage('messages.uploadFailed'));
+          }
+        }
+      } else {
+        try {
+          const response = await uploadZipPackage(file, false, description);
+          if (response.success) {
+            message.success(translateSoftwarePackage('messages.zipUploadSuccess', { count: response.count }));
+            form.resetFields();
+            setFileList([]);
+            setUploadModalVisible(false);
+            loadSoftwarePackages();
+            loadStatistics();
+          } else {
+            message.error(response.message || translateSoftwarePackage('messages.uploadFailed'));
+          }
+        } catch (error: any) {
+          // 检查是否是重复上传错误
+          if (error.message && (error.message.includes('已存在的软件名称') || error.message.includes('ZIP包中包含已存在的软件名称'))) {
+            // 提取软件包名称
+            let packageName = '该软件包';
+            if (error.message.includes('ZIP包中包含已存在的软件名称:')) {
+              const parts = error.message.split('ZIP包中包含已存在的软件名称: ');
+              if (parts.length > 1) {
+                packageName = parts[parts.length - 1];
+              }
+            } else if (error.message.includes(':')) {
+              const parts = error.message.split(': ');
+              if (parts.length > 1) {
+                packageName = parts[parts.length - 1];
+              }
+            }
+            
+            // 显示覆盖确认对话框
+            Modal.confirm({
+              title: translateSoftwarePackage('messages.packageExists'),
+              content: translateSoftwarePackage('messages.packageExistsContent', { packageName }),
+              okText: translateSoftwarePackage('messages.overwriteUpdate'),
+              cancelText: translateSoftwarePackage('messages.skip'),
+              onOk: async () => {
+                try {
+                  const overwriteResponse = await uploadZipPackage(file, true, description);
+                  if (overwriteResponse.success) {
+                    message.success(translateSoftwarePackage('messages.zipUploadSuccess', { count: overwriteResponse.count }));
+                    form.resetFields();
+                    setFileList([]);
+                    setUploadModalVisible(false);
+                    loadSoftwarePackages();
+                    loadStatistics();
+                  } else {
+                    message.error(overwriteResponse.message || translateSoftwarePackage('messages.overwriteFailed'));
+                  }
+                } catch (overwriteError) {
+                  message.error(translateSoftwarePackage('messages.overwriteFailed'));
+                }
+              },
+              onCancel: () => {
+                message.info(translateSoftwarePackage('messages.skippedDuplicate'));
+              }
+            });
+          } else {
+            message.error(error.message || translateSoftwarePackage('messages.uploadFailed'));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      message.error(translateSoftwarePackage('messages.uploadFailed'));
     }
   };
 
@@ -255,19 +392,38 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
     },
     {
       title: translateSoftwarePackage('table.platform'),
-      dataIndex: 'platform',
       key: 'platform',
       width: 120,
       filters: [
         { text: 'Android', value: 'android' },
         { text: 'iOS', value: 'ios' },
       ],
-      onFilter: (value: any, record: SoftwarePackage) => record.platform === value,
-      render: (platform: string) => (
-        <Tag color={platform === 'android' ? 'green' : 'blue'} icon={platform === 'android' ? <AndroidOutlined /> : <AppleOutlined />}>
-          {platform === 'android' ? 'Android' : 'iOS'}
-        </Tag>
-      ),
+      onFilter: (value: any, record: SoftwarePackage) => {
+        const fileName = record.softwareName.toLowerCase();
+        if (value === 'android') return fileName.endsWith('.apk');
+        if (value === 'ios') return fileName.endsWith('.ipa');
+        return false;
+      },
+      render: (text: string, record: SoftwarePackage) => {
+        const fileName = record.softwareName.toLowerCase();
+        const isAndroid = fileName.endsWith('.apk');
+        const isIOS = fileName.endsWith('.ipa');
+        
+        if (isAndroid) {
+          return (
+            <Tag color="green" icon={<AndroidOutlined />}>
+              Android
+            </Tag>
+          );
+        } else if (isIOS) {
+          return (
+            <Tag color="blue" icon={<AppleOutlined />}>
+              iOS
+            </Tag>
+          );
+        }
+        return <Tag>Unknown</Tag>;
+      },
     },
     {
       title: translateSoftwarePackage('table.fileSize'),
@@ -278,20 +434,13 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
       render: (size: number) => formatFileSize(size),
     },
     {
-      title: translateSoftwarePackage('table.creator'),
-      dataIndex: 'creator',
-      key: 'creator',
-      width: 120,
-      sorter: (a: SoftwarePackage, b: SoftwarePackage) => a.creator.localeCompare(b.creator),
-    },
-    {
-      title: translateSoftwarePackage('table.createdTime'),
-      dataIndex: 'createdTime',
-      key: 'createdTime',
-      width: 180,
-      sorter: (a: SoftwarePackage, b: SoftwarePackage) => 
-        new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime(),
-      render: (text: string) => formatDateTime(text),
+      title: translateSoftwarePackage('table.description'),
+      dataIndex: 'description',
+      key: 'description',
+      width: 200,
+      render: (text: string) => (
+        <Text type="secondary">{text || '-'}</Text>
+      ),
     },
     {
       title: translateSoftwarePackage('table.actions'),
@@ -379,100 +528,56 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
         </Space>
       </div>
 
-      {/* 统计信息卡片 */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={translateSoftwarePackage('statistics.android')}
-              value={statistics.android}
-              prefix={<AndroidOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={translateSoftwarePackage('statistics.ios')}
-              value={statistics.ios}
-              prefix={<AppleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title={translateSoftwarePackage('statistics.total')}
-              value={statistics.total}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 筛选器 */}
+      {/* 软件名称搜索筛选器 */}
       <Card style={{ marginBottom: '16px' }}>
-        <Row gutter={16} style={{ textAlign: 'left' }}>
-          <Col span={8}>
-            <Space.Compact style={{ width: '100%' }}>
+        <Row gutter={[16, 16]} style={{ textAlign: 'left' }}>
+          <Col xs={24} sm={8} md={6}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              height: '100%',
+              paddingRight: '12px'
+            }}>
               <span style={{ 
-                padding: '4px 8px', 
-                backgroundColor: '#f5f5f5', 
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '60px',
-                justifyContent: 'center'
+                fontSize: '14px', 
+                color: '#262626',
+                fontWeight: 500,
+                whiteSpace: 'nowrap'
               }}>
-                {translateSoftwarePackage('filters.platform')}
+                {translateSoftwarePackage('filters.softwareName')}:
               </span>
-              <Select
-                placeholder={translateSoftwarePackage('filters.platformPlaceholder')}
-                style={{ width: '100%', borderRadius: '0 6px 6px 0' }}
-                allowClear
-                onChange={(value) => {
-                  setFilters(prev => ({ ...prev, platform: value }));
-                  loadSoftwarePackages({ platform: value });
-                }}
-              >
-                <Option value="android">Android</Option>
-                <Option value="ios">iOS</Option>
-              </Select>
-            </Space.Compact>
+            </div>
           </Col>
-          <Col span={8}>
-            <Space.Compact style={{ width: '100%' }}>
-              <span style={{ 
-                padding: '4px 8px', 
-                backgroundColor: '#f5f5f5', 
-                border: '1px solid #d9d9d9',
-                borderRight: 'none',
-                borderRadius: '6px 0 0 6px',
-                fontSize: '14px',
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                minWidth: '80px',
-                justifyContent: 'center'
-              }}>
-                {translateSoftwarePackage('filters.softwareName')}
-              </span>
-              <Input
-                placeholder={translateSoftwarePackage('filters.softwareNamePlaceholder')}
-                style={{ borderRadius: '0 6px 6px 0' }}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setFilters(prev => ({ ...prev, softwareName: value }));
-                  loadSoftwarePackages({ softwareName: value });
-                }}
-              />
-            </Space.Compact>
+          <Col xs={24} sm={16} md={14}>
+            <Input
+              placeholder={translateSoftwarePackage('filters.softwareNamePlaceholder')}
+              value={filters.softwareName || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFilters(prev => ({ ...prev, softwareName: value }));
+              }}
+              allowClear
+              onPressEnter={() => loadSoftwarePackages({ softwareName: filters.softwareName, page: 1 })}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                border: '1px solid #d9d9d9'
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={8} md={4}>
+            <Button
+              type="primary"
+              onClick={() => loadSoftwarePackages({ softwareName: filters.softwareName, page: 1 })}
+              size="middle"
+              style={{ 
+                borderRadius: '8px',
+                minWidth: '100px',
+                boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
+              }}
+            >
+              {translateCommon('search')}
+            </Button>
           </Col>
         </Row>
       </Card>
@@ -512,14 +617,10 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="softwareName"
-            label={translateSoftwarePackage('modal.softwareName')}
-            rules={[{ required: true, message: translateSoftwarePackage('modal.softwareNamePlaceholder') }]}
+            name="description"
+            label={translateSoftwarePackage('modal.description')}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label={translateSoftwarePackage('modal.description')}>
-            <TextArea rows={3} />
+            <TextArea rows={3} placeholder={translateSoftwarePackage('modal.descriptionPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>
@@ -528,27 +629,68 @@ const SoftwarePackageManagement: React.FC<SoftwarePackageManagementProps> = () =
       <Modal
         title={uploadType === 'single' ? translateSoftwarePackage('modal.uploadSingleTitle') : translateSoftwarePackage('modal.uploadZipTitle')}
         open={uploadModalVisible}
-        onCancel={() => setUploadModalVisible(false)}
-        footer={null}
+        onCancel={() => {
+          setUploadModalVisible(false);
+          form.resetFields();
+          setFileList([]);
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setUploadModalVisible(false);
+            form.resetFields();
+            setFileList([]);
+          }}>
+            {translateCommon('cancel')}
+          </Button>,
+          <Button key="upload" type="primary" onClick={handleUploadWithDescription}>
+            {translateCommon('upload')}
+          </Button>
+        ]}
         width={600}
       >
-        <Dragger
-          name="file"
-          multiple={false}
-          accept={uploadType === 'single' ? '.apk,.ipa' : '.zip'}
-          customRequest={uploadType === 'single' ? handleSingleUpload : handleZipUpload}
-          showUploadList={false}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">
-            {translateSoftwarePackage('modal.uploadText')}
-          </p>
-          <p className="ant-upload-hint">
-            {translateSoftwarePackage('modal.uploadHint')}
-          </p>
-        </Dragger>
+        <Form form={form} layout="vertical">
+          <Form.Item label={translateSoftwarePackage('modal.selectFile')}>
+            <Dragger
+              name="file"
+              multiple={false}
+              accept={uploadType === 'single' ? '.apk,.ipa' : '.zip'}
+              fileList={fileList}
+              beforeUpload={(file) => {
+                const newFileList = [file];
+                setFileList(newFileList);
+                return false; // 阻止自动上传
+              }}
+              onRemove={() => {
+                setFileList([]);
+              }}
+            >
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                {translateSoftwarePackage('modal.uploadText')}
+              </p>
+              <p className="ant-upload-hint">
+                {uploadType === 'single' 
+                  ? translateSoftwarePackage('modal.uploadHintSingle')
+                  : translateSoftwarePackage('modal.uploadHintZip')
+                }
+              </p>
+            </Dragger>
+          </Form.Item>
+
+          <Form.Item 
+            label={translateSoftwarePackage('modal.description')} 
+            name="description"
+          >
+            <TextArea
+              rows={3}
+              placeholder={translateSoftwarePackage('modal.descriptionPlaceholder')}
+              maxLength={500}
+              showCount
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

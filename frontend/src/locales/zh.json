@@ -166,6 +166,7 @@
       "softwareName": "软件名称",
       "platform": "平台",
       "fileSize": "文件大小",
+      "description": "描述",
       "creator": "创建者",
       "createdTime": "创建时间",
       "actions": "操作",
@@ -178,11 +179,14 @@
       "editTitle": "编辑软件包信息",
       "uploadSingleTitle": "上传单个软件包",
       "uploadZipTitle": "上传ZIP包",
+      "selectFile": "选择文件",
       "softwareName": "软件名称",
       "softwareNamePlaceholder": "请输入软件名称",
       "description": "描述",
+      "descriptionPlaceholder": "请输入软件包描述（可选）",
       "uploadText": "点击或拖拽文件到此区域上传",
-      "uploadHint": "支持文件上传"
+      "uploadHintSingle": "支持.apk和.ipa文件上传，单个文件最大100MB",
+      "uploadHintZip": "支持.zip文件上传，ZIP包中应包含.apk或.ipa文件，单个ZIP文件最大100MB"
     },
     "messages": {
       "loadFailed": "加载软件包列表失败",
@@ -195,6 +199,13 @@
       "uploadSuccess": "上传成功",
       "uploadFailed": "上传失败",
       "zipUploadSuccess": "ZIP包上传成功，共上传 {{count}} 个软件包",
+      "packageExists": "软件包已存在",
+      "packageExistsContent": "ZIP包中包含已存在的软件包 \"{{packageName}}\"，是否要覆盖更新？",
+      "overwriteUpdate": "覆盖更新",
+      "skip": "跳过",
+      "overwriteSuccess": "覆盖更新成功",
+      "overwriteFailed": "覆盖更新失败",
+      "skippedDuplicate": "已跳过重复的软件包",
       "confirmDelete": "确定要删除这个软件包吗？"
     }
   },
@@ -380,7 +391,7 @@
       "USER": "用户管理",
       "USER_ROLE": "角色管理",
       "TEST_CASE_SET": "测试用例集",
-      "SOFTWARE_PACKAGE": "软件包管理",
+      "SOFTWARE_PACKAGE": "软件包",
       "SYSTEM": "系统",
       "LOGIN": "系统登录",
       "LOGOUT": "系统登出"
