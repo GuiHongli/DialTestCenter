@@ -1,5 +1,4 @@
 import {
-    DashboardOutlined,
     FileZipOutlined,
     HomeOutlined,
     MenuFoldOutlined,
@@ -37,11 +36,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/',
       icon: <HomeOutlined />,
       label: translateNavigation('home'),
-    },
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: translateNavigation('dashboard'),
     },
     {
       key: 'user',

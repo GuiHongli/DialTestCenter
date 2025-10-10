@@ -71,7 +71,6 @@
   },
   "navigation": {
     "home": "Home",
-    "dashboard": "Dashboard",
     "userManagement": "User Management",
     "userList": "Execution Machine Account Management",
     "roleManagement": "Role Management",

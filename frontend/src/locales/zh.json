@@ -71,7 +71,6 @@
   },
   "navigation": {
     "home": "首页",
-    "dashboard": "仪表板",
     "userManagement": "用户管理",
     "userList": "执行机账号管理",
     "roleManagement": "角色管理",
