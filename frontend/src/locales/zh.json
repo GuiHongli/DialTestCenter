@@ -77,6 +77,7 @@
     "configManagement": "拨测管理",
     "testCaseSetManagement": "用例集管理",
     "softwarePackageManagement": "软件包管理",
+    "preprocessRuleManagement": "预处理规则管理",
     "operationManagement": "运维管理",
     "operationLogManagement": "操作记录"
   },
@@ -391,6 +392,7 @@
       "USER_ROLE": "角色管理",
       "TEST_CASE_SET": "测试用例集",
       "SOFTWARE_PACKAGE": "软件包",
+      "PREPROCESS_RULE_PACKAGE": "预处理规则包",
       "SYSTEM": "系统",
       "LOGIN": "系统登录",
       "LOGOUT": "系统登出"
@@ -425,5 +427,51 @@
   "footer": {
     "copyright": "© 2024 Dial Test Center. 版权所有.",
     "allRightsReserved": "保留所有权利"
+  },
+  "preprocessRule": {
+    "management": {
+      "title": "预处理规则管理",
+      "packagesTab": "ZIP包管理",
+      "rulesTab": "预处理规则列表"
+    },
+    "package": {
+      "name": "包名称",
+      "business": "业务类型",
+      "fileSize": "文件大小",
+      "description": "描述",
+      "searchPlaceholder": "搜索包名称",
+      "businessFilter": "业务类型筛选",
+      "upload": "上传ZIP包",
+      "selectFile": "选择ZIP文件",
+      "fileRequired": "请选择ZIP文件",
+      "businessZh": "业务类型（中文）",
+      "businessEn": "业务类型（英文）",
+      "businessRequired": "请输入业务类型",
+      "businessZhPlaceholder": "请输入业务类型中文名称",
+      "businessEnPlaceholder": "请输入业务类型英文名称",
+      "descriptionPlaceholder": "请输入描述信息",
+      "uploadSuccess": "ZIP包上传成功",
+      "uploadFailed": "ZIP包上传失败",
+      "downloadSuccess": "ZIP包下载成功",
+      "downloadFailed": "ZIP包下载失败",
+      "deleteSuccess": "ZIP包删除成功",
+      "deleteFailed": "ZIP包删除失败",
+      "deleteConfirm": "确定要删除这个ZIP包吗？删除后关联的规则也会被删除。"
+    },
+    "rule": {
+      "name": "规则名称",
+      "business": "业务类型",
+      "category": "分类",
+      "appName": "应用名称",
+      "isCustom": "规则类型",
+      "content": "规则内容",
+      "custom": "自定义",
+      "standard": "标准",
+      "searchPlaceholder": "搜索规则名称、分类、应用名称",
+      "businessFilter": "业务类型",
+      "categoryFilter": "分类",
+      "appFilter": "应用",
+      "ruleFilter": "规则名称"
+    }
   }
 }

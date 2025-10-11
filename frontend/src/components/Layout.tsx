@@ -1,5 +1,6 @@
 import {
     FileZipOutlined,
+    FileTextOutlined,
     HomeOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -68,6 +69,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           key: '/software-packages',
           icon: <AppstoreOutlined />,
           label: translateNavigation('softwarePackageManagement'),
+        },
+        {
+          key: '/preprocess-rules',
+          icon: <FileTextOutlined />,
+          label: translateNavigation('preprocessRuleManagement'),
         },
       ],
     },

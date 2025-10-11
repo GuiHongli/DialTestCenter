@@ -38,6 +38,8 @@ import {
   OperationTarget 
 } from '../types/operationLog'
 import moment, { Moment } from 'moment'
+import { useTranslation } from '../hooks/useTranslation'
+import { useI18n } from '../contexts/I18nContext'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -48,6 +50,8 @@ const { Panel } = Collapse
  * 操作记录管理组件
  */
 const OperationLogManagement: React.FC = () => {
+  const { t, translateCommon } = useTranslation()
+  const { language } = useI18n()
   
   // 状态管理
   const [operationLogs, setOperationLogs] = useState<OperationLog[]>([])
@@ -82,11 +86,11 @@ const OperationLogManagement: React.FC = () => {
       }))
     } catch (error) {
       console.error('Failed to load operation logs:', error)
-      message.error('加载操作记录失败')
+      message.error(t('operationLog.messages.loadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [pagination.current, pagination.pageSize, filters])
+  }, [pagination.current, pagination.pageSize, filters, t])
 
 
   // 初始化加载
@@ -116,10 +120,10 @@ const OperationLogManagement: React.FC = () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
-      message.success('导出成功')
+      message.success(translateCommon('exportSuccess'))
     } catch (error) {
       console.error('Failed to export operation logs:', error)
-      message.error('导出失败')
+      message.error(translateCommon('exportFailed'))
     } finally {
       setLoading(false)
     }
@@ -156,7 +160,7 @@ const OperationLogManagement: React.FC = () => {
       setDetailModalVisible(true)
     } catch (error) {
       console.error('Failed to load operation log detail:', error)
-      message.error('加载详情失败')
+      message.error(t('operationLog.detail.loadDetailFailed'))
     } finally {
       setLoading(false)
     }
@@ -172,14 +176,14 @@ const OperationLogManagement: React.FC = () => {
   // 表格列配置
   const columns = [
     {
-      title: 'ID',
+      title: t('operationLog.table.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
       sorter: true,
     },
     {
-      title: '用户名',
+      title: t('operationLog.table.username'),
       dataIndex: 'username',
       key: 'username',
       width: 120,
@@ -191,7 +195,7 @@ const OperationLogManagement: React.FC = () => {
       ],
     },
     {
-      title: '操作时间',
+      title: t('operationLog.table.operationTime'),
       dataIndex: 'operationTime',
       key: 'operationTime',
       width: 180,
@@ -199,40 +203,42 @@ const OperationLogManagement: React.FC = () => {
       render: (time: string) => OperationLogUtils.formatOperationTime(time),
     },
     {
-      title: '操作类型',
+      title: t('operationLog.table.operationType'),
       dataIndex: 'operationType',
       key: 'operationType',
       width: 120,
       sorter: true,
       filters: Object.values(OperationType).map(type => ({
-        text: OperationLogUtils.getOperationTypeText(type),
+        text: OperationLogUtils.getOperationTypeText(type, language),
         value: type,
       })),
       render: (type: string) => (
         <Tag color={OperationLogUtils.getOperationTypeColor(type)}>
-          {OperationLogUtils.getOperationTypeText(type)}
+          {OperationLogUtils.getOperationTypeText(type, language)}
         </Tag>
       ),
     },
     {
-      title: '操作对象',
+      title: t('operationLog.table.target'),
       dataIndex: 'operationTarget',
       key: 'operationTarget',
       width: 150,
       sorter: true,
       filters: Object.values(OperationTarget).map(target => ({
-        text: target,
+        text: OperationLogUtils.getOperationTargetText(target, language),
         value: target,
       })),
-      render: (target: string) => OperationLogUtils.getOperationTargetText(target),
+      render: (target: string) => OperationLogUtils.getOperationTargetText(target, language),
     },
     {
-      title: '操作描述',
+      title: t('operationLog.table.description'),
       dataIndex: 'operationDescriptionZh',
       key: 'operationDescriptionZh',
       ellipsis: true,
       render: (description: string, record: OperationLog) => {
-        const desc = description || record.operationDescriptionEn || ''
+        const desc = language === 'en' 
+          ? (record.operationDescriptionEn || description || '')
+          : (description || record.operationDescriptionEn || '')
         return (
           <Tooltip title={desc}>
             {OperationLogUtils.truncateText(desc, 50)}
@@ -241,12 +247,12 @@ const OperationLogManagement: React.FC = () => {
       },
     },
     {
-      title: '操作',
+      title: t('operationLog.table.actions'),
       key: 'action',
       width: 120,
       render: (_, record: OperationLog) => (
         <Space size="small">
-          <Tooltip title="查看详情">
+          <Tooltip title={t('operationLog.detail.viewDetail')}>
             <Button
               type="text"
               icon={<EyeOutlined />}
@@ -261,7 +267,7 @@ const OperationLogManagement: React.FC = () => {
 
   return (
     <div>
-      <Title level={2} style={{ textAlign: 'left' }}>操作记录管理</Title>
+      <Title level={2} style={{ textAlign: 'left' }}>{t('operationLog.title')}</Title>
 
       {/* 筛选器 */}
       <Card 
@@ -275,10 +281,10 @@ const OperationLogManagement: React.FC = () => {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: '8px' }}>
-              <Text strong style={{ color: '#262626' }}>用户名</Text>
+              <Text strong style={{ color: '#262626' }}>{t('operationLog.filters.username')}</Text>
             </div>
             <Input
-              placeholder="请输入用户名"
+              placeholder={t('operationLog.filters.usernamePlaceholder')}
               value={filters.username || ''}
               onChange={(e) => handleFilterChange('username', e.target.value)}
               allowClear
@@ -289,10 +295,10 @@ const OperationLogManagement: React.FC = () => {
           
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: '8px' }}>
-              <Text strong style={{ color: '#262626' }}>操作类型</Text>
+              <Text strong style={{ color: '#262626' }}>{t('operationLog.filters.operationType')}</Text>
             </div>
             <Select
-              placeholder="请选择操作类型"
+              placeholder={t('operationLog.filters.operationTypePlaceholder')}
               value={filters.operationType}
               onChange={(value) => handleFilterChange('operationType', value)}
               allowClear
@@ -301,7 +307,7 @@ const OperationLogManagement: React.FC = () => {
             >
               {Object.values(OperationType).map(type => (
                 <Option key={type} value={type}>
-                  {OperationLogUtils.getOperationTypeText(type)}
+                  {OperationLogUtils.getOperationTypeText(type, language)}
                 </Option>
               ))}
             </Select>
@@ -309,10 +315,10 @@ const OperationLogManagement: React.FC = () => {
           
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: '8px' }}>
-              <Text strong style={{ color: '#262626' }}>操作对象</Text>
+              <Text strong style={{ color: '#262626' }}>{t('operationLog.filters.target')}</Text>
             </div>
             <Select
-              placeholder="请选择操作对象"
+              placeholder={t('operationLog.filters.targetPlaceholder')}
               value={filters.operationTarget}
               onChange={(value) => handleFilterChange('operationTarget', value)}
               allowClear
@@ -321,7 +327,7 @@ const OperationLogManagement: React.FC = () => {
             >
               {Object.values(OperationTarget).map(target => (
                 <Option key={target} value={target}>
-                  {OperationLogUtils.getOperationTargetText(target)}
+                  {OperationLogUtils.getOperationTargetText(target, language)}
                 </Option>
               ))}
             </Select>
@@ -329,13 +335,13 @@ const OperationLogManagement: React.FC = () => {
           
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ marginBottom: '8px' }}>
-              <Text strong style={{ color: '#262626' }}>操作时间</Text>
+              <Text strong style={{ color: '#262626' }}>{t('operationLog.filters.timeRange')}</Text>
             </div>
             <RangePicker
               style={{ width: '100%' }}
               showTime={{ format: 'HH:mm:ss' }}
               format="YYYY-MM-DD HH:mm:ss"
-              placeholder={['开始时间', '结束时间']}
+              placeholder={language === 'en' ? ['Start Time', 'End Time'] : ['开始时间', '结束时间']}
               value={filters.startTime && filters.endTime ? [
                 moment(filters.startTime),
                 moment(filters.endTime)
@@ -363,7 +369,7 @@ const OperationLogManagement: React.FC = () => {
               }}
               icon={<ClearOutlined />}
             >
-              重置
+              {translateCommon('reset')}
             </Button>
             <Button 
               type="primary" 
@@ -371,7 +377,7 @@ const OperationLogManagement: React.FC = () => {
               icon={<SearchOutlined />}
               style={{ borderRadius: '6px' }}
             >
-              搜索
+              {translateCommon('search')}
             </Button>
             <Button 
               type="default" 
@@ -379,7 +385,7 @@ const OperationLogManagement: React.FC = () => {
               icon={<DownloadOutlined />}
               style={{ borderRadius: '6px' }}
             >
-              导出
+              {translateCommon('export')}
             </Button>
           </Space>
         </Row>
@@ -396,7 +402,11 @@ const OperationLogManagement: React.FC = () => {
             ...pagination,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+            showTotal: (total, range) =>
+              language === 'en' 
+                ? `Showing ${range[0]}-${range[1]} of ${total} items`
+                : `第 ${range[0]}-${range[1]} 条，共 ${total} 条`,
+            pageSizeOptions: ['10', '20', '50', '100']
           }}
           onChange={handleTableChange}
           scroll={{ x: 1200, y: 520 }}
@@ -408,14 +418,14 @@ const OperationLogManagement: React.FC = () => {
         title={
           <Space>
             <InfoCircleOutlined style={{ color: '#1890ff' }} />
-            <span>操作记录详情</span>
+            <span>{t('operationLog.detail.title')}</span>
           </Space>
         }
         open={detailModalVisible}
         onCancel={handleCloseDetailModal}
         footer={[
           <Button key="close" onClick={handleCloseDetailModal}>
-            关闭
+            {t('operationLog.detail.close')}
           </Button>
         ]}
         width={800}
@@ -425,44 +435,49 @@ const OperationLogManagement: React.FC = () => {
           <div>
             {/* 基本信息 */}
             <Card 
-              title="基本信息" 
+              title={t('operationLog.detail.basicInfo')} 
               size="small" 
               style={{ marginBottom: 16 }}
               headStyle={{ backgroundColor: '#f5f5f5' }}
             >
               <Descriptions column={2} size="small">
-                <Descriptions.Item label="记录ID">
+                <Descriptions.Item label={t('operationLog.table.id')}>
                   <Badge count={selectedOperationLog.id} style={{ backgroundColor: '#52c41a' }} />
                 </Descriptions.Item>
-                <Descriptions.Item label="操作用户">
+                <Descriptions.Item label={t('operationLog.table.username')}>
                   <Space>
                     <UserOutlined />
                     {selectedOperationLog.username}
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="操作时间">
+                <Descriptions.Item label={t('operationLog.table.operationTime')}>
                   {OperationLogUtils.formatOperationTime(selectedOperationLog.operationTime)}
                 </Descriptions.Item>
-                <Descriptions.Item label="操作类型">
+                <Descriptions.Item label={t('operationLog.table.operationType')}>
                   <Tag color={OperationLogUtils.getOperationTypeColor(selectedOperationLog.operationType)}>
-                    {OperationLogUtils.getOperationTypeText(selectedOperationLog.operationType)}
+                    {OperationLogUtils.getOperationTypeText(selectedOperationLog.operationType, language)}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="操作对象">
+                <Descriptions.Item label={t('operationLog.table.target')}>
                   <Space>
                     <AimOutlined />
-                    {OperationLogUtils.getOperationTargetText(selectedOperationLog.operationTarget)}
+                    {OperationLogUtils.getOperationTargetText(selectedOperationLog.operationTarget, language)}
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="操作描述" span={2}>
-                  <Text>{selectedOperationLog.operationDescriptionZh || selectedOperationLog.operationDescriptionEn}</Text>
+                <Descriptions.Item label={t('operationLog.table.description')} span={2}>
+                  <Text>
+                    {language === 'en' 
+                      ? (selectedOperationLog.operationDescriptionEn || selectedOperationLog.operationDescriptionZh)
+                      : (selectedOperationLog.operationDescriptionZh || selectedOperationLog.operationDescriptionEn)
+                    }
+                  </Text>
                 </Descriptions.Item>
               </Descriptions>
             </Card>
 
             {/* 操作数据详情 */}
             <Card 
-              title="操作数据详情" 
+              title={t('operationLog.detail.operationData')} 
               size="small"
               headStyle={{ backgroundColor: '#f5f5f5' }}
             >
@@ -471,9 +486,9 @@ const OperationLogManagement: React.FC = () => {
                   header={
                     <Space>
                       <SettingOutlined />
-                      <span>操作数据 (operationData)</span>
+                      <span>{t('operationLog.detail.operationDataTitle')}</span>
                       <Badge 
-                        count={selectedOperationLog.operationData ? '有数据' : '无数据'} 
+                        count={selectedOperationLog.operationData ? t('operationLog.detail.hasData') : t('operationLog.detail.noData')} 
                         style={{ 
                           backgroundColor: selectedOperationLog.operationData ? '#52c41a' : '#d9d9d9',
                           color: selectedOperationLog.operationData ? '#fff' : '#666'
@@ -500,7 +515,7 @@ const OperationLogManagement: React.FC = () => {
                       </pre>
                     </div>
                   ) : (
-                    <Text type="secondary">暂无操作数据</Text>
+                    <Text type="secondary">{t('operationLog.detail.noOperationData')}</Text>
                   )}
                 </Panel>
               </Collapse>

@@ -10,6 +10,7 @@ import com.huawei.cloududn.dialingtest.model.TestCaseSetUploadResponse;
 import com.huawei.cloududn.dialingtest.service.SoftwarePackagesService;
 import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
+import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +50,9 @@ public class FileUploadController {
     
     @Autowired
     private UserRoleService userRoleService;
+    
+    @Autowired
+    private PreprocessRuleService preprocessRuleService;
     
     @Autowired
     private OperationLogUtil operationLogUtil;
@@ -248,6 +253,112 @@ public class FileUploadController {
                 
         } catch (Exception e) {
             logger.error("Software package upload failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+        }
+    }
+    
+    /**
+     * 上传预处理规则ZIP包
+     *
+     * @param request HTTP请求对象
+     * @param businessZh 业务类型（中文）
+     * @param businessEn 业务类型（英文）
+     * @param description 描述信息
+     * @param xUsername 操作用户名
+     * @return 上传结果
+     */
+    @PostMapping("/preprocess-rule-packages/upload")
+    public ResponseEntity<String> uploadPreprocessRulePackage(
+            HttpServletRequest request,
+            @RequestParam(value = "businessZh", required = false) String businessZh,
+            @RequestParam(value = "businessEn", required = false) String businessEn,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "forceOverwrite", required = false) String forceOverwrite,
+            @RequestHeader(value = "X-Username", required = false) String xUsername) {
+        logger.info("Received preprocess rule package upload request");
+        logger.info("Request parameters - businessZh: {}, businessEn: {}, description: {}, forceOverwrite: {}, X-Username: {}",
+                   businessZh, businessEn, description, forceOverwrite, xUsername);
+
+        try {
+            // 检查请求是否为multipart类型
+            if (!(request instanceof MultipartHttpServletRequest)) {
+                logger.warn("Request is not multipart type");
+                return ResponseEntity.badRequest()
+                    .body("{\"success\":false,\"message\":\"请求类型错误，必须是multipart/form-data\"}");
+            }
+            
+            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+            logger.info("File names in request: {}", String.join(", ", 
+                       (Iterable<String>) () -> multipartRequest.getFileNames()));
+            
+            // 获取上传的文件
+            MultipartFile file = null;
+            Iterator<String> fileNames = multipartRequest.getFileNames();
+            if (fileNames.hasNext()) {
+                String fileName = fileNames.next();
+                file = multipartRequest.getFile(fileName);
+            }
+            
+            if (file == null || file.isEmpty()) {
+                logger.warn("No file provided in upload request");
+                return ResponseEntity.badRequest()
+                    .body("{\"success\":false,\"message\":\"未找到上传文件\"}");
+            }
+            
+            // 验证文件格式
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".zip")) {
+                return ResponseEntity.badRequest()
+                    .body("{\"success\":false,\"message\":\"仅支持ZIP格式文件\"}");
+            }
+            
+            // 验证业务类型参数
+            if (businessZh == null || businessZh.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body("{\"success\":false,\"message\":\"业务类型中文名称不能为空\"}");
+            }
+            
+            if (businessEn == null || businessEn.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body("{\"success\":false,\"message\":\"业务类型英文名称不能为空\"}");
+            }
+            
+            // 获取操作用户名
+            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "unknown";
+            
+            // 检查权限（仅ADMIN和OPERATOR可以上传）
+            List<String> allowedRoles = Arrays.asList("ADMIN", "OPERATOR");
+            if (!userRoleService.hasAnyRole(operatorUsername, allowedRoles)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("{\"success\":false,\"message\":\"权限不足，仅ADMIN和OPERATOR可以上传预处理规则包\"}");
+            }
+            
+            logger.info("Processing preprocess rule package upload: {} by user: {}", originalFilename, operatorUsername);
+            
+            // 解析覆盖标志
+            boolean shouldOverwrite = "true".equalsIgnoreCase(forceOverwrite);
+            
+            // 调用服务层处理上传
+            String result = preprocessRuleService.uploadPreprocessRulePackage(
+                file, businessZh, businessEn, description, operatorUsername, shouldOverwrite);
+            
+            logger.info("Preprocess rule package upload completed successfully: {}", originalFilename);
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            logger.warn("Preprocess rule package upload validation failed: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+                
+        } catch (IOException e) {
+            logger.error("Preprocess rule package upload failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+                
+        } catch (Exception e) {
+            logger.error("Preprocess rule package upload failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
         }

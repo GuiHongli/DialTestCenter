@@ -269,8 +269,8 @@ export class OperationLogUtils {
   /**
    * 获取操作类型显示文本
    */
-  static getOperationTypeText(operationType: string): string {
-    const textMap: Record<string, string> = {
+  static getOperationTypeText(operationType: string, language: string = 'zh'): string {
+    const textMapZh: Record<string, string> = {
       CREATE: '创建',
       UPDATE: '更新',
       DELETE: '删除',
@@ -282,18 +282,34 @@ export class OperationLogUtils {
       UPLOAD: '上传',
       DOWNLOAD: '下载',
     }
+    
+    const textMapEn: Record<string, string> = {
+      CREATE: 'Create',
+      UPDATE: 'Update',
+      DELETE: 'Delete',
+      LOGIN: 'Login',
+      LOGOUT: 'Logout',
+      VIEW: 'View',
+      EXPORT: 'Export',
+      IMPORT: 'Import',
+      UPLOAD: 'Upload',
+      DOWNLOAD: 'Download',
+    }
+    
+    const textMap = language === 'en' ? textMapEn : textMapZh
     return textMap[operationType] || operationType
   }
 
   /**
    * 获取操作对象显示文本
    */
-  static getOperationTargetText(operationTarget: string): string {
-    const textMap: Record<string, string> = {
+  static getOperationTargetText(operationTarget: string, language: string = 'zh'): string {
+    const textMapZh: Record<string, string> = {
       USER: '执行机账号',
       USER_ROLE: '角色管理',
       TEST_CASE_SET: '测试用例集',
       SOFTWARE_PACKAGE: '软件包',
+      PREPROCESS_RULE_PACKAGE: '预处理规则包',
       SYSTEM: '系统',
       LOGIN: '系统登录',
       LOGOUT: '系统登出',
@@ -305,10 +321,24 @@ export class OperationLogUtils {
       '测试用例集': '测试用例集',
       '软件包管理': '软件包', // 兼容旧的软件包管理
       '软件包': '软件包',
+      '预处理规则包': '预处理规则包',
       '系统': '系统',
       '系统登录': '系统登录',
       '系统登出': '系统登出',
     }
+    
+    const textMapEn: Record<string, string> = {
+      USER: 'User Management',
+      USER_ROLE: 'Role Management',
+      TEST_CASE_SET: 'Test Case Set',
+      SOFTWARE_PACKAGE: 'Software Package',
+      PREPROCESS_RULE_PACKAGE: 'Preprocess Rule Package',
+      SYSTEM: 'System',
+      LOGIN: 'System Login',
+      LOGOUT: 'System Logout',
+    }
+    
+    const textMap = language === 'en' ? textMapEn : textMapZh
     return textMap[operationTarget] || operationTarget
   }
 

@@ -9,6 +9,7 @@ import UserRoleManagementPage from './pages/UserRoleManagement'
 import UserManagementPage from './pages/UserManagement'
 import SoftwarePackageManagementPage from './pages/SoftwarePackageManagement'
 import OperationLogManagementPage from './pages/OperationLogManagement'
+import PreprocessRuleManagementPage from './pages/PreprocessRuleManagement'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/test-case-sets" component={TestCaseSetManagementPage} />
             <Route path="/software-packages" component={SoftwarePackageManagementPage} />
             <Route path="/operation-logs" component={OperationLogManagementPage} />
+            <Route path="/preprocess-rules" component={PreprocessRuleManagementPage} />
           </Switch>
         </Layout>
       </PermissionProvider>

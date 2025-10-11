@@ -1,0 +1,53 @@
+{
+    "category": "LIVE",
+    "apps": {
+        "douyin": {
+            "text": "douyin",
+            "app_type": "app_type",
+            "app_egn_protos":[
+                "DouYin_Live",
+                "Bytecdn"
+            ],
+            "associate_rules":[
+                {
+                "rule_type": "xx",
+                "top":10
+                }
+            ]
+        },
+        "kuaishou": {
+            "text": "kuaishou",
+            "app_type": "app_type"
+        }
+    },
+    "custom_rules":{
+        "custome_rule_ghltest1":{
+            "douyin": {
+                "text": "douyin",
+                "app_type": "app_type",
+                "app_egn_protos":[
+                    "DouYin_Live",
+                    "Bytecdn"
+                ]
+            },
+            "kuaishou": {
+                "text": "kuaishou",
+                "app_type": "app_type"
+            }
+        },
+      "custome_rule_ghltest2":{
+            "douyin": {
+                "text": "douyin",
+                "app_type": "app_type",
+                "app_egn_protos":[
+                    "DouYin_Live",
+                    "Bytecdn"
+                ]
+            },
+            "kuaishou": {
+                "text": "kuaishou",
+                "app_type": "app_type"
+            }
+        }
+    }
+}

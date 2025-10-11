@@ -322,4 +322,26 @@ public class OperationLogUtil {
         builder -> builder.softwarePackageOverwrite(oldPackage, newPackage),
         "Logged software package overwrite: " + newPackage.getSoftwareName() + " by user: " + operatorUsername);
   }
+  
+  /**
+   * 记录预处理规则ZIP包上传操作
+   */
+  public void logPreprocessRulePackageUpload(String operatorUsername, String packageName, String businessZh, String businessEn) {
+    logOperation(operatorUsername, "UPLOAD", "PREPROCESS_RULE_PACKAGE",
+        "上传预处理规则ZIP包: " + packageName + " (业务类型: " + businessZh + ")",
+        "Upload preprocess rule package: " + packageName + " (Business: " + businessEn + ")",
+        builder -> builder.preprocessRulePackageUpload(packageName, businessZh, businessEn),
+        "Logged preprocess rule package upload: " + packageName + " by user: " + operatorUsername);
+  }
+  
+  /**
+   * 记录预处理规则ZIP包删除操作
+   */
+  public void logPreprocessRulePackageDelete(String operatorUsername, String packageName) {
+    logOperation(operatorUsername, "DELETE", "PREPROCESS_RULE_PACKAGE",
+        "删除预处理规则ZIP包: " + packageName,
+        "Delete preprocess rule package: " + packageName,
+        builder -> builder.preprocessRulePackageDelete(packageName),
+        "Logged preprocess rule package delete: " + packageName + " by user: " + operatorUsername);
+  }
 }

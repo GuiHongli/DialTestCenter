@@ -1,0 +1,576 @@
+swagger: "2.0"
+info:
+  title: "预处理规则管理API"
+  description: "预处理规则管理模块的RESTful API接口"
+  version: "1.0.0"
+  contact:
+    name: "拨测控制中心开发团队"
+    email: "dev@example.com"
+
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - "https"
+
+consumes:
+  - "application/json"
+
+produces:
+  - "application/json"
+
+paths:
+  /preprocess-rule-packages:
+    get:
+      tags:
+        - "ZIP包管理"
+      summary: "获取ZIP包列表"
+      description: "分页获取预处理规则ZIP包列表，支持业务类型和关键词筛选"
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+        - name: "businessZh"
+          in: "query"
+          type: "string"
+          required: false
+          description: "业务类型中文名称筛选"
+        - name: "keyword"
+          in: "query"
+          type: "string"
+          required: false
+          description: "搜索关键字（包名称）"
+      responses:
+        200:
+          description: "成功获取ZIP包列表"
+          schema:
+            $ref: "#/definitions/PreprocessRulePackageListResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rule-packages/{id}/download:
+    get:
+      tags:
+        - "ZIP包管理"
+      summary: "下载ZIP包"
+      description: "下载指定的预处理规则ZIP包，仅ADMIN和OPERATOR有权限"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "ZIP包ID"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        200:
+          description: "成功下载ZIP包文件"
+          schema:
+            type: "file"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "ZIP包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rule-packages/{id}:
+    delete:
+      tags:
+        - "ZIP包管理"
+      summary: "删除ZIP包"
+      description: "删除指定的预处理规则ZIP包，会级联删除关联的规则，仅ADMIN和OPERATOR有权限"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "ZIP包ID"
+          required: true
+          type: "integer"
+          format: "int64"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        200:
+          description: "成功删除ZIP包"
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        404:
+          description: "ZIP包不存在"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules:
+    get:
+      tags:
+        - "规则管理"
+      summary: "获取预处理规则列表"
+      description: "分页获取预处理规则列表，支持多维度筛选"
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "页码，从1开始"
+          required: false
+          type: "integer"
+          default: 1
+        - name: "pageSize"
+          in: "query"
+          description: "每页大小"
+          required: false
+          type: "integer"
+          default: 10
+        - name: "businessZh"
+          in: "query"
+          type: "string"
+          required: false
+          description: "业务类型中文名称筛选"
+        - name: "category"
+          in: "query"
+          type: "string"
+          required: false
+          description: "分类筛选"
+        - name: "appName"
+          in: "query"
+          type: "string"
+          required: false
+          description: "应用名称筛选"
+        - name: "ruleName"
+          in: "query"
+          type: "string"
+          required: false
+          description: "规则名称筛选"
+        - name: "keyword"
+          in: "query"
+          type: "string"
+          required: false
+          description: "搜索关键字"
+      responses:
+        200:
+          description: "成功获取预处理规则列表"
+          schema:
+            $ref: "#/definitions/PreprocessRuleListResponse"
+        400:
+          description: "请求参数错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules/business-types:
+    get:
+      tags:
+        - "筛选选项"
+      summary: "获取业务类型列表"
+      description: "获取所有可用的业务类型列表"
+      responses:
+        200:
+          description: "成功获取业务类型列表"
+          schema:
+            $ref: "#/definitions/BusinessTypeListResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules/categories:
+    get:
+      tags:
+        - "筛选选项"
+      summary: "获取分类列表"
+      description: "根据业务类型获取分类列表"
+      parameters:
+        - name: "businessZh"
+          in: "query"
+          type: "string"
+          required: true
+          description: "业务类型中文名称"
+      responses:
+        200:
+          description: "成功获取分类列表"
+          schema:
+            $ref: "#/definitions/CategoryListResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules/app-names:
+    get:
+      tags:
+        - "筛选选项"
+      summary: "获取应用名称列表"
+      description: "根据业务类型和分类获取应用名称列表"
+      parameters:
+        - name: "businessZh"
+          in: "query"
+          type: "string"
+          required: true
+          description: "业务类型中文名称"
+        - name: "category"
+          in: "query"
+          type: "string"
+          required: true
+          description: "分类名称"
+      responses:
+        200:
+          description: "成功获取应用名称列表"
+          schema:
+            $ref: "#/definitions/AppNameListResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules/rule-names:
+    get:
+      tags:
+        - "筛选选项"
+      summary: "获取规则名称列表"
+      description: "根据业务类型、分类和应用获取规则名称列表"
+      parameters:
+        - name: "businessZh"
+          in: "query"
+          type: "string"
+          required: true
+          description: "业务类型中文名称"
+        - name: "category"
+          in: "query"
+          type: "string"
+          required: true
+          description: "分类名称"
+        - name: "appName"
+          in: "query"
+          type: "string"
+          required: true
+          description: "应用名称"
+      responses:
+        200:
+          description: "成功获取规则名称列表"
+          schema:
+            $ref: "#/definitions/RuleNameListResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /preprocess-rules/filter-options:
+    get:
+      tags:
+        - "筛选选项"
+      summary: "获取筛选选项"
+      description: "获取所有筛选选项，包括业务类型、分类、应用名称、规则名称"
+      responses:
+        200:
+          description: "成功获取筛选选项"
+          schema:
+            $ref: "#/definitions/FilterOptionsResponse"
+        500:
+          description: "服务器内部错误"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  PreprocessRulePackage:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "ZIP包ID"
+      packageName:
+        type: "string"
+        description: "ZIP包名称"
+        example: "preprocess_rules_v1.0.zip"
+      businessZh:
+        type: "string"
+        description: "业务类型中文名称"
+        example: "直播业务"
+      businessEn:
+        type: "string"
+        description: "业务类型英文名称"
+        example: "LIVE_STREAMING"
+      fileSize:
+        type: "integer"
+        format: "int64"
+        description: "文件大小（字节）"
+        example: 1048576
+      description:
+        type: "string"
+        description: "描述信息"
+        example: "直播业务预处理规则包"
+
+  PreprocessRule:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        description: "规则ID"
+      ruleName:
+        type: "string"
+        description: "规则名称"
+        example: "LIVE_douyin"
+      businessZh:
+        type: "string"
+        description: "业务类型中文名称"
+        example: "直播业务"
+      businessEn:
+        type: "string"
+        description: "业务类型英文名称"
+        example: "LIVE_STREAMING"
+      category:
+        type: "string"
+        description: "规则分类"
+        example: "LIVE"
+      appName:
+        type: "string"
+        description: "应用名称"
+        example: "douyin"
+      content:
+        type: "string"
+        description: "规则内容"
+        example: "{\"text\": \"douyin\", \"app_type\": \"app_type\", \"app_egn_protos\": [\"DouYin_Live\", \"Bytecdn\"]}"
+      isCustom:
+        type: "boolean"
+        description: "是否自定义规则"
+        example: false
+      packageId:
+        type: "integer"
+        format: "int64"
+        description: "关联的ZIP包ID"
+        example: 1
+
+  PreprocessRulePackageListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取ZIP包列表成功"
+      data:
+        type: "object"
+        properties:
+          page:
+            type: "integer"
+            description: "当前页码"
+            example: 1
+          pageSize:
+            type: "integer"
+            description: "每页大小"
+            example: 10
+          total:
+            type: "integer"
+            description: "总记录数"
+            example: 25
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/PreprocessRulePackage"
+
+  PreprocessRuleListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取预处理规则列表成功"
+      data:
+        type: "object"
+        properties:
+          page:
+            type: "integer"
+            description: "当前页码"
+            example: 1
+          pageSize:
+            type: "integer"
+            description: "每页大小"
+            example: 10
+          total:
+            type: "integer"
+            description: "总记录数"
+            example: 25
+          data:
+            type: "array"
+            items:
+              $ref: "#/definitions/PreprocessRule"
+
+  PreprocessRuleFilterOptions:
+    type: "object"
+    properties:
+      businessTypes:
+        type: "array"
+        items:
+          type: "string"
+        description: "业务类型列表"
+        example: ["直播业务", "视频业务", "游戏业务"]
+      categories:
+        type: "array"
+        items:
+          type: "string"
+        description: "分类列表"
+        example: ["LIVE", "VIDEO", "GAME"]
+      appNames:
+        type: "array"
+        items:
+          type: "string"
+        description: "应用名称列表"
+        example: ["douyin", "kuaishou", "weibo"]
+      ruleNames:
+        type: "array"
+        items:
+          type: "string"
+        description: "规则名称列表"
+        example: ["LIVE_douyin", "LIVE_kuaishou", "VIDEO_weibo"]
+
+  BusinessTypeListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取业务类型列表成功"
+      data:
+        type: "array"
+        items:
+          type: "string"
+        description: "业务类型列表"
+        example: ["直播业务", "视频业务", "游戏业务"]
+
+  CategoryListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取分类列表成功"
+      data:
+        type: "array"
+        items:
+          type: "string"
+        description: "分类列表"
+        example: ["LIVE", "VIDEO", "GAME"]
+
+  AppNameListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取应用名称列表成功"
+      data:
+        type: "array"
+        items:
+          type: "string"
+        description: "应用名称列表"
+        example: ["douyin", "kuaishou", "weibo"]
+
+  RuleNameListResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取规则名称列表成功"
+      data:
+        type: "array"
+        items:
+          type: "string"
+        description: "规则名称列表"
+        example: ["LIVE_douyin", "LIVE_kuaishou", "VIDEO_weibo"]
+
+  FilterOptionsResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "获取筛选选项成功"
+      data:
+        $ref: "#/definitions/PreprocessRuleFilterOptions"
+
+  SuccessResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: true
+      message:
+        type: "string"
+        description: "响应消息"
+        example: "操作成功"
+
+  ErrorResponse:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+        description: "请求是否成功"
+        example: false
+      message:
+        type: "string"
+        description: "错误消息"
+        example: "操作失败"
+      errorCode:
+        type: "string"
+        description: "错误代码"
+        example: "INVALID_PARAMETER"

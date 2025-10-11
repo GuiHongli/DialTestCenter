@@ -261,5 +261,23 @@ public class OperationDataBuilder {
     public OperationDataBuilder withCustomData(String key, Object value) {
         return add(key, value);
     }
+    
+    /**
+     * 预处理规则ZIP包上传操作数据构建器
+     */
+    public OperationDataBuilder preprocessRulePackageUpload(String packageName, String businessZh, String businessEn) {
+        return add("packageName", packageName)
+               .add("businessZh", businessZh)
+               .add("businessEn", businessEn)
+               .withTimestamp();
+    }
+    
+    /**
+     * 预处理规则ZIP包删除操作数据构建器
+     */
+    public OperationDataBuilder preprocessRulePackageDelete(String packageName) {
+        return add("packageName", packageName)
+               .withTimestamp();
+    }
 }
 
