@@ -86,8 +86,13 @@ public interface PreprocessRuleDao {
         @Result(property = "isCustom", column = "is_custom"),
         @Result(property = "packageId", column = "package_id")
     })
-    List<PreprocessRule> findByConditions(String businessZh, String category, String appName, 
-                                        String ruleName, String keyword, int offset, int pageSize);
+    List<PreprocessRule> findByConditions(@Param("businessZh") String businessZh, 
+                                        @Param("category") String category, 
+                                        @Param("appName") String appName, 
+                                        @Param("ruleName") String ruleName, 
+                                        @Param("keyword") String keyword, 
+                                        @Param("offset") int offset, 
+                                        @Param("pageSize") int pageSize);
     
     /**
      * 根据条件统计预处理规则数量
@@ -112,7 +117,11 @@ public interface PreprocessRuleDao {
             "</if>" +
             "</where>" +
             "</script>")
-    int countByConditions(String businessZh, String category, String appName, String ruleName, String keyword);
+    int countByConditions(@Param("businessZh") String businessZh, 
+                         @Param("category") String category, 
+                         @Param("appName") String appName, 
+                         @Param("ruleName") String ruleName, 
+                         @Param("keyword") String keyword);
     
     /**
      * 根据包ID删除预处理规则
@@ -124,13 +133,13 @@ public interface PreprocessRuleDao {
      * 根据规则名称和业务类型删除预处理规则
      */
     @Delete("DELETE FROM preprocess_rules WHERE rule_name = #{ruleName} AND business_zh = #{businessZh}")
-    int deleteByRuleNameAndBusiness(String ruleName, String businessZh);
+    int deleteByRuleNameAndBusiness(@Param("ruleName") String ruleName, @Param("businessZh") String businessZh);
     
     /**
      * 检查规则名称和业务类型是否已存在
      */
     @Select("SELECT COUNT(*) FROM preprocess_rules WHERE rule_name = #{ruleName} AND business_zh = #{businessZh}")
-    int countByRuleNameAndBusiness(String ruleName, String businessZh);
+    int countByRuleNameAndBusiness(@Param("ruleName") String ruleName, @Param("businessZh") String businessZh);
     
     /**
      * 获取所有不重复的业务类型
@@ -172,7 +181,7 @@ public interface PreprocessRuleDao {
      * 根据业务类型和分类获取不重复的应用名称
      */
     @Select("SELECT DISTINCT app_name FROM preprocess_rules WHERE business_zh = #{businessZh} AND category = #{category} ORDER BY app_name")
-    List<String> findDistinctAppNamesByBusinessAndCategory(String businessZh, String category);
+    List<String> findDistinctAppNamesByBusinessAndCategory(@Param("businessZh") String businessZh, @Param("category") String category);
     
     /**
      * 获取所有不重复的规则名称
@@ -202,24 +211,24 @@ public interface PreprocessRuleDao {
      * 根据业务类型和分类获取不重复的规则名称
      */
     @Select("SELECT DISTINCT rule_name FROM preprocess_rules WHERE business_zh = #{businessZh} AND category = #{category} ORDER BY rule_name")
-    List<String> findDistinctRuleNamesByBusinessAndCategory(String businessZh, String category);
+    List<String> findDistinctRuleNamesByBusinessAndCategory(@Param("businessZh") String businessZh, @Param("category") String category);
     
     /**
      * 根据业务类型和应用名称获取不重复的规则名称
      */
     @Select("SELECT DISTINCT rule_name FROM preprocess_rules WHERE business_zh = #{businessZh} AND app_name = #{appName} ORDER BY rule_name")
-    List<String> findDistinctRuleNamesByBusinessAndApp(String businessZh, String appName);
+    List<String> findDistinctRuleNamesByBusinessAndApp(@Param("businessZh") String businessZh, @Param("appName") String appName);
     
     /**
      * 根据分类和应用名称获取不重复的规则名称
      */
     @Select("SELECT DISTINCT rule_name FROM preprocess_rules WHERE category = #{category} AND app_name = #{appName} ORDER BY rule_name")
-    List<String> findDistinctRuleNamesByCategoryAndApp(String category, String appName);
+    List<String> findDistinctRuleNamesByCategoryAndApp(@Param("category") String category, @Param("appName") String appName);
     
     /**
      * 根据业务类型、分类和应用名称获取不重复的规则名称
      */
     @Select("SELECT DISTINCT rule_name FROM preprocess_rules WHERE business_zh = #{businessZh} AND category = #{category} AND app_name = #{appName} ORDER BY rule_name")
-    List<String> findDistinctRuleNamesByBusinessAndCategoryAndApp(String businessZh, String category, String appName);
+    List<String> findDistinctRuleNamesByBusinessAndCategoryAndApp(@Param("businessZh") String businessZh, @Param("category") String category, @Param("appName") String appName);
 }
 

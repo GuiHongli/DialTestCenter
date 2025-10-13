@@ -62,7 +62,10 @@ public interface PreprocessRulePackageDao {
         @Result(property = "fileSize", column = "file_size"),
         @Result(property = "description", column = "description")
     })
-    List<PreprocessRulePackageEntity> findByConditions(String businessZh, String keyword, int offset, int pageSize);
+    List<PreprocessRulePackageEntity> findByConditions(@Param("businessZh") String businessZh, 
+                                                      @Param("keyword") String keyword, 
+                                                      @Param("offset") int offset, 
+                                                      @Param("pageSize") int pageSize);
     
     /**
      * 根据条件统计ZIP包数量
@@ -78,7 +81,7 @@ public interface PreprocessRulePackageDao {
             "</if>" +
             "</where>" +
             "</script>")
-    int countByConditions(String businessZh, String keyword);
+    int countByConditions(@Param("businessZh") String businessZh, @Param("keyword") String keyword);
     
     /**
      * 根据ID删除ZIP包
@@ -90,7 +93,7 @@ public interface PreprocessRulePackageDao {
      * 检查包名和业务类型是否已存在
      */
     @Select("SELECT COUNT(*) FROM preprocess_rule_packages WHERE package_name = #{packageName} AND business_zh = #{businessZh}")
-    int countByPackageNameAndBusiness(String packageName, String businessZh);
+    int countByPackageNameAndBusiness(@Param("packageName") String packageName, @Param("businessZh") String businessZh);
     
     /**
      * 根据包名和业务类型查询ZIP包
@@ -105,7 +108,7 @@ public interface PreprocessRulePackageDao {
         @Result(property = "fileSize", column = "file_size"),
         @Result(property = "description", column = "description")
     })
-    PreprocessRulePackageEntity findByPackageNameAndBusiness(String packageName, String businessZh);
+    PreprocessRulePackageEntity findByPackageNameAndBusiness(@Param("packageName") String packageName, @Param("businessZh") String businessZh);
     
     /**
      * 更新ZIP包
