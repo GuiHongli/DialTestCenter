@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 export default {
   entry: './src/main.tsx',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../dialingtest-service/src/main/resources/static'),
     filename: 'bundle.js',
     clean: true,
     publicPath: '/',
