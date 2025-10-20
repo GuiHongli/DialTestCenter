@@ -29,7 +29,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation()
   const { translateNavigation, translateApp, translateFooter } = useTranslation()
   const { currentLanguage, setLanguage } = useLanguage()
-
   const currentYear = new Date().getFullYear()
 
   const menuItems = [
@@ -211,7 +210,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           }}
         >
           <Text type="secondary" style={{ fontSize: '14px' }}>
-            {translateFooter('copyright') || `© ${currentYear} Dial Test Center. 版权所有.`}
+            {translateFooter('copyright', { year: currentYear }) || `© ${currentYear} Dial Test Center. 版权所有.`}
           </Text>
         </Footer>
       </AntLayout>

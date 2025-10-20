@@ -398,7 +398,7 @@
     "english": "English"
   },
   "footer": {
-    "copyright": "© 2024 Dial Test Center. All rights reserved.",
+    "copyright": "© {{year}} Dial Test Center. All rights reserved.",
     "allRightsReserved": "All rights reserved"
   },
   "preprocessRule": {
