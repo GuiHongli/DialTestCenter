@@ -10,8 +10,10 @@ import {
     SafetyCertificateOutlined,
     ToolOutlined,
     HistoryOutlined,
+    HomeOutlined,
+    CaretDownFilled,
 } from '@ant-design/icons'
-import { Layout as AntLayout, Button, Menu, Typography } from 'antd'
+import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
 import React, { useState } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import { useLanguage, useTranslation } from '../hooks/useTranslation'
@@ -27,7 +29,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
   const history = useHistory()
   const location = useLocation()
-  const { translateNavigation, translateApp, translateFooter } = useTranslation()
+  const { translateNavigation, translateApp, translateFooter, translate } = useTranslation()
+  const translateHeader = (key: string) => translate('header', key)
   const { currentLanguage, setLanguage } = useLanguage()
   const currentYear = new Date().getFullYear()
 
@@ -101,18 +104,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div style={{ 
           height: 32, 
           margin: 16, 
-          background: 'rgba(255, 255, 255, 0.2)',
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '4px'
         }}>
             <img 
-              src="/favicon.ico" 
+              src="/logo.png" 
               alt="Dial Test Center" 
               style={{ 
                 width: collapsed ? '20px' : '24px', 
-                height: collapsed ? '20px' : '24px'
+                height: collapsed ? '20px' : '24px',
+                backgroundColor: 'transparent'
               }} 
             />
         </div>
@@ -153,10 +157,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Header style={{ padding: 0, background: '#001529', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: '18px', fontWeight: 'bold', marginLeft: '16px', color: 'white' }}>
-              {translateApp('title')}
+              {/* {translateApp('title')} */}
             </span>
           </div>
         <div style={{ marginRight: '24px', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlined 
+            onClick={() => history.push('/')}
+            style={{ color: 'white', fontSize: '18px', marginRight: '12px', cursor: 'pointer' }}
+            title={translateHeader('home')}
+          />
+          <Dropdown 
+            menu={{
+              items: [
+                { key: 'settings', label: translateHeader('settings') },
+                { key: 'logout', label: translateHeader('logout') },
+              ],
+              onClick: ({ key }) => {
+                if (key === 'settings') {
+                  history.push('/settings')
+                } else {
+                  history.push('/login')
+                }
+              },
+            }}
+          >
+            <CaretDownFilled style={{ color: 'white', fontSize: '12px', marginRight: '16px', cursor: 'pointer' }} />
+          </Dropdown>
           <span 
             onClick={() => setLanguage('zh')}
             style={{ 

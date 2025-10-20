@@ -397,6 +397,11 @@
     "chinese": "中文",
     "english": "English"
   },
+  "header": {
+    "home": "首页",
+    "settings": "设置",
+    "logout": "注销"
+  },
   "footer": {
     "copyright": "© {{year}} Dial Test Center. 版权所有.",
     "allRightsReserved": "保留所有权利"
