@@ -1,11 +1,9 @@
 import {
     FileZipOutlined,
     FileTextOutlined,
-    HomeOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     SettingOutlined,
-    UserOutlined,
     AppstoreOutlined,
     TeamOutlined,
     DesktopOutlined,
@@ -33,11 +31,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentLanguage, setLanguage } = useLanguage()
 
   const menuItems = [
-    {
-      key: '/',
-      icon: <HomeOutlined />,
-      label: translateNavigation('home'),
-    },
     {
       key: 'user',
       icon: <TeamOutlined />,

@@ -27,11 +27,6 @@ export const useTranslation = () => {
     return t(`navigation.${key}`, options)
   }
 
-  // 首页相关翻译
-  const translateHome = (key: string, options?: any) => {
-    return t(`home.${key}`, options)
-  }
-
   // 用户相关翻译
   const translateUser = (key: string, options?: any) => {
     return t(`user.${key}`, options)
@@ -73,7 +68,6 @@ export const useTranslation = () => {
     translateCommon,
     translateApp,
     translateNavigation,
-    translateHome,
     translateUser,
     translateSoftwarePackage,
     translateUserRole,

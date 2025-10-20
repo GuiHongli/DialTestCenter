@@ -70,7 +70,6 @@
     "description": "This is a full-stack service system that integrates frontend pages and backend implementation, providing data statistics and other functions."
   },
   "navigation": {
-    "home": "Home",
     "userManagement": "User Management",
     "userList": "Execution Machine Account Management",
     "roleManagement": "Role Management",
@@ -80,32 +79,6 @@
     "preprocessRuleManagement": "Preprocess Rule Management",
     "operationManagement": "Operation Management",
     "operationLogManagement": "Operation Log"
-  },
-  "home": {
-    "title": "Welcome to Dial Test Center",
-    "description": "This is a full-stack service system that integrates frontend pages and backend implementation, providing data statistics and other functions.",
-    "statistics": {
-      "dialTestTasks": "Dial Test Tasks",
-      "systemStatus": "System Status",
-      "configItems": "Config Items",
-      "normal": "Normal"
-    },
-    "systemInfo": {
-      "title": "System Information",
-      "frontendStack": "Frontend Stack:",
-      "frontendStackValue": "React 18 + TypeScript + Ant Design + Vite",
-      "backendStack": "Backend Stack:",
-      "backendStackValue": "Spring Boot 3.4.5 + JDK 21 + PostgreSQL + JUnit 4 + Mockito",
-      "devEnvironment": "Development Environment:",
-      "devEnvironmentValue": "Hot reload, TypeScript type checking, ESLint code standards"
-    },
-    "quickStart": {
-      "title": "Quick Start",
-      "step1": "Start backend service:",
-      "step2": "Start frontend service:",
-      "step3": "Access system:",
-      "step4": "View API documentation:"
-    }
   },
   "user": {
     "title": "Executor Account Management",

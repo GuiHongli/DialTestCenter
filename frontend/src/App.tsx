@@ -1,9 +1,8 @@
-import { Route, Switch } from 'react-router-dom'
+import { Redirect, Route, Switch } from 'react-router-dom'
 import './App.css'
 import Layout from './components/Layout'
 import { I18nProvider } from './contexts/I18nContext'
 import { PermissionProvider } from './hooks/usePermission'
-import Home from './pages/Home'
 import TestCaseSetManagementPage from './pages/TestCaseSetManagement'
 import UserRoleManagementPage from './pages/UserRoleManagement'
 import UserManagementPage from './pages/UserManagement'
@@ -17,13 +16,15 @@ function App() {
       <PermissionProvider>
         <Layout>
           <Switch>
-            <Route path="/" exact component={Home} />
             <Route path="/users" component={UserManagementPage} />
             <Route path="/user-roles" component={UserRoleManagementPage} />
             <Route path="/test-case-sets" component={TestCaseSetManagementPage} />
             <Route path="/software-packages" component={SoftwarePackageManagementPage} />
             <Route path="/operation-logs" component={OperationLogManagementPage} />
             <Route path="/preprocess-rules" component={PreprocessRuleManagementPage} />
+            <Route path="/" exact>
+              <Redirect to="/users" />
+            </Route>
           </Switch>
         </Layout>
       </PermissionProvider>

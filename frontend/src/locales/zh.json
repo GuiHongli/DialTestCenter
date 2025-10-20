@@ -70,7 +70,6 @@
     "description": "这是一个集成了前台页面和后台实现的全栈服务系统，提供数据统计等功能。"
   },
   "navigation": {
-    "home": "首页",
     "userManagement": "用户管理",
     "userList": "执行机账号管理",
     "roleManagement": "角色管理",
@@ -80,32 +79,6 @@
     "preprocessRuleManagement": "预处理规则管理",
     "operationManagement": "运维管理",
     "operationLogManagement": "操作记录"
-  },
-  "home": {
-    "title": "欢迎使用 Dial Test Center",
-    "description": "这是一个集成了前台页面和后台实现的全栈服务系统，提供数据统计等功能。",
-    "statistics": {
-      "dialTestTasks": "拨测任务",
-      "systemStatus": "系统状态",
-      "configItems": "配置项",
-      "normal": "正常"
-    },
-    "systemInfo": {
-      "title": "系统信息",
-      "frontendStack": "前端技术栈：",
-      "frontendStackValue": "React 18 + TypeScript + Ant Design + Vite",
-      "backendStack": "后端技术栈：",
-      "backendStackValue": "Spring Boot 3.4.5 + JDK 21 + PostgreSQL + JUnit 4 + Mockito",
-      "devEnvironment": "开发环境：",
-      "devEnvironmentValue": "支持热重载、TypeScript 类型检查、ESLint 代码规范"
-    },
-    "quickStart": {
-      "title": "快速开始",
-      "step1": "启动后端服务：",
-      "step2": "启动前端服务：",
-      "step3": "访问系统：",
-      "step4": "查看API文档："
-    }
   },
   "user": {
     "title": "执行机账号管理",
