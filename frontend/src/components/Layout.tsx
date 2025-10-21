@@ -157,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Header style={{ padding: 0, background: '#001529', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: '18px', fontWeight: 'bold', marginLeft: '16px', color: 'white' }}>
-              {/* {translateApp('title')} */}
+             拨测控制中心-使用ts实现
             </span>
           </div>
         <div style={{ marginRight: '24px', display: 'flex', alignItems: 'center' }}>
