@@ -6,7 +6,6 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, '../dialingtest-service/src/main/resources/static'),
     filename: 'bundle.js',
-    clean: true,
     publicPath: '/',
   },
   module: {
@@ -38,24 +37,13 @@ module.exports = {
     }),
   ],
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'public'),
-    },
+    contentBase: path.join(__dirname, 'public'),
     port: 4396,
     hot: true,
     historyApiFallback: true,
-    client: {
-      overlay: {
-        errors: true,
-        warnings: false,
-        runtimeErrors: (error) => {
-          const errorMessage = error.message || '';
-          if (errorMessage.includes('ResizeObserver loop completed with undelivered notifications')) {
-            return false;
-          }
-          return true;
-        },
-      },
+    overlay: {
+      errors: true,
+      warnings: false,
     },
     proxy: {
       '/dialingtest/api': {

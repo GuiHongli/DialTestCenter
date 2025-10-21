@@ -5,8 +5,8 @@ const path = require('path');
 
 console.log('🚀 启动前端开发服务器...\n');
 
-// 启动webpack dev server
-const devServer = spawn('npx', ['webpack', 'serve', '--mode', 'development', '--port', '4396'], {
+// 启动webpack dev server (Webpack 4 使用 webpack-dev-server)
+const devServer = spawn('npx', ['webpack-dev-server', '--mode', 'development', '--port', '4396'], {
   stdio: 'inherit',
   shell: true,
   cwd: path.resolve(__dirname, '..')
