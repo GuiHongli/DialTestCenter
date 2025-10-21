@@ -235,7 +235,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             justifyContent: 'center',
           }}
         >
-          <Text type="secondary" style={{ fontSize: '14px' }}>
+          <Text type="secondary" style={{ fontSize: '14px', color: '#000000' }}>
             {translateFooter('copyright', { year: currentYear }) || `© ${currentYear} Dial Test Center. 版权所有.`}
           </Text>
         </Footer>
