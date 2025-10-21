@@ -329,7 +329,75 @@
     "editTestCaseSet": "编辑用例集",
     "updateSuccess": "更新成功",
     "updateFailed": "更新失败",
-    "descriptionTooLong": "描述不能超过1000个字符"
+    "descriptionTooLong": "描述不能超过1000个字符",
+    "testCase": {
+      "table": {
+        "id": "用例编号",
+        "name": "用例名称",
+        "description": "测试步骤",
+        "status": "脚本状态",
+        "priority": "业务分类",
+        "scriptPath": "应用名称",
+        "createdTime": "预期结果",
+        "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
+      },
+      "status": {
+        "PASSED": "有脚本",
+        "FAILED": "无脚本",
+        "PENDING": "待执行",
+        "RUNNING": "执行中",
+        "SKIPPED": "跳过"
+      },
+      "priority": {
+        "HIGH": "高",
+        "MEDIUM": "中",
+        "LOW": "低"
+      }
+    },
+    "testCaseDetails": "测试用例详情",
+    "loadTestCasesFailed": "加载测试用例失败",
+    "missingScriptsWarning": "发现缺失脚本",
+    "missingScriptsDescription": "有 {{count}} 个测试用例缺少对应的Python脚本文件。请检查scripts目录下是否存在对应的脚本文件。",
+    "allTestCases": "所有用例",
+    "missingScripts": "缺失脚本",
+    "statistics": {
+      "totalCases": "总用例数",
+      "matchedCases": "已匹配数",
+      "missingScripts": "缺失脚本数",
+      "matchRate": "匹配率"
+    },
+    "details": {
+      "title": "测试用例详情",
+      "close": "关闭",
+      "caseNumber": "用例编号",
+      "caseName": "用例名称",
+      "businessCategory": "业务分类",
+      "appName": "应用名称",
+      "scriptStatus": "脚本状态",
+      "action": "操作",
+      "details": "详情",
+      "matched": "已匹配",
+      "missing": "缺失",
+      "totalCases": "总用例数",
+      "matched": "已匹配",
+      "missingScripts": "缺失脚本",
+      "matchRate": "匹配率",
+      "scriptIntegrity": "脚本完整性",
+      "missingScriptsAlert": "发现缺失脚本",
+      "missingScriptsDescription": "有 {{count}} 个测试用例缺少对应的Python脚本文件。请检查scripts目录下是否存在对应的脚本文件。",
+      "viewDetails": "查看详情",
+      "allCases": "所有用例",
+      "missingScriptsTab": "缺失脚本",
+      "testCaseDetailTitle": "测试用例详情 - {{caseNumber}}",
+      "dependenciesPackage": "依赖包",
+      "dependenciesRule": "依赖规则",
+      "environmentConfig": "环境配置",
+      "testSteps": "测试步骤",
+      "expectedResult": "预期结果",
+      "clickToViewDetails": "点击查看详情",
+      "missingScriptsTooltip": "有 {{count}} 个测试用例缺少脚本",
+      "missingScriptsTag": "缺失{{count}}个脚本"
+    }
   },
   "operationLog": {
     "title": "操作记录管理",
@@ -339,27 +407,38 @@
       "username": "用户名",
       "operationTime": "操作时间",
       "operationType": "操作类型",
-      "target": "操作对象",
+      "operationTarget": "操作对象",
       "description": "操作描述",
-      "actions": "操作"
+      "ipAddress": "IP地址",
+      "userAgent": "用户代理",
+      "createdTime": "操作时间",
+      "actions": "操作",
+      "viewDetail": "查看详情",
+      "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
     },
     "filters": {
       "username": "用户名",
       "usernamePlaceholder": "请输入用户名",
       "operationType": "操作类型",
       "operationTypePlaceholder": "请选择操作类型",
-      "target": "操作对象",
+      "operationTarget": "操作对象",
       "targetPlaceholder": "请选择操作对象",
       "timeRange": "时间范围",
-      "timeRangePlaceholder": "请选择时间范围"
+      "timeRangePlaceholder": "请选择时间范围",
+      "startTime": "开始时间",
+      "endTime": "结束时间"
     },
     "statistics": {
+      "totalOperations": "总操作数",
+      "todayOperations": "今日操作数",
+      "thisWeekOperations": "本周操作数",
+      "thisMonthOperations": "本月操作数",
       "totalCount": "总操作记录数",
       "todayCount": "今日操作数",
       "activeUsers": "活跃用户数",
       "operationTypes": "操作类型数"
     },
-    "operationTypes": {
+    "operationType": {
       "CREATE": "创建",
       "UPDATE": "更新",
       "DELETE": "删除",
@@ -371,11 +450,13 @@
       "UPLOAD": "上传",
       "DOWNLOAD": "下载"
     },
-    "targets": {
+    "operationTarget": {
       "USER": "用户管理",
-      "USER_ROLE": "角色管理",
+      "ROLE": "角色管理",
+      "USER_ROLE": "用户角色管理",
       "TEST_CASE_SET": "测试用例集",
       "SOFTWARE_PACKAGE": "软件包",
+      "PREPROCESS_RULE": "预处理规则",
       "PREPROCESS_RULE_PACKAGE": "预处理规则包",
       "SYSTEM": "系统",
       "LOGIN": "系统登录",
@@ -384,12 +465,20 @@
     "messages": {
       "loadSuccess": "操作记录加载成功",
       "loadFailed": "操作记录加载失败",
+      "exportSuccess": "导出成功",
+      "exportFailed": "导出失败",
       "deleteSuccess": "删除成功",
       "deleteFailed": "删除失败",
       "deleteConfirm": "确定要删除这条操作记录吗？",
       "noData": "暂无操作记录",
       "searchPlaceholder": "请输入搜索关键词"
     },
+    "modal": {
+      "detailTitle": "操作记录详情",
+      "userAgentDetails": "用户代理详情",
+      "operationDataDetails": "操作数据详情"
+    },
+    "export": "导出",
     "detail": {
       "title": "操作记录详情",
       "basicInfo": "基本信息",
@@ -424,6 +513,8 @@
       "rulesTab": "预处理规则列表"
     },
     "package": {
+      "title": "ZIP包管理",
+      "description": "管理预处理规则ZIP包",
       "name": "包名称",
       "business": "业务类型",
       "fileSize": "文件大小",
@@ -431,6 +522,7 @@
       "searchPlaceholder": "搜索包名称",
       "businessFilter": "业务类型筛选",
       "upload": "上传ZIP包",
+      "uploadTitle": "上传ZIP包",
       "selectFile": "选择ZIP文件",
       "fileRequired": "请选择ZIP文件",
       "businessZh": "业务类型（中文）",
@@ -439,6 +531,10 @@
       "businessZhPlaceholder": "请输入业务类型中文名称",
       "businessEnPlaceholder": "请输入业务类型英文名称",
       "descriptionPlaceholder": "请输入描述信息",
+      "dragText": "点击或拖拽文件到此区域上传",
+      "hint": "支持单个ZIP文件上传",
+      "invalidFileType": "只能上传ZIP格式的文件",
+      "fileTooLarge": "文件大小不能超过100MB",
       "businessTypes": {
         "VPN阻断业务": "VPN阻断业务"
       },
@@ -448,9 +544,37 @@
       "downloadFailed": "ZIP包下载失败",
       "deleteSuccess": "ZIP包删除成功",
       "deleteFailed": "ZIP包删除失败",
-      "deleteConfirm": "确定要删除这个ZIP包吗？删除后关联的规则也会被删除。"
+      "deleteConfirm": "确定要删除这个ZIP包吗？删除后关联的规则也会被删除。",
+      "loadFailed": "加载ZIP包列表失败",
+      "table": {
+        "id": "ID",
+        "packageName": "包名称",
+        "business": "业务类型",
+        "fileSize": "文件大小",
+        "description": "描述",
+        "createdTime": "创建时间",
+        "actions": "操作",
+        "download": "下载",
+        "delete": "删除",
+        "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
+      },
+      "form": {
+        "packageName": "包名称",
+        "packageNamePlaceholder": "请输入包名称",
+        "packageNameLength": "包名称长度应在1-100个字符之间",
+        "businessZh": "业务类型（中文）",
+        "businessZhPlaceholder": "请输入业务类型中文名称",
+        "businessEn": "业务类型（英文）",
+        "businessEnPlaceholder": "请输入业务类型英文名称",
+        "description": "描述",
+        "descriptionPlaceholder": "请输入描述信息",
+        "descriptionLength": "描述长度不能超过500个字符",
+        "file": "ZIP文件"
+      }
     },
     "rule": {
+      "title": "预处理规则列表",
+      "description": "管理预处理规则",
       "name": "规则名称",
       "business": "业务类型",
       "category": "分类",
@@ -463,7 +587,29 @@
       "businessFilter": "业务类型",
       "categoryFilter": "分类",
       "appFilter": "应用",
-      "ruleFilter": "规则名称"
+      "ruleFilter": "规则名称",
+      "loadFailed": "加载规则列表失败",
+      "table": {
+        "id": "ID",
+        "packageId": "包ID",
+        "ruleName": "规则名称",
+        "business": "业务类型",
+        "category": "分类",
+        "appName": "应用名称",
+        "isCustom": "规则类型",
+        "content": "规则内容",
+        "createdTime": "创建时间",
+        "actions": "操作",
+        "view": "查看",
+        "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
+      },
+      "filters": {
+        "businessType": "业务类型",
+        "category": "分类",
+        "appName": "应用名称",
+        "ruleName": "规则名称",
+        "all": "全部"
+      }
     }
   }
 }

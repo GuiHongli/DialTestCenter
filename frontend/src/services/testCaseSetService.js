@@ -1,0 +1,166 @@
+import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handleApiResponseWithError, handlePagedApiResponse } from '../utils/apiUtils.js'
+
+class TestCaseSetService {
+  constructor() {
+    this.baseUrl = '/dialingtest/api/test-case-sets'
+  }
+
+  /**
+   * 获取用例集列表
+   */
+  async getTestCaseSets(page = 1, pageSize = 10) {
+    const response = await fetch(`${this.baseUrl}?page=${page}&pageSize=${pageSize}`, createApiRequestConfig('GET', undefined, false))
+    return handlePagedApiResponse(response)
+  }
+
+  /**
+   * 获取用例集详情
+   */
+  async getTestCaseSet(id) {
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponse(response)
+  }
+
+  /**
+   * 上传用例集
+   */
+  async uploadTestCaseSet(uploadData) {
+    const formData = new FormData()
+    formData.append('file', uploadData.file)
+    
+    // 创建uploadRequest对象，包含除了file之外的所有参数
+    const uploadRequest = {
+      description: uploadData.description || '',
+      businessZh: uploadData.businessZh || '',
+      businessEn: uploadData.businessEn || '',
+      overwrite: 'false'
+    }
+    
+    // 将uploadRequest对象作为JSON字符串添加到formData
+    formData.append('uploadRequest', JSON.stringify(uploadRequest))
+
+    const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
+    return handleApiResponseWithError(response)
+  }
+
+  /**
+   * 覆盖上传用例集
+   */
+  async uploadTestCaseSetWithOverwrite(uploadData) {
+    const formData = new FormData()
+    formData.append('file', uploadData.file)
+    
+    // 创建uploadRequest对象，包含除了file之外的所有参数
+    const uploadRequest = {
+      description: uploadData.description || '',
+      businessZh: uploadData.businessZh || '',
+      businessEn: uploadData.businessEn || '',
+      overwrite: 'true'
+    }
+    
+    // 将uploadRequest对象作为JSON字符串添加到formData
+    formData.append('uploadRequest', JSON.stringify(uploadRequest))
+
+    const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
+    return handleApiResponseWithError(response)
+  }
+
+  /**
+   * 下载用例集
+   */
+  async downloadTestCaseSet(id) {
+    const response = await fetch(`${this.baseUrl}/${id}/download`, createApiRequestConfig('GET', undefined, false))
+    if (!response.ok) {
+      throw new Error('下载用例集失败')
+    }
+    return response.blob()
+  }
+
+  /**
+   * 删除用例集
+   */
+  async deleteTestCaseSet(id) {
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('DELETE'))
+    if (!response.ok) {
+      throw new Error('删除用例集失败')
+    }
+  }
+
+  /**
+   * 更新用例集信息
+   */
+  async updateTestCaseSet(id, data) {
+    const response = await fetch(`${this.baseUrl}/${id}`, createApiRequestConfig('PUT', data))
+    return handleApiResponse(response)
+  }
+
+
+  /**
+   * 验证用例集文件
+   */
+  validateTestCaseSetFile(file) {
+    const fileName = file.name.toLowerCase()
+    
+    // 检查文件类型 - 只支持 .zip
+    const supportedExtensions = ['.zip']
+    const isValidExtension = supportedExtensions.some(ext => fileName.endsWith(ext))
+    
+    if (!isValidExtension) {
+      return { valid: false, message: '只支持 ZIP 格式文件' }
+    }
+
+    // 检查文件大小 (100MB)
+    const maxSize = 100 * 1024 * 1024 // 100MB
+    if (file.size > maxSize) {
+      return { valid: false, message: '文件大小不能超过100MB' }
+    }
+
+    // 检查文件命名格式: 用例集名称_用例集版本.zip
+    const fileExtension = '.zip'
+    const nameWithoutExt = file.name.replace(fileExtension, '')
+    const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
+    
+    if (lastUnderscoreIndex === -1) {
+      return { valid: false, message: `文件名格式错误，应为：用例集名称_版本号${fileExtension}` }
+    }
+
+    return { valid: true }
+  }
+
+  /**
+   * 解析文件名获取用例集名称和版本
+   */
+  parseFileName(fileName) {
+    const lowerFileName = fileName.toLowerCase()
+    const fileExtension = '.zip'
+    const nameWithoutExt = fileName.replace(fileExtension, '')
+    const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')
+    
+    if (lastUnderscoreIndex === -1) {
+      return null
+    }
+
+    const name = nameWithoutExt.substring(0, lastUnderscoreIndex)
+    const version = nameWithoutExt.substring(lastUnderscoreIndex + 1)
+
+    return { name, version }
+  }
+
+  /**
+   * 获取用例集的测试用例列表
+   */
+  async getTestCases(testCaseSetId, page = 1, pageSize = 10) {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/test-cases?page=${page}&pageSize=${pageSize}`, createApiRequestConfig('GET', undefined, false))
+    return handlePagedApiResponse(response)
+  }
+
+  /**
+   * 获取用例集中没有脚本的测试用例列表
+   */
+  async getMissingScripts(testCaseSetId) {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponse(response)
+  }
+}
+
+export default new TestCaseSetService()

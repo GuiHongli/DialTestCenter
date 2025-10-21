@@ -329,7 +329,75 @@
     "editTestCaseSet": "Edit Test Case Set",
     "updateSuccess": "Update successful",
     "updateFailed": "Update failed",
-    "descriptionTooLong": "Description cannot exceed 1000 characters"
+    "descriptionTooLong": "Description cannot exceed 1000 characters",
+    "testCase": {
+      "table": {
+        "id": "Case Number",
+        "name": "Case Name",
+        "description": "Test Steps",
+        "status": "Script Status",
+        "priority": "Business Category",
+        "scriptPath": "App Name",
+        "createdTime": "Expected Result",
+        "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+      },
+      "status": {
+        "PASSED": "Has Script",
+        "FAILED": "No Script",
+        "PENDING": "Pending",
+        "RUNNING": "Running",
+        "SKIPPED": "Skipped"
+      },
+      "priority": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      }
+    },
+    "testCaseDetails": "Test Case Details",
+    "loadTestCasesFailed": "Failed to load test cases",
+    "missingScriptsWarning": "Missing Scripts Found",
+    "missingScriptsDescription": "{{count}} test cases are missing corresponding Python script files. Please check if the corresponding script files exist in the scripts directory.",
+    "allTestCases": "All Test Cases",
+    "missingScripts": "Missing Scripts",
+    "statistics": {
+      "totalCases": "Total Cases",
+      "matchedCases": "Matched Cases",
+      "missingScripts": "Missing Scripts",
+      "matchRate": "Match Rate"
+    },
+    "details": {
+      "title": "Test Case Details",
+      "close": "Close",
+      "caseNumber": "Case Number",
+      "caseName": "Case Name",
+      "businessCategory": "Business Category",
+      "appName": "App Name",
+      "scriptStatus": "Script Status",
+      "action": "Action",
+      "details": "Details",
+      "matched": "Matched",
+      "missing": "Missing",
+      "totalCases": "Total Cases",
+      "matched": "Matched",
+      "missingScripts": "Missing Scripts",
+      "matchRate": "Match Rate",
+      "scriptIntegrity": "Script Integrity",
+      "missingScriptsAlert": "Missing Scripts Found",
+      "missingScriptsDescription": "{{count}} test cases are missing corresponding Python script files. Please check if the corresponding script files exist in the scripts directory.",
+      "viewDetails": "View Details",
+      "allCases": "All Cases",
+      "missingScriptsTab": "Missing Scripts",
+      "testCaseDetailTitle": "Test Case Details - {{caseNumber}}",
+      "dependenciesPackage": "Dependencies Package",
+      "dependenciesRule": "Dependencies Rule",
+      "environmentConfig": "Environment Config",
+      "testSteps": "Test Steps",
+      "expectedResult": "Expected Result",
+      "clickToViewDetails": "Click to view details",
+      "missingScriptsTooltip": "{{count}} test cases are missing scripts",
+      "missingScriptsTag": "Missing {{count}} scripts"
+    }
   },
   "operationLog": {
     "title": "Operation Log Management",
@@ -339,19 +407,26 @@
       "username": "Username",
       "operationTime": "Operation Time",
       "operationType": "Operation Type",
-      "target": "Target",
+      "operationTarget": "Operation Target",
       "description": "Description",
-      "actions": "Actions"
+      "ipAddress": "IP Address",
+      "userAgent": "User Agent",
+      "createdTime": "Operation Time",
+      "actions": "Actions",
+      "viewDetail": "View Details",
+      "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
     },
     "filters": {
       "username": "Username",
       "usernamePlaceholder": "Please enter username",
       "operationType": "Operation Type",
       "operationTypePlaceholder": "Please select operation type",
-      "target": "Target",
+      "operationTarget": "Operation Target",
       "targetPlaceholder": "Please select target",
       "timeRange": "Time Range",
-      "timeRangePlaceholder": "Please select time range"
+      "timeRangePlaceholder": "Please select time range",
+      "startTime": "Start Time",
+      "endTime": "End Time"
     },
     "statistics": {
       "totalCount": "Total Operation Count",
@@ -371,11 +446,13 @@
       "UPLOAD": "Upload",
       "DOWNLOAD": "Download"
     },
-    "targets": {
+    "operationTarget": {
       "USER": "User Management",
-      "USER_ROLE": "Role Management",
+      "ROLE": "Role Management",
+      "USER_ROLE": "User Role Management",
       "TEST_CASE_SET": "Test Case Set",
       "SOFTWARE_PACKAGE": "Software Package",
+      "PREPROCESS_RULE": "Preprocess Rule",
       "PREPROCESS_RULE_PACKAGE": "Preprocess Rule Package",
       "SYSTEM": "System",
       "LOGIN": "System Login",
@@ -384,12 +461,20 @@
     "messages": {
       "loadSuccess": "Operation logs loaded successfully",
       "loadFailed": "Failed to load operation logs",
+      "exportSuccess": "Export successful",
+      "exportFailed": "Export failed",
       "deleteSuccess": "Deleted successfully",
       "deleteFailed": "Delete failed",
       "deleteConfirm": "Are you sure to delete this operation log?",
       "noData": "No operation logs",
       "searchPlaceholder": "Please enter search keyword"
     },
+    "modal": {
+      "detailTitle": "Operation Log Details",
+      "userAgentDetails": "User Agent Details",
+      "operationDataDetails": "Operation Data Details"
+    },
+    "export": "Export",
     "detail": {
       "title": "Operation Log Details",
       "basicInfo": "Basic Information",
@@ -451,6 +536,8 @@
       "deleteConfirm": "Are you sure you want to delete this ZIP package? Associated rules will also be deleted."
     },
     "rule": {
+      "title": "Preprocess Rule List",
+      "description": "Manage preprocess rules",
       "name": "Rule Name",
       "business": "Business Type",
       "category": "Category",
@@ -463,7 +550,29 @@
       "businessFilter": "Business Type",
       "categoryFilter": "Category",
       "appFilter": "App",
-      "ruleFilter": "Rule Name"
+      "ruleFilter": "Rule Name",
+      "loadFailed": "Failed to load rule list",
+      "table": {
+        "id": "ID",
+        "packageId": "Package ID",
+        "ruleName": "Rule Name",
+        "business": "Business Type",
+        "category": "Category",
+        "appName": "App Name",
+        "isCustom": "Rule Type",
+        "content": "Rule Content",
+        "createdTime": "Created Time",
+        "actions": "Actions",
+        "view": "View",
+        "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+      },
+      "filters": {
+        "businessType": "Business Type",
+        "category": "Category",
+        "appName": "App Name",
+        "ruleName": "Rule Name",
+        "all": "All"
+      }
     }
   }
 }

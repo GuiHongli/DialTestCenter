@@ -1,12 +1,8 @@
-import path from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import { fileURLToPath } from 'url';
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export default {
-  entry: './src/main.tsx',
+module.exports = {
+  entry: './src/main.jsx',
   output: {
     path: path.resolve(__dirname, '../dialingtest-service/src/main/resources/static'),
     filename: 'bundle.js',
@@ -16,8 +12,13 @@ export default {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
+        test: /\.(js|jsx)$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react']
+          }
+        },
         exclude: /node_modules/,
       },
       {
@@ -27,7 +28,7 @@ export default {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.jsx', '.js'],
   },
   plugins: [
     new HtmlWebpackPlugin({
