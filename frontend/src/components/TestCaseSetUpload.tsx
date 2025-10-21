@@ -3,6 +3,7 @@ import type { UploadFile, UploadProps } from 'antd'
 import { Button, Form, Input, message, Modal, Select, Upload } from 'antd'
 import React, { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { useI18n } from '../contexts/I18nContext'
 import testCaseSetService from '../services/testCaseSetService'
 import { TestCaseSetUploadData } from '../types/testCaseSet'
 
@@ -24,6 +25,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
   const { translateTestCaseSet, translateCommon } = useTranslation()
+  const { language } = useI18n()
 
   const handleUpload = async () => {
     try {
@@ -31,13 +33,13 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
       const values = await form.validateFields()
       
       if (fileList.length === 0) {
-        message.error('请选择要上传的文件')
+        message.error(translateTestCaseSet('upload.selectFile'))
         return
       }
 
       const file = fileList[0].originFileObj || fileList[0]
       if (!file) {
-        message.error('文件无效')
+        message.error(translateTestCaseSet('upload.uploadFailed'))
         return
       }
 
@@ -189,7 +191,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         <Form.Item
           label={translateTestCaseSet('table.name')}
           name="name"
-          rules={[{ required: true, message: '请输入用例集名称' }]}
+          rules={[{ required: true, message: translateTestCaseSet('upload.validation.nameRequired') }]}
         >
           <Input placeholder="从文件名自动解析" readOnly />
         </Form.Item>
@@ -197,19 +199,21 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         <Form.Item
           label={translateCommon('version')}
           name="version"
-          rules={[{ required: true, message: '请输入版本号' }]}
+          rules={[{ required: true, message: translateTestCaseSet('upload.validation.versionRequired') }]}
         >
           <Input placeholder="从文件名自动解析" readOnly />
         </Form.Item>
 
         <Form.Item 
-          label="业务类型" 
+          label={translateTestCaseSet('upload.businessType')} 
           name="businessZh" 
-          initialValue="VPN阻断"
-          rules={[{ required: true, message: '请选择业务类型' }]}
+          initialValue="VPN阻断业务"
+          rules={[{ required: true, message: translateTestCaseSet('upload.businessTypeRequired') }]}
         >
-          <Select placeholder="请选择业务类型">
-            <Select.Option value="VPN阻断业务">VPN阻断业务</Select.Option>
+          <Select placeholder={translateTestCaseSet('upload.businessTypePlaceholder')}>
+            <Select.Option value="VPN阻断业务">
+              {language === 'en' ? translateTestCaseSet('upload.businessTypes.VPN阻断业务') : 'VPN阻断业务'}
+            </Select.Option>
           </Select>
         </Form.Item>
 
@@ -219,7 +223,7 @@ const TestCaseSetUpload: React.FC<TestCaseSetUploadProps> = ({
         >
           <TextArea
             rows={3}
-            placeholder="请输入用例集描述（可选）"
+            placeholder={translateTestCaseSet('upload.validation.descriptionPlaceholder')}
             maxLength={500}
             showCount
           />

@@ -310,7 +310,18 @@
       "uploadFailed": "上传失败",
       "fileName": "文件名",
       "fileSize": "文件大小",
-      "uploadProgress": "上传进度"
+      "uploadProgress": "上传进度",
+      "businessType": "业务类型",
+      "businessTypePlaceholder": "请选择业务类型",
+      "businessTypeRequired": "请选择业务类型",
+      "businessTypes": {
+        "VPN阻断业务": "VPN阻断业务"
+      },
+      "validation": {
+        "nameRequired": "请输入用例集名称",
+        "versionRequired": "请输入版本号",
+        "descriptionPlaceholder": "请输入用例集描述（可选）"
+      }
     },
     "businessZhRequired": "请输入业务类型（中文）",
     "businessEnRequired": "请输入业务类型（英文）",
@@ -428,6 +439,9 @@
       "businessZhPlaceholder": "请输入业务类型中文名称",
       "businessEnPlaceholder": "请输入业务类型英文名称",
       "descriptionPlaceholder": "请输入描述信息",
+      "businessTypes": {
+        "VPN阻断业务": "VPN阻断业务"
+      },
       "uploadSuccess": "ZIP包上传成功",
       "uploadFailed": "ZIP包上传失败",
       "downloadSuccess": "ZIP包下载成功",

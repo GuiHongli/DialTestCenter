@@ -499,7 +499,9 @@ const PreprocessRulePackageManagement: React.FC = () => {
             ]}
           >
             <Select placeholder={language === 'en' ? 'Please select business type' : '请选择业务类型'}>
-              <Select.Option value="VPN阻断业务">VPN阻断业务</Select.Option>
+              <Select.Option value="VPN阻断业务">
+                {language === 'en' ? t('preprocessRule.package.businessTypes.VPN阻断业务') : 'VPN阻断业务'}
+              </Select.Option>
             </Select>
           </Form.Item>
 

@@ -310,7 +310,18 @@
       "uploadFailed": "Upload failed",
       "fileName": "File Name",
       "fileSize": "File Size",
-      "uploadProgress": "Upload Progress"
+      "uploadProgress": "Upload Progress",
+      "businessType": "Business Type",
+      "businessTypePlaceholder": "Please select business type",
+      "businessTypeRequired": "Please select business type",
+      "businessTypes": {
+        "VPN阻断业务": "VPN Blocking Service"
+      },
+      "validation": {
+        "nameRequired": "Please enter test case set name",
+        "versionRequired": "Please enter version number",
+        "descriptionPlaceholder": "Please enter test case set description (optional)"
+      }
     },
     "businessZhRequired": "Please enter business type (Chinese)",
     "businessEnRequired": "Please enter business type (English)",
@@ -428,6 +439,9 @@
       "businessZhPlaceholder": "Enter business type in Chinese",
       "businessEnPlaceholder": "Enter business type in English",
       "descriptionPlaceholder": "Enter description",
+      "businessTypes": {
+        "VPN阻断业务": "VPN Blocking Service"
+      },
       "uploadSuccess": "ZIP package uploaded successfully",
       "uploadFailed": "ZIP package upload failed",
       "downloadSuccess": "ZIP package downloaded successfully",
