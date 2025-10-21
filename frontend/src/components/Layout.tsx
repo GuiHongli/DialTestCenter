@@ -162,7 +162,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         <div style={{ marginRight: '24px', display: 'flex', alignItems: 'center' }}>
           <HomeOutlined 
-            onClick={() => history.push('/')}
+            onClick={() => {
+              sessionStorage.clear()
+              window.open('https://www.example.com', '_blank')
+            }}
             style={{ color: 'white', fontSize: '18px', marginRight: '12px', cursor: 'pointer' }}
             title={translateHeader('home')}
           />
@@ -172,13 +175,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 { key: 'settings', label: translateHeader('settings') },
                 { key: 'logout', label: translateHeader('logout') },
               ],
-              onClick: ({ key }) => {
-                if (key === 'settings') {
-                  history.push('/settings')
-                } else {
-                  history.push('/login')
-                }
-              },
+                onClick: async ({ key }) => {
+                  if (key === 'settings') {
+                    history.push('/settings')
+                  } else if (key === 'logout') {
+                    try {
+                      const response = await fetch('https://api.example.com/logout', {
+                        method: 'GET',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                      })
+                      const result = await response.json()
+                      if (result.success) {
+                        window.location.href = '/login'
+                      } else {
+                        console.error('Logout failed:', result.message)
+                      }
+                    } catch (error) {
+                      console.error('Logout request failed:', error)
+                    }
+                  }
+                },
             }}
           >
             <CaretDownFilled style={{ color: 'white', fontSize: '12px', marginRight: '16px', cursor: 'pointer' }} />
