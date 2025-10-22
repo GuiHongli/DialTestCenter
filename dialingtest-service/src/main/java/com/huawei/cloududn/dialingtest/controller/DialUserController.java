@@ -42,6 +42,14 @@ public class DialUserController implements DialusersApi {
     @Override
     public ResponseEntity<DialUserPageResponse> getDialUsers(Integer page, Integer size, String username) {
         try {
+            // 检查用户名是否为空
+            if (username == null || username.trim().isEmpty()) {
+                DialUserPageResponse errorResponse = new DialUserPageResponse();
+                errorResponse.setSuccess(false);
+                errorResponse.setMessage("未提供用户名");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            }
+            
             // 设置默认值
             if (page == null) {
                 page = 0;

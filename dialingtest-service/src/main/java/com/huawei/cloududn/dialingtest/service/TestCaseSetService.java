@@ -5,6 +5,8 @@ import com.huawei.cloududn.dialingtest.dao.TestCaseDao;
 import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
+import com.huawei.cloududn.dialingtest.model.TestCaseSetListResponseData;
+import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
 import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
@@ -15,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 用例集管理服务
@@ -120,18 +123,18 @@ public class TestCaseSetService {
      * 分页获取用例集列表
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> getTestCaseSets(int page, int pageSize) {
+    public TestCaseSetListResponseData getTestCaseSets(int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         List<TestCaseSet> testCaseSets = testCaseSetDao.findWithPagination(offset, pageSize);
         long total = testCaseSetDao.count();
         
-        Map<String, Object> result = new HashMap<>();
-        result.put("page", page);
-        result.put("pageSize", pageSize);
-        result.put("total", total);
-        result.put("data", testCaseSets);
+        TestCaseSetListResponseData data = new TestCaseSetListResponseData();
+        data.setPage(page);
+        data.setPageSize(pageSize);
+        data.setTotal((int) total);
+        data.setData(testCaseSets);
         
-        return result;
+        return data;
     }
     
     /**
@@ -215,7 +218,7 @@ public class TestCaseSetService {
      * 分页获取测试用例列表
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> getTestCases(Long testCaseSetId, int page, int pageSize) {
+    public TestCaseListResponseData getTestCases(Long testCaseSetId, int page, int pageSize) {
         // 验证用例集是否存在
         getTestCaseSetById(testCaseSetId);
         
@@ -223,13 +226,13 @@ public class TestCaseSetService {
         List<TestCase> testCases = testCaseDao.findByTestCaseSetIdWithPagination(testCaseSetId, offset, pageSize);
         long total = testCaseDao.countByTestCaseSetId(testCaseSetId);
         
-        Map<String, Object> result = new HashMap<>();
-        result.put("page", page);
-        result.put("pageSize", pageSize);
-        result.put("total", total);
-        result.put("data", testCases);
+        TestCaseListResponseData data = new TestCaseListResponseData();
+        data.setPage(page);
+        data.setPageSize(pageSize);
+        data.setTotal((int) total);
+        data.setData(testCases);
         
-        return result;
+        return data;
     }
     
     /**

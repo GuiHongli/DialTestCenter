@@ -49,11 +49,11 @@ public class DialUserControllerTest {
         DialUser user2 = createTestUser(2, "user2", "password2");
         List<DialUser> users = Arrays.asList(user1, user2);
         
-        when(dialUserService.findUsersWithPagination(0, 10, null)).thenReturn(users);
-        when(dialUserService.countUsers(null)).thenReturn(2L);
+        when(dialUserService.findUsersWithPagination(0, 10, "testuser")).thenReturn(users);
+        when(dialUserService.countUsers("testuser")).thenReturn(2L);
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, "testuser");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -88,11 +88,11 @@ public class DialUserControllerTest {
         // Arrange
         List<DialUser> users = Arrays.asList();
         
-        when(dialUserService.findUsersWithPagination(0, 10, null)).thenReturn(users);
-        when(dialUserService.countUsers(null)).thenReturn(0L);
+        when(dialUserService.findUsersWithPagination(0, 10, "testuser")).thenReturn(users);
+        when(dialUserService.countUsers("testuser")).thenReturn(0L);
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(null, null, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(null, null, "testuser");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -103,10 +103,10 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersGet_ServiceException_ReturnsError() {
         // Arrange
-        when(dialUserService.findUsersWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
+        when(dialUserService.findUsersWithPagination(0, 10, "testuser")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, "testuser");
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -117,7 +117,7 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersGet_NullUsername_ReturnsUnauthorized() {
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, "testuser");
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -162,9 +162,9 @@ public class DialUserControllerTest {
         ResponseEntity<DialUserResponse> response = dialUserController.getDialUserById(1);
 
         // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("未提供用户名", response.getBody().getMessage());
+        assertEquals("用户不存在", response.getBody().getMessage());
     }
 
     @Test

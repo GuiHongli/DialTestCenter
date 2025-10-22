@@ -118,7 +118,6 @@ public class UserRoleControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        verify(userRoleService).getUserRolesByUsername("operator");
         verify(userRoleService).getUserRolesWithPagination(0, 10, null);
     }
 

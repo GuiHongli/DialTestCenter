@@ -10,6 +10,8 @@ import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
+import com.huawei.cloududn.dialingtest.model.TestCaseSetListResponseData;
+import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
 import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.service.ArchiveParseResult;
@@ -22,7 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -363,14 +366,14 @@ public class TestCaseSetServiceTest {
         when(testCaseSetDao.count()).thenReturn(total);
 
         // Act
-        Map<String, Object> result = testCaseSetService.getTestCaseSets(page, pageSize);
+        TestCaseSetListResponseData result = testCaseSetService.getTestCaseSets(page, pageSize);
 
         // Assert
         assertNotNull(result);
-        assertEquals(page, result.get("page"));
-        assertEquals(pageSize, result.get("pageSize"));
-        assertEquals(total, result.get("total"));
-        assertEquals(testCaseSets, result.get("data"));
+        assertEquals(Integer.valueOf(page), result.getPage());
+        assertEquals(Integer.valueOf(pageSize), result.getPageSize());
+        assertEquals(Integer.valueOf((int) total), result.getTotal());
+        assertEquals(testCaseSets, result.getData());
 
         verify(testCaseSetDao, times(1)).findWithPagination(0, pageSize);
         verify(testCaseSetDao, times(1)).count();
@@ -526,14 +529,14 @@ public class TestCaseSetServiceTest {
         when(testCaseDao.countByTestCaseSetId(testCaseSetId)).thenReturn(total);
 
         // Act
-        Map<String, Object> result = testCaseSetService.getTestCases(testCaseSetId, page, pageSize);
+        TestCaseListResponseData result = testCaseSetService.getTestCases(testCaseSetId, page, pageSize);
 
         // Assert
         assertNotNull(result);
-        assertEquals(page, result.get("page"));
-        assertEquals(pageSize, result.get("pageSize"));
-        assertEquals(total, result.get("total"));
-        assertEquals(testCases, result.get("data"));
+        assertEquals(Integer.valueOf(page), result.getPage());
+        assertEquals(Integer.valueOf(pageSize), result.getPageSize());
+        assertEquals(Integer.valueOf((int) total), result.getTotal());
+        assertEquals(testCases, result.getData());
 
         verify(testCaseSetDao, times(1)).findById(testCaseSetId);
         verify(testCaseDao, times(1)).findByTestCaseSetIdWithPagination(testCaseSetId, 0, pageSize);

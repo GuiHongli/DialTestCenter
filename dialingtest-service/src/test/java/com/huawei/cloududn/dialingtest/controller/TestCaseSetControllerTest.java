@@ -27,7 +27,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -81,13 +82,13 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsGet_Success_ReturnsOk() {
         // Arrange
-        Map<String, Object> result = new HashMap<>();
-        result.put("page", 1);
-        result.put("pageSize", 10);
-        result.put("total", 1L);
-        result.put("data", testTestCaseSetList);
+        TestCaseSetListResponseData data = new TestCaseSetListResponseData();
+        data.setPage(1);
+        data.setPageSize(10);
+        data.setTotal(1);
+        data.setData(testTestCaseSetList);
 
-        when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(result);
+        when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(data);
 
         // Act
         ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.getTestCaseSets(1, 10);
@@ -109,13 +110,13 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsGet_DefaultParams_ReturnsOk() {
         // Arrange
-        Map<String, Object> result = new HashMap<>();
-        result.put("page", 1);
-        result.put("pageSize", 10);
-        result.put("total", 1L);
-        result.put("data", testTestCaseSetList);
+        TestCaseSetListResponseData data = new TestCaseSetListResponseData();
+        data.setPage(1);
+        data.setPageSize(10);
+        data.setTotal(1);
+        data.setData(testTestCaseSetList);
 
-        when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(result);
+        when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(data);
 
         // Act
         ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.getTestCaseSets(null, null);
@@ -342,13 +343,13 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdTestCasesGet_Success_ReturnsOk() {
         // Arrange
-        Map<String, Object> result = new HashMap<>();
-        result.put("page", 1);
-        result.put("pageSize", 10);
-        result.put("total", 1L);
-        result.put("data", testTestCaseList);
+        TestCaseListResponseData data = new TestCaseListResponseData();
+        data.setPage(1);
+        data.setPageSize(10);
+        data.setTotal(1);
+        data.setData(testTestCaseList);
 
-        when(testCaseSetService.getTestCases(1L, 1, 10)).thenReturn(result);
+        when(testCaseSetService.getTestCases(1L, 1, 10)).thenReturn(data);
 
         // Act
         ResponseEntity<TestCaseListResponse> response = testCaseSetController.getTestCasesByTestCaseSetId(1L, 1, 10);

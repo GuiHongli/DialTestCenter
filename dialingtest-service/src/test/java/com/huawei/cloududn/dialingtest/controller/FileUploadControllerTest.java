@@ -91,6 +91,7 @@ public class FileUploadControllerTest {
             any(MultipartFile.class), 
             anyString(), 
             anyString(), 
+            anyString(), 
             anyBoolean(), 
             anyString()
         )).thenReturn(mockTestCaseSet);
@@ -125,6 +126,7 @@ public class FileUploadControllerTest {
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
+            anyString(), 
             anyString(), 
             anyString(), 
             anyBoolean(), 
@@ -216,6 +218,7 @@ public class FileUploadControllerTest {
             any(MultipartFile.class), 
             anyString(), 
             anyString(), 
+            anyString(), 
             anyBoolean(), 
             anyString()
         )).thenReturn(mockTestCaseSet);
@@ -248,6 +251,7 @@ public class FileUploadControllerTest {
             any(MultipartFile.class), 
             anyString(), 
             anyString(), 
+            anyString(), 
             anyBoolean(), 
             anyString()
         )).thenThrow(new IllegalArgumentException("Invalid file format"));
@@ -272,6 +276,7 @@ public class FileUploadControllerTest {
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
+            anyString(), 
             anyString(), 
             anyString(), 
             anyBoolean(), 
@@ -318,7 +323,7 @@ public class FileUploadControllerTest {
             .thenReturn(mockPackage);
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", "Test application package", "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test application package", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为200", HttpStatus.OK, response.getStatusCode());
@@ -345,7 +350,7 @@ public class FileUploadControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(browserRoles);
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", null, "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test description", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为403", HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -371,7 +376,7 @@ public class FileUploadControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", null, "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test description", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -414,7 +419,7 @@ public class FileUploadControllerTest {
             .thenReturn(mockPackages);
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", "Test ZIP package", "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test ZIP package", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为200", HttpStatus.OK, response.getStatusCode());
@@ -442,7 +447,7 @@ public class FileUploadControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(browserRoles);
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", null, "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test description", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为403", HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -470,7 +475,7 @@ public class FileUploadControllerTest {
             .thenThrow(new RuntimeException("Service error"));
         
         // Act
-        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "testuser", null, "false");
+        ResponseEntity<?> response = fileUploadController.uploadSoftwarePackage(mockRequest, "Test description", "false", "testuser");
         
         // Assert
         assertEquals("HTTP状态码应为500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

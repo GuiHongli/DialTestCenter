@@ -21,9 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 拨测用例集管理控制器
@@ -48,27 +46,22 @@ public class TestCaseSetController implements TestCaseSetsApi {
             if (page == null) page = 1;
             if (pageSize == null) pageSize = 10;
             
-            // 调用服务层获取用例集列表
-            Map<String, Object> result = testCaseSetService.getTestCaseSets(page, pageSize);
+            TestCaseSetListResponseData data = testCaseSetService.getTestCaseSets(page, pageSize);
             
-            // 构建响应
             TestCaseSetListResponse response = new TestCaseSetListResponse();
             response.setSuccess(true);
             response.setMessage("获取用例集列表成功");
-            
-            TestCaseSetListResponseData data = new TestCaseSetListResponseData();
-            data.setPage((Integer) result.get("page"));
-            data.setPageSize((Integer) result.get("pageSize"));
-            data.setTotal(((Long) result.get("total")).intValue());
-            data.setData((List<TestCaseSet>) result.get("data"));
             response.setData(data);
             
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            TestCaseSetListResponse response = new TestCaseSetListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取用例集列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            TestCaseSetListResponse errorResponse = new TestCaseSetListResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setMessage("获取用例集列表失败: " + e.getMessage());
+            errorResponse.setData(null);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -189,25 +182,22 @@ public class TestCaseSetController implements TestCaseSetsApi {
             if (page == null) page = 1;
             if (pageSize == null) pageSize = 10;
             
-            Map<String, Object> result = testCaseSetService.getTestCases(id, page, pageSize);
+            TestCaseListResponseData data = testCaseSetService.getTestCases(id, page, pageSize);
             
             TestCaseListResponse response = new TestCaseListResponse();
             response.setSuccess(true);
             response.setMessage("获取测试用例列表成功");
-            
-            TestCaseListResponseData data = new TestCaseListResponseData();
-            data.setPage((Integer) result.get("page"));
-            data.setPageSize((Integer) result.get("pageSize"));
-            data.setTotal(((Long) result.get("total")).intValue());
-            data.setData((List<TestCase>) result.get("data"));
             response.setData(data);
             
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            TestCaseListResponse response = new TestCaseListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取测试用例列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            TestCaseListResponse errorResponse = new TestCaseListResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setMessage("获取测试用例列表失败: " + e.getMessage());
+            errorResponse.setData(null);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
