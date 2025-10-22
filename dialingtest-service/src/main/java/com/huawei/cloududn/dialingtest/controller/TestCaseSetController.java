@@ -42,7 +42,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     private OperationLogUtil operationLogUtil;
     
     @Override
-    public ResponseEntity<TestCaseSetListResponse> testCaseSetsGet(Integer page, Integer pageSize) {
+    public ResponseEntity<TestCaseSetListResponse> getTestCaseSets(Integer page, Integer pageSize) {
         try {
             // 设置默认值
             if (page == null) page = 1;
@@ -73,7 +73,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetResponse> testCaseSetsIdGet(Long id) {
+    public ResponseEntity<TestCaseSetResponse> getTestCaseSetById(Long id) {
         try {
             TestCaseSet testCaseSet = testCaseSetService.getTestCaseSetById(id);
             if (testCaseSet == null) {
@@ -99,7 +99,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     
     
     @Override
-    public ResponseEntity<Resource> testCaseSetsIdDownloadGet(Long id) {
+    public ResponseEntity<Resource> downloadTestCaseSet(Long id) {
         try {
             TestCaseSet testCaseSet = testCaseSetService.getTestCaseSetById(id);
             if (testCaseSet == null) {
@@ -127,7 +127,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseSetResponse> testCaseSetsIdPut(String xUsername, Long id, UpdateTestCaseSetRequest body) {
+    public ResponseEntity<TestCaseSetResponse> updateTestCaseSet(String xUsername, Long id, UpdateTestCaseSetRequest body) {
         try {
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             TestCaseSet testCaseSet = testCaseSetService.updateTestCaseSet(id, body, operatorUsername);
@@ -158,7 +158,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<SuccessResponse> testCaseSetsIdDelete(Long id, String xUsername) {
+    public ResponseEntity<SuccessResponse> deleteTestCaseSet(Long id, String xUsername) {
         try {
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             boolean deleted = testCaseSetService.deleteTestCaseSet(id, operatorUsername);
@@ -183,7 +183,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<TestCaseListResponse> testCaseSetsIdTestCasesGet(Long id, Integer page, Integer pageSize) {
+    public ResponseEntity<TestCaseListResponse> getTestCasesByTestCaseSetId(Long id, Integer page, Integer pageSize) {
         try {
             // 设置默认值
             if (page == null) page = 1;
@@ -212,7 +212,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     }
     
     @Override
-    public ResponseEntity<MissingScriptsResponse> testCaseSetsIdMissingScriptsGet(Long id) {
+    public ResponseEntity<MissingScriptsResponse> getMissingScriptsByTestCaseSetId(Long id) {
         try {
             List<TestCase> missingScripts = testCaseSetService.getMissingScripts(id);
             

@@ -51,7 +51,7 @@ public class OperationLogController implements OperationLogsApi {
      * @return 分页操作记录响应
      */
     @Override
-    public ResponseEntity<OperationLogPageResponse> operationLogsGet(
+    public ResponseEntity<OperationLogPageResponse> getOperationLogs(
             Integer page, Integer size, String username, String operationType, 
             String operationTarget, String startTime, String endTime) {
         try {
@@ -87,7 +87,7 @@ public class OperationLogController implements OperationLogsApi {
      * @return 操作记录响应
      */
     @Override
-    public ResponseEntity<OperationLogResponse> operationLogsPost(@Valid CreateOperationLogRequest body) {
+    public ResponseEntity<OperationLogResponse> createOperationLog(@Valid CreateOperationLogRequest body) {
         try {
             logger.info("Creating operation log for user: {}, operation: {} {}", 
                        body.getUsername(), body.getOperationType(), body.getOperationTarget());
@@ -126,7 +126,7 @@ public class OperationLogController implements OperationLogsApi {
      * @return 操作记录响应
      */
     @Override
-    public ResponseEntity<OperationLogResponse> operationLogsIdGet(Integer id) {
+    public ResponseEntity<OperationLogResponse> getOperationLogById(Integer id) {
         try {
             logger.info("Querying operation log details for ID: {}", id);
             
@@ -159,7 +159,7 @@ public class OperationLogController implements OperationLogsApi {
      * @return 统计信息响应
      */
     @Override
-    public ResponseEntity<OperationLogStatisticsResponse> operationLogsStatisticsGet(
+    public ResponseEntity<OperationLogStatisticsResponse> getOperationLogStatistics(
             String startTime, String endTime) {
         try {
             logger.info("Querying operation log statistics from {} to {}", startTime, endTime);
@@ -191,7 +191,7 @@ public class OperationLogController implements OperationLogsApi {
      * @return Excel文件资源
      */
     @Override
-    public ResponseEntity<Resource> operationLogsExportGet(
+    public ResponseEntity<Resource> exportOperationLogs(
             String username, String operationType, String operationTarget, 
             String startTime, String endTime) {
         try {

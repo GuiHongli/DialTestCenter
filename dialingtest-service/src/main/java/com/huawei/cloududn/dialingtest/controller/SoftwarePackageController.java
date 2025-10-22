@@ -46,7 +46,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     private OperationLogUtil operationLogUtil;
     
     @Override
-    public ResponseEntity<SoftwarePackageListResponse> softwarePackagesGet(Integer page, Integer pageSize, String keyword) {
+    public ResponseEntity<SoftwarePackageListResponse> getSoftwarePackages(Integer page, Integer pageSize, String keyword) {
         try {
             // 设置默认值
             if (page == null) page = 1;
@@ -72,7 +72,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     }
     
     @Override
-    public ResponseEntity<SoftwarePackagePayload> softwarePackagesIdGet(Long id) {
+    public ResponseEntity<SoftwarePackagePayload> getSoftwarePackageById(Long id) {
         try {
             SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(id);
             if (packageInfo == null) {
@@ -102,7 +102,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     }
     
     @Override
-    public ResponseEntity<SoftwarePackagePayload> softwarePackagesIdPut(String xUsername, Long id, UpdateSoftwarePackageBody body) {
+    public ResponseEntity<SoftwarePackagePayload> updateSoftwarePackage(String xUsername, Long id, UpdateSoftwarePackageBody body) {
         try {
             // 处理用户名，如果为空则使用默认值
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
@@ -160,7 +160,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     }
     
     @Override
-    public ResponseEntity<SuccessResponse> softwarePackagesIdDelete(Long id, String xUsername) {
+    public ResponseEntity<SuccessResponse> deleteSoftwarePackage(Long id, String xUsername) {
         try {
             // 处理用户名，如果为空则使用默认值
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
@@ -227,7 +227,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     }
     
     @Override
-    public ResponseEntity<Resource> softwarePackagesDownloadPost(String xUsername, BatchDownloadRequest body) {
+    public ResponseEntity<Resource> downloadSoftwarePackages(String xUsername, BatchDownloadRequest body) {
         try {
             // 检查权限 - ADMIN和OPERATOR有下载权限
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);

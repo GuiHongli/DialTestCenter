@@ -41,7 +41,7 @@ public class UserRoleController implements UserRolesApi {
     private OperationLogUtil operationLogUtil;
     
     @Override
-    public ResponseEntity<UserRolePageResponse> userRolesGet(Integer page, Integer size, String search) {
+    public ResponseEntity<UserRolePageResponse> getUserRoles(Integer page, Integer size, String search) {
         try {
             UserRolePageResponseData data = userRoleService.getUserRolesWithPagination(page, size, search);
             
@@ -60,7 +60,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<UserRoleResponse> userRolesPost(String xUsername, CreateUserRoleRequest body) {
+    public ResponseEntity<UserRoleResponse> createUserRole(String xUsername, CreateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
@@ -97,7 +97,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<UserRoleResponse> userRolesIdPut(String xUsername, Integer id, UpdateUserRoleRequest body) {
+    public ResponseEntity<UserRoleResponse> updateUserRole(String xUsername, Integer id, UpdateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
@@ -135,7 +135,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<Void> userRolesIdDelete(Integer id, String xUsername) {
+    public ResponseEntity<Void> deleteUserRole(Integer id, String xUsername) {
         try {
             // 检查权限（需要ADMIN权限）
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
@@ -154,7 +154,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<UserPermissionResponse> userRolesPermissionGet(String xUsername) {
+    public ResponseEntity<UserPermissionResponse> getUserPermission(String xUsername) {
         try {
             // 获取用户角色
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
@@ -215,7 +215,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<List<RoleResponse>> userRolesRolesGet() {
+    public ResponseEntity<List<RoleResponse>> getAllRoles() {
         try {
             List<Role> roles = userRoleService.getAllRoles();
             
@@ -238,7 +238,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<ExecutorCountResponse> userRolesExecutorCountGet() {
+    public ResponseEntity<ExecutorCountResponse> getExecutorCount() {
         try {
             int executorCount = userRoleService.getExecutorCount();
             

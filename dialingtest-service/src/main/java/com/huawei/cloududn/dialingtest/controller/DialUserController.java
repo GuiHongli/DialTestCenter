@@ -40,7 +40,7 @@ public class DialUserController implements DialusersApi {
      * @return 分页用户列表
      */
     @Override
-    public ResponseEntity<DialUserPageResponse> dialusersGet(Integer page, Integer size, String username) {
+    public ResponseEntity<DialUserPageResponse> getDialUsers(Integer page, Integer size, String username) {
         try {
             // 设置默认值
             if (page == null) {
@@ -91,7 +91,7 @@ public class DialUserController implements DialusersApi {
      * @return 用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> dialusersIdGet(Integer id) {
+    public ResponseEntity<DialUserResponse> getDialUserById(Integer id) {
         try {
             DialUser user = dialUserService.findById(id);
             
@@ -134,7 +134,7 @@ public class DialUserController implements DialusersApi {
      * @return 更新后的用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> dialusersIdPut(String xUsername, Integer id, UpdateDialUserRequest body) {
+    public ResponseEntity<DialUserResponse> updateDialUser(String xUsername, Integer id, UpdateDialUserRequest body) {
         try {
             // 检查用户名是否提供
             if (xUsername == null || xUsername.trim().isEmpty()) {
@@ -211,7 +211,7 @@ public class DialUserController implements DialusersApi {
      * @return 删除结果
      */
     @Override
-    public ResponseEntity<Void> dialusersIdDelete(Integer id, String xUsername) {
+    public ResponseEntity<Void> deleteDialUser(Integer id, String xUsername) {
         try {
             // 检查用户名是否提供
             if (xUsername == null || xUsername.trim().isEmpty()) {
@@ -246,7 +246,7 @@ public class DialUserController implements DialusersApi {
      * @return 创建的用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> dialusersPost(String xUsername, CreateDialUserRequest body) {
+    public ResponseEntity<DialUserResponse> createDialUser(String xUsername, CreateDialUserRequest body) {
         try {
             // 检查用户名是否提供
             if (xUsername == null || xUsername.trim().isEmpty()) {

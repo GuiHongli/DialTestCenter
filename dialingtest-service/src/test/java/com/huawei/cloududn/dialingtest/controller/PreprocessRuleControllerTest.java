@@ -84,7 +84,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<PreprocessRulePackageListResponse> result = 
-            preprocessRuleController.preprocessRulePackagesGet(1, 10, null, null);
+            preprocessRuleController.getPreprocessRulePackages(1, 10, null, null);
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -102,7 +102,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<PreprocessRulePackageListResponse> result = 
-            preprocessRuleController.preprocessRulePackagesGet(1, 10, null, null);
+            preprocessRuleController.getPreprocessRulePackages(1, 10, null, null);
         
         // 验证结果
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
@@ -115,7 +115,7 @@ public class PreprocessRuleControllerTest {
     public void testPreprocessRulePackagesIdDelete_Success() {
         // 执行测试
         ResponseEntity<SuccessResponse> result = 
-            preprocessRuleController.preprocessRulePackagesIdDelete(1L, "admin");
+            preprocessRuleController.deletePreprocessRulePackage(1L, "admin");
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -135,7 +135,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<SuccessResponse> result = 
-            preprocessRuleController.preprocessRulePackagesIdDelete(1L, "admin");
+            preprocessRuleController.deletePreprocessRulePackage(1L, "admin");
         
         // 验证结果
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
@@ -153,7 +153,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<org.springframework.core.io.Resource> result = 
-            preprocessRuleController.preprocessRulePackagesIdDownloadGet(1L);
+            preprocessRuleController.downloadPreprocessRulePackage(1L);
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -170,7 +170,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<org.springframework.core.io.Resource> result = 
-            preprocessRuleController.preprocessRulePackagesIdDownloadGet(1L);
+            preprocessRuleController.downloadPreprocessRulePackage(1L);
         
         // 验证结果
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
@@ -195,7 +195,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<PreprocessRuleListResponse> result = 
-            preprocessRuleController.preprocessRulesGet(1, 10, null, null, null, null, null);
+            preprocessRuleController.getPreprocessRules(1, 10, null, null, null, null, null);
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -218,7 +218,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<BusinessTypeListResponse> result = 
-            preprocessRuleController.preprocessRulesBusinessTypesGet();
+            preprocessRuleController.getBusinessTypes();
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -241,7 +241,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<CategoryListResponse> result = 
-            preprocessRuleController.preprocessRulesCategoriesGet("直播业务");
+            preprocessRuleController.getCategories("直播业务");
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -264,7 +264,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<AppNameListResponse> result = 
-            preprocessRuleController.preprocessRulesAppNamesGet("直播业务", "LIVE");
+            preprocessRuleController.getAppNames("直播业务", "LIVE");
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -287,7 +287,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<RuleNameListResponse> result = 
-            preprocessRuleController.preprocessRulesRuleNamesGet("直播业务", "LIVE", "douyin");
+            preprocessRuleController.getRuleNames("直播业务", "LIVE", "douyin");
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -316,7 +316,7 @@ public class PreprocessRuleControllerTest {
         
         // 执行测试
         ResponseEntity<FilterOptionsResponse> result = 
-            preprocessRuleController.preprocessRulesFilterOptionsGet();
+            preprocessRuleController.getFilterOptions();
         
         // 验证结果
         assertEquals(HttpStatus.OK, result.getStatusCode());

@@ -37,7 +37,7 @@ public class OperationTypeController implements OperationTypesApi {
      * @return 操作类型列表响应
      */
     @Override
-    public ResponseEntity<OperationTypeListResponse> operationTypesGet() {
+    public ResponseEntity<OperationTypeListResponse> getOperationTypes() {
         try {
             logger.info("Querying operation types list");
             

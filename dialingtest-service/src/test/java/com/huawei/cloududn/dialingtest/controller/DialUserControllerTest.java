@@ -53,7 +53,7 @@ public class DialUserControllerTest {
         when(dialUserService.countUsers(null)).thenReturn(2L);
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -74,7 +74,7 @@ public class DialUserControllerTest {
         when(dialUserService.countUsers("test")).thenReturn(1L);
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(0, 10, "test");
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, "test");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -92,7 +92,7 @@ public class DialUserControllerTest {
         when(dialUserService.countUsers(null)).thenReturn(0L);
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(null, null, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(null, null, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -106,7 +106,7 @@ public class DialUserControllerTest {
         when(dialUserService.findUsersWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -117,7 +117,7 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersGet_NullUsername_ReturnsUnauthorized() {
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.dialusersGet(0, 10, null);
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -133,7 +133,7 @@ public class DialUserControllerTest {
         when(dialUserService.findById(1)).thenReturn(user);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdGet(1);
+        ResponseEntity<DialUserResponse> response = dialUserController.getDialUserById(1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -148,7 +148,7 @@ public class DialUserControllerTest {
         when(dialUserService.findById(999)).thenReturn(null);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdGet(999);
+        ResponseEntity<DialUserResponse> response = dialUserController.getDialUserById(999);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -159,7 +159,7 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersIdGet_NullUsername_ReturnsUnauthorized() {
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdGet(1);
+        ResponseEntity<DialUserResponse> response = dialUserController.getDialUserById(1);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -179,7 +179,7 @@ public class DialUserControllerTest {
         when(dialUserService.updateUser(1, "newuser", "newpassword", "admin")).thenReturn(updatedUser);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut("admin", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 1, request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -198,7 +198,7 @@ public class DialUserControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut("operator", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("operator", 1, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -214,7 +214,7 @@ public class DialUserControllerTest {
         request.setPassword("newpassword");
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut("", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("", 1, request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -234,7 +234,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户不存在: 999"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut("admin", 999, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 999, request);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -254,7 +254,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersIdPut("admin", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 1, request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -269,7 +269,7 @@ public class DialUserControllerTest {
         doNothing().when(dialUserService).deleteUser(1, "admin");
 
         // Act
-        ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "admin");
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -282,7 +282,7 @@ public class DialUserControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1, "operator");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "operator");
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -292,7 +292,7 @@ public class DialUserControllerTest {
     @Test
     public void testDialusersIdDelete_EmptyUsername_ReturnsUnauthorized() {
         // Act
-        ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1, "");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "");
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -306,7 +306,7 @@ public class DialUserControllerTest {
         doThrow(new IllegalArgumentException("用户不存在: 999")).when(dialUserService).deleteUser(999, "admin");
 
         // Act
-        ResponseEntity<Void> response = dialUserController.dialusersIdDelete(999, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(999, "admin");
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -319,7 +319,7 @@ public class DialUserControllerTest {
         doThrow(new RuntimeException("Database error")).when(dialUserService).deleteUser(1, "admin");
 
         // Act
-        ResponseEntity<Void> response = dialUserController.dialusersIdDelete(1, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "admin");
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -337,7 +337,7 @@ public class DialUserControllerTest {
         when(dialUserService.createUser("newuser", "password", "admin")).thenReturn(createdUser);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -356,7 +356,7 @@ public class DialUserControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("operator", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("operator", request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -372,7 +372,7 @@ public class DialUserControllerTest {
         request.setPassword("password");
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("", request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -392,7 +392,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -412,7 +412,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户名不能为空"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -432,7 +432,7 @@ public class DialUserControllerTest {
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.dialusersPost("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

@@ -40,7 +40,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     // ==================== ZIP包管理接口 ====================
     
     @Override
-    public ResponseEntity<PreprocessRulePackageListResponse> preprocessRulePackagesGet(
+    public ResponseEntity<PreprocessRulePackageListResponse> getPreprocessRulePackages(
             Integer page, Integer pageSize, String businessZh, String keyword) {
         try {
             // 设置默认值
@@ -60,7 +60,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<SuccessResponse> preprocessRulePackagesIdDelete(Long id, String xUsername) {
+    public ResponseEntity<SuccessResponse> deletePreprocessRulePackage(Long id, String xUsername) {
         try {
             preprocessRuleService.deletePreprocessRulePackage(id, xUsername);
             
@@ -83,7 +83,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<Resource> preprocessRulePackagesIdDownloadGet(Long id) {
+    public ResponseEntity<Resource> downloadPreprocessRulePackage(Long id) {
         try {
             byte[] fileContent = preprocessRuleService.downloadPreprocessRulePackage(id);
             
@@ -104,7 +104,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     // ==================== 规则管理接口 ====================
     
     @Override
-    public ResponseEntity<PreprocessRuleListResponse> preprocessRulesGet(
+    public ResponseEntity<PreprocessRuleListResponse> getPreprocessRules(
             Integer page, Integer pageSize, String businessZh, String category, 
             String appName, String ruleName, String keyword) {
         try {
@@ -127,7 +127,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     // ==================== 筛选选项接口 ====================
     
     @Override
-    public ResponseEntity<BusinessTypeListResponse> preprocessRulesBusinessTypesGet() {
+    public ResponseEntity<BusinessTypeListResponse> getBusinessTypes() {
         try {
             BusinessTypeListResponse response = preprocessRuleService.getAllBusinessTypes();
             return ResponseEntity.ok(response);
@@ -140,7 +140,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<CategoryListResponse> preprocessRulesCategoriesGet(String businessZh) {
+    public ResponseEntity<CategoryListResponse> getCategories(String businessZh) {
         try {
             CategoryListResponse response = preprocessRuleService.getCategoriesByBusiness(businessZh);
             return ResponseEntity.ok(response);
@@ -153,7 +153,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<AppNameListResponse> preprocessRulesAppNamesGet(String businessZh, String category) {
+    public ResponseEntity<AppNameListResponse> getAppNames(String businessZh, String category) {
         try {
             AppNameListResponse response = preprocessRuleService.getAppNamesByBusinessAndCategory(businessZh, category);
             return ResponseEntity.ok(response);
@@ -166,7 +166,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<RuleNameListResponse> preprocessRulesRuleNamesGet(
+    public ResponseEntity<RuleNameListResponse> getRuleNames(
             String businessZh, String category, String appName) {
         try {
             RuleNameListResponse response = preprocessRuleService.getRuleNamesByBusinessAndCategoryAndApp(
@@ -181,7 +181,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     }
     
     @Override
-    public ResponseEntity<FilterOptionsResponse> preprocessRulesFilterOptionsGet() {
+    public ResponseEntity<FilterOptionsResponse> getFilterOptions() {
         try {
             FilterOptionsResponse response = preprocessRuleService.getFilterOptions();
             return ResponseEntity.ok(response);

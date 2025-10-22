@@ -97,7 +97,7 @@ public class OperationLogControllerTest {
                 .thenReturn(testPageResponse);
         
         // Act
-        ResponseEntity<OperationLogPageResponse> response = operationLogController.operationLogsGet(
+        ResponseEntity<OperationLogPageResponse> response = operationLogController.getOperationLogs(
                 0, 20, "testuser", "CREATE", "USER", "2025-01-01", "2025-01-31");
         
         // Assert
@@ -125,7 +125,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Database connection failed"));
         
         // Act
-        ResponseEntity<OperationLogPageResponse> response = operationLogController.operationLogsGet(
+        ResponseEntity<OperationLogPageResponse> response = operationLogController.getOperationLogs(
                 0, 20, "testuser", "CREATE", "USER", "2025-01-01", "2025-01-31");
         
         // Assert
@@ -151,7 +151,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Database error"));
         
         // Act
-        ResponseEntity<OperationLogPageResponse> response = operationLogController.operationLogsGet(
+        ResponseEntity<OperationLogPageResponse> response = operationLogController.getOperationLogs(
                 0, 20, "testuser", "CREATE", "USER", "2025-01-01", "2025-01-31");
         
         // Assert
@@ -181,7 +181,7 @@ public class OperationLogControllerTest {
                 .thenReturn(createResponse);
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsPost(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -206,7 +206,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new IllegalArgumentException("Username is required"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsPost(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -229,7 +229,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new IllegalStateException("Database operation failed"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsPost(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -252,7 +252,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Unexpected error"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsPost(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -279,7 +279,7 @@ public class OperationLogControllerTest {
         when(operationLogService.getOperationLogById(anyInt())).thenReturn(getResponse);
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsIdGet(1);
+        ResponseEntity<OperationLogResponse> response = operationLogController.getOperationLogById(1);
         
         // Assert
         assertNotNull(response);
@@ -304,7 +304,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new IllegalArgumentException("Invalid operation log ID"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsIdGet(0);
+        ResponseEntity<OperationLogResponse> response = operationLogController.getOperationLogById(0);
         
         // Assert
         assertNotNull(response);
@@ -327,7 +327,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Operation log not found"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.operationLogsIdGet(999);
+        ResponseEntity<OperationLogResponse> response = operationLogController.getOperationLogById(999);
         
         // Assert
         assertNotNull(response);
@@ -355,7 +355,7 @@ public class OperationLogControllerTest {
                 .thenReturn(statisticsResponse);
         
         // Act
-        ResponseEntity<OperationLogStatisticsResponse> response = operationLogController.operationLogsStatisticsGet(
+        ResponseEntity<OperationLogStatisticsResponse> response = operationLogController.getOperationLogStatistics(
                 "2025-01-01", "2025-01-31");
         
         // Assert
@@ -381,7 +381,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Database error"));
         
         // Act
-        ResponseEntity<OperationLogStatisticsResponse> response = operationLogController.operationLogsStatisticsGet(
+        ResponseEntity<OperationLogStatisticsResponse> response = operationLogController.getOperationLogStatistics(
                 "2025-01-01", "2025-01-31");
         
         // Assert
@@ -406,7 +406,7 @@ public class OperationLogControllerTest {
                 anyString(), anyString())).thenReturn(mockResource);
         
         // Act
-        ResponseEntity<Resource> response = operationLogController.operationLogsExportGet(
+        ResponseEntity<Resource> response = operationLogController.exportOperationLogs(
                 "testuser", "CREATE", "USER", "2025-01-01", "2025-01-31");
         
         // Assert
@@ -430,7 +430,7 @@ public class OperationLogControllerTest {
                 anyString(), anyString())).thenThrow(new RuntimeException("Export failed"));
         
         // Act
-        ResponseEntity<Resource> response = operationLogController.operationLogsExportGet(
+        ResponseEntity<Resource> response = operationLogController.exportOperationLogs(
                 "testuser", "CREATE", "USER", "2025-01-01", "2025-01-31");
         
         // Assert

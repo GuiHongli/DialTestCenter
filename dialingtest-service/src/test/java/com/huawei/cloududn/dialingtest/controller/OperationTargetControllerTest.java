@@ -52,7 +52,7 @@ public class OperationTargetControllerTest {
         when(operationTargetDao.getAllOperationTargets()).thenReturn(testResponse);
 
         // Act
-        ResponseEntity<OperationTargetListResponse> response = operationTargetController.operationTargetsGet();
+        ResponseEntity<OperationTargetListResponse> response = operationTargetController.getOperationTargets();
 
         // Assert
         assertNotNull(response);
@@ -68,7 +68,7 @@ public class OperationTargetControllerTest {
         when(operationTargetDao.getAllOperationTargets()).thenThrow(new RuntimeException("Service error"));
 
         // Act
-        ResponseEntity<OperationTargetListResponse> response = operationTargetController.operationTargetsGet();
+        ResponseEntity<OperationTargetListResponse> response = operationTargetController.getOperationTargets();
 
         // Assert
         assertNotNull(response);

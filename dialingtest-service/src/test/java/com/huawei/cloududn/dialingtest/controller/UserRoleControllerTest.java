@@ -85,7 +85,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenReturn(pageData);
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.getUserRoles(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -111,7 +111,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenReturn(pageData);
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.getUserRoles(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -128,7 +128,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.getUserRoles(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -147,7 +147,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesWithPagination(0, 10, null)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<UserRolePageResponse> response = userRoleController.userRolesGet(Integer.valueOf(0), Integer.valueOf(10), null);
+        ResponseEntity<UserRolePageResponse> response = userRoleController.getUserRoles(Integer.valueOf(0), Integer.valueOf(10), null);
 
         // Assert
         assertNotNull(response);
@@ -165,7 +165,7 @@ public class UserRoleControllerTest {
         when(userRoleService.createUserRole("testuser", "ADMIN", "admin")).thenReturn(testUserRole);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesPost("admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("admin", testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -184,7 +184,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesPost("operator", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("operator", testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -204,7 +204,7 @@ public class UserRoleControllerTest {
             .thenThrow(new IllegalArgumentException("用户角色关系已存在"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesPost("admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("admin", testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -223,7 +223,7 @@ public class UserRoleControllerTest {
         when(userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin")).thenReturn(testUserRole);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesIdPut("admin", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("admin", Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
@@ -242,7 +242,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesIdPut("operator", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("operator", Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
@@ -262,7 +262,7 @@ public class UserRoleControllerTest {
             .thenThrow(new IllegalArgumentException("用户角色关系不存在"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.userRolesIdPut("admin", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("admin", Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
@@ -280,7 +280,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
 
         // Act
-        ResponseEntity<Void> response = userRoleController.userRolesIdDelete(Integer.valueOf(1), "admin");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "admin");
 
         // Assert
         assertNotNull(response);
@@ -295,7 +295,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<Void> response = userRoleController.userRolesIdDelete(Integer.valueOf(1), "operator");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "operator");
 
         // Assert
         assertNotNull(response);
@@ -311,7 +311,7 @@ public class UserRoleControllerTest {
         doThrow(new IllegalArgumentException("用户角色关系不存在")).when(userRoleService).deleteUserRole(1, "admin");
 
         // Act
-        ResponseEntity<Void> response = userRoleController.userRolesIdDelete(Integer.valueOf(1), "admin");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "admin");
 
         // Assert
         assertNotNull(response);
@@ -326,7 +326,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(Arrays.asList("ADMIN"));
 
         // Act
-        ResponseEntity<UserPermissionResponse> response = userRoleController.userRolesPermissionGet("testuser");
+        ResponseEntity<UserPermissionResponse> response = userRoleController.getUserPermission("testuser");
 
         // Assert
         assertNotNull(response);
@@ -347,7 +347,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("testuser")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<UserPermissionResponse> response = userRoleController.userRolesPermissionGet("testuser");
+        ResponseEntity<UserPermissionResponse> response = userRoleController.getUserPermission("testuser");
 
         // Assert
         assertNotNull(response);
@@ -365,7 +365,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllRoles()).thenReturn(roles);
 
         // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet();
+        ResponseEntity<List<RoleResponse>> response = userRoleController.getAllRoles();
 
         // Assert
         assertNotNull(response);
@@ -384,7 +384,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getAllRoles()).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.userRolesRolesGet();
+        ResponseEntity<List<RoleResponse>> response = userRoleController.getAllRoles();
 
         // Assert
         assertNotNull(response);
@@ -402,7 +402,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getExecutorCount()).thenReturn(5);
 
         // Act
-        ResponseEntity<ExecutorCountResponse> response = userRoleController.userRolesExecutorCountGet();
+        ResponseEntity<ExecutorCountResponse> response = userRoleController.getExecutorCount();
 
         // Assert
         assertNotNull(response);
@@ -420,7 +420,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getExecutorCount()).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<ExecutorCountResponse> response = userRoleController.userRolesExecutorCountGet();
+        ResponseEntity<ExecutorCountResponse> response = userRoleController.getExecutorCount();
 
         // Assert
         assertNotNull(response);

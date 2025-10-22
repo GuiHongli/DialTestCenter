@@ -37,7 +37,7 @@ public class OperationTargetController implements OperationTargetsApi {
      * @return 操作目标列表响应
      */
     @Override
-    public ResponseEntity<OperationTargetListResponse> operationTargetsGet() {
+    public ResponseEntity<OperationTargetListResponse> getOperationTargets() {
         try {
             logger.info("Querying operation targets list");
             

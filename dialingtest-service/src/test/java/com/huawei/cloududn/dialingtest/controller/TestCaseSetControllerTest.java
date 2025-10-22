@@ -90,7 +90,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(result);
 
         // Act
-        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.testCaseSetsGet(1, 10);
+        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.getTestCaseSets(1, 10);
 
         // Assert
         assertNotNull(response);
@@ -118,7 +118,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSets(1, 10)).thenReturn(result);
 
         // Act
-        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.testCaseSetsGet(null, null);
+        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.getTestCaseSets(null, null);
 
         // Assert
         assertNotNull(response);
@@ -137,7 +137,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSets(1, 10)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.testCaseSetsGet(1, 10);
+        ResponseEntity<TestCaseSetListResponse> response = testCaseSetController.getTestCaseSets(1, 10);
 
         // Assert
         assertNotNull(response);
@@ -156,7 +156,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(testTestCaseSet);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.testCaseSetsIdGet(1L);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.getTestCaseSetById(1L);
 
         // Assert
         assertNotNull(response);
@@ -178,7 +178,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(null);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.testCaseSetsIdGet(1L);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.getTestCaseSetById(1L);
 
         // Assert
         assertNotNull(response);
@@ -199,7 +199,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSetById(1L)).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.testCaseSetsIdGet(1L);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.getTestCaseSetById(1L);
 
         // Assert
         assertNotNull(response);
@@ -218,7 +218,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(testTestCaseSet);
 
         // Act
-        ResponseEntity<Resource> response = testCaseSetController.testCaseSetsIdDownloadGet(1L);
+        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
 
         // Assert
         assertNotNull(response);
@@ -237,7 +237,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(null);
 
         // Act
-        ResponseEntity<Resource> response = testCaseSetController.testCaseSetsIdDownloadGet(1L);
+        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
 
         // Assert
         assertNotNull(response);
@@ -259,7 +259,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.updateTestCaseSet(1L, request, "admin")).thenReturn(testTestCaseSet);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.testCaseSetsIdPut("admin", 1L, request);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet("admin", 1L, request);
 
         // Assert
         assertNotNull(response);
@@ -282,7 +282,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.updateTestCaseSet(1L, request, "admin")).thenReturn(null);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.testCaseSetsIdPut("admin", 1L, request);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet("admin", 1L, request);
 
         // Assert
         assertNotNull(response);
@@ -303,7 +303,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.deleteTestCaseSet(1L, "admin")).thenReturn(true);
 
         // Act
-        ResponseEntity<SuccessResponse> response = testCaseSetController.testCaseSetsIdDelete(1L, "admin");
+        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, "admin");
 
         // Assert
         assertNotNull(response);
@@ -324,7 +324,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.deleteTestCaseSet(1L, "admin")).thenReturn(false);
 
         // Act
-        ResponseEntity<SuccessResponse> response = testCaseSetController.testCaseSetsIdDelete(1L, "admin");
+        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, "admin");
 
         // Assert
         assertNotNull(response);
@@ -351,7 +351,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getTestCases(1L, 1, 10)).thenReturn(result);
 
         // Act
-        ResponseEntity<TestCaseListResponse> response = testCaseSetController.testCaseSetsIdTestCasesGet(1L, 1, 10);
+        ResponseEntity<TestCaseListResponse> response = testCaseSetController.getTestCasesByTestCaseSetId(1L, 1, 10);
 
         // Assert
         assertNotNull(response);
@@ -372,7 +372,7 @@ public class TestCaseSetControllerTest {
         when(testCaseSetService.getMissingScripts(1L)).thenReturn(testTestCaseList);
 
         // Act
-        ResponseEntity<MissingScriptsResponse> response = testCaseSetController.testCaseSetsIdMissingScriptsGet(1L);
+        ResponseEntity<MissingScriptsResponse> response = testCaseSetController.getMissingScriptsByTestCaseSetId(1L);
 
         // Assert
         assertNotNull(response);
