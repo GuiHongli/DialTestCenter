@@ -16,6 +16,7 @@ produces:
 paths:
   /dialusers:
     get:
+      operationId: "getDialUsers"
       summary: 分页查询拨测用户
       description: 分页查询拨测用户列表，支持用户名过滤
       parameters:
@@ -50,6 +51,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
     post:
+      operationId: "createDialUser"
       summary: 新增拨测用户
       description: 新增拨测用户，仅ADMIN权限的用户有操作权限
       parameters:
@@ -90,6 +92,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
   /dialusers/{id}:
     get:
+      operationId: "getDialUserById"
       summary: 根据ID查询拨测用户
       description: 根据ID查询拨测用户详情
       parameters:
@@ -116,6 +119,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
     put:
+      operationId: "updateDialUser"
       summary: 修改拨测用户
       description: 修改拨测用户信息，仅ADMIN权限的用户有操作权限
       parameters:
@@ -164,6 +168,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
     delete:
+      operationId: "deleteDialUser"
       summary: 删除拨测用户
       description: 删除拨测用户，仅ADMIN权限的用户有操作权限
       parameters:

@@ -21,6 +21,7 @@ produces:
 paths:
   /software-packages:
     get:
+      operationId: "getSoftwarePackages"
       tags:
         - "软件包管理"
       summary: "获取软件包列表"
@@ -58,6 +59,7 @@ paths:
 
   /software-packages/{id}:
     get:
+      operationId: "getSoftwarePackageById"
       tags:
         - "软件包管理"
       summary: "获取软件包详情"
@@ -84,6 +86,7 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
     put:
+      operationId: "updateSoftwarePackage"
       tags:
         - "软件包管理"
       summary: "更新软件包信息"
@@ -129,6 +132,7 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
     delete:
+      operationId: "deleteSoftwarePackage"
       tags:
         - "软件包管理"
       summary: "删除软件包"
@@ -169,6 +173,7 @@ paths:
 
   /software-packages/download:
     post:
+      operationId: "downloadSoftwarePackages"
       tags:
         - "软件包管理"
       summary: "下载软件包"

@@ -21,6 +21,7 @@ produces:
 paths:
   /preprocess-rule-packages:
     get:
+      operationId: "getPreprocessRulePackages"
       tags:
         - "ZIP包管理"
       summary: "获取ZIP包列表"
@@ -64,6 +65,7 @@ paths:
 
   /preprocess-rule-packages/{id}/download:
     get:
+      operationId: "downloadPreprocessRulePackage"
       tags:
         - "ZIP包管理"
       summary: "下载ZIP包"
@@ -95,6 +97,7 @@ paths:
 
   /preprocess-rule-packages/{id}:
     delete:
+      operationId: "deletePreprocessRulePackage"
       tags:
         - "ZIP包管理"
       summary: "删除ZIP包"
@@ -131,6 +134,7 @@ paths:
 
   /preprocess-rules:
     get:
+      operationId: "getPreprocessRules"
       tags:
         - "规则管理"
       summary: "获取预处理规则列表"
@@ -189,6 +193,7 @@ paths:
 
   /preprocess-rules/business-types:
     get:
+      operationId: "getBusinessTypes"
       tags:
         - "筛选选项"
       summary: "获取业务类型列表"
@@ -205,6 +210,7 @@ paths:
 
   /preprocess-rules/categories:
     get:
+      operationId: "getCategories"
       tags:
         - "筛选选项"
       summary: "获取分类列表"
@@ -227,6 +233,7 @@ paths:
 
   /preprocess-rules/app-names:
     get:
+      operationId: "getAppNames"
       tags:
         - "筛选选项"
       summary: "获取应用名称列表"
@@ -254,6 +261,7 @@ paths:
 
   /preprocess-rules/rule-names:
     get:
+      operationId: "getRuleNames"
       tags:
         - "筛选选项"
       summary: "获取规则名称列表"
@@ -286,6 +294,7 @@ paths:
 
   /preprocess-rules/filter-options:
     get:
+      operationId: "getFilterOptions"
       tags:
         - "筛选选项"
       summary: "获取筛选选项"

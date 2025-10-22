@@ -23,6 +23,7 @@ produces:
 paths:
   /test-case-sets:
     get:
+      operationId: "getTestCaseSets"
       tags:
         - "用例集管理"
       summary: "获取用例集列表"
@@ -57,6 +58,7 @@ paths:
 
   /test-case-sets/{id}:
     get:
+      operationId: "getTestCaseSetById"
       tags:
         - "用例集管理"
       summary: "获取用例集详情"
@@ -83,6 +85,7 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
     put:
+      operationId: "updateTestCaseSet"
       tags:
         - "用例集管理"
       summary: "更新用例集"
@@ -128,6 +131,7 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
     delete:
+      operationId: "deleteTestCaseSet"
       tags:
         - "用例集管理"
       summary: "删除用例集"
@@ -164,6 +168,7 @@ paths:
 
   /test-case-sets/{id}/download:
     get:
+      operationId: "downloadTestCaseSet"
       tags:
         - "用例集管理"
       summary: "下载用例集"
@@ -195,6 +200,7 @@ paths:
 
   /test-case-sets/{id}/test-cases:
     get:
+      operationId: "getTestCasesByTestCaseSetId"
       tags:
         - "测试用例管理"
       summary: "获取测试用例列表"
@@ -234,6 +240,7 @@ paths:
 
   /test-case-sets/{id}/missing-scripts:
     get:
+      operationId: "getMissingScriptsByTestCaseSetId"
       tags:
         - "测试用例管理"
       summary: "获取缺失脚本列表"

@@ -16,6 +16,7 @@ consumes:
 paths:
   /user-roles:
     get:
+      operationId: "getUserRoles"
       summary: 获取用户角色列表
       description: 支持分页查询和搜索，需要ADMIN或OPERATOR权限
       tags:
@@ -54,6 +55,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
             
     post:
+      operationId: "createUserRole"
       summary: 创建用户角色关系
       description: 创建新的用户角色关系，需要ADMIN权限，自动记录操作日志
       tags:
@@ -93,6 +95,7 @@ paths:
 
   /user-roles/{id}:
     put:
+      operationId: "updateUserRole"
       summary: 更新用户角色关系
       description: 更新现有用户角色关系，需要ADMIN权限，自动记录操作日志
       tags:
@@ -132,6 +135,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
             
     delete:
+      operationId: "deleteUserRole"
       summary: 删除用户角色关系
       description: 删除用户角色关系，需要ADMIN权限，自动记录操作日志
       tags:
@@ -165,6 +169,7 @@ paths:
 
   /user-roles/permission:
     get:
+      operationId: "getUserPermission"
       summary: 获取用户权限信息
       description: 获取用户所有角色和权限信息，用于前端权限控制
       tags:
@@ -191,6 +196,7 @@ paths:
 
   /user-roles/roles:
     get:
+      operationId: "getAllRoles"
       summary: 获取所有角色列表
       description: 获取系统中定义的所有角色
       tags:
@@ -209,6 +215,7 @@ paths:
 
   /user-roles/executor-count:
     get:
+      operationId: "getExecutorCount"
       summary: 获取执行机数量
       description: 获取系统中EXECUTOR角色的总数量
       tags:

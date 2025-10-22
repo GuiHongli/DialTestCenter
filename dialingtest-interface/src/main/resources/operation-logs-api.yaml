@@ -10,6 +10,7 @@ schemes:
 paths:
   /operation-logs:
     get:
+      operationId: "getOperationLogs"
       summary: 分页查询操作记录
       parameters:
         - name: page
@@ -59,6 +60,7 @@ paths:
         '500':
           description: 服务器内部错误
     post:
+      operationId: "createOperationLog"
       summary: 创建操作记录
       parameters:
         - name: body
@@ -77,6 +79,7 @@ paths:
           description: 服务器内部错误
   /operation-logs/{id}:
     get:
+      operationId: "getOperationLogById"
       summary: 查询操作记录详情
       parameters:
         - name: id
@@ -95,6 +98,7 @@ paths:
           description: 服务器内部错误
   /operation-logs/statistics:
     get:
+      operationId: "getOperationLogStatistics"
       summary: 获取操作记录统计信息
       parameters:
         - name: startTime
@@ -116,6 +120,7 @@ paths:
           description: 服务器内部错误
   /operation-logs/export:
     get:
+      operationId: "exportOperationLogs"
       summary: 导出操作记录
       parameters:
         - name: username
@@ -152,6 +157,7 @@ paths:
           description: 服务器内部错误
   /operation-types:
     get:
+      operationId: "getOperationTypes"
       summary: 查询操作类型列表
       responses:
         '200':
@@ -162,6 +168,7 @@ paths:
           description: 服务器内部错误
   /operation-targets:
     get:
+      operationId: "getOperationTargets"
       summary: 查询操作目标列表
       responses:
         '200':

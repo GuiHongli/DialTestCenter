@@ -14,6 +14,7 @@ servers:
 paths:
   /upload:
     post:
+      operationId: "uploadTestCaseSet"
       tags:
         - "文件上传"
       summary: "上传用例集文件"
