@@ -65,7 +65,7 @@ public class FileUploadController {
      * @param businessZh 业务类型中文（可选）
      * @param businessEn 业务类型英文（可选）
      * @param overwrite 是否覆盖已存在的用例集（可选，默认为false）
-     * @param xUsername 操作用户名（可选，默认为admin）
+     * @param xUsername 操作用户名（必需，Header中的X-Username）
      * @return 上传结果响应
      */
     @PostMapping("/test-case-sets")
@@ -75,46 +75,30 @@ public class FileUploadController {
             @RequestParam(value = "businessZh", required = false) String businessZh,
             @RequestParam(value = "businessEn", required = false) String businessEn,
             @RequestParam(value = "overwrite", required = false, defaultValue = "false") String overwrite,
-            @RequestHeader(value = "X-Username", required = false) String xUsername) {
-        logger.info("Received file upload request");
+            @RequestHeader(value = "X-Username", required = true) String xUsername) {
+        logger.info("Received test case set upload request from user: {}", xUsername);
         
         try {
-            // 检查请求是否为multipart类型
-            if (!(request instanceof MultipartHttpServletRequest)) {
-                logger.warn("Request is not multipart type");
-                TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-                response.setSuccess(false);
-                response.setMessage("请求类型错误，必须是multipart/form-data");
-                return ResponseEntity.badRequest().body(response);
+            // 权限验证
+            ResponseEntity<TestCaseSetUploadResponse> permissionCheck = checkUploadPermission(xUsername, "用例集");
+            if (permissionCheck != null) {
+                return permissionCheck;
             }
             
-            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-            
-            // 获取上传的文件
-            MultipartFile file = null;
-            Iterator<String> fileNames = multipartRequest.getFileNames();
-            if (fileNames.hasNext()) {
-                String fileName = fileNames.next();
-                file = multipartRequest.getFile(fileName);
-            }
-            
-            if (file == null || file.isEmpty()) {
-                logger.warn("No file provided in upload request");
-                TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-                response.setSuccess(false);
-                response.setMessage("未提供上传文件");
-                return ResponseEntity.badRequest().body(response);
+            // 获取上传文件
+            MultipartFile file = getUploadFile(request, "test case set");
+            if (file == null) {
+                return createTestCaseSetErrorResponse("未提供上传文件", HttpStatus.BAD_REQUEST);
             }
             
             // 设置默认值
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
-            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             
-            logger.info("Processing file upload: {} by user: {}", file.getOriginalFilename(), operatorUsername);
+            logger.info("Processing file upload: {} by user: {}", file.getOriginalFilename(), xUsername);
             
             // 调用服务层处理文件上传
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(
-                file, description, businessZh, businessEn, isOverwrite, operatorUsername);
+                file, description, businessZh, businessEn, isOverwrite, xUsername);
             
             TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
             response.setSuccess(true);
@@ -128,17 +112,11 @@ public class FileUploadController {
             
         } catch (IllegalArgumentException e) {
             logger.warn("File upload validation failed: {}", e.getMessage());
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(false);
-            response.setMessage("上传失败: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return createTestCaseSetErrorResponse("上传失败: " + e.getMessage(), HttpStatus.BAD_REQUEST);
             
         } catch (Exception e) {
             logger.error("File upload failed", e);
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(false);
-            response.setMessage("上传失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createTestCaseSetErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -160,46 +138,16 @@ public class FileUploadController {
         logger.info("Received software package upload request from user: {}", xUsername);
         
         try {
-            // 检查权限 - ADMIN和OPERATOR有上传权限
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-                logger.warn("Insufficient permission for software package upload by user: {}", xUsername);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("{\"success\":false,\"message\":\"权限不足，只有管理员和操作员可以上传软件包\"}");
+            // 权限验证
+            ResponseEntity<?> permissionCheck = checkSoftwarePackageUploadPermission(xUsername);
+            if (permissionCheck != null) {
+                return permissionCheck;
             }
             
-            // 检查请求是否为multipart类型
-            if (!(request instanceof MultipartHttpServletRequest)) {
-                logger.warn("Software package upload request is not multipart type");
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"请求类型错误，必须是multipart/form-data\"}");
-            }
-            
-            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-            
-            // 调试日志：打印所有参数名
-            logger.info("All parameter names: {}", multipartRequest.getParameterNames());
-            logger.info("All file names: {}", multipartRequest.getFileNames());
-            
-            // 获取上传的文件
-            MultipartFile file = null;
-            Iterator<String> fileNames = multipartRequest.getFileNames();
-            while (fileNames.hasNext()) {
-                String fileName = fileNames.next();
-                logger.info("Processing file name: {}", fileName);
-                file = multipartRequest.getFile(fileName);
-                if (file != null) {
-                    logger.info("File found: {}, size: {}, original name: {}", 
-                               fileName, file.getSize(), file.getOriginalFilename());
-                    break;
-                }
-            }
-            
-            if (file == null || file.isEmpty()) {
-                logger.warn("No file provided in software package upload request. File names: {}", 
-                           multipartRequest.getFileNames());
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"未提供上传文件\"}");
+            // 获取上传文件
+            MultipartFile file = getUploadFile(request, "software package");
+            if (file == null) {
+                return createStringErrorResponse("未提供上传文件", HttpStatus.BAD_REQUEST);
             }
             
             // 设置默认值
@@ -237,24 +185,20 @@ public class FileUploadController {
                 
             } else {
                 logger.warn("Unsupported file format for software package: {}", fileName);
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"不支持的文件格式，仅支持.apk、.ipa和.zip文件\"}");
+                return createStringErrorResponse("不支持的文件格式，仅支持.apk、.ipa和.zip文件", HttpStatus.BAD_REQUEST);
             }
             
         } catch (IllegalArgumentException e) {
             logger.warn("Software package upload validation failed: {}", e.getMessage());
-            return ResponseEntity.badRequest()
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.BAD_REQUEST);
                 
         } catch (IOException e) {
             logger.error("Software package upload failed", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                 
         } catch (Exception e) {
             logger.error("Software package upload failed", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -275,73 +219,47 @@ public class FileUploadController {
             @RequestParam(value = "businessEn", required = false) String businessEn,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "forceOverwrite", required = false) String forceOverwrite,
-            @RequestHeader(value = "X-Username", required = false) String xUsername) {
-        logger.info("Received preprocess rule package upload request");
-        logger.info("Request parameters - businessZh: {}, businessEn: {}, description: {}, forceOverwrite: {}, X-Username: {}",
-                   businessZh, businessEn, description, forceOverwrite, xUsername);
+            @RequestHeader(value = "X-Username", required = true) String xUsername) {
+        logger.info("Received preprocess rule package upload request from user: {}", xUsername);
+        logger.info("Request parameters - businessZh: {}, businessEn: {}, description: {}, forceOverwrite: {}",
+                   businessZh, businessEn, description, forceOverwrite);
 
         try {
-            // 检查请求是否为multipart类型
-            if (!(request instanceof MultipartHttpServletRequest)) {
-                logger.warn("Request is not multipart type");
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"请求类型错误，必须是multipart/form-data\"}");
+            // 权限验证
+            ResponseEntity<String> permissionCheck = checkPreprocessRuleUploadPermission(xUsername);
+            if (permissionCheck != null) {
+                return permissionCheck;
             }
             
-            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-            logger.info("File names in request: {}", String.join(", ", 
-                       (Iterable<String>) () -> multipartRequest.getFileNames()));
-            
-            // 获取上传的文件
-            MultipartFile file = null;
-            Iterator<String> fileNames = multipartRequest.getFileNames();
-            if (fileNames.hasNext()) {
-                String fileName = fileNames.next();
-                file = multipartRequest.getFile(fileName);
-            }
-            
-            if (file == null || file.isEmpty()) {
-                logger.warn("No file provided in upload request");
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"未找到上传文件\"}");
+            // 获取上传文件
+            MultipartFile file = getUploadFile(request, "preprocess rule package");
+            if (file == null) {
+                return createStringErrorResponse("未找到上传文件", HttpStatus.BAD_REQUEST);
             }
             
             // 验证文件格式
             String originalFilename = file.getOriginalFilename();
             if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".zip")) {
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"仅支持ZIP格式文件\"}");
+                return createStringErrorResponse("仅支持ZIP格式文件", HttpStatus.BAD_REQUEST);
             }
             
             // 验证业务类型参数
             if (businessZh == null || businessZh.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"业务类型中文名称不能为空\"}");
+                return createStringErrorResponse("业务类型中文名称不能为空", HttpStatus.BAD_REQUEST);
             }
             
             if (businessEn == null || businessEn.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body("{\"success\":false,\"message\":\"业务类型英文名称不能为空\"}");
+                return createStringErrorResponse("业务类型英文名称不能为空", HttpStatus.BAD_REQUEST);
             }
             
-            // 获取操作用户名
-            String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "unknown";
-            
-            // 检查权限（仅ADMIN和OPERATOR可以上传）
-            List<String> allowedRoles = Arrays.asList("ADMIN", "OPERATOR");
-            if (!userRoleService.hasAnyRole(operatorUsername, allowedRoles)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("{\"success\":false,\"message\":\"权限不足，仅ADMIN和OPERATOR可以上传预处理规则包\"}");
-            }
-            
-            logger.info("Processing preprocess rule package upload: {} by user: {}", originalFilename, operatorUsername);
+            logger.info("Processing preprocess rule package upload: {} by user: {}", originalFilename, xUsername);
             
             // 解析覆盖标志
             boolean shouldOverwrite = "true".equalsIgnoreCase(forceOverwrite);
             
             // 调用服务层处理上传
             String result = preprocessRuleService.uploadPreprocessRulePackage(
-                file, businessZh, businessEn, description, operatorUsername, shouldOverwrite);
+                file, businessZh, businessEn, description, xUsername, shouldOverwrite);
             
             logger.info("Preprocess rule package upload completed successfully: {}", originalFilename);
             
@@ -349,18 +267,104 @@ public class FileUploadController {
             
         } catch (IllegalArgumentException e) {
             logger.warn("Preprocess rule package upload validation failed: {}", e.getMessage());
-            return ResponseEntity.badRequest()
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.BAD_REQUEST);
                 
         } catch (IOException e) {
             logger.error("Preprocess rule package upload failed", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                 
         } catch (Exception e) {
             logger.error("Preprocess rule package upload failed", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("{\"success\":false,\"message\":\"上传失败: " + e.getMessage() + "\"}");
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    
+    // ==================== 私有辅助方法 ====================
+    
+    /**
+     * 检查上传权限（用例集）
+     */
+    private ResponseEntity<TestCaseSetUploadResponse> checkUploadPermission(String username, String resourceType) {
+        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
+        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
+            logger.warn("Insufficient permission for {} upload by user: {}", resourceType, username);
+            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
+            response.setSuccess(false);
+            response.setMessage("权限不足，只有管理员和操作员可以上传" + resourceType);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        return null;
+    }
+    
+    /**
+     * 检查软件包上传权限
+     */
+    private ResponseEntity<?> checkSoftwarePackageUploadPermission(String username) {
+        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
+        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
+            logger.warn("Insufficient permission for software package upload by user: {}", username);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("{\"success\":false,\"message\":\"权限不足，只有管理员和操作员可以上传软件包\"}");
+        }
+        return null;
+    }
+    
+    /**
+     * 检查预处理规则包上传权限
+     */
+    private ResponseEntity<String> checkPreprocessRuleUploadPermission(String username) {
+        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
+        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
+            logger.warn("Insufficient permission for preprocess rule package upload by user: {}", username);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("{\"success\":false,\"message\":\"权限不足，只有管理员和操作员可以上传预处理规则包\"}");
+        }
+        return null;
+    }
+    
+    /**
+     * 获取上传文件
+     */
+    private MultipartFile getUploadFile(HttpServletRequest request, String resourceType) {
+        // 检查请求是否为multipart类型
+        if (!(request instanceof MultipartHttpServletRequest)) {
+            logger.warn("{} upload request is not multipart type", resourceType);
+            return null;
+        }
+        
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        
+        // 获取上传的文件
+        MultipartFile file = null;
+        Iterator<String> fileNames = multipartRequest.getFileNames();
+        if (fileNames.hasNext()) {
+            String fileName = fileNames.next();
+            file = multipartRequest.getFile(fileName);
+        }
+        
+        if (file == null || file.isEmpty()) {
+            logger.warn("No file provided in {} upload request", resourceType);
+            return null;
+        }
+        
+        return file;
+    }
+    
+    /**
+     * 创建TestCaseSet错误响应
+     */
+    private ResponseEntity<TestCaseSetUploadResponse> createTestCaseSetErrorResponse(String message, HttpStatus status) {
+        TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
+        response.setSuccess(false);
+        response.setMessage(message);
+        return ResponseEntity.status(status).body(response);
+    }
+    
+    /**
+     * 创建字符串错误响应
+     */
+    private ResponseEntity<String> createStringErrorResponse(String message, HttpStatus status) {
+        return ResponseEntity.status(status)
+            .body("{\"success\":false,\"message\":\"" + message + "\"}");
     }
 }

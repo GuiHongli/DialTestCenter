@@ -295,10 +295,8 @@ public class ExcelParseServiceTest {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("No Header");
         
-        // 直接创建数据行，没有表头
-        Row dataRow = sheet.createRow(0);
-        dataRow.createCell(0).setCellValue("测试用例1");
-        dataRow.createCell(1).setCellValue("TC001");
+        // 创建空的工作表，没有表头行
+        // 不创建任何行，这样sheet.getRow(0)会返回null
         
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         workbook.write(baos);

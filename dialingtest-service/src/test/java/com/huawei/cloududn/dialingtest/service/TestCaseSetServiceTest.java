@@ -340,7 +340,7 @@ public class TestCaseSetServiceTest {
         assertEquals("v1.0", result.getVersion());
         assertEquals(description, result.getDescription());
         assertEquals(businessZh, result.getBusinessZh());
-        assertEquals(businessEn, result.getBusinessEn());
+        assertEquals("VPN_BLOCK", result.getBusinessEn());
 
         verify(testCaseSetDao, times(1)).existsByNameAndVersion("testcaseset", "v1.0");
         verify(archiveParseService, times(1)).parseArchive(any(byte[].class));

@@ -87,6 +87,11 @@ public class FileUploadControllerTest {
         mockRequest.addParameter("overwrite", "false");
         mockRequest.addHeader("X-Username", "testuser");
         
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
+        
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
             anyString(), 
@@ -108,10 +113,12 @@ public class FileUploadControllerTest {
         assertEquals("上传用例集成功", response.getBody().getMessage());
         assertEquals(mockTestCaseSet, response.getBody().getData());
         
+        verify(userRoleService).getUserRolesByUsername("testuser");
         verify(testCaseSetService).uploadTestCaseSet(
             any(MultipartFile.class), 
             eq("Test description"), 
             eq("测试业务"), 
+            anyString(), 
             eq(false), 
             eq("testuser")
         );
@@ -123,6 +130,11 @@ public class FileUploadControllerTest {
         mockRequest.addFile(mockFile);
         mockRequest.addParameter("overwrite", "true");
         mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有OPERATOR角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("OPERATOR");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
@@ -143,8 +155,10 @@ public class FileUploadControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals("覆盖更新用例集成功", response.getBody().getMessage());
         
+        verify(userRoleService).getUserRolesByUsername("testuser");
         verify(testCaseSetService).uploadTestCaseSet(
             any(MultipartFile.class), 
+            anyString(), 
             anyString(), 
             anyString(), 
             eq(true), 
@@ -156,18 +170,25 @@ public class FileUploadControllerTest {
     public void testUploadTestCaseSet_NoFile() {
         // Arrange
         MockHttpServletRequest nonMultipartRequest = new MockHttpServletRequest();
+        nonMultipartRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
         
         // Act
         ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
-            nonMultipartRequest, null, null, null, "false", null);
+            nonMultipartRequest, null, null, null, "false", "testuser");
         
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("请求类型错误，必须是multipart/form-data", response.getBody().getMessage());
+        assertEquals("未提供上传文件", response.getBody().getMessage());
         
+        verify(userRoleService).getUserRolesByUsername("testuser");
         verify(testCaseSetService, never()).uploadTestCaseSet(
             any(MultipartFile.class), 
             anyString(), 
@@ -187,6 +208,12 @@ public class FileUploadControllerTest {
             new byte[0]
         );
         mockRequest.addFile(emptyFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
         
         // Act
         ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
@@ -199,6 +226,7 @@ public class FileUploadControllerTest {
         assertFalse(response.getBody().isSuccess());
         assertEquals("未提供上传文件", response.getBody().getMessage());
         
+        verify(userRoleService).getUserRolesByUsername("testuser");
         verify(testCaseSetService, never()).uploadTestCaseSet(
             any(MultipartFile.class), 
             anyString(), 
@@ -212,7 +240,12 @@ public class FileUploadControllerTest {
     public void testUploadTestCaseSet_DefaultUsername() {
         // Arrange
         mockRequest.addFile(mockFile);
-        // 不设置X-Username header，应该使用默认值"admin"
+        mockRequest.addHeader("X-Username", "admin");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(userRoles);
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
@@ -225,15 +258,17 @@ public class FileUploadControllerTest {
         
         // Act
         ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
-            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", null);
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "admin");
         
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
         
+        verify(userRoleService).getUserRolesByUsername("admin");
         verify(testCaseSetService).uploadTestCaseSet(
             any(MultipartFile.class), 
+            anyString(), 
             anyString(), 
             anyString(), 
             anyBoolean(), 
@@ -242,10 +277,41 @@ public class FileUploadControllerTest {
     }
     
     @Test
+    public void testUploadTestCaseSet_InsufficientPermission_ReturnsForbidden() {
+        // Arrange
+        mockRequest.addFile(mockFile);
+        mockRequest.addHeader("X-Username", "viewer");
+        
+        // Mock权限验证 - 用户只有VIEWER角色，没有上传权限
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("VIEWER");
+        when(userRoleService.getUserRolesByUsername("viewer")).thenReturn(userRoles);
+        
+        // Act
+        ResponseEntity<TestCaseSetUploadResponse> response = fileUploadController.uploadTestCaseSet(
+            mockRequest, "Test description", "测试业务", "TEST_BUSINESS", "false", "viewer");
+        
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("权限不足，只有管理员和操作员可以上传用例集", response.getBody().getMessage());
+        
+        verify(userRoleService).getUserRolesByUsername("viewer");
+        verify(testCaseSetService, never()).uploadTestCaseSet(any(), any(), any(), any(), anyBoolean(), any());
+    }
+    
+    @Test
     public void testUploadTestCaseSet_ValidationException() {
         // Arrange
         mockRequest.addFile(mockFile);
         mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
@@ -273,6 +339,11 @@ public class FileUploadControllerTest {
         // Arrange
         mockRequest.addFile(mockFile);
         mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> userRoles = new ArrayList<>();
+        userRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(userRoles);
         
         when(testCaseSetService.uploadTestCaseSet(
             any(MultipartFile.class), 
