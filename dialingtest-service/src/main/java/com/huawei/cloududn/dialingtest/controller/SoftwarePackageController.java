@@ -76,10 +76,10 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
         try {
             SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(id);
             if (packageInfo == null) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("软件包不存在");
-                errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
+                errorResponse.setData(null);
                 
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
@@ -92,10 +92,10 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse();
+            SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
             errorResponse.setSuccess(false);
             errorResponse.setMessage("获取软件包详情失败: " + e.getMessage());
-            errorResponse.setErrorCode("GET_PACKAGE_ERROR");
+            errorResponse.setData(null);
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
@@ -110,10 +110,10 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             // 检查权限 - ADMIN和OPERATOR有更新权限
             List<String> userRoles = userRoleService.getUserRolesByUsername(operatorUsername);
             if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("权限不足，只有管理员和操作员可以更新软件包信息");
-                errorResponse.setErrorCode("INSUFFICIENT_PERMISSION");
+                errorResponse.setData(null);
                 
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
             }
@@ -121,20 +121,20 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             // 获取更新前的软件包信息
             SoftwarePackageInfo oldPackageInfo = softwarePackageService.getSoftwarePackageById(id);
             if (oldPackageInfo == null) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("软件包不存在");
-                errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
+                errorResponse.setData(null);
                 
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             SoftwarePackageInfo newPackageInfo = softwarePackageService.updateSoftwarePackage(id, body.getDescription());
             if (newPackageInfo == null) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("软件包不存在");
-                errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
+                errorResponse.setData(null);
                 
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
@@ -150,10 +150,10 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse();
+            SoftwarePackagePayload errorResponse = new SoftwarePackagePayload();
             errorResponse.setSuccess(false);
             errorResponse.setMessage("更新软件包失败: " + e.getMessage());
-            errorResponse.setErrorCode("UPDATE_PACKAGE_ERROR");
+            errorResponse.setData(null);
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
@@ -168,10 +168,9 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             // 检查权限 - ADMIN和OPERATOR有删除权限
             List<String> userRoles = userRoleService.getUserRolesByUsername(operatorUsername);
             if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SuccessResponse errorResponse = new SuccessResponse();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("权限不足，只有管理员和操作员可以删除软件包");
-                errorResponse.setErrorCode("INSUFFICIENT_PERMISSION");
                 
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
             }
@@ -179,30 +178,27 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             // 获取删除前的软件包信息
             SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(id);
             if (packageInfo == null) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SuccessResponse errorResponse = new SuccessResponse();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("软件包不存在");
-                errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
                 
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             // 检查是否被引用
             if (softwarePackageService.isReferencedByTestCaseSet(id)) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SuccessResponse errorResponse = new SuccessResponse();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("软件包被测试用例集引用，无法删除");
-                errorResponse.setErrorCode("PACKAGE_REFERENCED");
                 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
             
             boolean deleted = softwarePackageService.deleteSoftwarePackage(id);
             if (!deleted) {
-                ErrorResponse errorResponse = new ErrorResponse();
+                SuccessResponse errorResponse = new SuccessResponse();
                 errorResponse.setSuccess(false);
                 errorResponse.setMessage("删除软件包失败");
-                errorResponse.setErrorCode("DELETE_PACKAGE_ERROR");
                 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             }
@@ -217,10 +213,9 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse();
+            SuccessResponse errorResponse = new SuccessResponse();
             errorResponse.setSuccess(false);
             errorResponse.setMessage("删除软件包失败: " + e.getMessage());
-            errorResponse.setErrorCode("DELETE_PACKAGE_ERROR");
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
