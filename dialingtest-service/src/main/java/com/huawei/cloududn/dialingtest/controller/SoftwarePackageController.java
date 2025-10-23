@@ -81,7 +81,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("软件包不存在");
                 errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
                 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             SoftwarePackagePayload response = new SoftwarePackagePayload();
@@ -97,7 +97,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             errorResponse.setMessage("获取软件包详情失败: " + e.getMessage());
             errorResponse.setErrorCode("GET_PACKAGE_ERROR");
             
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -115,7 +115,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("权限不足，只有管理员和操作员可以更新软件包信息");
                 errorResponse.setErrorCode("INSUFFICIENT_PERMISSION");
                 
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
             }
             
             // 获取更新前的软件包信息
@@ -126,7 +126,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("软件包不存在");
                 errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
                 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             SoftwarePackageInfo newPackageInfo = softwarePackageService.updateSoftwarePackage(id, body.getDescription());
@@ -136,7 +136,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("软件包不存在");
                 errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
                 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             // 记录操作日志
@@ -155,7 +155,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             errorResponse.setMessage("更新软件包失败: " + e.getMessage());
             errorResponse.setErrorCode("UPDATE_PACKAGE_ERROR");
             
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -173,7 +173,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("权限不足，只有管理员和操作员可以删除软件包");
                 errorResponse.setErrorCode("INSUFFICIENT_PERMISSION");
                 
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
             }
             
             // 获取删除前的软件包信息
@@ -184,7 +184,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("软件包不存在");
                 errorResponse.setErrorCode("PACKAGE_NOT_FOUND");
                 
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
             
             // 检查是否被引用
@@ -194,7 +194,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("软件包被测试用例集引用，无法删除");
                 errorResponse.setErrorCode("PACKAGE_REFERENCED");
                 
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
             
             boolean deleted = softwarePackageService.deleteSoftwarePackage(id);
@@ -204,7 +204,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 errorResponse.setMessage("删除软件包失败");
                 errorResponse.setErrorCode("DELETE_PACKAGE_ERROR");
                 
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             }
             
             // 记录操作日志
@@ -222,7 +222,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             errorResponse.setMessage("删除软件包失败: " + e.getMessage());
             errorResponse.setErrorCode("DELETE_PACKAGE_ERROR");
             
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -270,6 +270,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                     .body(resource);
                     
         } catch (Exception e) {
+            logger.error("Software package download failed for user: {}", xUsername, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
