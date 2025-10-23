@@ -10,6 +10,7 @@ import com.huawei.cloududn.dialingtest.model.TestCaseSetUploadResponse;
 import com.huawei.cloududn.dialingtest.service.SoftwarePackagesService;
 import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
+import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 
 import org.junit.Before;
@@ -50,6 +51,9 @@ public class FileUploadControllerTest {
     
     @Mock
     private UserRoleService userRoleService;
+    
+    @Mock
+    private PreprocessRuleService preprocessRuleService;
     
     @Mock
     private OperationLogUtil operationLogUtil;
@@ -553,6 +557,529 @@ public class FileUploadControllerTest {
         
         verify(userRoleService).getUserRolesByUsername("testuser");
         verify(softwarePackagesService).uploadSinglePackage(any(MultipartFile.class), anyString(), anyBoolean(), anyString());
+    }
+    
+    // ==================== 预处理规则包上传测试用例 ====================
+    
+    /**
+     * 测试上传预处理规则包 - 成功场景
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_Success_ShouldReturnOk() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Mock服务层返回成功结果
+        String expectedResult = "预处理规则包上传成功";
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenReturn(expectedResult);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为200", HttpStatus.OK, response.getStatusCode());
+        assertEquals("响应内容应匹配", expectedResult, response.getBody());
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            eq("测试业务"), 
+            eq("TEST_BUSINESS"), 
+            eq("测试描述"), 
+            eq("testuser"), 
+            eq(false)
+        );
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 带覆盖标志
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_WithForceOverwrite_ShouldReturnOk() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v2.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有OPERATOR角色
+        List<String> operatorRoles = new ArrayList<>();
+        operatorRoles.add("OPERATOR");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(operatorRoles);
+        
+        // Mock服务层返回成功结果
+        String expectedResult = "预处理规则包上传成功（覆盖）";
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenReturn(expectedResult);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "true", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为200", HttpStatus.OK, response.getStatusCode());
+        assertEquals("响应内容应匹配", expectedResult, response.getBody());
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            eq("测试业务"), 
+            eq("TEST_BUSINESS"), 
+            eq("测试描述"), 
+            eq("testuser"), 
+            eq(true)
+        );
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 权限不足
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_InsufficientPermission_ShouldReturnForbidden() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户只有VIEWER角色
+        List<String> viewerRoles = new ArrayList<>();
+        viewerRoles.add("VIEWER");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(viewerRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为403", HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertTrue("响应内容应包含权限不足信息", 
+            response.getBody().contains("权限不足") || response.getBody().contains("权限"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 无角色用户
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_NoRoles_ShouldReturnForbidden() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户无任何角色
+        List<String> emptyRoles = new ArrayList<>();
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(emptyRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为403", HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertTrue("响应内容应包含权限不足信息", 
+            response.getBody().contains("权限不足") || response.getBody().contains("权限"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 无上传文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_NoFile_ShouldReturnBadRequest() {
+        // Arrange
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含文件未找到信息", 
+            response.getBody().contains("未找到上传文件") || response.getBody().contains("文件"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 非ZIP格式文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_NonZipFile_ShouldReturnBadRequest() {
+        // Arrange
+        MockMultipartFile txtFile = new MockMultipartFile(
+            "file", "preprocess-rule.txt", "text/plain", "test content".getBytes());
+        
+        mockRequest.addFile(txtFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含格式错误信息", 
+            response.getBody().contains("ZIP格式") || response.getBody().contains("格式"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 业务类型中文为空
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_EmptyBusinessZh_ShouldReturnBadRequest() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含业务类型中文名称不能为空信息", 
+            response.getBody().contains("业务类型中文名称不能为空"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 业务类型英文为空
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_EmptyBusinessEn_ShouldReturnBadRequest() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含业务类型英文名称不能为空信息", 
+            response.getBody().contains("业务类型英文名称不能为空"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 业务类型中文为null
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_NullBusinessZh_ShouldReturnBadRequest() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, null, "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含业务类型中文名称不能为空信息", 
+            response.getBody().contains("业务类型中文名称不能为空"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 业务类型英文为null
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_NullBusinessEn_ShouldReturnBadRequest() {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", null, "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含业务类型英文名称不能为空信息", 
+            response.getBody().contains("业务类型英文名称不能为空"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService, never()).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 服务层IllegalArgumentException异常
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_IllegalArgumentException_ShouldReturnBadRequest() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Mock服务层抛出IllegalArgumentException
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenThrow(new IllegalArgumentException("Invalid file format"));
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为400", HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue("响应内容应包含上传失败信息", 
+            response.getBody().contains("上传失败") || response.getBody().contains("Invalid file format"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 服务层IOException异常
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_IOException_ShouldReturnInternalServerError() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Mock服务层抛出IOException
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenThrow(new IOException("File processing error"));
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue("响应内容应包含上传失败信息", 
+            response.getBody().contains("上传失败") || response.getBody().contains("File processing error"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 服务层RuntimeException异常
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_RuntimeException_ShouldReturnInternalServerError() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Mock服务层抛出RuntimeException
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenThrow(new RuntimeException("Service error"));
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为500", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue("响应内容应包含上传失败信息", 
+            response.getBody().contains("上传失败") || response.getBody().contains("Service error"));
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), anyString(), anyString(), anyString(), anyString(), anyBoolean());
+    }
+    
+    /**
+     * 测试上传预处理规则包 - 文件名包含大写ZIP扩展名
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_UppercaseZipExtension_ShouldReturnOk() throws IOException {
+        // Arrange
+        MockMultipartFile zipFile = new MockMultipartFile(
+            "file", "preprocess-rule-v1.0.ZIP", "application/zip", "test zip content".getBytes());
+        
+        mockRequest.addFile(zipFile);
+        mockRequest.addHeader("X-Username", "testuser");
+        
+        // Mock权限验证 - 用户有ADMIN角色
+        List<String> adminRoles = new ArrayList<>();
+        adminRoles.add("ADMIN");
+        when(userRoleService.getUserRolesByUsername("testuser")).thenReturn(adminRoles);
+        
+        // Mock服务层返回成功结果
+        String expectedResult = "预处理规则包上传成功";
+        when(preprocessRuleService.uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyString(), 
+            anyBoolean()
+        )).thenReturn(expectedResult);
+        
+        // Act
+        ResponseEntity<String> response = fileUploadController.uploadPreprocessRulePackage(
+            mockRequest, "测试业务", "TEST_BUSINESS", "测试描述", "false", "testuser");
+        
+        // Assert
+        assertNotNull("响应不应为空", response);
+        assertEquals("HTTP状态码应为200", HttpStatus.OK, response.getStatusCode());
+        assertEquals("响应内容应匹配", expectedResult, response.getBody());
+        
+        verify(userRoleService).getUserRolesByUsername("testuser");
+        verify(preprocessRuleService).uploadPreprocessRulePackage(
+            any(MultipartFile.class), 
+            eq("测试业务"), 
+            eq("TEST_BUSINESS"), 
+            eq("测试描述"), 
+            eq("testuser"), 
+            eq(false)
+        );
     }
     
     /**
