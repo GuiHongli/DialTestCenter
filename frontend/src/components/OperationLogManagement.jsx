@@ -16,7 +16,6 @@ import {
   Modal,
   Descriptions,
   Collapse,
-  Badge,
 } from 'antd'
 import {
   ReloadOutlined,
@@ -26,9 +25,8 @@ import {
   ClearOutlined,
   UserOutlined,
   SettingOutlined,
-  InfoCircleOutlined,
 } from '@ant-design/icons'
-import { OperationLogService, OperationLogUtils } from '../services/operationLogService.js'
+import { OperationLogService } from '../services/operationLogService.js'
 import moment from 'moment'
 import { useTranslation } from '../hooks/useTranslation.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
@@ -70,8 +68,8 @@ const OperationLogManagement = () => {
         page,
         pageSize,
         ...filters,
-        startTime: filters.dateRange?.[0]?.format('YYYY-MM-DD HH:mm:ss'),
-        endTime: filters.dateRange?.[1]?.format('YYYY-MM-DD HH:mm:ss'),
+        startTime: filters.dateRange && filters.dateRange[0] ? filters.dateRange[0].format('YYYY-MM-DD HH:mm:ss') : null,
+        endTime: filters.dateRange && filters.dateRange[1] ? filters.dateRange[1].format('YYYY-MM-DD HH:mm:ss') : null,
       }
       
       const response = await OperationLogService.getOperationLogs(params)

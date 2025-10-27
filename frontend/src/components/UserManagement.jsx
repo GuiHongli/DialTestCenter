@@ -4,25 +4,22 @@ import {
   Col,
   Input,
   message,
-  Modal,
   Row,
   Space,
   Table,
   Typography,
 } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation.js';
-import { usePermission, PagePermission } from '../hooks/usePermission.js';
+import { PagePermission } from '../hooks/usePermission.js';
 import { createUser, deleteUser, getUsers, updateUser } from '../services/userService.js';
-import { UserRoleService } from '../services/userRoleService.js';
 import UserForm from './UserForm';
 
 const { Title, Text } = Typography;
 
 const UserManagement = () => {
   const { translateUser, translateCommon } = useTranslation();
-  const { hasPagePermission } = usePermission();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formVisible, setFormVisible] = useState(false);

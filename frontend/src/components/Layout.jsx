@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false)
   const history = useHistory()
   const location = useLocation()
-  const { translateNavigation, translateApp, translateFooter, translate } = useTranslation()
+  const { translateNavigation, translateFooter, translate } = useTranslation()
   const translateHeader = (key) => translate('header', key)
   const { currentLanguage, setLanguage } = useLanguage()
   const currentYear = new Date().getFullYear()
@@ -153,7 +153,7 @@ const Layout = ({ children }) => {
         <Header style={{ padding: 0, background: '#001529', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: '18px', fontWeight: 'bold', marginLeft: '16px', color: 'white' }}>
-             拨测控制中心-使用js实现
+             
             </span>
           </div>
         <div style={{ marginRight: '24px', display: 'flex', alignItems: 'center' }}>

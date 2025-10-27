@@ -47,7 +47,6 @@ const TestCaseSetManagement = () => {
   const { hasPagePermission } = usePermission()
 
   // 检查各种操作权限
-  const canUpload = hasPagePermission('test-case-set', 'upload')
   const canEdit = hasPagePermission('test-case-set', 'edit')
   const canDelete = hasPagePermission('test-case-set', 'delete')
   const canDownload = hasPagePermission('test-case-set', 'download')

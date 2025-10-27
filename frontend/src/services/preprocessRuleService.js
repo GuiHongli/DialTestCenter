@@ -2,7 +2,7 @@
  * 预处理规则管理服务
  */
 
-import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handlePagedApiResponse } from '../utils/apiUtils.js';
+import { createApiRequestConfig, createFileUploadConfig, handleApiResponse, handleApiResponseWithError, handlePagedApiResponse } from '../utils/apiUtils.js';
 
 const API_BASE_URL = '/dialingtest/api';
 
@@ -60,7 +60,7 @@ export const preprocessRuleService = {
     const response = await fetch(`${API_BASE_URL}/preprocess-rule-packages/${packageId}`, 
       createApiRequestConfig('DELETE', undefined, true));
     
-    return handleApiResponseWithError(response);
+    return handleApiResponse(response);
   },
 
   /**

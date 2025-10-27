@@ -1,4 +1,4 @@
-import { createApiRequestConfig, handleApiResponse, handlePagedApiResponse } from '../utils/apiUtils.js';
+import { createApiRequestConfig } from '../utils/apiUtils.js';
 
 const API_BASE_URL = '/dialingtest/api';
 

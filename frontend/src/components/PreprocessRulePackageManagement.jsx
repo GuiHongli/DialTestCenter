@@ -25,7 +25,6 @@ import {
   UploadOutlined,
   DownloadOutlined,
   DeleteOutlined,
-  SearchOutlined,
   ReloadOutlined,
   FileTextOutlined,
   InboxOutlined
@@ -33,9 +32,6 @@ import {
 import { preprocessRuleService } from '../services/preprocessRuleService.js';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useTranslation } from '../hooks/useTranslation.js';
-
-const { Search } = Input;
-const { Option } = Select;
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;

@@ -2,8 +2,8 @@
  * 预处理规则管理组件
  */
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, message } from 'antd';
+import React, { useState } from 'react';
+import { Tabs } from 'antd';
 import { useTranslation } from '../hooks/useTranslation.js';
 import PreprocessRulePackageManagement from './PreprocessRulePackageManagement';
 import PreprocessRuleListManagement from './PreprocessRuleListManagement';

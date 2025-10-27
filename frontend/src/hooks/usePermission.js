@@ -146,17 +146,17 @@ export const PermissionProvider = ({ children }) => {
 
   // 检查是否有指定角色
   const hasRole = useCallback((role) => {
-    return userPermission?.roles.includes(role) || false;
+    return (userPermission && userPermission.roles && userPermission.roles.includes(role)) || false;
   }, [userPermission]);
 
   // 检查是否有任意一个指定角色
   const hasAnyRole = useCallback((roles) => {
-    return roles.some(role => userPermission?.roles.includes(role)) || false;
+    return roles.some(role => (userPermission && userPermission.roles && userPermission.roles.includes(role))) || false;
   }, [userPermission]);
 
   // 检查是否有所有指定角色
   const hasAllRoles = useCallback((roles) => {
-    return roles.every(role => userPermission?.roles.includes(role)) || false;
+    return roles.every(role => (userPermission && userPermission.roles && userPermission.roles.includes(role))) || false;
   }, [userPermission]);
 
   // 检查页面权限
@@ -221,8 +221,8 @@ export const PermissionProvider = ({ children }) => {
     hasAllRoles,
     hasPagePermission,
     refreshPermission,
-    username: userPermission?.username || '',
-    roles: userPermission?.roles || [],
+    username: (userPermission && userPermission.username) || '',
+    roles: (userPermission && userPermission.roles) || [],
   };
 
   return React.createElement(PermissionContext.Provider, { value: contextValue }, children);

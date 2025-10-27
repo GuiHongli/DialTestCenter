@@ -2,7 +2,7 @@
  * 用户服务类，提供用户相关的API调用
  */
 
-import { handleApiResponse, handlePagedApiResponse, createApiRequestConfig } from '../utils/apiUtils.js';
+import { handleApiResponse, createApiRequestConfig } from '../utils/apiUtils.js';
 
 const API_BASE_URL = '/dialingtest/api/dialusers';
 

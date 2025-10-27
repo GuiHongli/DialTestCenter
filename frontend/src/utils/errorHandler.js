@@ -55,7 +55,7 @@ export const initErrorHandler = () => {
 
   // 处理未捕获的 Promise 拒绝
   window.addEventListener('unhandledrejection', (e) => {
-    const msg = e.reason?.message || '';
+    const msg = (e.reason && e.reason.message) || '';
     if (isResizeObserverError(msg)) {
       e.preventDefault();
       return false;

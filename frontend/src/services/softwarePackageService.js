@@ -29,11 +29,11 @@ export const getSoftwarePackages = async (params = {}) => {
   
   // 转换API响应格式
   return {
-    data: result.data?.data || [],
-    total: result.data?.totalElements || 0,
-    page: result.data?.page || 1,
-    pageSize: result.data?.pageSize || 10,
-    totalPages: Math.ceil((result.data?.totalElements || 0) / (result.data?.pageSize || 10))
+    data: (result.data && result.data.data) || [],
+    total: (result.data && result.data.totalElements) || 0,
+    page: (result.data && result.data.page) || 1,
+    pageSize: (result.data && result.data.pageSize) || 10,
+    totalPages: Math.ceil(((result.data && result.data.totalElements) || 0) / ((result.data && result.data.pageSize) || 10))
   };
 };
 
@@ -122,10 +122,12 @@ export const uploadZipPackage = async (file, overwrite = false, description) => 
   }
 
   // 处理ZIP包上传的响应格式
+  const message = result.message || '';
+  const matchResult = message.match(/\d+/);
   return {
     success: result.success,
-    message: result.message,
-    count: result.message?.includes('个软件包') ? parseInt(result.message.match(/\d+/)?.[0] || '0') : 0
+    message: message,
+    count: message.includes('个软件包') ? parseInt((matchResult && matchResult[0]) || '0') : 0
   };
 };
 

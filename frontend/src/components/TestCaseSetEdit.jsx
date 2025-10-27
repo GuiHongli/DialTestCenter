@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, Select, message } from 'antd'
+import { Form, Input, Modal, Select, message } from 'antd'
 import React, { useEffect } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
@@ -77,7 +77,7 @@ const TestCaseSetEdit = ({
           label={translateTestCaseSet('table.name')}
         >
           <Input
-            value={testCaseSet?.name}
+            value={testCaseSet && testCaseSet.name}
             disabled
             placeholder={translateTestCaseSet('table.name')}
           />
@@ -87,7 +87,7 @@ const TestCaseSetEdit = ({
           label={translateTestCaseSet('table.version')}
         >
           <Input
-            value={testCaseSet?.version}
+            value={testCaseSet && testCaseSet.version}
             disabled
             placeholder={translateTestCaseSet('table.version')}
           />

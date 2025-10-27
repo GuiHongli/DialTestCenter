@@ -316,10 +316,6 @@ const SoftwarePackageManagement = () => {
     }
   };
 
-  // 格式化日期时间
-  const formatDateTime = (dateTime) => {
-    return new Date(dateTime).toLocaleString('zh-CN');
-  };
 
   // 表格列定义
   const columns = [

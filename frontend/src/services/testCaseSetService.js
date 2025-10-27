@@ -131,7 +131,6 @@ class TestCaseSetService {
    * 解析文件名获取用例集名称和版本
    */
   parseFileName(fileName) {
-    const lowerFileName = fileName.toLowerCase()
     const fileExtension = '.zip'
     const nameWithoutExt = fileName.replace(fileExtension, '')
     const lastUnderscoreIndex = nameWithoutExt.lastIndexOf('_')

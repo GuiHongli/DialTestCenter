@@ -17,12 +17,10 @@ import {
   Col,
   Typography
 } from 'antd';
-import { SearchOutlined, ReloadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { ReloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import { preprocessRuleService } from '../services/preprocessRuleService.js';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useTranslation } from '../hooks/useTranslation.js';
-
-const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
 

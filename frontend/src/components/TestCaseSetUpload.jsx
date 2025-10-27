@@ -22,7 +22,7 @@ const TestCaseSetUpload = ({
   const handleUpload = async () => {
     try {
       // 验证表单
-      const values = await form.validateFields()
+      await form.validateFields()
       
       if (fileList.length === 0) {
         message.error(translateTestCaseSet('upload.selectFile'))
