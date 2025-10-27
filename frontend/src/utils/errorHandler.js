@@ -51,6 +51,7 @@ export const initErrorHandler = () => {
       e.preventDefault();
       return false;
     }
+    return undefined;
   });
 
   // 处理未捕获的 Promise 拒绝
@@ -60,5 +61,6 @@ export const initErrorHandler = () => {
       e.preventDefault();
       return false;
     }
+    return undefined;
   });
 };

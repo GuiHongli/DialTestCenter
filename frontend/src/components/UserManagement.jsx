@@ -117,8 +117,8 @@ const UserManagement = () => {
   };
 
   // 处理分页变化
-  const handleTableChange = (pagination) => {
-    loadUsers(pagination.current - 1, pagination.pageSize, searchText);
+  const handleTableChange = (newPagination) => {
+    loadUsers(newPagination.current - 1, newPagination.pageSize, searchText);
   };
 
   // 表格列配置
@@ -288,5 +288,7 @@ const UserManagement = () => {
     </div>
   );
 };
+
+UserManagement.displayName = 'UserManagement'
 
 export default UserManagement;

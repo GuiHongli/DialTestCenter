@@ -72,3 +72,5 @@ export const UserRoleForm = ({
     </Form>
   );
 };
+
+UserRoleForm.displayName = 'UserRoleForm'

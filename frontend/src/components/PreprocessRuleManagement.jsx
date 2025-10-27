@@ -38,4 +38,6 @@ const PreprocessRuleManagement = () => {
   );
 };
 
+PreprocessRuleManagement.displayName = 'PreprocessRuleManagement'
+
 export default PreprocessRuleManagement;

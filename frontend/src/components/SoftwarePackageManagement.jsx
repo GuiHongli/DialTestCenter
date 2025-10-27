@@ -645,4 +645,6 @@ const SoftwarePackageManagement = () => {
   );
 };
 
+SoftwarePackageManagement.displayName = 'SoftwarePackageManagement'
+
 export default SoftwarePackageManagement;

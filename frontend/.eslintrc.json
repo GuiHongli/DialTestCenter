@@ -22,7 +22,10 @@
     "react/prop-types": "off",
     "no-unused-vars": "warn",
     "no-console": "off",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "no-shadow": ["error", { "builtinGlobals": false }],
+    "react/display-name": "warn",
+    "consistent-return": "error"
   },
   "settings": {
     "react": {

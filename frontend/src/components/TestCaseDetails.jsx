@@ -83,8 +83,8 @@ const TestCaseDetails = ({
   }, [visible, testCaseSet])
 
   // 处理分页变化
-  const handleTableChange = (pagination) => {
-    loadTestCases(pagination.current, pagination.pageSize)
+  const handleTableChange = (newPagination) => {
+    loadTestCases(newPagination.current, newPagination.pageSize)
   }
 
   // 统计信息
@@ -356,5 +356,7 @@ const TestCaseDetails = ({
     </Modal>
   )
 }
+
+TestCaseDetails.displayName = 'TestCaseDetails'
 
 export default TestCaseDetails

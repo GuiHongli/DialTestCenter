@@ -225,4 +225,6 @@ const TestCaseSetUpload = ({
   )
 }
 
+TestCaseSetUpload.displayName = 'TestCaseSetUpload'
+
 export default TestCaseSetUpload

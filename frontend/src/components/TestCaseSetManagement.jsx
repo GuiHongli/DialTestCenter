@@ -97,8 +97,8 @@ const TestCaseSetManagement = () => {
   }, [])
 
   // 处理分页变化
-  const handleTableChange = (pagination) => {
-    loadTestCaseSets(pagination.current, pagination.pageSize)
+  const handleTableChange = (newPagination) => {
+    loadTestCaseSets(newPagination.current, newPagination.pageSize)
   }
 
   // 下载用例集
@@ -382,5 +382,7 @@ const TestCaseSetManagement = () => {
     </div>
   )
 }
+
+TestCaseSetManagement.displayName = 'TestCaseSetManagement'
 
 export default TestCaseSetManagement

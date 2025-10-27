@@ -155,8 +155,8 @@ export const UserRoleManagement = () => {
   };
 
   // 处理分页变化
-  const handleTableChange = (pagination) => {
-    loadUserRoles(pagination.current - 1, pagination.pageSize, searchText); // 转换为0开始的页码
+  const handleTableChange = (newPagination) => {
+    loadUserRoles(newPagination.current - 1, newPagination.pageSize, searchText); // 转换为0开始的页码
   };
 
   // 获取角色标签颜色
@@ -432,3 +432,5 @@ export const UserRoleManagement = () => {
     </div>
   );
 };
+
+UserRoleManagement.displayName = 'UserRoleManagement'

@@ -123,4 +123,6 @@ const TestCaseSetEdit = ({
   )
 }
 
+TestCaseSetEdit.displayName = 'TestCaseSetEdit'
+
 export default TestCaseSetEdit

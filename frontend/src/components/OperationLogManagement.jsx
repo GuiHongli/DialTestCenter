@@ -135,8 +135,8 @@ const OperationLogManagement = () => {
   }
 
   // 处理分页变化
-  const handleTableChange = (pagination) => {
-    loadLogs(pagination.current - 1, pagination.pageSize) // 转换为后端页码（从0开始）
+  const handleTableChange = (newPagination) => {
+    loadLogs(newPagination.current - 1, newPagination.pageSize) // 转换为后端页码（从0开始）
   }
 
   // 获取操作类型标签颜色
@@ -465,5 +465,7 @@ const OperationLogManagement = () => {
     </div>
   )
 }
+
+OperationLogManagement.displayName = 'OperationLogManagement'
 
 export default OperationLogManagement

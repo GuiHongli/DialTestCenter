@@ -130,4 +130,6 @@ const AuthTestComponent = () => {
   );
 };
 
+AuthTestComponent.displayName = 'AuthTestComponent'
+
 export default AuthTestComponent;

@@ -513,4 +513,6 @@ const PreprocessRulePackageManagement = () => {
   );
 };
 
+PreprocessRulePackageManagement.displayName = 'PreprocessRulePackageManagement'
+
 export default PreprocessRulePackageManagement;

@@ -473,4 +473,6 @@ const PreprocessRuleListManagement = ({ refreshTrigger }) => {
   );
 };
 
+PreprocessRuleListManagement.displayName = 'PreprocessRuleListManagement'
+
 export default PreprocessRuleListManagement;

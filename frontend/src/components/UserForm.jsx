@@ -103,4 +103,6 @@ const UserForm = ({
   );
 };
 
+UserForm.displayName = 'UserForm'
+
 export default UserForm;
