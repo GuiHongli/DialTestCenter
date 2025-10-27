@@ -75,7 +75,11 @@ public class OperationDataBuilder {
             for (Field field : fields) {
                 field.setAccessible(true);
                 Object value = field.get(entity);
-                if (value != null) {
+                
+                // 对于 DialUser 对象，隐藏 password 字段
+                if (clazz.getName().equals("com.huawei.cloududn.dialingtest.model.DialUser") && "password".equals(field.getName())) {
+                    this.data.put(field.getName(), "*******");
+                } else if (value != null) {
                     this.data.put(field.getName(), value);
                 }
             }
@@ -96,10 +100,51 @@ public class OperationDataBuilder {
 
     // 通用更新操作构建方法 - 支持更新操作
     public OperationDataBuilder buildUpdateOperation(Object oldValues, Object newValues, String operationType, String operationTarget) {
+        Map<String, Object> oldData = maskSensitiveFields(oldValues);
+        Map<String, Object> newData = maskSensitiveFields(newValues);
+        
         return add("operationType", operationType)
                .add("operationTarget", operationTarget)
-               .add("oldValues", oldValues)
-               .add("newValues", newValues);
+               .add("oldValues", oldData)
+               .add("newValues", newData);
+    }
+    
+    /**
+     * 屏蔽敏感字段（如 password）
+     * 用于在记录用户更新操作时隐藏敏感信息
+     * 对于 DialUser 对象的 password 字段，返回 "*******" 替代实际值
+     *
+     * @param entity 实体对象
+     * @return 包含屏蔽后字段的Map
+     */
+    private Map<String, Object> maskSensitiveFields(Object entity) {
+        Map<String, Object> data = new HashMap<>();
+        
+        if (entity == null) {
+            return data;
+        }
+        
+        try {
+            Class<?> clazz = entity.getClass();
+            Field[] fields = clazz.getDeclaredFields();
+            
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object value = field.get(entity);
+                
+                // 对于 DialUser 对象，隐藏 password 字段
+                if (clazz.getName().equals("com.huawei.cloududn.dialingtest.model.DialUser") && "password".equals(field.getName())) {
+                    data.put(field.getName(), "*******");
+                } else if (value != null) {
+                    data.put(field.getName(), value);
+                }
+            }
+        } catch (Exception e) {
+            // 如果反射失败，至少添加对象的字符串表示
+            data.put("entity", entity.toString());
+        }
+        
+        return data;
     }
 
     // 通用批量操作构建方法 - 支持批量操作
