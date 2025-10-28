@@ -18,6 +18,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Arrays;
 import java.util.List;
@@ -531,6 +532,9 @@ public class SoftwarePackageControllerTest {
             assertEquals(200, resp.getStatusCodeValue());
             Resource body = resp.getBody();
             assertNotNull(body);
+            HttpHeaders headers = resp.getHeaders();
+            assertTrue(headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).contains("TestApp_1.0.0.apk"));
+            assertEquals("application/octet-stream", headers.getFirst(HttpHeaders.CONTENT_TYPE));
         }
 
         /**
@@ -553,6 +557,50 @@ public class SoftwarePackageControllerTest {
             request.setPackageIds(Collections.singletonList(1L));
             ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
             assertEquals(403, resp.getStatusCodeValue());
+        }
+
+        /**
+         * packageIds 为空
+         */
+        @Test
+        public void testDownloadSoftwarePackages_EmptyIds_BadRequest() {
+            String xUsername = "admin";
+            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            request.setPackageIds(Collections.emptyList());
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            assertEquals(400, resp.getStatusCodeValue());
+        }
+
+        /**
+         * 软件包不存在
+         */
+        @Test
+        public void testDownloadSoftwarePackages_PackageNotFound_NotFound() {
+            String xUsername = "admin";
+            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            request.setPackageIds(Collections.singletonList(99L));
+            when(softwarePackagesService.getSoftwarePackageById(99L)).thenReturn(null);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            assertEquals(404, resp.getStatusCodeValue());
+        }
+
+        /**
+         * 文件内容为空
+         */
+        @Test
+        public void testDownloadSoftwarePackages_FileContentNull_NotFound() {
+            String xUsername = "admin";
+            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            request.setPackageIds(Collections.singletonList(1L));
+
+            SoftwarePackageInfo info = new SoftwarePackageInfo();
+            info.setId(1L);
+            info.setSoftwareName("TestApp_1.0.0.apk");
+            when(softwarePackagesService.getSoftwarePackageById(1L)).thenReturn(info);
+            when(softwarePackagesService.getSoftwarePackageFileContent(1L)).thenReturn(null);
+
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            assertEquals(404, resp.getStatusCodeValue());
         }
     }
 }

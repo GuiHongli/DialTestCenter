@@ -494,3 +494,114 @@ public class SoftwarePackagesServiceTest {
         assertNull(result);
     }
 }
+
+/**
+ * SoftwarePackagesService LLT
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class SoftwarePackagesServiceTest {
+
+    @Mock
+    private SoftwarePackageDao softwarePackageDao;
+
+    @InjectMocks
+    private SoftwarePackagesService softwarePackagesService;
+
+    @Before
+    public void setUp() {
+    }
+
+    @Test
+    public void testGetSoftwarePackageList_Success() {
+        SoftwarePackageInfo info = new SoftwarePackageInfo();
+        info.setId(1L);
+        info.setSoftwareName("A.apk");
+        when(softwarePackageDao.getSoftwarePackageList("a", 0, 10)).thenReturn(Collections.singletonList(info));
+        when(softwarePackageDao.countSoftwarePackageCount("a")).thenReturn(1);
+
+        SoftwarePackageListResponseData data = softwarePackagesService.getSoftwarePackageList(1,10,"a");
+        assertNotNull(data);
+        assertEquals(1, data.getTotal().intValue());
+        assertEquals(1, data.getPage().intValue());
+        assertEquals(10, data.getPageSize().intValue());
+        List<SoftwarePackageInfo> list = data.getData();
+        assertEquals(1, list.size());
+        assertEquals("A.apk", list.get(0).getSoftwareName());
+    }
+
+    @Test
+    public void testGetSoftwarePackageById_Success() {
+        SoftwarePackageInfo info = new SoftwarePackageInfo();
+        info.setId(2L);
+        info.setSoftwareName("B.apk");
+        when(softwarePackageDao.getSoftwarePackageById(2L)).thenReturn(info);
+        SoftwarePackageInfo result = softwarePackagesService.getSoftwarePackageById(2L);
+        assertNotNull(result);
+        assertEquals("B.apk", result.getSoftwareName());
+    }
+
+    @Test
+    public void testUpdateSoftwarePackage_Success() {
+        when(softwarePackageDao.getSoftwarePackageById(3L)).thenReturn(new SoftwarePackageInfo());
+        SoftwarePackageInfo updated = new SoftwarePackageInfo();
+        updated.setId(3L);
+        updated.setSoftwareName("C.apk");
+        when(softwarePackageDao.getSoftwarePackageById(3L)).thenReturn(updated);
+        SoftwarePackageInfo result = softwarePackagesService.updateSoftwarePackage(3L, "desc");
+        assertNotNull(result);
+        assertEquals("C.apk", result.getSoftwareName());
+    }
+
+    @Test
+    public void testDeleteSoftwarePackage_Success() {
+        SoftwarePackageInfo info = new SoftwarePackageInfo();
+        info.setId(4L);
+        when(softwarePackageDao.getSoftwarePackageById(4L)).thenReturn(info);
+        when(softwarePackageDao.deleteSoftwarePackage(4L)).thenReturn(1);
+        boolean ok = softwarePackagesService.deleteSoftwarePackage(4L);
+        assertTrue(ok);
+    }
+
+    @Test
+    public void testDeleteSoftwarePackage_NotFound() {
+        when(softwarePackageDao.getSoftwarePackageById(5L)).thenReturn(null);
+        boolean ok = softwarePackagesService.deleteSoftwarePackage(5L);
+        assertFalse(ok);
+    }
+
+    @Test
+    public void testIsReferencedByTestCaseSet_Success() {
+        SoftwarePackageInfo info = new SoftwarePackageInfo();
+        info.setId(6L);
+        info.setSoftwareName("D.apk");
+        when(softwarePackageDao.getSoftwarePackageById(6L)).thenReturn(info);
+        when(softwarePackageDao.isSoftwarePackageReferenced("D.apk")).thenReturn(2);
+        assertTrue(softwarePackagesService.isReferencedByTestCaseSet(6L));
+    }
+
+    @Test
+    public void testIsReferencedByTestCaseSet_NotReferenced() {
+        SoftwarePackageInfo info = new SoftwarePackageInfo();
+        info.setId(7L);
+        info.setSoftwareName("E.apk");
+        when(softwarePackageDao.getSoftwarePackageById(7L)).thenReturn(info);
+        when(softwarePackageDao.isSoftwarePackageReferenced("E.apk")).thenReturn(0);
+        assertFalse(softwarePackagesService.isReferencedByTestCaseSet(7L));
+    }
+
+    @Test
+    public void testGetSoftwarePackageFileContent_Success() {
+        byte[] bytes = new byte[]{1,2,3};
+        when(softwarePackageDao.getSoftwarePackageFileContent(1L)).thenReturn(bytes);
+        byte[] result = softwarePackagesService.getSoftwarePackageFileContent(1L);
+        assertNotNull(result);
+        assertEquals(3, result.length);
+    }
+
+    @Test
+    public void testGetSoftwarePackageFileContent_NotFound() {
+        when(softwarePackageDao.getSoftwarePackageFileContent(2L)).thenReturn(null);
+        byte[] result = softwarePackagesService.getSoftwarePackageFileContent(2L);
+        assertNull(result);
+    }
+}
