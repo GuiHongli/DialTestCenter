@@ -49,24 +49,81 @@ export async function handlePagedApiResponse(response) {
   return result.data;
 }
 
+// 缓存用户名
+let cachedUsername = null;
+let usernamePromise = null;
+
 /**
- * 从cookie中获取xUsername
- * @returns xUsername值，如果不存在则返回默认值
+ * 从API获取当前用户名
+ * @returns 用户名
  */
-export function getXUsernameFromCookie() {
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'xUsername') {
-      return decodeURIComponent(value);
-    }
+export async function getXUsername() {
+  // 如果已缓存，直接返回
+  if (cachedUsername) {
+    return cachedUsername;
   }
-  // 如果cookie中不存在，返回默认值
-  return 'admin';
+  
+  // 如果正在请求，返回同一个 promise
+  if (usernamePromise) {
+    return usernamePromise;
+  }
+  
+  // 发起新请求
+  usernamePromise = fetch('/dialingtest/api/userName', {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      // 直接返回 userName 字段
+      if (result && result.userName) {
+        cachedUsername = result.userName;
+        return cachedUsername;
+      } else {
+        // 如果获取失败，返回 null
+        cachedUsername = null;
+        return cachedUsername;
+      }
+    })
+    .catch(error => {
+      console.error('Failed to get username from API:', error);
+      // 失败时返回 null
+      cachedUsername = null;
+      return cachedUsername;
+    })
+    .finally(() => {
+      // 请求完成后清除 promise
+      usernamePromise = null;
+    });
+  
+  return usernamePromise;
 }
 
 /**
- * 创建API请求的通用配置
+ * 初始化用户名（应用启动时调用）
+ */
+export async function initUsername() {
+  if (!cachedUsername) {
+    await getXUsername();
+  }
+}
+
+/**
+ * 清除缓存用户名（用于重新获取）
+ */
+export function clearUsernameCache() {
+  cachedUsername = null;
+  usernamePromise = null;
+}
+
+/**
+ * 创建API请求的通用配置（使用缓存的用户名）
  * @param method HTTP方法
  * @param body 请求体（可选）
  * @param includeXUsername 是否包含X-Username头（默认为true）
@@ -77,9 +134,9 @@ export function createApiRequestConfig(method = 'GET', body, includeXUsername = 
     'Content-Type': 'application/json',
   };
   
-  // 自动添加X-Username头
-  if (includeXUsername) {
-    headers['X-Username'] = getXUsernameFromCookie();
+  // 自动添加X-Username头（使用缓存的值）
+  if (includeXUsername && cachedUsername) {
+    headers['X-Username'] = cachedUsername;
   }
   
   const config = {
@@ -104,8 +161,8 @@ export function createFileUploadConfig(body, includeXUsername = true) {
   const headers = {};
   
   // 自动添加X-Username头
-  if (includeXUsername) {
-    headers['X-Username'] = getXUsernameFromCookie();
+  if (includeXUsername && cachedUsername) {
+    headers['X-Username'] = cachedUsername;
   }
   
   return {

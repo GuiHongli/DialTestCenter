@@ -45,5 +45,19 @@ public class HelloController {
         response.put("version", "1.0.0");
         return response;
     }
+
+    /**
+     * 获取当前用户名
+     * 固定返回 admin 用户名
+     *
+     * @return 用户名信息
+     */
+    @GetMapping("/userName")
+    public Map<String, Object> getUserName() {
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("userName", "admin");
+        
+        return responseData;
+    }
 }
 

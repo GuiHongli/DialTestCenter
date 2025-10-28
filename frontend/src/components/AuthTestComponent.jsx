@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, message, Card, Space } from 'antd';
-import { setXUsernameCookie, removeXUsernameCookie, hasXUsernameCookie } from '../utils/cookieUtils.js';
-import { getXUsernameFromCookie } from '../utils/apiUtils.js';
+import { getXUsername } from '../utils/apiUtils.js';
 import TestCaseSetService from '../services/testCaseSetService.js';
 
 /**
@@ -18,27 +17,17 @@ const AuthTestComponent = () => {
     updateCurrentUsername();
   }, []);
 
-  const updateCurrentUsername = () => {
-    const current = getXUsernameFromCookie();
+  const updateCurrentUsername = async () => {
+    const current = await getXUsername();
     setCurrentUsername(current);
   };
 
   const handleSetCookie = () => {
-    if (!username.trim()) {
-      message.warning('请输入用户名');
-      return;
-    }
-    
-    setXUsernameCookie(username.trim());
-    message.success(`已设置用户名为: ${username.trim()}`);
-    updateCurrentUsername();
-    setUsername('');
+    message.info('当前使用 API 获取用户名，无需手动设置');
   };
 
   const handleRemoveCookie = () => {
-    removeXUsernameCookie();
-    message.success('已清除用户名cookie');
-    updateCurrentUsername();
+    message.info('当前使用 API 获取用户名，无需手动清除');
   };
 
   const handleTestApi = async () => {
@@ -63,15 +52,9 @@ const AuthTestComponent = () => {
     }
   };
 
-  const handleCheckCookie = () => {
-    const hasCookie = hasXUsernameCookie();
-    const current = getXUsernameFromCookie();
-    
-    if (hasCookie && current) {
-      message.success(`Cookie存在，当前用户: ${current}`);
-    } else {
-      message.warning('Cookie不存在或为空');
-    }
+  const handleCheckCookie = async () => {
+    const current = await getXUsername();
+    message.success(`当前用户: ${current}`);
   };
 
   return (

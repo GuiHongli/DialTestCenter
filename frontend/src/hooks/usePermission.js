@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { createApiRequestConfig, getXUsernameFromCookie } from '../utils/apiUtils.js';
+import { createApiRequestConfig, getXUsername } from '../utils/apiUtils.js';
 
 // 创建权限上下文
 const PermissionContext = createContext(undefined);
@@ -14,18 +14,11 @@ export const PermissionProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // 确保cookie中存在xUsername
-      if (!document.cookie.includes('xUsername=')) {
-        // 如果cookie中不存在xUsername，设置默认值
-        document.cookie = `xUsername=${encodeURIComponent('admin')}; path=/`;
-        console.log('设置默认xUsername cookie');
-      }
-      
       // 检查缓存是否过期（5分钟）或username是否变化
       const cachedPermission = sessionStorage.getItem('userPermission');
       const cachedTime = sessionStorage.getItem('userPermissionTime');
       const cachedUsername = sessionStorage.getItem('userPermissionUsername');
-      const currentUsername = getXUsernameFromCookie();
+      const currentUsername = await getXUsername();
       const now = new Date().getTime();
       const cacheExpiry = 5 * 60 * 1000; // 5分钟
       
@@ -183,8 +176,8 @@ export const PermissionProvider = ({ children }) => {
 
   // 监听cookie变化，检测username变化
   useEffect(() => {
-    const checkUsernameChange = () => {
-      const currentUsername = getXUsernameFromCookie();
+    const checkUsernameChange = async () => {
+      const currentUsername = await getXUsername();
       const cachedUsername = sessionStorage.getItem('userPermissionUsername');
       
       if (cachedUsername && cachedUsername !== currentUsername) {
