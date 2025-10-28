@@ -22,16 +22,57 @@ const { Header, Sider, Content, Footer } = AntLayout
 const { Text } = Typography
 
 const Layout = ({ children }) => {
-  // 从 localStorage 读取初始状态，如果不存在则默认为 false
+  // 从 localStorage 读取菜单折叠状态，如果不存在则默认为 false
   const [collapsed, setCollapsed] = useState(() => {
     const savedCollapsed = localStorage.getItem('menuCollapsed')
     return savedCollapsed === 'true'
   })
 
+  // 从 localStorage 读取展开的子菜单，如果不存在则默认为 ['user']
+  const [openKeys, setOpenKeys] = useState(() => {
+    const savedOpenKeys = localStorage.getItem('menuOpenKeys')
+    if (savedOpenKeys) {
+      try {
+        return JSON.parse(savedOpenKeys)
+      } catch (e) {
+        return ['user']
+      }
+    }
+    return ['user']
+  })
+
   // 当 collapsed 状态改变时，保存到 localStorage
   useEffect(() => {
     localStorage.setItem('menuCollapsed', collapsed.toString())
+    // 当菜单栏折叠时，清空 openKeys；展开时恢复
+    if (collapsed) {
+      setOpenKeys([])
+    } else {
+      // 恢复之前保存的 openKeys
+      const savedOpenKeys = localStorage.getItem('menuOpenKeys')
+      if (savedOpenKeys) {
+        try {
+          setOpenKeys(JSON.parse(savedOpenKeys))
+        } catch (e) {
+          setOpenKeys(['user'])
+        }
+      } else {
+        setOpenKeys(['user'])
+      }
+    }
   }, [collapsed])
+
+  // 当 openKeys 状态改变时，保存到 localStorage（仅在菜单展开时保存）
+  useEffect(() => {
+    if (!collapsed) {
+      localStorage.setItem('menuOpenKeys', JSON.stringify(openKeys))
+    }
+  }, [openKeys, collapsed])
+
+  // 处理子菜单展开/收起
+  const handleOpenChange = (keys) => {
+    setOpenKeys(keys)
+  }
   const history = useHistory()
   const location = useLocation()
   const { translateNavigation, translateFooter, translate } = useTranslation()
@@ -129,6 +170,8 @@ const Layout = ({ children }) => {
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
+          openKeys={openKeys}
+          onOpenChange={handleOpenChange}
           items={menuItems}
           onClick={handleMenuClick}
         />
