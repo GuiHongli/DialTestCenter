@@ -1,15 +1,16 @@
 package com.huawei.cloududn.dialingtest.config;
 
 import com.huawei.cloududn.dialingtest.dao.UserRoleDao;
+import com.huawei.cloududn.dialingtest.model.UserRole;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -23,9 +24,6 @@ public class AdminUserInitializerTest {
     
     @Mock
     private UserRoleDao userRoleDao;
-    
-    @Mock
-    private ApplicationReadyEvent applicationReadyEvent;
     
     @InjectMocks
     private AdminUserInitializer adminUserInitializer;
@@ -44,11 +42,11 @@ public class AdminUserInitializerTest {
         when(userRoleDao.existsByUsernameAndRole("admin", "ADMIN")).thenReturn(true);
         
         // 执行初始化
-        adminUserInitializer.initializeAdminUser(applicationReadyEvent);
+        adminUserInitializer.initializeAdminUser();
         
         // 验证不会调用 insert 方法
         verify(userRoleDao, times(1)).existsByUsernameAndRole("admin", "ADMIN");
-        // 注意：由于使用了 model.UserRole，需要确认正确的 mock 方式
+        verify(userRoleDao, never()).insert(any(UserRole.class));
     }
     
     /**
@@ -58,12 +56,14 @@ public class AdminUserInitializerTest {
     public void testInitializeAdminUser_UserNotExists() {
         // 模拟管理员用户不存在
         when(userRoleDao.existsByUsernameAndRole("admin", "ADMIN")).thenReturn(false);
+        when(userRoleDao.insert(any(UserRole.class))).thenReturn(1);
         
         // 执行初始化
-        adminUserInitializer.initializeAdminUser(applicationReadyEvent);
+        adminUserInitializer.initializeAdminUser();
         
-        // 验证会调用 existsByUsernameAndRole
+        // 验证会调用 existsByUsernameAndRole 和 insert
         verify(userRoleDao, times(1)).existsByUsernameAndRole("admin", "ADMIN");
+        verify(userRoleDao, times(1)).insert(any(UserRole.class));
     }
     
     /**

@@ -487,6 +487,91 @@ public class OperationDataBuilderTest {
         assertEquals("SYSTEM", OperationDataBuilder.TARGET_SYSTEM);
     }
 
+    /**
+     * 测试屏蔽敏感字段 - 普通实体不屏蔽
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMaskSensitiveFields_NonDialUserEntity_NotMasked() {
+        // Arrange
+        TestEntity entity = new TestEntity();
+        entity.setId(1L);
+        entity.setName("test");
+        entity.setValue(100);
+
+        // Act
+        builder.buildUpdateOperation(entity, entity, "UPDATE", "USER");
+
+        // Assert
+        Map<String, Object> data = builder.build();
+        Map<String, Object> oldValues = (Map<String, Object>) data.get("oldValues");
+        assertEquals(1L, oldValues.get("id"));
+        assertEquals("test", oldValues.get("name"));
+        assertEquals(100, oldValues.get("value"));
+    }
+
+    /**
+     * 测试屏蔽敏感字段 - DialUser 实体屏蔽 password 字段
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMaskSensitiveFields_DialUserEntity_MasksPassword() {
+        // Arrange
+        MockDialUserEntity entity = new MockDialUserEntity();
+        entity.setId(1);
+        entity.setUsername("testuser");
+        entity.setPassword("secretpassword");
+
+        // Act
+        builder.buildUpdateOperation(entity, entity, "UPDATE", "USER");
+
+        // Assert
+        Map<String, Object> data = builder.build();
+        Map<String, Object> oldValues = (Map<String, Object>) data.get("oldValues");
+        assertEquals(1, oldValues.get("id"));
+        assertEquals("testuser", oldValues.get("username"));
+        assertEquals("*******", oldValues.get("password"));
+    }
+
+    /**
+     * 测试屏蔽敏感字段 - null 实体
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMaskSensitiveFields_NullEntity_ReturnsEmpty() {
+        // Act
+        builder.buildUpdateOperation(null, null, "UPDATE", "USER");
+
+        // Assert
+        Map<String, Object> data = builder.build();
+        Map<String, Object> oldValues = (Map<String, Object>) data.get("oldValues");
+        assertNotNull(oldValues);
+        assertTrue(oldValues.isEmpty());
+    }
+
+    /**
+     * 测试屏蔽敏感字段 - 包含 null 字段的实体
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testMaskSensitiveFields_EntityWithNullFields_IgnoresNullFields() {
+        // Arrange
+        MockDialUserEntity entity = new MockDialUserEntity();
+        entity.setId(1);
+        entity.setUsername("testuser");
+        entity.setPassword(null);
+
+        // Act
+        builder.buildUpdateOperation(entity, entity, "UPDATE", "USER");
+
+        // Assert
+        Map<String, Object> data = builder.build();
+        Map<String, Object> oldValues = (Map<String, Object>) data.get("oldValues");
+        assertEquals(1, oldValues.get("id"));
+        assertEquals("testuser", oldValues.get("username"));
+        assertFalse(oldValues.containsKey("password"));
+    }
+
     // 测试用的内部实体类
     private static class TestEntity {
         private Long id;
@@ -517,4 +602,42 @@ public class OperationDataBuilderTest {
             this.value = value;
         }
     }
+
+    // 测试用的 DialUser 实体类（模拟 com.huawei.cloududn.dialingtest.model.DialUser）
+    // 类名必须是 com.huawei.cloududn.dialingtest.model.DialUser 才会触发密码屏蔽逻辑
+    private static class MockDialUserEntity {
+        private Integer id;
+        private String username;
+        private String password;
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        @Override
+        public String toString() {
+            return "MockDialUserEntity{id=" + id + ", username='" + username + "'}";
+        }
+    }
 }
+
