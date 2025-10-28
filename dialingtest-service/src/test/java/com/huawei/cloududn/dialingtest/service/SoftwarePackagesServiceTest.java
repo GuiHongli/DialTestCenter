@@ -455,3 +455,42 @@ public class SoftwarePackagesServiceTest {
         return baos.toByteArray();
     }
 }
+
+/**
+ * SoftwarePackagesService LLT - 文件内容获取
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class SoftwarePackagesServiceTest {
+
+    @Mock
+    private SoftwarePackageDao softwarePackageDao;
+
+    @InjectMocks
+    private SoftwarePackagesService softwarePackagesService;
+
+    @Before
+    public void setUp() {
+    }
+
+    /**
+     * 成功获取文件内容
+     */
+    @Test
+    public void testGetSoftwarePackageFileContent_Success() {
+        byte[] bytes = new byte[]{1,2,3};
+        when(softwarePackageDao.getSoftwarePackageFileContent(1L)).thenReturn(bytes);
+        byte[] result = softwarePackagesService.getSoftwarePackageFileContent(1L);
+        assertNotNull(result);
+        assertEquals(3, result.length);
+    }
+
+    /**
+     * 不存在返回 null
+     */
+    @Test
+    public void testGetSoftwarePackageFileContent_NotFound() {
+        when(softwarePackageDao.getSoftwarePackageFileContent(2L)).thenReturn(null);
+        byte[] result = softwarePackagesService.getSoftwarePackageFileContent(2L);
+        assertNull(result);
+    }
+}

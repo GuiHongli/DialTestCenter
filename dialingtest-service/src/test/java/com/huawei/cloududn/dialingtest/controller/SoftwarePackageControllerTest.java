@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -425,7 +426,6 @@ public class SoftwarePackageControllerTest {
      */
     @Test
     public void testDownloadSoftwarePackages_EmptyPackageIds_ReturnsBadRequest() {
-        // Arrange
         BatchDownloadRequest emptyRequest = new BatchDownloadRequest();
         emptyRequest.setPackageIds(Arrays.asList());
         
@@ -488,6 +488,72 @@ public class SoftwarePackageControllerTest {
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNull("Resource should be null", response.getBody());
+    }
+
+    /**
+     * SoftwarePackageController 单包下载 LLT
+     */
+    @RunWith(MockitoJUnitRunner.class)
+    public static class SoftwarePackageControllerSingleDownloadLLT {
+
+        @Mock
+        private SoftwarePackagesService softwarePackagesService;
+
+        @Mock
+        private UserRoleService userRoleService;
+
+        @InjectMocks
+        private SoftwarePackageController controller;
+
+        private BatchDownloadRequest request;
+
+        @Before
+        public void setUp() {
+            request = new BatchDownloadRequest();
+        }
+
+        /**
+         * 成功下载单个软件包
+         */
+        @Test
+        public void testDownloadSoftwarePackages_Single_Success() {
+            String xUsername = "admin";
+            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            request.setPackageIds(Collections.singletonList(1L));
+
+            SoftwarePackageInfo info = new SoftwarePackageInfo();
+            info.setId(1L);
+            info.setSoftwareName("TestApp_1.0.0.apk");
+            when(softwarePackagesService.getSoftwarePackageById(1L)).thenReturn(info);
+            when(softwarePackagesService.getSoftwarePackageFileContent(1L)).thenReturn(new byte[]{1,2,3});
+
+            ResponseEntity<org.springframework.core.io.Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            assertEquals(200, resp.getStatusCodeValue());
+            Resource body = resp.getBody();
+            assertNotNull(body);
+        }
+
+        /**
+         * 用户名为空
+         */
+        @Test
+        public void testDownloadSoftwarePackages_EmptyUsername_BadRequest() {
+            request.setPackageIds(Collections.singletonList(1L));
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(" ", request);
+            assertEquals(400, resp.getStatusCodeValue());
+        }
+
+        /**
+         * 权限不足
+         */
+        @Test
+        public void testDownloadSoftwarePackages_NoPermission_Forbidden() {
+            String xUsername = "user";
+            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("VIEWER"));
+            request.setPackageIds(Collections.singletonList(1L));
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            assertEquals(403, resp.getStatusCodeValue());
+        }
     }
 }
 

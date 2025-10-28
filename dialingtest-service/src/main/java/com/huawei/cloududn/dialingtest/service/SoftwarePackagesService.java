@@ -318,6 +318,13 @@ public class SoftwarePackagesService {
     }
     
     /**
+     * 获取单个软件包的文件内容
+     */
+    public byte[] getSoftwarePackageFileContent(Long id) {
+        return softwarePackageDao.getSoftwarePackageFileContent(id);
+    }
+    
+    /**
      * 验证文件格式
      */
     private void validateFileFormat(String fileName) {

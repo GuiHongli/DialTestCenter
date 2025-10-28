@@ -153,7 +153,17 @@ export const downloadSoftwarePackage = async (ids, zipFileName) => {
   link.href = url;
   
   // 根据下载类型设置文件名
-  const fileName = ids.length === 1 ? 'package' : `${zipFileName || 'packages'}.zip`;
+  let fileName;
+  if (ids.length === 1) {
+    try {
+      const info = await getSoftwarePackage(ids[0]);
+      fileName = (info && info.softwareName) ? info.softwareName : 'package';
+    } catch (e) {
+      fileName = 'package';
+    }
+  } else {
+    fileName = `${zipFileName || 'packages'}.zip`;
+  }
   link.download = fileName;
   
   document.body.appendChild(link);

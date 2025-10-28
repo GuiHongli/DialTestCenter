@@ -5,6 +5,7 @@
 package com.huawei.cloududn.dialingtest.dao;
 
 import com.huawei.cloududn.dialingtest.entity.SoftwarePackage;
+import com.huawei.cloududn.dialingtest.model.SoftwarePackageFileContent;
 import com.huawei.cloududn.dialingtest.model.SoftwarePackageInfo;
 import org.apache.ibatis.annotations.*;
 
@@ -22,7 +23,7 @@ public interface SoftwarePackageDao {
      * 插入软件包
      */
     @Insert("INSERT INTO software_package (software_name, description, file_content, file_sha256, file_size) " +
-            "VALUES (#{softwareName}, #{description}, #{fileContent}, #{fileSha256}, #{fileSize})")
+            "VALUES (#{softwareName}, #{description}, #{fileContent,jdbcType=BINARY}, #{fileSha256}, #{fileSize})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(SoftwarePackage softwarePackage);
     
@@ -97,10 +98,21 @@ public interface SoftwarePackageDao {
     SoftwarePackageInfo getSoftwarePackageByName(String softwareName);
     
     /**
-     * 根据ID获取软件包文件内容
+     * 根据ID获取软件包文件内容（封装对象）
      */
     @Select("SELECT file_content FROM software_package WHERE id = #{id}")
-    byte[] getSoftwarePackageFileContent(Long id);
+    @Results({
+            @Result(property = "fileContent", column = "file_content", javaType = byte[].class, jdbcType = org.apache.ibatis.type.JdbcType.BINARY)
+    })
+    SoftwarePackageFileContent selectSoftwarePackageFileContent(Long id);
+
+    /**
+     * 简化方法：直接返回字节数组
+     */
+    default byte[] getSoftwarePackageFileContent(Long id) {
+        SoftwarePackageFileContent row = selectSoftwarePackageFileContent(id);
+        return row != null ? row.getFileContent() : null;
+    }
     
     /**
      * 更新软件包描述

@@ -196,35 +196,31 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
             
-            Resource resource = softwarePackageService.downloadSoftwarePackages(packageIds, body.getZipFileName());
-            
-            // 设置响应头
-            HttpHeaders headers = new HttpHeaders();
-            
-            if (packageIds.size() == 1) {
-                // 单个文件下载，使用原文件名
-                String fileName = softwarePackageService.getSoftwarePackageNameById(packageIds.get(0));
-                if (fileName != null) {
-                    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
-                    headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
-                }
-            } else {
-                // 批量下载，使用ZIP格式
-                String zipFileName = body.getZipFileName() != null ? body.getZipFileName() : "software_packages_batch";
-                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipFileName + ".zip\"");
-                headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+            // 仅实现单个软件包下载（参考用例集下载逻辑）
+            Long packageId = packageIds.get(0);
+            SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(packageId);
+            if (packageInfo == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             
-            // 记录操作日志 - 简化版本，暂时跳过详细日志记录
-            String logMessage = packageIds.size() == 1 ? 
-                "下载软件包ID: " + packageIds.get(0) :
-                "批量下载软件包: " + packageIds.toString();
-            logger.info("Software package download by user: {}, message: {}", xUsername, logMessage);
+            byte[] fileContent = softwarePackageService.getSoftwarePackageFileContent(packageId);
+            if (fileContent == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            
+            ByteArrayResource resource = new ByteArrayResource(fileContent);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + packageInfo.getSoftwareName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            
+            // 记录操作日志 - 简化版本
+            logger.info("Software package download by user: {}, message: {}", xUsername, "下载软件包ID: " + packageId);
             
             return ResponseEntity.ok()
                     .headers(headers)
+                    .contentLength(fileContent.length)
                     .body(resource);
-                    
         } catch (Exception e) {
             logger.error("Software package download failed for user: {}", xUsername, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
