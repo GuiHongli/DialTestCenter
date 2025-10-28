@@ -139,6 +139,12 @@ export function createApiRequestConfig(method = 'GET', body, includeXUsername = 
     headers['X-Username'] = cachedUsername;
   }
   
+  // 自动添加 CSRF Token
+  const csrfToken = sessionStorage.getItem('X-CSRF-TOKEN')
+  if (csrfToken) {
+    headers['X-Csrf-Token'] = csrfToken
+  }
+  
   const config = {
     method,
     headers,
@@ -163,6 +169,12 @@ export function createFileUploadConfig(body, includeXUsername = true) {
   // 自动添加X-Username头
   if (includeXUsername && cachedUsername) {
     headers['X-Username'] = cachedUsername;
+  }
+  
+  // 自动添加 CSRF Token
+  const csrfToken = sessionStorage.getItem('X-CSRF-TOKEN')
+  if (csrfToken) {
+    headers['X-Csrf-Token'] = csrfToken
   }
   
   return {
