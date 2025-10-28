@@ -2,7 +2,7 @@
  * 软件包管理服务
  */
 
-import { createApiRequestConfig, createFileUploadConfig } from '../utils/apiUtils.js';
+import { createApiRequestConfig, createFileUploadConfig, getXUsername } from '../utils/apiUtils.js';
 
 const API_BASE_URL = '/dialingtest/api/software-packages';
 const UPLOAD_API_URL = '/dialingtest/api/software-packages';
@@ -135,10 +135,13 @@ export const uploadZipPackage = async (file, overwrite = false, description) => 
  * 下载软件包（单个或批量）
  */
 export const downloadSoftwarePackage = async (ids, zipFileName) => {
+  // 确保 X-Username 可用
+  await getXUsername();
+
   const response = await fetch(`${API_BASE_URL}/download`, createApiRequestConfig('POST', {
     packageIds: ids,
     zipFileName: zipFileName || 'software_packages_batch'
-  }));
+  }, true));
   
   if (!response.ok) {
     throw new Error(`Failed to download software package: ${response.statusText}`);

@@ -17,7 +17,7 @@ import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import { useLanguage, useTranslation } from '../hooks/useTranslation.js'
-import { clearUsernameCache } from '../utils/apiUtils.js'
+import { clearUsernameCache, createApiRequestConfig } from '../utils/apiUtils.js'
 
 const { Header, Sider, Content, Footer } = AntLayout
 const { Text } = Typography
@@ -237,12 +237,7 @@ const Layout = ({ children }) => {
                       sessionStorage.removeItem('userPermissionTime')
                       sessionStorage.removeItem('userPermissionUsername')
                       
-                      const response = await fetch('https://api.example.com/logout', {
-                        method: 'GET',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                      })
+                      const response = await fetch('https://api.example.com/logout', createApiRequestConfig('POST', {}, false))
                       const result = await response.json()
                       if (result.success) {
                         window.location.href = '/login'
