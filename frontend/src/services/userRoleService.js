@@ -44,14 +44,10 @@ export class UserRoleService {
    * @returns 创建的用户角色
    */
   static async createUserRole(userRoleData) {
-    const response = await fetch(`${API_BASE_URL}/user-roles`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
-      },
-      body: JSON.stringify(userRoleData)
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/user-roles`,
+      createApiRequestConfig('POST', userRoleData, true)
+    );
     
     if (!response.ok) {
       const errorResult = await response.json();
@@ -73,14 +69,10 @@ export class UserRoleService {
    * @returns 更新后的用户角色
    */
   static async updateUserRole(id, userRoleData) {
-    const response = await fetch(`${API_BASE_URL}/user-roles/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
-      },
-      body: JSON.stringify(userRoleData)
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/user-roles/${id}`,
+      createApiRequestConfig('PUT', userRoleData, true)
+    );
     
     if (!response.ok) {
       const errorResult = await response.json();
@@ -100,12 +92,10 @@ export class UserRoleService {
    * @param id 用户角色ID
    */
   static async deleteUserRole(id) {
-    const response = await fetch(`${API_BASE_URL}/user-roles/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'X-Username': 'admin' // 这里需要根据实际认证机制调整
-      }
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/user-roles/${id}`,
+      createApiRequestConfig('DELETE', undefined, true)
+    );
     
     if (!response.ok) {
       const errorResult = await response.json();
@@ -113,19 +103,17 @@ export class UserRoleService {
     }
   }
   
- 
+  
   
   /**
    * 获取所有角色定义
    * @returns 角色列表
    */
   static async getAllRoles() {
-    const response = await fetch(`${API_BASE_URL}/user-roles/roles`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/user-roles/roles`,
+      createApiRequestConfig('GET', undefined, false)
+    );
     
     if (!response.ok) {
       throw new Error(`获取角色列表失败: ${response.statusText}`);
@@ -144,12 +132,10 @@ export class UserRoleService {
    * @returns EXECUTOR角色数量
    */
   static async getExecutorCount() {
-    const response = await fetch(`${API_BASE_URL}/user-roles/executor-count`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/user-roles/executor-count`,
+      createApiRequestConfig('GET', undefined, false)
+    );
     
     if (!response.ok) {
       throw new Error(`获取执行机数量失败: ${response.statusText}`);
