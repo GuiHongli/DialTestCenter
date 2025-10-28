@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import 'antd/dist/antd.css'
@@ -10,8 +10,8 @@ import { initErrorHandler } from './utils/errorHandler'
 initErrorHandler()
 
 ReactDOM.render(
-  <BrowserRouter>
+  <HashRouter basename="/dialingtest">
     <App />
-  </BrowserRouter>,
+  </HashRouter>,
   document.getElementById('root')
 )

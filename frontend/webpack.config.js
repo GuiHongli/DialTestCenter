@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, '../dialingtest-service/src/main/resources/static'),
     filename: 'bundle.js',
-    publicPath: '/',
+    publicPath: '/dialingtest/',
   },
   module: {
     rules: [

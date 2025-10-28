@@ -14,7 +14,7 @@ import {
     CaretDownFilled,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import { useLanguage, useTranslation } from '../hooks/useTranslation.js'
 
@@ -22,7 +22,16 @@ const { Header, Sider, Content, Footer } = AntLayout
 const { Text } = Typography
 
 const Layout = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false)
+  // 从 localStorage 读取初始状态，如果不存在则默认为 false
+  const [collapsed, setCollapsed] = useState(() => {
+    const savedCollapsed = localStorage.getItem('menuCollapsed')
+    return savedCollapsed === 'true'
+  })
+
+  // 当 collapsed 状态改变时，保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('menuCollapsed', collapsed.toString())
+  }, [collapsed])
   const history = useHistory()
   const location = useLocation()
   const { translateNavigation, translateFooter, translate } = useTranslation()
@@ -107,7 +116,7 @@ const Layout = ({ children }) => {
           borderRadius: '4px'
         }}>
             <img 
-              src="/logo.png" 
+              src="/dialingtest/logo.png" 
               alt="Dial Test Center" 
               style={{ 
                 width: collapsed ? '20px' : '24px', 
