@@ -1,13 +1,12 @@
 import {
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  ExclamationCircleOutlined,
   FileTextOutlined,
   InfoCircleOutlined,
+  ReloadOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons'
 import {
   Alert,
-  Badge,
   Button,
   Card,
   Col,
@@ -22,7 +21,9 @@ import {
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
+import { useI18n } from '../contexts/I18nContext.jsx'
 import testCaseSetService from '../services/testCaseSetService.js'
+import { getValidationResultColumns, showTestCaseDetail } from '../utils/validationUtils.js'
 
 const { Text } = Typography
 
@@ -31,190 +32,110 @@ const TestCaseDetails = ({
   testCaseSet,
   onCancel,
 }) => {
-  const [testCases, setTestCases] = useState([])
-  const [missingScripts, setMissingScripts] = useState([])
+  const [validationResult, setValidationResult] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('all')
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  })
+  const [exportLoading, setExportLoading] = useState(false)
 
   const { translateTestCaseSet } = useTranslation()
+  const { language } = useI18n()
 
-  // 加载测试用例列表
-  const loadTestCases = async (page = 1, pageSize = 10) => {
-    if (!testCaseSet) return
+  // 加载校验结果
+  const loadValidationResult = async (forceRefresh = false) => {
+    if (!testCaseSet) {
+      return
+    }
 
     try {
       setLoading(true)
-      const response = await testCaseSetService.getTestCases(testCaseSet.id, page, pageSize)
-      setTestCases(response.data)
-      setPagination({
-        current: response.page,
-        pageSize: response.pageSize,
-        total: response.total,
-      })
+      const response = await testCaseSetService.getValidationResult(testCaseSet.id, forceRefresh)
+      if (response && response.success && response.data && response.data.caseResults) {
+        setValidationResult(response.data)
+      } else {
+        setValidationResult(null)
+      }
     } catch (error) {
-      message.error(translateTestCaseSet('loadFailed'))
+      console.error('Failed to load validation result:', error)
+      setValidationResult(null)
     } finally {
       setLoading(false)
     }
   }
 
-  // 加载缺失脚本信息
-  const loadMissingScripts = async () => {
-    if (!testCaseSet) return
+  // 刷新校验结果
+  const handleRefresh = () => {
+    loadValidationResult(true)
+  }
+
+  // 导出Excel
+  const handleExport = async () => {
+    if (!testCaseSet || !validationResult) {
+      message.warning(translateTestCaseSet('validation.noResultToExport'))
+      return
+    }
 
     try {
-      const response = await testCaseSetService.getMissingScripts(testCaseSet.id)
-      setMissingScripts(response.testCases)
+      setExportLoading(true)
+      await testCaseSetService.exportValidationResult(testCaseSet.id)
+      message.success(translateTestCaseSet('validation.exportSuccess'))
     } catch (error) {
-      message.error(translateTestCaseSet('loadFailed'))
+      console.error('Failed to export validation result:', error)
+      message.error(translateTestCaseSet('validation.exportFailed'))
+    } finally {
+      setExportLoading(false)
     }
   }
 
   useEffect(() => {
     if (visible && testCaseSet) {
-      loadTestCases()
-      loadMissingScripts()
+      loadValidationResult()
+    } else {
+      setValidationResult(null)
     }
   }, [visible, testCaseSet])
 
-  // 处理分页变化
-  const handleTableChange = (newPagination) => {
-    loadTestCases(newPagination.current, newPagination.pageSize)
-  }
-
-  // 统计信息
-  const getStatistics = () => {
-    const totalCases = pagination.total
-    const missingCount = missingScripts.length
-    const matchedCount = totalCases - missingCount
-    const matchRate = totalCases > 0 ? ((matchedCount / totalCases) * 100).toFixed(1) : '0'
-
-    return {
-      totalCases,
-      matchedCount,
-      missingCount,
-      matchRate,
+  // 格式化时间
+  const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) {
+      return '-'
+    }
+    try {
+      const date = new Date(dateTimeStr)
+      const locale = language === 'en' ? 'en-US' : 'zh-CN'
+      return date.toLocaleString(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    } catch (e) {
+      return dateTimeStr
     }
   }
 
-  const stats = getStatistics()
-
-  // 测试用例表格列定义
-  const testCaseColumns = [
-    {
-      title: translateTestCaseSet('details.caseNumber'),
-      dataIndex: 'caseNumber',
-      key: 'caseNumber',
-      width: 120,
-      render: (text, record) => (
-        <Space>
-          <Text code>{text}</Text>
-          {record.scriptExists ? (
-            <CheckCircleOutlined style={{ color: '#52c41a' }} />
-          ) : (
-            <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: translateTestCaseSet('details.caseName'),
-      dataIndex: 'caseName',
-      key: 'caseName',
-      width: 200,
-      ellipsis: true,
-    },
-    {
-      title: translateTestCaseSet('details.businessCategory'),
-      dataIndex: 'businessCategory',
-      key: 'businessCategory',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: translateTestCaseSet('details.appName'),
-      dataIndex: 'appName',
-      key: 'appName',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: translateTestCaseSet('details.scriptStatus'),
-      dataIndex: 'scriptExists',
-      key: 'scriptExists',
-      width: 100,
-      render: (exists) => (
-        <Tag color={exists ? 'success' : 'error'}>
-          {exists ? translateTestCaseSet('details.matched') : translateTestCaseSet('details.missing')}
-        </Tag>
-      ),
-    },
-    {
-      title: translateTestCaseSet('details.action'),
-      key: 'action',
-      width: 80,
-      render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() => showTestCaseDetail(record)}
-        >
-          {translateTestCaseSet('details.details')}
-        </Button>
-      ),
-    },
-  ]
-
-  // 显示测试用例详情
-  const showTestCaseDetail = (testCase) => {
-    Modal.info({
-      title: translateTestCaseSet('details.testCaseDetailTitle', { caseNumber: testCase.caseNumber }),
-      width: 800,
-      content: (
-        <Descriptions column={1} bordered>
-          <Descriptions.Item label={translateTestCaseSet('details.caseName')}>{testCase.caseName}</Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.caseNumber')}>{testCase.caseNumber}</Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.businessCategory')}>{testCase.businessCategory || '-'}</Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.appName')}>{testCase.appName || '-'}</Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.scriptStatus')}>
-            <Tag color={testCase.scriptExists ? 'success' : 'error'}>
-              {testCase.scriptExists ? translateTestCaseSet('details.matched') : translateTestCaseSet('details.missing')}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.dependenciesPackage')} span={2}>
-            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
-              {testCase.dependenciesPackage || '-'}
-            </div>
-          </Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.dependenciesRule')} span={2}>
-            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
-              {testCase.dependenciesRule || '-'}
-            </div>
-          </Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.environmentConfig')} span={2}>
-            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
-              {testCase.environmentConfig || '-'}
-            </div>
-          </Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.testSteps')} span={2}>
-            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
-              {testCase.testSteps || '-'}
-            </div>
-          </Descriptions.Item>
-          <Descriptions.Item label={translateTestCaseSet('details.expectedResult')} span={2}>
-            <div style={{ maxHeight: '200px', overflow: 'auto' }}>
-              {testCase.expectedResult || '-'}
-            </div>
-          </Descriptions.Item>
-        </Descriptions>
-      ),
-    })
+  // 获取状态标签
+  const getStatusTag = (status) => {
+    const statusKey = status || 'UNKNOWN'
+    const statusText = translateTestCaseSet(`validation.status.${statusKey}`)
+    if (status === 'COMPLETED') {
+      return <Tag color="success">{statusText}</Tag>
+    } else if (status === 'RUNNING') {
+      return <Tag color="processing">{statusText}</Tag>
+    } else if (status === 'PENDING') {
+      return <Tag color="warning">{statusText}</Tag>
+    } else if (status === 'FAILED') {
+      return <Tag color="error">{statusText}</Tag>
+    } else {
+      return <Tag>{statusText}</Tag>
+    }
   }
+
+  // 用例详情表格列定义（使用共享工具函数）
+  const columns = getValidationResultColumns(
+    (record) => showTestCaseDetail(record, translateTestCaseSet),
+    translateTestCaseSet
+  )
 
   return (
     <Modal
@@ -229,7 +150,7 @@ const TestCaseDetails = ({
       }
       open={visible}
       onCancel={onCancel}
-      width={1200}
+      width={1400}
       footer={[
         <Button key="close" onClick={onCancel}>
           {translateTestCaseSet('details.close')}
@@ -238,117 +159,120 @@ const TestCaseDetails = ({
     >
       {testCaseSet && (
         <div>
-          {/* 统计信息 */}
-          <Row gutter={16} style={{ marginBottom: '16px' }}>
-            <Col span={6}>
-              <Card size="small">
-                <Space>
-                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
-                  <div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.totalCases}</div>
-                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.totalCases')}</div>
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card size="small">
-                <Space>
-                  <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                  <div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.matchedCount}</div>
-                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.matched')}</div>
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card size="small">
-                <Space>
-                  <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
-                  <div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{stats.missingCount}</div>
-                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.missingScripts')}</div>
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card size="small">
-                <Space>
-                  <Badge count={`${stats.matchRate}%`} style={{ backgroundColor: '#52c41a' }} />
-                  <div>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{translateTestCaseSet('details.matchRate')}</div>
-                    <div style={{ color: '#666' }}>{translateTestCaseSet('details.scriptIntegrity')}</div>
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-          </Row>
+          {/* 第一部分：最近一次校验任务信息 */}
+          {validationResult && validationResult.validationTaskStatus && (
+            <Card size="small" style={{ marginBottom: '16px' }}>
+              <Descriptions column={3} size="small">
+                <Descriptions.Item label={translateTestCaseSet('validation.taskStatus')}>
+                  {getStatusTag(validationResult.validationTaskStatus)}
+                </Descriptions.Item>
+                <Descriptions.Item label={translateTestCaseSet('validation.triggerTime')}>
+                  {formatDateTime(validationResult.validationTaskCreatedTime)}
+                </Descriptions.Item>
+                <Descriptions.Item label={translateTestCaseSet('validation.completedTime')}>
+                  {formatDateTime(validationResult.validationTaskCompletedTime)}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          )}
 
-          {/* 缺失脚本警告 */}
-          {stats.missingCount > 0 && (
+          {/* 第二部分：统计卡片 */}
+          {validationResult ? (
+            <Row gutter={16} style={{ marginBottom: '16px' }}>
+              <Col span={8}>
+                <Card size="small">
+                  <Space>
+                    <InfoCircleOutlined style={{ color: '#1890ff', fontSize: '24px' }} />
+                    <div>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                        {validationResult.totalCaseCount || 0}
+                      </div>
+                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.totalCases')}</div>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+              <Col span={8}>
+                <Card size="small">
+                  <Space>
+                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px' }} />
+                    <div>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                        {validationResult.passedCaseCount || 0}
+                      </div>
+                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.passedCases')}</div>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+              <Col span={8}>
+                <Card size="small">
+                  <Space>
+                    <InfoCircleOutlined style={{ color: '#722ed1', fontSize: '24px' }} />
+                    <div>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                        {validationResult.matchRate ? Number(validationResult.matchRate).toFixed(2) : '0.00'}%
+                      </div>
+                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.matchRate')}</div>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          ) : (
             <Alert
-              message={translateTestCaseSet('details.missingScriptsAlert')}
-              description={translateTestCaseSet('details.missingScriptsDescription', { count: stats.missingCount })}
-              type="warning"
-              icon={<ExclamationCircleOutlined />}
+              message={translateTestCaseSet('validation.noResult')}
+              description={translateTestCaseSet('validation.noResultDescription')}
+              type="info"
               showIcon
               style={{ marginBottom: '16px' }}
-              action={
-                <Button
-                  size="small"
-                  type="primary"
-                  onClick={() => setActiveTab('missing')}
-                >
-                  {translateTestCaseSet('details.viewDetails')}
-                </Button>
-              }
             />
           )}
 
-          {/* 标签页切换 */}
-          <div style={{ marginBottom: '16px' }}>
+          {/* 操作按钮 */}
+          <div style={{ marginBottom: '16px', textAlign: 'right' }}>
             <Space>
               <Button
-                type={activeTab === 'all' ? 'primary' : 'default'}
-                onClick={() => setActiveTab('all')}
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+                loading={loading}
               >
-                {translateTestCaseSet('details.allCases')} ({stats.totalCases})
+                {translateTestCaseSet('validation.refresh')}
               </Button>
-              <Button
-                type={activeTab === 'missing' ? 'primary' : 'default'}
-                danger={stats.missingCount > 0}
-                onClick={() => setActiveTab('missing')}
-              >
-                {translateTestCaseSet('details.missingScriptsTab')} ({stats.missingCount})
-              </Button>
+              {validationResult && (
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={handleExport}
+                  loading={exportLoading}
+                >
+                  {translateTestCaseSet('validation.export')}
+                </Button>
+              )}
             </Space>
           </div>
 
-          {/* 表格内容 */}
-          {activeTab === 'all' ? (
+          {/* 第三部分：用例详情表格 */}
+          {validationResult && validationResult.caseResults ? (
             <Table
-              columns={testCaseColumns}
-              dataSource={testCases}
-              rowKey="id"
+              columns={columns}
+              dataSource={validationResult.caseResults || []}
+              rowKey={(record, index) => `${record.caseNumber || index}-${index}`}
               loading={loading}
+              scroll={{ x: 1200 }}
               pagination={{
-                ...pagination,
+                pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
-                showTotal: (total, range) =>
-                  translateTestCaseSet('table.pagination', { start: range[0], end: range[1], total }),
+                showTotal: (total) => translateTestCaseSet('validation.table.paginationTotal', { total }),
               }}
-              onChange={handleTableChange}
             />
           ) : (
-            <Table
-              columns={testCaseColumns}
-              dataSource={missingScripts}
-              rowKey="id"
-              loading={loading}
-              pagination={false}
+            <Alert
+              message={translateTestCaseSet('validation.noCaseData')}
+              description={translateTestCaseSet('validation.noCaseDataDescription')}
+              type="warning"
+              showIcon
             />
           )}
         </div>

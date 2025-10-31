@@ -9,30 +9,30 @@ const config = require('../webpack.config.js');
 
 console.log('🚀 开始构建前端项目...\n');
 
-// 复制 public 目录下的文件到构建输出目录
-function copyPublicFiles() {
-  const publicDir = path.resolve(__dirname, '../public');
-  const outputDir = path.resolve(__dirname, '../../dialingtest-service/src/main/resources/static');
+// // 复制 public 目录下的文件到构建输出目录
+// function copyPublicFiles() {
+//   const publicDir = path.resolve(__dirname, '../public');
+//   const outputDir = path.resolve(__dirname, '../../dialingtest-service/src/main/resources/static');
   
-  // 确保输出目录存在
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+//   // 确保输出目录存在
+//   if (!fs.existsSync(outputDir)) {
+//     fs.mkdirSync(outputDir, { recursive: true });
+//   }
   
-  // 复制 logo.png
-  const logoSource = path.join(publicDir, 'logo.png');
-  const logoDest = path.join(outputDir, 'logo.png');
+//   // 复制 logo.png
+//   const logoSource = path.join(publicDir, 'logo.png');
+//   const logoDest = path.join(outputDir, 'logo.png');
   
-  if (fs.existsSync(logoSource)) {
-    fs.copyFileSync(logoSource, logoDest);
-    console.log('✅ 已复制 logo.png');
-  } else {
-    console.log('⚠️  logo.png 不存在，跳过复制');
-  }
-}
+//   if (fs.existsSync(logoSource)) {
+//     fs.copyFileSync(logoSource, logoDest);
+//     console.log('✅ 已复制 logo.png');
+//   } else {
+//     console.log('⚠️  logo.png 不存在，跳过复制');
+//   }
+// }
 
-// 复制 public 文件
-copyPublicFiles();
+// // 复制 public 文件
+// copyPublicFiles();
 
 // 创建webpack编译器
 const compiler = webpack(config);
@@ -103,6 +103,6 @@ compiler.run((err, stats) => {
 
   console.log('\n🎉 构建完成!');
   
-  // 构建完成后再次复制 public 文件（确保覆盖）
-  copyPublicFiles();
+  // // 构建完成后再次复制 public 文件（确保覆盖）
+  // copyPublicFiles();
 });

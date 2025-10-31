@@ -307,6 +307,20 @@ public class OperationLogUtil {
         builder -> builder.softwarePackageDelete(softwarePackage),
         "Logged software package delete: " + softwarePackage.getSoftwareName() + " by user: " + operatorUsername);
   }
+  
+  /**
+   * 记录用例集校验操作
+   *
+   * @param operatorUsername 操作用户名
+   * @param testCaseSet 用例集信息
+   */
+  public void logTestCaseSetValidation(String operatorUsername, TestCaseSet testCaseSet) {
+    logOperation(operatorUsername, "VALIDATE", "TEST_CASE_SET",
+        "校验用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+        "Validate test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+        builder -> builder.testCaseSetValidation(testCaseSet),
+        "Logged test case set validation: " + testCaseSet.getName() + " v" + testCaseSet.getVersion() + " by user: " + operatorUsername);
+  }
 
   /**
    * 记录软件包覆盖操作

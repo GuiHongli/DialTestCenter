@@ -225,6 +225,13 @@ public class OperationDataBuilder {
     public OperationDataBuilder testCaseSetDelete(Object testCaseSetEntity) {
         return buildOperation(testCaseSetEntity, OPERATION_DELETE, TARGET_TEST_CASE_SET);
     }
+    
+    /**
+     * 构建用例集校验操作数据
+     */
+    public OperationDataBuilder testCaseSetValidation(Object testCaseSetEntity) {
+        return buildOperation(testCaseSetEntity, "VALIDATE", TARGET_TEST_CASE_SET);
+    }
 
     // 软件包操作相关方法
     public OperationDataBuilder softwarePackageCreate(Object softwarePackageEntity) {

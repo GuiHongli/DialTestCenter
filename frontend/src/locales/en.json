@@ -364,7 +364,68 @@
       "totalCases": "Total Cases",
       "matchedCases": "Matched Cases",
       "missingScripts": "Missing Scripts",
-      "matchRate": "Match Rate"
+      "matchRate": "Match Rate",
+      "passedCases": "Fully Matched Cases"
+    },
+    "validation": {
+      "taskStatus": "Validation Status",
+      "triggerTime": "Trigger Time",
+      "completedTime": "Completed Time",
+      "status": {
+        "COMPLETED": "Completed",
+        "RUNNING": "Running",
+        "PENDING": "Pending",
+        "FAILED": "Failed",
+        "UNKNOWN": "Unknown"
+      },
+      "noResult": "No Validation Result",
+      "noResultDescription": "Please click the validation button on the test case set management page to start validation",
+      "noCaseData": "No Case Data",
+      "noCaseDataDescription": "No case data in validation result",
+      "refresh": "Refresh Validation Result",
+      "export": "Export Validation Result",
+      "exportSuccess": "Export successful",
+      "exportFailed": "Export failed",
+      "noResultToExport": "No validation result to export",
+      "refreshResult": "Refresh Validation Result",
+      "table": {
+        "caseNumber": "Case Number",
+        "caseName": "Case Name",
+        "businessCategory": "Business Category",
+        "appName": "Application Name",
+        "scriptExists": "Script Exists",
+        "ruleExists": "Dependency Rule Exists",
+        "packageExists": "Dependency Package Exists",
+        "overallResult": "Overall Validation Result",
+        "action": "Action",
+        "details": "Details",
+        "paginationTotal": "Total {{total}} records"
+      },
+      "tooltip": {
+        "scriptPassed": "Script match passed",
+        "scriptFailed": "Script does not exist",
+        "rulePassed": "Preprocess rule validation passed",
+        "ruleFailed": "Preprocess rule does not exist",
+        "packagePassed": "Package validation passed",
+        "packageFailed": "Package does not exist",
+        "overallPassed": "Overall validation passed",
+        "overallFailed": "Overall validation failed"
+      },
+      "detailModal": {
+        "title": "Case Details - {{caseNumber}}",
+        "caseNumber": "Case Number",
+        "caseName": "Case Name",
+        "businessCategory": "Business Category",
+        "appName": "Application Name",
+        "scriptValidation": "Script Validation",
+        "ruleValidation": "Rule Validation",
+        "packageValidation": "Package Validation",
+        "overallResult": "Overall Validation Result",
+        "passed": "Passed",
+        "failed": "Failed",
+        "passedItems": "Passed Items",
+        "failedItems": "Failed Items"
+      }
     },
     "details": {
       "title": "Test Case Details",

@@ -1,12 +1,16 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+// 判断是否为开发环境
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 module.exports = {
   entry: './src/main.jsx',
   output: {
     path: path.resolve(__dirname, '../dialingtest-service/src/main/resources/static'),
     filename: 'bundle.js',
-    publicPath: '/dialingtest/',
+    // 开发环境使用根路径，生产环境使用 /dialingtest/
+    publicPath: isDevelopment ? '/' : '/dialingtest/',
   },
   module: {
     rules: [
@@ -40,7 +44,11 @@ module.exports = {
     contentBase: path.join(__dirname, 'public'),
     port: 4396,
     hot: true,
-    historyApiFallback: true,
+    publicPath: '/',
+    historyApiFallback: {
+      index: '/index.html',
+      disableDotRule: true,
+    },
     overlay: {
       errors: true,
       warnings: false,

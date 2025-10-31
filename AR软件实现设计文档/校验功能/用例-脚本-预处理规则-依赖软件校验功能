@@ -1,0 +1,1393 @@
+# 用例-脚本-预处理规则-依赖软件校验功能设计方案
+
+## 1 需求重述
+
+### 1.1 需求背景
+用例集管理模块支持上传包含用例和脚本的ZIP压缩包。为确保用例集的完整性和可用性，需要在用例集管理页面增加校验功能，对每个用例集进行全面的完整性校验，包括用例与脚本的匹配性、依赖的预处理规则和软件包的有效性等。
+
+### 1.2 需求功能介绍
+在用例集管理页面，针对每一个用例集，提供校验功能，对用例进行以下三个维度的校验：
+
+1. **用例编号与脚本文件名匹配校验**：检查用例编号是否对应存在相应的脚本文件
+2. **用例依赖的预处理规则存在性校验**：检查用例依赖的预处理规则是否在系统中存在
+3. **用例依赖的软件包存在性校验**：检查用例依赖的软件包是否在系统中存在
+
+校验结果需要在前端页面以直观的方式呈现，包括每个用例的校验状态、不匹配原因以及用例集的整体匹配率。
+
+## 2 功能实现分析
+
+### 2.1 功能点清单
+
+#### 2.1.1 用例编号与脚本文件名匹配校验功能
+#### 2.1.2 用例依赖预处理规则存在性校验功能
+#### 2.1.3 用例依赖软件包存在性校验功能
+#### 2.1.4 用例集校验结果汇总功能
+#### 2.1.5 校验结果前端展示功能
+
+### 2.2 功能点1：用例编号与脚本文件名匹配校验功能
+
+#### 详细描述
+
+**校验规则：**
+- 用例编号（case_number）与脚本文件名的匹配规则：用例编号 + ".py" = 脚本文件名
+- 一个用例对应一个脚本文件，是一对一的关系
+- 脚本文件必须位于用例集ZIP包的 `scripts/` 目录下
+- 脚本文件扩展名必须为 `.py`
+
+**校验逻辑：**
+1. 从用例集ZIP包中提取所有脚本文件名（scripts目录下的.py文件）
+2. 对每个用例的用例编号（case_number），构造期望的脚本文件名：`case_number + ".py"`
+3. 检查期望的脚本文件名是否存在于提取的脚本文件名列表中
+4. 如果不存在，则标记该用例的脚本匹配校验为不通过，记录不通过原因："用例编号[xxx]对应的脚本文件[xxx.py]不存在"
+
+**数据库表结构：**
+- 用例信息存储在 `test_case` 表中
+- `case_number` 字段：用例编号（VARCHAR(100)）
+- `script_exists` 字段：脚本存在标记（BOOLEAN），该字段在上传时已设置，但需要在校验时重新验证
+
+**算法流程图：**
+```
+开始
+  ↓
+获取用例集的所有用例列表
+  ↓
+从用例集ZIP包中提取脚本文件名列表
+  ↓
+遍历每个用例
+  ↓
+获取用例编号（case_number）
+  ↓
+构造期望的脚本文件名（case_number + ".py"）
+  ↓
+检查脚本文件名是否存在于脚本列表中
+  ↓
+如果不存在，标记校验不通过，记录原因
+  ↓
+如果存在，标记校验通过
+  ↓
+返回校验结果
+  ↓
+结束
+```
+
+**前后端交互序列图（PlantUML）- 触发校验任务（POST）**
+```
+@startuml
+actor User as U
+participant Frontend as FE
+participant Backend as BE
+participant ValidationService as VS
+participant TaskStore as TS
+participant ResultStore as RS
+
+U -> FE: 点击开始校验
+FE -> BE: POST /api/test-case-sets/{id}/validation\nHeaders: X-Username, X-Csrf-Token
+BE -> BE: 校验权限(ADMIN/OPERATOR)
+BE -> VS: 创建任务记录(PENDING, created_time)
+VS -> TS: insert(task)
+BE -> BE: 记录操作日志 VALIDATE(TEST_CASE_SET)
+BE <-- BE: 返回202 + taskId + estimatedTime
+... 异步执行 ...
+BE -> VS: submit async task
+VS -> TS: update status RUNNING, started_time
+VS -> VS: 执行完整校验
+VS -> RS: 保存校验结果(JSON)
+VS -> TS: update status COMPLETED, completed_time
+@enduml
+```
+
+**前后端交互序列图（PlantUML）- 获取校验结果（GET）**
+```
+@startuml
+actor User as U
+participant Frontend as FE
+participant Backend as BE
+participant TaskStore as TS
+participant ResultStore as RS
+
+U -> FE: 打开校验详情/点击刷新
+FE -> BE: GET /api/test-case-sets/{id}/validation\nHeaders: X-Csrf-Token (可选)
+BE -> RS: 查询结果
+alt 有结果
+  RS --> BE: 返回结果JSON
+  BE --> FE: 200 + ValidationResponse
+else 无结果
+  BE -> TS: 查询最新任务状态
+  alt 任务运行中
+    TS --> BE: status=RUNNING, progress
+    BE --> FE: 200 + {status: RUNNING, progress}
+  else 未找到
+    BE --> FE: 404 Not Found
+  end
+end
+@enduml
+```
+
+**函数伪代码：**
+```java
+public ValidationResult validateScriptMatch(TestCaseSet testCaseSet, List<TestCase> testCases) {
+    ValidationResult result = new ValidationResult();
+    
+    // 1. 从用例集ZIP包中提取脚本文件名列表
+    byte[] zipContent = testCaseSet.getFileContent();
+    List<String> scriptFileNames = archiveParseService.extractScriptFileNames(zipContent);
+    
+    // 2. 遍历每个用例进行校验
+    for (TestCase testCase : testCases) {
+        CaseValidationResult caseResult = new CaseValidationResult();
+        caseResult.setCaseNumber(testCase.getCaseNumber());
+        caseResult.setCaseName(testCase.getCaseName());
+        
+        // 3. 构造期望的脚本文件名
+        String expectedScriptFileName = testCase.getCaseNumber() + ".py";
+        
+        // 4. 检查脚本是否存在
+        if (scriptFileNames.contains(expectedScriptFileName)) {
+            caseResult.setScriptMatchValid(true);
+            caseResult.addValidReason("脚本文件匹配成功");
+        } else {
+            caseResult.setScriptMatchValid(false);
+            caseResult.addInvalidReason("用例编号[" + testCase.getCaseNumber() + 
+                "]对应的脚本文件[" + expectedScriptFileName + "]不存在");
+        }
+        
+        result.addCaseResult(caseResult);
+    }
+    
+    return result;
+}
+```
+
+### 2.3 功能点2：用例依赖预处理规则存在性校验功能
+
+#### 详细描述
+
+**校验规则：**
+- 一个用例可以依赖多个预处理规则
+- 多个预处理规则之间使用逗号（,）分隔
+- 每个预处理规则名称需要在 `preprocess_rules` 表中存在
+- 预处理规则的唯一标识为：规则名称（rule_name）+ 业务类型（business_zh 或 business_en）。匹配优先级：优先按 `business_zh` 精确匹配；若 `business_zh` 为空或未匹配到，则按 `business_en` 精确匹配；若两者均不可用或均未匹配，视为不存在。
+- 只要有一个预处理规则不存在，该用例的预处理规则校验即不通过
+
+**校验逻辑：**
+1. 获取用例的依赖预处理规则字段（dependencies_rule），为TEXT类型
+2. 如果字段为空或null，则跳过该校验项（视为校验通过）
+3. 按逗号分隔解析预处理规则名称列表
+4. 对每个预处理规则名称：
+   - 去除首尾空格
+   - 读取用例集的业务类型：`business_zh` 与 `business_en`
+   - 优先查询 `preprocess_rules` 表是否存在满足 `rule_name = 规则名称 AND business_zh = 用例集.business_zh` 的记录；
+   - 若未命中且 `business_en` 可用，再查询是否存在满足 `rule_name = 规则名称 AND business_en = 用例集.business_en` 的记录；
+   - 若两次查询均未命中，则记录该规则不存在
+5. 如果存在不存在的规则，标记该用例的预处理规则校验为不通过，记录所有不存在的规则名称
+6. 如果所有规则都存在，标记校验通过
+
+**数据库表结构：**
+- 用例信息：`test_case` 表的 `dependencies_rule` 字段（TEXT类型）
+- 用例集信息：`test_case_set` 表的 `business_zh` 与 `business_en` 字段（VARCHAR(50)）
+- 预处理规则表：`preprocess_rules`
+  - `rule_name` 字段：规则名称（VARCHAR(200)）
+  - `business_zh` 字段：业务类型中文名称（VARCHAR(100)）
+  - `business_en` 字段：业务类型英文名称（VARCHAR(100)）
+  - 唯一约束：`uk_rule_name_business` (rule_name, business_zh)；英文同样满足查询条件，但唯一性以中文组合键为准
+
+**算法流程图：**
+```
+开始
+  ↓
+获取用例的dependencies_rule字段
+  ↓
+判断字段是否为空
+  ↓
+如果为空，跳过校验（视为通过）
+  ↓
+如果非空，按逗号分隔解析规则名称列表
+  ↓
+遍历每个规则名称
+  ↓
+去除首尾空格
+  ↓
+查询preprocess_rules表
+  ↓
+检查规则是否存在
+  ↓
+记录不存在的规则名称
+  ↓
+如果有不存在的规则，标记校验不通过，记录所有不存在规则
+  ↓
+如果所有规则都存在，标记校验通过
+  ↓
+返回校验结果
+  ↓
+结束
+```
+
+**函数伪代码：**
+```java
+public ValidationResult validatePreprocessRules(TestCaseSet testCaseSet, List<TestCase> testCases) {
+    ValidationResult result = new ValidationResult();
+    String businessZh = testCaseSet.getBusinessZh();
+    String businessEn = testCaseSet.getBusinessEn();
+    
+    // 遍历每个用例进行校验
+    for (TestCase testCase : testCases) {
+        CaseValidationResult caseResult = result.getCaseResult(testCase.getCaseNumber());
+        
+        String dependenciesRule = testCase.getDependenciesRule();
+        
+        // 如果依赖规则为空，跳过校验
+        if (dependenciesRule == null || dependenciesRule.trim().isEmpty()) {
+            caseResult.setPreprocessRuleValid(true);
+            continue;
+        }
+        
+        // 按逗号分隔解析规则名称列表
+        String[] ruleNames = dependenciesRule.split(",");
+        List<String> missingRules = new ArrayList<>();
+        
+        // 遍历每个规则名称进行校验（优先 zh，未命中回退 en）
+        for (String ruleName : ruleNames) {
+            ruleName = ruleName.trim();
+            if (ruleName.isEmpty()) {
+                continue;
+            }
+            
+            PreprocessRule rule = null;
+            if (businessZh != null && !businessZh.trim().isEmpty()) {
+                rule = preprocessRuleDao.findByRuleNameAndBusinessZh(ruleName, businessZh);
+            }
+            if (rule == null && businessEn != null && !businessEn.trim().isEmpty()) {
+                rule = preprocessRuleDao.findByRuleNameAndBusinessEn(ruleName, businessEn);
+            }
+            if (rule == null) {
+                missingRules.add(ruleName);
+            }
+        }
+        
+        // 判断校验结果
+        if (missingRules.isEmpty()) {
+            caseResult.setPreprocessRuleValid(true);
+            caseResult.addValidReason("所有依赖的预处理规则均存在");
+        } else {
+            caseResult.setPreprocessRuleValid(false);
+            caseResult.addInvalidReason("以下预处理规则不存在：" + String.join(", ", missingRules));
+        }
+    }
+    
+    return result;
+}
+```
+
+### 2.4 功能点3：用例依赖软件包存在性校验功能
+
+#### 详细描述
+
+**校验规则：**
+- 一个用例可以依赖多个软件包
+- 多个软件包之间使用逗号（,）分隔
+- 每个软件包名称需要在 `software_package` 表中存在
+- 软件包的唯一标识为：软件包名称（software_name）
+- 只要有一个软件包不存在，该用例的软件包校验即不通过
+
+**校验逻辑：**
+1. 获取用例的依赖软件包字段（dependencies_package），为TEXT类型
+2. 如果字段为空或null，则跳过该校验项（视为校验通过）
+3. 按逗号分隔解析软件包名称列表
+4. 对每个软件包名称：
+   - 去除首尾空格
+   - 查询 `software_package` 表，条件：`software_name = 软件包名称`
+   - 如果查询结果为空，则记录该软件包不存在
+5. 如果存在不存在的软件包，标记该用例的软件包校验为不通过，记录所有不存在的软件包名称
+6. 如果所有软件包都存在，标记校验通过
+
+**数据库表结构：**
+- 用例信息：`test_case` 表的 `dependencies_package` 字段（TEXT类型）
+- 软件包表：`software_package`
+  - `software_name` 字段：软件包名称（VARCHAR(255)）
+  - 唯一约束：`uk_software_package_software_name` (software_name)
+
+**算法流程图：**
+```
+开始
+  ↓
+获取用例的dependencies_package字段
+  ↓
+判断字段是否为空
+  ↓
+如果为空，跳过校验（视为通过）
+  ↓
+如果非空，按逗号分隔解析软件包名称列表
+  ↓
+遍历每个软件包名称
+  ↓
+去除首尾空格
+  ↓
+查询software_package表
+  ↓
+检查软件包是否存在
+  ↓
+记录不存在的软件包名称
+  ↓
+如果有不存在的软件包，标记校验不通过，记录所有不存在软件包
+  ↓
+如果所有软件包都存在，标记校验通过
+  ↓
+返回校验结果
+  ↓
+结束
+```
+
+**函数伪代码：**
+```java
+public ValidationResult validateSoftwarePackages(List<TestCase> testCases) {
+    ValidationResult result = new ValidationResult();
+    
+    // 遍历每个用例进行校验
+    for (TestCase testCase : testCases) {
+        CaseValidationResult caseResult = result.getCaseResult(testCase.getCaseNumber());
+        
+        String dependenciesPackage = testCase.getDependenciesPackage();
+        
+        // 如果依赖软件包为空，跳过校验
+        if (dependenciesPackage == null || dependenciesPackage.trim().isEmpty()) {
+            caseResult.setSoftwarePackageValid(true);
+            continue;
+        }
+        
+        // 按逗号分隔解析软件包名称列表
+        String[] packageNames = dependenciesPackage.split(",");
+        List<String> missingPackages = new ArrayList<>();
+        
+        // 遍历每个软件包名称进行校验
+        for (String packageName : packageNames) {
+            packageName = packageName.trim();
+            if (packageName.isEmpty()) {
+                continue;
+            }
+            
+            // 查询软件包是否存在
+            SoftwarePackage softwarePackage = softwarePackageDao.findBySoftwareName(packageName);
+            if (softwarePackage == null) {
+                missingPackages.add(packageName);
+            }
+        }
+        
+        // 判断校验结果
+        if (missingPackages.isEmpty()) {
+            caseResult.setSoftwarePackageValid(true);
+            caseResult.addValidReason("所有依赖的软件包均存在");
+        } else {
+            caseResult.setSoftwarePackageValid(false);
+            caseResult.addInvalidReason("以下软件包不存在：" + String.join(", ", missingPackages));
+        }
+    }
+    
+    return result;
+}
+```
+
+### 2.5 功能点4：用例集校验结果汇总功能
+
+#### 详细描述
+
+**汇总规则：**
+1. **单个用例校验结果判断：**
+   - 一个用例的三个校验项（脚本匹配、预处理规则、软件包）中，只要有一个不通过，则该用例校验不通过
+   - 只有三个校验项全部通过，该用例才算校验通过
+
+2. **用例集匹配率计算：**
+   - 匹配率 = （校验通过的用例数）/ 用例总数
+   - 匹配率以百分比形式表示，保留两位小数
+   - 如果用例总数为0，则匹配率为0%
+
+3. **校验结果统计：**
+   - 总用例数：用例集中包含的用例总数
+   - 校验通过的用例数：三个校验项全部通过的用例数
+   - 校验不通过的用例数：至少一个校验项不通过的用例数
+   - 各校验项不通过的用例数统计（可选）
+
+**数据结构：**
+```java
+public class ValidationResult {
+    private Long testCaseSetId;
+    private String testCaseSetName;
+    private String testCaseSetVersion;
+    private String businessZh;              // 用例集业务类型（中文）
+    private String businessEn;              // 用例集业务类型（英文）
+    private int totalCaseCount;              // 总用例数
+    private int passedCaseCount;             // 校验通过的用例数
+    private int failedCaseCount;             // 校验不通过的用例数
+    private double matchRate;                // 匹配率（0.00-100.00）
+    private List<CaseValidationResult> caseResults;  // 每个用例的校验结果
+}
+
+public class CaseValidationResult {
+    private String caseNumber;               // 用例编号
+    private String caseName;                 // 用例名称
+    private boolean scriptMatchValid;        // 脚本匹配校验结果
+    private boolean preprocessRuleValid;     // 预处理规则校验结果
+    private boolean softwarePackageValid;    // 软件包校验结果
+    private boolean overallValid;            // 整体校验结果
+    private List<String> validReasons;       // 校验通过的原因（详细记录每个依赖项的存在状态）
+    private List<String> invalidReasons;     // 校验不通过的原因（详细记录每个依赖项的不存在状态）
+}
+
+/**
+ * 校验原因记录说明：
+ * 
+ * 1. 脚本匹配校验：
+ *    - 通过：记录 "脚本[脚本文件名.py]存在"
+ *    - 不通过：记录 "脚本[脚本文件名.py]不存在"
+ * 
+ * 2. 预处理规则校验（针对每个规则分别记录）：
+ *    - 存在：记录 "预处理规则[规则名称]存在"
+ *    - 不存在：记录 "预处理规则[规则名称]不存在"
+ *    - 示例：用例依赖"预处理规则1,预处理规则2"，规则1不存在，规则2存在
+ *            validReasons: ["预处理规则[预处理规则2]存在"]
+ *            invalidReasons: ["预处理规则[预处理规则1]不存在"]
+ * 
+ * 3. 软件包校验（针对每个软件包分别记录）：
+ *    - 存在：记录 "软件包[软件包名称]存在"
+ *    - 不存在：记录 "软件包[软件包名称]不存在"
+ *    - 示例：用例依赖"软件包1,软件包2"，软件包1存在，软件包2不存在
+ *            validReasons: ["软件包[软件包1]存在"]
+ *            invalidReasons: ["软件包[软件包2]不存在"]
+ * 
+ * 存储策略：
+ * - 每个用例的校验结果存储在CaseValidationResult中
+ * - 所有用例的校验结果存储在ValidationResult.caseResults列表中
+ * - 整个ValidationResult以JSON格式存储在test_case_set_validation_result表中
+ * - 不需要为每个用例单独创建数据库记录，所有用例结果统一存储在一个JSON中
+ */
+```
+
+**算法流程图：**
+```
+开始
+  ↓
+执行脚本匹配校验
+  ↓
+执行预处理规则校验
+  ↓
+执行软件包校验
+  ↓
+汇总每个用例的校验结果
+  ↓
+计算整体校验结果（三个校验项全部通过才算通过）
+  ↓
+统计总用例数、通过数、不通过数
+  ↓
+计算匹配率 = (通过数 / 总数) * 100
+  ↓
+返回汇总结果
+  ↓
+结束
+```
+
+**函数伪代码：**
+```java
+public ValidationResult validateTestCaseSet(Long testCaseSetId) {
+    // 1. 获取用例集信息
+    TestCaseSet testCaseSet = testCaseSetDao.findById(testCaseSetId);
+    if (testCaseSet == null) {
+        throw new NotFoundException("用例集不存在");
+    }
+    
+    // 2. 获取用例列表
+    List<TestCase> testCases = testCaseDao.findByTestCaseSetId(testCaseSetId);
+    
+    // 3. 创建校验结果对象
+    ValidationResult result = new ValidationResult();
+    result.setTestCaseSetId(testCaseSetId);
+    result.setTestCaseSetName(testCaseSet.getName());
+    result.setTestCaseSetVersion(testCaseSet.getVersion());
+    result.setTotalCaseCount(testCases.size());
+    result.setBusinessZh(testCaseSet.getBusinessZh());
+    result.setBusinessEn(testCaseSet.getBusinessEn());
+    
+    // 4. 执行各项校验
+    ValidationResult scriptResult = validateScriptMatch(testCaseSet, testCases);
+    ValidationResult ruleResult = validatePreprocessRules(testCaseSet, testCases);
+    ValidationResult packageResult = validateSoftwarePackages(testCases);
+    
+    // 5. 汇总每个用例的校验结果
+    int passedCount = 0;
+    int failedCount = 0;
+    
+    for (TestCase testCase : testCases) {
+        CaseValidationResult caseResult = new CaseValidationResult();
+        caseResult.setCaseNumber(testCase.getCaseNumber());
+        caseResult.setCaseName(testCase.getCaseName());
+        
+        // 获取各项校验结果
+        CaseValidationResult scriptCase = scriptResult.getCaseResult(testCase.getCaseNumber());
+        CaseValidationResult ruleCase = ruleResult.getCaseResult(testCase.getCaseNumber());
+        CaseValidationResult packageCase = packageResult.getCaseResult(testCase.getCaseNumber());
+        
+        caseResult.setScriptMatchValid(scriptCase.isScriptMatchValid());
+        caseResult.setPreprocessRuleValid(ruleCase.isPreprocessRuleValid());
+        caseResult.setSoftwarePackageValid(packageCase.isSoftwarePackageValid());
+        
+        // 合并校验原因
+        caseResult.addAllValidReasons(scriptCase.getValidReasons());
+        caseResult.addAllValidReasons(ruleCase.getValidReasons());
+        caseResult.addAllValidReasons(packageCase.getValidReasons());
+        caseResult.addAllInvalidReasons(scriptCase.getInvalidReasons());
+        caseResult.addAllInvalidReasons(ruleCase.getInvalidReasons());
+        caseResult.addAllInvalidReasons(packageCase.getInvalidReasons());
+        
+        // 判断整体校验结果（三个校验项全部通过才算通过）
+        boolean overallValid = caseResult.isScriptMatchValid() 
+            && caseResult.isPreprocessRuleValid() 
+            && caseResult.isSoftwarePackageValid();
+        caseResult.setOverallValid(overallValid);
+        
+        if (overallValid) {
+            passedCount++;
+        } else {
+            failedCount++;
+        }
+        
+        result.addCaseResult(caseResult);
+    }
+    
+    // 6. 计算匹配率
+    result.setPassedCaseCount(passedCount);
+    result.setFailedCaseCount(failedCount);
+    if (testCases.size() > 0) {
+        result.setMatchRate((double) passedCount / testCases.size() * 100);
+    } else {
+        result.setMatchRate(0.0);
+    }
+    
+    return result;
+}
+```
+
+### 2.6 功能点5：校验任务异步处理功能
+
+#### 详细描述
+
+**设计目标：**
+- 解决大量用例校验耗时问题，避免前端请求超时
+- 提供任务状态跟踪机制
+- 支持任务取消（可选）
+
+**权限控制：**
+- 只有拥有 **ADMIN** 或 **OPERATOR** 角色的用户才能触发校验
+- 在POST接口中检查用户权限，无权限时返回403 Forbidden
+- 权限检查逻辑：通过UserRoleService查询用户角色，验证是否包含ADMIN或OPERATOR
+
+**操作记录：**
+- 触发校验操作必须记录到操作记录模块
+- 操作类型：`VALIDATE`（如不存在，需要在operation_types表中新增：`INSERT INTO operation_types (code, name_zh, name_en) VALUES ('VALIDATE', '校验', 'Validate');`）
+- 操作目标：`TEST_CASE_SET`
+- 记录内容：用例集ID、用例集名称、版本、操作用户名
+- 使用OperationLogUtil的logTestCaseSetValidation方法记录
+- 记录时机：在创建任务记录后、提交异步任务前记录操作日志
+
+**OperationLogUtil新增方法：**
+```java
+/**
+ * 记录用例集校验操作
+ *
+ * @param operatorUsername 操作用户名
+ * @param testCaseSet 用例集信息
+ */
+public void logTestCaseSetValidation(String operatorUsername, TestCaseSet testCaseSet) {
+    logOperation(operatorUsername, "VALIDATE", "TEST_CASE_SET",
+        "校验用例集: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+        "Validate test case set: " + testCaseSet.getName() + " v" + testCaseSet.getVersion(),
+        builder -> builder.testCaseSetValidation(testCaseSet),
+        "Logged test case set validation: " + testCaseSet.getName() + " v" + testCaseSet.getVersion() + " by user: " + operatorUsername);
+}
+```
+
+**任务处理流程：**
+
+1. **任务提交阶段：**
+   - 用户在前端点击"开始校验"按钮
+   - 前端调用 POST `/api/test-case-sets/{id}/validation`（需要X-Username请求头）
+   - 后端检查用户权限（ADMIN或OPERATOR）
+   - 后端创建校验任务记录，返回任务ID（202状态码）
+   - 记录操作日志到operation_logs表
+   - 后台异步线程池执行校验任务
+
+2. **任务执行阶段：**
+   - 后台线程执行完整的校验流程
+   - 更新任务状态：PENDING → RUNNING → COMPLETED/FAILED
+   - 设置started_time：状态更新为RUNNING时记录开始时间
+   - 设置completed_time：状态更新为COMPLETED或FAILED时记录完成时间
+   - 实时更新任务进度（可选）
+   - 校验完成后，将结果保存到数据库
+
+3. **结果获取阶段：**
+   - 前端通过 GET `/api/test-case-sets/{id}/validation` 查询结果
+   - 如果任务未完成，返回任务状态信息
+   - 如果任务已完成，返回完整的校验结果
+
+**数据库表设计：**
+
+```sql
+-- 校验任务表
+CREATE TABLE test_case_set_validation_task (
+    id BIGSERIAL PRIMARY KEY,
+    test_case_set_id BIGINT NOT NULL,
+    task_id VARCHAR(64) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    progress INTEGER DEFAULT 0,
+    started_time TIMESTAMP,
+    completed_time TIMESTAMP,
+    error_message TEXT,
+    created_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_test_case_set_validation_task FOREIGN KEY (test_case_set_id) 
+        REFERENCES test_case_set(id) ON DELETE CASCADE,
+    CONSTRAINT chk_task_status CHECK (status IN ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED'))
+);
+
+CREATE INDEX idx_validation_task_test_case_set_id ON test_case_set_validation_task(test_case_set_id);
+CREATE INDEX idx_validation_task_task_id ON test_case_set_validation_task(task_id);
+CREATE INDEX idx_validation_task_status ON test_case_set_validation_task(status);
+```
+
+**时间字段说明：**
+- `created_time`：任务创建时间，必需。记录任务何时被创建和提交。
+- `started_time`：任务开始执行时间，可选。用于计算任务排队等待时间（started_time - created_time）。当任务状态更新为RUNNING时设置。
+- `completed_time`：任务完成时间，必需。用于计算任务执行耗时（completed_time - started_time）。当任务状态更新为COMPLETED或FAILED时设置。
+- `estimated_time`：预估耗时字段已删除，改为在返回响应时根据用例数动态计算（估算公式：用例数 * 0.1秒），无需持久化存储。
+
+-- 校验结果表（存储完整的校验结果JSON）
+CREATE TABLE test_case_set_validation_result (
+    id BIGSERIAL PRIMARY KEY,
+    test_case_set_id BIGINT NOT NULL UNIQUE,
+    task_id VARCHAR(64) NOT NULL,
+    validation_result JSONB NOT NULL,
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_test_case_set_validation_result FOREIGN KEY (test_case_set_id) 
+        REFERENCES test_case_set(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_validation_result_test_case_set_id ON test_case_set_validation_result(test_case_set_id);
+CREATE INDEX idx_validation_result_task_id ON test_case_set_validation_result(task_id);
+```
+
+**存储策略说明：**
+- **不单独存储**：不需要为每个用例单独创建数据库记录
+- **统一存储**：所有用例的校验结果统一存储在 `test_case_set_validation_result` 表的 `validation_result` 字段（JSONB格式）
+- **详细记录**：每个用例的 `CaseValidationResult` 中包含详细的校验原因：
+  - `validReasons`：记录每个存在的依赖项（如："脚本[TC001.py]存在"、"软件包[软件包1]存在"、"预处理规则[规则2]存在"）
+  - `invalidReasons`：记录每个不存在的依赖项（如："脚本[TC001.py]不存在"、"软件包[软件包2]不存在"、"预处理规则[规则1]不存在"）
+- **查询方式**：通过用例集ID查询，获取完整的校验结果JSON，包含所有用例的详细校验信息
+
+**数据库初始化脚本（操作类型枚举）：**
+```sql
+-- 在operation_types表中新增VALIDATE操作类型（如果不存在）
+INSERT INTO operation_types (code, name_zh, name_en, description_zh, description_en) 
+VALUES ('VALIDATE', '校验', 'Validate', '执行校验操作', 'Perform validation operation')
+ON CONFLICT (code) DO NOTHING;
+```
+
+**算法流程图：**
+```
+开始（POST请求，包含X-Username）
+  ↓
+检查用户权限（ADMIN或OPERATOR）
+  ↓
+如果无权限，返回403 Forbidden
+  ↓
+检查用例集是否存在
+  ↓
+如果不存在，返回404 Not Found
+  ↓
+生成任务ID（UUID）
+  ↓
+创建任务记录（状态：PENDING，created_time）
+  ↓
+记录操作日志到operation_logs表
+  ↓
+提交任务到异步线程池
+  ↓
+返回202响应（包含任务ID和预估时间）
+  ↓
+（异步执行）
+  ↓
+更新任务状态为RUNNING，设置started_time
+  ↓
+执行校验流程
+  ↓
+保存校验结果到数据库
+  ↓
+更新任务状态为COMPLETED，设置completed_time
+  ↓
+结束
+```
+
+**函数伪代码：**
+```java
+// 提交校验任务
+public ValidationTaskResponse triggerValidation(Long testCaseSetId, String operatorUsername) {
+    // 1. 检查用户权限（ADMIN或OPERATOR）
+    List<String> userRoles = userRoleService.getUserRolesByUsername(operatorUsername);
+    if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
+        throw new ForbiddenException("权限不足，只有管理员和操作员可以触发校验");
+    }
+    
+    // 2. 验证用例集存在
+    TestCaseSet testCaseSet = testCaseSetDao.findById(testCaseSetId);
+    if (testCaseSet == null) {
+        throw new NotFoundException("Test case set not found");
+    }
+    
+    // 3. 生成任务ID
+    String taskId = UUID.randomUUID().toString();
+    
+    // 4. 创建任务记录
+    ValidationTask task = new ValidationTask();
+    task.setTestCaseSetId(testCaseSetId);
+    task.setTaskId(taskId);
+    task.setStatus("PENDING");
+    task.setCreatedTime(LocalDateTime.now());
+    validationTaskDao.insert(task);
+    
+    // 5. 记录操作日志
+    operationLogUtil.logTestCaseSetValidation(operatorUsername, testCaseSet);
+    
+    // 6. 提交异步任务
+    executorService.submit(() -> {
+        executeValidationTask(testCaseSetId, taskId);
+    });
+    
+    // 7. 计算预估时间（根据用例数，每个用例约0.1秒）
+    int caseCount = testCaseDao.countByTestCaseSetId(testCaseSetId);
+    int estimatedTime = Math.max(1, caseCount / 10); // 至少1秒
+    
+    // 8. 返回任务信息
+    ValidationTaskResponse response = new ValidationTaskResponse();
+    response.setTaskId(taskId);
+    response.setTestCaseSetId(testCaseSetId);
+    response.setStatus("PENDING");
+    response.setEstimatedTime(estimatedTime);
+    
+    return response;
+}
+
+// 异步执行校验任务
+private void executeValidationTask(Long testCaseSetId, String taskId) {
+    try {
+        // 1. 更新任务状态为RUNNING，记录开始时间
+        LocalDateTime startedTime = LocalDateTime.now();
+        updateTaskStatus(taskId, "RUNNING", startedTime);
+        
+        // 2. 执行完整校验
+        ValidationResult result = validateTestCaseSet(testCaseSetId);
+        
+        // 3. 保存校验结果
+        saveValidationResult(testCaseSetId, taskId, result);
+        
+        // 4. 更新任务状态为COMPLETED，记录完成时间
+        LocalDateTime completedTime = LocalDateTime.now();
+        updateTaskStatus(taskId, "COMPLETED", completedTime);
+        
+    } catch (Exception e) {
+        // 5. 更新任务状态为FAILED，记录完成时间和错误信息
+        LocalDateTime completedTime = LocalDateTime.now();
+        updateTaskStatus(taskId, "FAILED", completedTime, e.getMessage());
+    }
+}
+```
+
+### 2.7 功能点6：校验结果存储与查询功能
+
+#### 详细描述
+
+**功能说明：**
+- 将校验结果以JSON格式存储到数据库
+- 提供查询接口获取最新的校验结果
+- 支持查询任务状态
+
+**查询逻辑：**
+
+1. **获取校验结果：**
+   - GET `/api/test-case-sets/{id}/validation`
+   - 查询 `test_case_set_validation_result` 表获取最新结果
+   - 如果结果不存在，返回404或任务状态信息
+
+2. **查询任务状态：**
+   - 如果任务正在执行，返回任务状态（RUNNING）和进度
+   - 如果任务已完成，返回完整的校验结果
+   - 如果任务失败，返回错误信息
+
+**HTTP 状态码设计说明（为什么POST返回202而不是200）：**
+
+- 采用异步架构（方案二）：POST 仅“触发”校验任务，实际计算在后台进行，此时业务动作未完成但请求已被接受，使用 202 Accepted 最符合 REST 语义。
+- GET 用于“获取结果/状态”，当结果可用时返回 200 OK + 完整 `ValidationResponse`；当任务进行中时返回 200 OK 并带 `status` 字段（RUNNING/PENDING）。
+- 可选策略（不改默认行为）：
+  - 智能降级：POST 端点可短暂等待（如1-2s）。若在超时内任务完成，则直接 200 + `ValidationResponse`；否则返回 202 + `ValidationTaskResponse`。该策略仅在极少量用例场景改善体验，但会引入阻塞，默认不启用。
+  - 强制 200：POST 始终返回 200，但只携带任务信息。这与 Accepted 语义不一致，不推荐。
+
+综上，本设计默认：POST 返回 202 + `ValidationTaskResponse`（taskId、status、estimatedTime），GET 返回 200 + `ValidationResponse`（完整结果）。
+
+**函数伪代码：**
+```java
+public ValidationResponse getValidationResult(Long testCaseSetId) {
+    // 1. 检查是否存在校验结果
+    ValidationResultEntity resultEntity = validationResultDao.findByTestCaseSetId(testCaseSetId);
+    
+    if (resultEntity != null) {
+        // 2. 返回存储的校验结果
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(true);
+        response.setMessage("获取校验结果成功");
+        response.setData(parseValidationResult(resultEntity.getValidationResult()));
+        return response;
+    }
+    
+    // 3. 检查是否有正在执行的任务
+    ValidationTask task = validationTaskDao.findLatestByTestCaseSetId(testCaseSetId);
+    if (task != null && ("PENDING".equals(task.getStatus()) || "RUNNING".equals(task.getStatus()))) {
+        // 4. 返回任务状态
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(true);
+        response.setMessage("校验任务正在执行中");
+        // 可以返回任务状态信息
+        return response;
+    }
+    
+    // 5. 没有结果，返回404
+    throw new NotFoundException("Validation result not found");
+}
+```
+
+### 2.8 功能点7：校验结果前端展示功能
+
+#### 详细描述
+
+**展示内容：**
+
+1. **用例集级别统计信息：**
+   - 用例集名称和版本
+   - 总用例数
+   - 校验通过的用例数
+   - 校验不通过的用例数
+   - 匹配率（百分比形式，如：85.71%）
+
+2. **用例级别详细信息：**
+   - 用例编号、用例名称
+   - 整体校验状态（通过/不通过）
+   - 各项校验状态：
+     - 脚本匹配校验状态及原因
+     - 预处理规则校验状态及原因
+     - 软件包校验状态及原因
+   - 校验不通过的具体原因列表
+
+3. **展示方式：**
+   - 匹配率以进度条或百分比数字形式展示
+   - 用例列表以表格形式展示，支持分页
+   - 校验通过的用例显示绿色标识，不通过的显示红色标识
+   - 点击用例可查看详细的校验信息和原因
+   - 支持导出校验报告（可选）
+
+**API接口设计：**
+
+1. **POST `/api/test-case-sets/{id}/validation` - 触发校验任务**
+   - 请求头：
+     - `X-Username`：操作用户名（必需，用于权限检查和操作记录）
+     - `X-Csrf-Token`：CSRF防护令牌（必需）
+   - 请求：无请求体
+   - 权限要求：仅ADMIN和OPERATOR角色可以触发
+   - 响应（202 Accepted）：
+   ```json
+   {
+     "success": true,
+     "message": "校验任务已提交",
+     "data": {
+       "taskId": "550e8400-e29b-41d4-a716-446655440000",
+       "testCaseSetId": 1,
+       "status": "PENDING",
+       "estimatedTime": 30
+     }
+   }
+   ```
+
+2. **GET `/api/test-case-sets/{id}/validation` - 获取校验结果**
+   - 请求头：
+     - `X-Csrf-Token`：CSRF防护令牌（可选，若服务端开启校验则必需）
+   - 查询参数：无
+   - 响应（200 OK）：
+   ```json
+   {
+     "success": true,
+     "message": "获取校验结果成功",
+     "data": {
+       "testCaseSetId": 1,
+       "testCaseSetName": "短视频采集",
+       "testCaseSetVersion": "v0.1",
+       "businessZh": "VPN阻断",
+       "businessEn": "VPN_BLOCK",
+       "totalCaseCount": 100,
+       "passedCaseCount": 85,
+       "failedCaseCount": 15,
+       "matchRate": 85.00,
+       "caseResults": [
+         {
+           "caseNumber": "TC001",
+           "caseName": "用例1",
+           "scriptMatchValid": true,
+           "preprocessRuleValid": true,
+           "softwarePackageValid": false,
+           "overallValid": false,
+           "validReasons": ["脚本文件匹配成功", "所有依赖的预处理规则均存在"],
+           "invalidReasons": ["以下软件包不存在：PackageA, PackageB"]
+         }
+       ]
+     }
+   }
+   ```
+   - 响应（如果任务正在执行）：
+   ```json
+   {
+     "success": true,
+     "message": "校验任务正在执行中",
+     "data": {
+       "taskId": "550e8400-e29b-41d4-a716-446655440000",
+       "status": "RUNNING",
+       "progress": 45
+     }
+   }
+   ```
+
+## 3 AR开发者测试设计
+
+### 3.1 被测对象分析
+
+#### 3.1.1 Service层测试对象
+- **TestCaseValidationService类**（新建）
+  - `validateTestCaseSet(Long testCaseSetId)` - 执行用例集完整校验
+  - `validateScriptMatch(TestCaseSet testCaseSet, List<TestCase> testCases)` - 脚本匹配校验
+  - `validatePreprocessRules(TestCaseSet testCaseSet, List<TestCase> testCases)` - 预处理规则校验
+  - `validateSoftwarePackages(List<TestCase> testCases)` - 软件包校验
+  - `calculateMatchRate(int passedCount, int totalCount)` - 计算匹配率
+
+#### 3.1.2 Controller层测试对象
+- **TestCaseSetController类**（扩展）
+  - `POST /api/test-case-sets/{id}/validation` - 触发校验任务
+  - `GET /api/test-case-sets/{id}/validation` - 获取用例集校验结果
+
+#### 3.1.3 DAO层测试对象
+- **PreprocessRuleDao类**（扩展）
+  - `findByRuleNameAndBusinessZh(String ruleName, String businessZh)` - 根据规则名称和中文业务类型查询
+  - `findByRuleNameAndBusinessEn(String ruleName, String businessEn)` - 根据规则名称和英文业务类型查询
+- **SoftwarePackageDao类**（扩展）
+  - `getSoftwarePackageByName(String softwareName)` - 根据软件包名称查询
+- **ValidationTaskDao类**（新建）
+  - `insert(ValidationTask task)` - 插入校验任务
+  - `updateStatus(String taskId, String status)` - 更新任务状态
+  - `findLatestByTestCaseSetId(Long testCaseSetId)` - 查询最新的任务
+- **ValidationResultDao类**（新建）
+  - `save(Long testCaseSetId, String taskId, ValidationResult result)` - 保存校验结果
+  - `findByTestCaseSetId(Long testCaseSetId)` - 查询校验结果
+
+### 3.2 测试因子分析
+
+#### 3.2.1 脚本匹配校验测试因子
+- **用例编号格式**：正常编号（TC001）、空编号、特殊字符编号
+- **脚本文件名**：存在匹配脚本、不存在脚本、 SYMLINK脚本、多脚本匹配
+- **脚本文件位置**：scripts目录下、其他目录下、根目录下
+- **脚本文件扩展名**：.py、.PY、无扩展名、其他扩展名
+
+#### 3.2.2 预处理规则校验测试因子
+- **依赖规则字段**：空字段、单个规则、多个规则、包含空格的规则
+- **规则名称格式**：正常名称、空名称、不存在规则、特殊字符名称
+- **业务类型匹配（中英文）**：
+  - 仅 business_zh 有值并匹配
+  - 仅 business_en 有值并匹配（zh 为空时回退生效）
+  - business_zh 与 business_en 均有值但仅 zh 匹配
+  - business_zh 与 business_en 均有值但仅 en 匹配
+  - business_zh 与 business_en 均不匹配
+  - 两者均为空
+- **规则分隔符**：逗号分隔、分号分隔、空格分隔、混合分隔符
+
+#### 3.2.3 软件包校验测试因子
+- **依赖软件包字段**：空字段、单个软件包、多个软件包、包含空格的软件包
+- **软件包名称格式**：正常名称、空名称、不存在软件包、特殊字符名称
+- **软件包分隔符**：逗号分隔、分号分隔、空格分隔、混合分隔符
+
+#### 3.2.4 异常场景测试因子
+- **数据库异常**：连接失败、查询超时、数据不存在
+- **用例集不存在**：无效ID、已删除用例集、空用例集
+- **用例数据异常**：用例编号为空、依赖字段格式错误、大量用例性能测试
+
+### 3.3 测试用例设计列表
+
+#### 3.3.1 TestCaseValidationService测试用例（20个）
+
+| 测试用例ID | 测试方法名 | 测试场景 | 测试描述 |
+|------------|------------|----------|----------|
+| TC_VALIDATION_001 | testValidateScriptMatch_Success | 正常场景 | 脚本匹配校验成功，所有用例都有对应脚本 |
+| TC_VALIDATION_002 | testValidateScriptMatch_MissingScript | 异常场景 | 脚本匹配校验失败，部分用例缺少脚本 |
+| TC_VALIDATION_003 | testValidateScriptMatch_EmptyCaseNumber | 异常场景 | 用例编号为空时的脚本匹配校验 |
+| TC_VALIDATION_004 | testValidatePreprocessRules_Success | 正常场景 | 预处理规则校验成功，所有规则均存在 |
+| TC_VALIDATION_005 | testValidatePreprocessRules_MissingRule | 异常场景 | 预处理规则校验失败，部分规则不存在 |
+| TC_VALIDATION_006 | testValidatePreprocessRules_EmptyDependencies | 正常场景 | 依赖规则字段为空时的校验处理 |
+| TC_VALIDATION_007 | testValidatePreprocessRules_MultipleRules | 正常场景 | 多个预处理规则的校验 |
+| TC_VALIDATION_008 | testValidatePreprocessRules_BusinessMismatch | 异常场景 | 业务类型不匹配的预处理规则校验 |
+| TC_VALIDATION_009 | testValidateSoftwarePackages_Success | 正常场景 | 软件包校验成功，所有软件包均存在 |
+| TC_VALIDATION_010 | testValidateSoftwarePackages_MissingPackage | 异常场景 | 软件包校验失败，部分软件包不存在 |
+| TC_VALIDATION_011 | testValidateSoftwarePackages_EmptyDependencies | 正常场景 | 依赖软件包字段为空时的校验处理 |
+| TC_VALIDATION_012 | testValidateSoftwarePackages_MultiplePackages | 正常场景 | 多个软件包的校验 |
+| TC_VALIDATION_013 | testValidateTestCaseSet_AllPassed | 正常场景 | 用例集校验全部通过 |
+| TC_VALIDATION_014 | testValidateTestCaseSet_PartialFailed | 正常场景 | 用例集校验部分失败 |
+| TC_VALIDATION_015 | testValidateTestCaseSet_AllFailed | 异常场景 | 用例集校验全部失败 |
+| TC_VALIDATION_016 | testValidateTestCaseSet_EmptyCaseSet | 边界场景 | 空用例集的校验 |
+| TC_VALIDATION_017 | testCalculateMatchRate_AllPassed | 正常场景 | 匹配率计算，100%通过 |
+| TC_VALIDATION_018 | testCalculateMatchRate_PartialPassed | 正常场景 | 匹配率计算，部分通过 |
+| TC_VALIDATION_019 | testCalculateMatchRate_NoCases | 边界场景 | 匹配率计算，用例数为0 |
+| TC_VALIDATION_020 | testValidateTestCaseSet_NotFoundException | 异常场景 | 用例集不存在时的异常处理 |
+
+#### 3.3.2 TestCaseSetController测试用例（15个）
+
+| 测试用例ID | 测试方法名 | 测试场景 | 测试描述 |
+|------------|------------|----------|----------|
+| TC_CONTROLLER_001 | testTriggerValidation_Success | 正常场景 | ADMIN用户触发校验任务成功，返回202和任务ID |
+| TC_CONTROLLER_002 | testTriggerValidation_OperatorSuccess | 正常场景 | OPERATOR用户触发校验任务成功 |
+| TC_CONTROLLER_003 | testTriggerValidation_Forbidden | 异常场景 | BROWSER用户无权限触发校验，返回403 |
+| TC_CONTROLLER_004 | testTriggerValidation_NotFound | 异常场景 | 用例集不存在时返回404 |
+| TC_CONTROLLER_005 | testTriggerValidation_OperationLogged | 正常场景 | 触发校验后正确记录操作日志 |
+| TC_CONTROLLER_006 | testGetValidationResult_WithResult | 正常场景 | 获取已完成的校验结果成功 |
+| TC_CONTROLLER_007 | testGetValidationResult_TaskRunning | 正常场景 | 获取任务状态（正在执行） |
+| TC_CONTROLLER_008 | testGetValidationResult_NotFound | 异常场景 | 校验结果不存在时返回404 |
+| TC_CONTROLLER_009 | testAsyncTaskExecution_Success | 正常场景 | 异步任务执行成功，时间字段正确设置 |
+| TC_CONTROLLER_010 | testAsyncTaskExecution_Failure | 异常场景 | 异步任务执行失败，错误信息正确记录 |
+| TC_CONTROLLER_011 | testTaskStatusUpdate_Progress | 正常场景 | 任务状态正确更新（PENDING→RUNNING→COMPLETED）|
+| TC_CONTROLLER_012 | testTaskTimeFields_CreatedTime | 正常场景 | created_time在任务创建时正确设置 |
+| TC_CONTROLLER_013 | testTaskTimeFields_StartedTime | 正常场景 | started_time在任务开始执行时正确设置 |
+| TC_CONTROLLER_014 | testTaskTimeFields_CompletedTime | 正常场景 | completed_time在任务完成时正确设置 |
+
+### 3.4 测试用例实现说明
+
+- 使用JUnit 4 + Mockito框架
+- 每个测试方法遵循AAA模式（Arrange, Act, Assert）
+- 测试方法命名格式：`testMethodName_Scenario_ExpectedResult`
+- 每个测试方法不超过50行
+- 测试文件总行数不超过200行
+- 需要Mock的依赖：TestCaseSetDao, TestCaseDao, PreprocessRuleDao, SoftwarePackageDao, ArchiveParseService, ValidationTaskDao, ValidationResultDao, ExecutorService
+
+## 4 前端设计
+
+### 4.1 页面布局设计
+
+**校验页面位置：**
+- 在用例集管理列表页面，每个用例集行增加"校验"按钮
+- 点击"校验"按钮，打开校验结果弹窗或跳转到校验详情页
+
+**校验结果展示页面结构：**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  用例集校验结果：短视频采集 v0.1                      │
+├─────────────────────────────────────────────────────┤
+│                                                       │
+│  [开始校验] [刷新结果] [导出报告]                     │
+│                                                       │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ 统计信息                                      │   │
+│  │  总用例数：100                                │   │
+│  │  通过：85 | 不通过：15                        │   │
+│  │  匹配率：85.00% [进度条]                     │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                       │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ 用例列表（表格，支持分页）                     │   │
+│  │  用例编号 | 用例名称 | 脚本 | 规则 | 软件包 │   │
+│  │  TC001   | 用例1   | ✓    | ✓    | ✗      │   │
+│  │  TC002   | 用例2   | ✓    | ✓    | ✓      │   │
+│  │  ...                                        │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                       │
+└─────────────────────────────────────────────────────┘
+```
+
+### 4.2 交互流程设计
+
+#### 4.2.1 触发校验流程
+
+```
+用户点击"开始校验"按钮
+  ↓
+检查用户权限（ADMIN或OPERATOR）
+  ↓
+如果无权限，显示提示："只有管理员和操作员可以触发校验"，禁用按钮
+  ↓
+如果有权限，显示确认对话框："确定要开始校验吗？"
+  ↓
+用户确认
+  ↓
+禁用"开始校验"按钮，显示loading状态
+  ↓
+调用 POST /api/test-case-sets/{id}/validation（包含X-Username请求头）
+  ↓
+判断响应状态：
+  ├─ 202 Accepted：收到任务已提交
+  ├─ 403 Forbidden：显示权限不足提示
+  ├─ 404 Not Found：显示用例集不存在提示
+  └─ 500 Internal Server Error：显示服务器错误提示
+  ↓
+如果202响应，保存taskId
+  ↓
+显示任务状态提示："校验任务已提交，预计耗时30秒"
+  ↓
+启动轮询任务状态
+  ↓
+（轮询逻辑见4.3节）
+```
+
+#### 4.2.2 获取校验结果流程
+
+```
+页面加载或用户点击"刷新结果"
+  ↓
+调用 GET /api/test-case-sets/{id}/validation
+  ↓
+判断响应状态：
+  ├─ 如果返回完整结果 → 显示校验结果
+  ├─ 如果返回任务状态（RUNNING/PENDING） → 显示进度，继续轮询
+  └─ 如果404 → 显示"暂无校验结果，请先开始校验"
+  ↓
+渲染统计数据（匹配率、通过数等）
+  ↓
+渲染用例列表表格
+```
+
+### 4.3 轮询机制设计
+
+**设计目标：**
+- 在任务执行期间，自动轮询任务状态
+- 任务完成后，停止轮询并显示结果
+- 避免频繁请求导致服务器压力
+
+**实现方案：**
+
+```javascript
+// 轮询配置
+const POLLING_CONFIG = {
+  interval: 2000,        // 轮询间隔：2秒
+  maxAttempts: 300,      // 最大尝试次数：300次（10分钟超时）
+  backoffMultiplier: 1.1 // 退避倍数（可选，逐渐增加间隔）
+};
+
+// 轮询函数
+async function pollValidationResult(testCaseSetId, taskId) {
+  let attemptCount = 0;
+  let currentInterval = POLLING_CONFIG.interval;
+  
+  const poll = async () => {
+    try {
+      attemptCount++;
+      
+      // 调用GET接口
+      const response = await fetch(`/api/test-case-sets/${testCaseSetId}/validation`);
+      const data = await response.json();
+      
+      if (response.status === 200 && data.data.caseResults) {
+        // 任务完成，显示结果
+        displayValidationResult(data.data);
+        stopPolling();
+        return;
+      }
+      
+      if (data.data.status === 'RUNNING' || data.data.status === 'PENDING') {
+        // 任务仍在执行，更新进度
+        updateProgress(data.data);
+        
+        // 检查是否超过最大尝试次数
+        if (attemptCount >= POLLING_CONFIG.maxAttempts) {
+          showError('校验任务超时，请稍后刷新查看结果');
+          stopPolling();
+          return;
+        }
+        
+        // 继续轮询（可选：使用退避策略）
+        currentInterval = Math.min(
+          currentInterval * POLLING_CONFIG.backoffMultiplier,
+          10000 // 最大间隔10秒
+        );
+        setTimeout(poll, currentInterval);
+      } else if (data.data.status === 'FAILED') {
+        // 任务失败
+        showError(`校验任务失败：${data.data.errorMessage || '未知错误'}`);
+        stopPolling();
+      }
+      
+    } catch (error) {
+      console.error('轮询错误:', error);
+      // 发生错误时，可以继续重试或停止
+      if (attemptCount < POLLING_CONFIG.maxAttempts) {
+        setTimeout(poll, currentInterval);
+      } else {
+        showError('获取校验结果失败，请刷新页面重试');
+        stopPolling();
+      }
+    }
+  };
+  
+  // 开始轮询
+  poll();
+}
+
+// 停止轮询
+function stopPolling() {
+  // 清除所有定时器
+  // 重置状态
+}
+```
+
+### 4.4 UI组件设计
+
+#### 4.4.1 校验状态指示器
+
+```
+状态：PENDING → 显示"等待中"（灰色）
+状态：RUNNING → 显示"校验中..." + 进度条（蓝色，动画）
+状态：COMPLETED → 显示"校验完成"（绿色）
+状态：FAILED → 显示"校验失败"（红色）
+```
+
+#### 4.4.2 统计信息卡片
+
+**设计要点：**
+- 使用卡片布局，清晰展示关键指标
+- 匹配率使用进度条可视化
+- 使用颜色区分通过/不通过（绿色/红色）
+
+**示例UI：**
+```
+┌──────────────┬──────────────┬──────────────┬──────────────┐
+│   总用例数    │    通过数     │   不通过数    │    匹配率     │
+│     100      │      85      │      15      │   85.00%     │
+│              │   [绿色✓]    │   [红色✗]    │  [进度条] G █████████
+└──────────────┴──────────────┴──────────────┴──────────────┘
+```
+
+#### 4.4.3 用例列表表格
+
+**表格列设计：**
+
+| 列名 | 宽度 | 说明 |
+|------|------|------|
+| 用例编号 | 120px | 固定宽度 |
+| 用例名称 | 200px | 可排序 |
+| 脚本匹配 | 100px | 显示图标（✓/✗）|
+| 预处理规则 | 120px | 显示图标（✓/✗）|
+| 软件包 | 120px | 显示图标（✓/✗）|
+| 整体状态 | 100px | 通过（绿色）/不通过（红色）|
+| 操作 | 80px | 查看详情按钮 |
+
+**行状态样式：**
+- 通过的行：背景色浅绿（#f0f9f0）
+- 不通过的行：背景色浅红（#fff0f0）
+- 鼠标悬停：高亮显示
+
+**详情展开：**
+- 点击"查看详情"按钮，展开行显示详细的校验原因
+- 或使用Modal弹窗显示完整信息
+
+#### 4.4.4 进度提示组件
+
+**任务执行中显示：**
+
+```
+┌─────────────────────────────────────────────┐
+│  校验任务正在执行中...                        │
+│                                              │
+│  [进度条动画] ████████░░░░ 45%              │
+│                                              │
+│  预计剩余时间：15秒                          │
+│                                              │
+│  [取消任务]（可选）                          │
+└─────────────────────────────────────────────┘
+```
+
+### 4.5 错误处理设计
+
+#### 4.5.1 网络错误处理
+
+```javascript
+// 请求失败时的处理
+catch (error) {
+  if (error.name === 'NetworkError' || error.message.includes('fetch')) {
+    showError('网络连接失败，请检查网络后重试');
+  } else if (error.response?.status === 404) {
+    showInfo('用例集不存在或校验结果不存在');
+  } else if (error.response?.status === 500) {
+    showError('服务器内部错误，请稍后重试');
+  } else {
+    showError(`操作失败：${error.message}`);
+  }
+}
+```
+
+#### 4.5.2 任务失败处理
+
+- 显示错误提示信息
+- 提供"重试"按钮
+- 记录错误日志（开发模式）
+
+### 4.6 国际化支持
+
+**需要国际化的文本：**
+
+| 中文 | 英文 |
+|------|------|
+| 开始校验 | Start Validation |
+| 刷新结果 | Refresh Results |
+| 导出报告 | Export Report |
+| 校验任务已提交 | Validation task submitted |
+| 校验任务正在执行中 | Validation task is running |
+| 校验完成 | Validation completed |
+| 校验失败 | Validation failed |
+| 总用例数 | Total Cases |
+| 通过数 | Passed |
+| 不通过数 | Failed |
+| 匹配率 | Match Rate |
+| 用例编号 | Case Number |
+| 用例名称 | Case Name |
+| 脚本匹配 | Script Match |
+| 预处理规则 | Preprocess Rule |
+| 软件包 | Software Package |
+| 整体状态 | Overall Status |
+| 查看详情 | View Details |
+
+### 4.7 性能优化建议
+
+1. **分页加载：**
+   - 用例列表支持分页，每页显示20-50条
+   - 使用虚拟滚动（Virtual Scrolling）处理大量数据
+
+2. **结果缓存：**
+   - 前端缓存校验结果（使用LocalStorage或SessionStorage）
+   - 仅在强制刷新或结果过期时重新请求
+
+3. **防抖处理：**
+   - "刷新结果"按钮添加防抖，避免频繁点击
+
+4. **加载优化：**
+   - 使用骨架屏（Skeleton Screen）提升用户体验
+   - 数据加载完成后平滑过渡
+
+### 4.8 用户体验优化
+
+1. **操作反馈：**
+   - 按钮点击提供视觉反馈（loading状态）
+   - 成功/失败操作显示Toast提示
+
+2. **状态持久化：**
+   - 校验时保持页面状态（滚动位置、筛选条件等）
+
+3. **快捷键支持（可选）：**
+   - F5 刷新结果
+   - Esc 关闭详情弹窗
+
+4. **响应式设计：**
+   - 适配不同屏幕尺寸
+   - 移动端优化布局

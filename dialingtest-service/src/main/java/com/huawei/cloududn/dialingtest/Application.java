@@ -3,6 +3,7 @@ package com.huawei.cloududn.dialingtest;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 拨测服务主应用程序类
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @MapperScan("com.huawei.cloududn.dialingtest.dao")
+@EnableAsync
 public class Application {
 
     /**

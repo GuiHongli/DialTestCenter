@@ -5,11 +5,15 @@ const path = require('path');
 
 console.log('🚀 启动前端开发服务器...\n');
 
+// 设置开发环境变量
+process.env.NODE_ENV = 'development';
+
 // 启动webpack dev server (Webpack 4 使用 webpack-dev-server)
 const devServer = spawn('npx', ['webpack-dev-server', '--mode', 'development', '--port', '4396'], {
   stdio: 'inherit',
   shell: true,
-  cwd: path.resolve(__dirname, '..')
+  cwd: path.resolve(__dirname, '..'),
+  env: { ...process.env, NODE_ENV: 'development' }
 });
 
 devServer.on('error', (error) => {

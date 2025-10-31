@@ -160,6 +160,58 @@ class TestCaseSetService {
     const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`, createApiRequestConfig('GET', undefined, false))
     return handleApiResponse(response)
   }
+
+  /**
+   * 触发用例集校验任务
+   */
+  async triggerValidation(testCaseSetId) {
+    const response = await fetch(
+      `${this.baseUrl}/${testCaseSetId}/validation`,
+      createApiRequestConfig('POST', undefined, true)
+    )
+    // 注意：POST /validation 返回 202 Accepted，所以需要特殊处理
+    // 即使状态码是 202，后端也会返回 JSON 响应
+    const result = await handleApiResponseWithError(response)
+    return result
+  }
+
+  /**
+   * 获取用例集校验结果
+   */
+  async getValidationResult(testCaseSetId, forceRefresh = false) {
+    const url = forceRefresh 
+      ? `${this.baseUrl}/${testCaseSetId}/validation?forceRefresh=true`
+      : `${this.baseUrl}/${testCaseSetId}/validation`
+    const response = await fetch(url, createApiRequestConfig('GET', undefined, false))
+    return handleApiResponseWithError(response)
+  }
+
+  /**
+   * 导出用例集校验结果Excel
+   */
+  async exportValidationResult(testCaseSetId) {
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/validation/export`, createApiRequestConfig('GET', undefined, false))
+    if (!response.ok) {
+      throw new Error('导出校验结果失败')
+    }
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = `校验结果_${testCaseSetId}.xlsx`
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '')
+      }
+    }
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  }
 }
 
 export default new TestCaseSetService()

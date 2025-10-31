@@ -212,6 +212,39 @@ public interface PreprocessRuleDao {
      */
     @Select("SELECT DISTINCT rule_name FROM preprocess_rules WHERE business_zh = #{businessZh} AND category = #{category} ORDER BY rule_name")
     List<String> findDistinctRuleNamesByBusinessAndCategory(@Param("businessZh") String businessZh, @Param("category") String category);
+    /**
+     * 根据规则名称与中文业务类型查询
+     */
+    @Select("SELECT * FROM preprocess_rules WHERE rule_name = #{ruleName} AND business_zh = #{businessZh} LIMIT 1")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "ruleName", column = "rule_name"),
+        @Result(property = "businessZh", column = "business_zh"),
+        @Result(property = "businessEn", column = "business_en"),
+        @Result(property = "category", column = "category"),
+        @Result(property = "appName", column = "app_name"),
+        @Result(property = "content", column = "content"),
+        @Result(property = "isCustom", column = "is_custom"),
+        @Result(property = "packageId", column = "package_id")
+    })
+    PreprocessRule findByRuleNameAndBusinessZh(@Param("ruleName") String ruleName, @Param("businessZh") String businessZh);
+
+    /**
+     * 根据规则名称与英文业务类型查询
+     */
+    @Select("SELECT * FROM preprocess_rules WHERE rule_name = #{ruleName} AND business_en = #{businessEn} LIMIT 1")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "ruleName", column = "rule_name"),
+        @Result(property = "businessZh", column = "business_zh"),
+        @Result(property = "businessEn", column = "business_en"),
+        @Result(property = "category", column = "category"),
+        @Result(property = "appName", column = "app_name"),
+        @Result(property = "content", column = "content"),
+        @Result(property = "isCustom", column = "is_custom"),
+        @Result(property = "packageId", column = "package_id")
+    })
+    PreprocessRule findByRuleNameAndBusinessEn(@Param("ruleName") String ruleName, @Param("businessEn") String businessEn);
     
     /**
      * 根据业务类型和应用名称获取不重复的规则名称

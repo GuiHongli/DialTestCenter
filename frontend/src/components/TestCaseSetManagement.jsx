@@ -2,7 +2,6 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
   FileTextOutlined,
   FileZipOutlined,
   PlusOutlined,
@@ -26,6 +25,7 @@ import testCaseSetService from '../services/testCaseSetService.js'
 import TestCaseDetails from './TestCaseDetails.jsx'
 import TestCaseSetUpload from './TestCaseSetUpload.jsx'
 import TestCaseSetEdit from './TestCaseSetEdit.jsx'
+import ValidationResultModal from './ValidationResultModal.jsx'
 
 const { Title } = Typography
 
@@ -35,6 +35,7 @@ const TestCaseSetManagement = () => {
   const [uploadVisible, setUploadVisible] = useState(false)
   const [detailsVisible, setDetailsVisible] = useState(false)
   const [editVisible, setEditVisible] = useState(false)
+  const [validationVisible, setValidationVisible] = useState(false)
   const [selectedTestCaseSet, setSelectedTestCaseSet] = useState(null)
   const [pagination, setPagination] = useState({
     current: 1,
@@ -57,29 +58,29 @@ const TestCaseSetManagement = () => {
       setLoading(true)
       const response = await testCaseSetService.getTestCaseSets(page, pageSize)
       
-      // 为每个用例集加载缺失脚本数量
-      const testCaseSetsWithMissingCount = await Promise.all(
+      // 为每个用例集加载校验结果获取匹配率
+      const testCaseSetsWithMatchRate = await Promise.all(
         response.data.map(async (testCaseSet) => {
           try {
-            const missingScriptsResponse = await testCaseSetService.getMissingScripts(testCaseSet.id)
-            // 只有当缺失脚本数量大于0时才设置字段
-            if (missingScriptsResponse.count > 0) {
+            const validationResponse = await testCaseSetService.getValidationResult(testCaseSet.id)
+            // 如果存在校验结果，提取匹配率
+            if (validationResponse && validationResponse.success && validationResponse.data && validationResponse.data.matchRate !== undefined) {
               return {
                 ...testCaseSet,
-                missingScriptsCount: missingScriptsResponse.count
+                matchRate: validationResponse.data.matchRate
               }
             } else {
-              // 没有缺失脚本时，不设置missingScriptsCount字段
+              // 如果没有校验结果，不设置matchRate字段
               return testCaseSet
             }
           } catch (error) {
-            // 如果获取缺失脚本数量失败，不设置字段
+            // 如果获取校验结果失败（可能还没有校验过），不设置字段
             return testCaseSet
           }
         })
       )
       
-      setTestCaseSets(testCaseSetsWithMissingCount)
+      setTestCaseSets(testCaseSetsWithMatchRate)
       setPagination({
         current: response.page,
         pageSize: response.pageSize,
@@ -200,15 +201,14 @@ const TestCaseSetManagement = () => {
             {text}
           </span>
           <Tag color="blue">{record.version}</Tag>
-          {record.missingScriptsCount && record.missingScriptsCount > 0 && (
-            <Tooltip title={translateTestCaseSet('details.missingScriptsTooltip', { count: record.missingScriptsCount })}>
+          {record.matchRate !== undefined && record.matchRate !== null && (
+            <Tooltip title={translateTestCaseSet('details.matchRate')}>
               <Tag 
-                color="warning" 
-                icon={<ExclamationCircleOutlined />}
+                color={record.matchRate === 100 ? 'success' : 'warning'}
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleViewDetails(record)}
               >
-                {translateTestCaseSet('details.missingScriptsTag', { count: record.missingScriptsCount })}
+                {translateTestCaseSet('details.matchRate')}: {Number(record.matchRate).toFixed(2)}%
               </Tag>
             </Tooltip>
           )}
@@ -279,6 +279,13 @@ const TestCaseSetManagement = () => {
               />
             </Tooltip>
           </PagePermission>
+          <Tooltip title="开始校验">
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              onClick={() => { setSelectedTestCaseSet(record); setValidationVisible(true) }}
+            />
+          </Tooltip>
           <PagePermission pageId="test-case-set" operation="delete">
             <Tooltip title={translateTestCaseSet('table.delete')}>
               <Button
@@ -378,6 +385,13 @@ const TestCaseSetManagement = () => {
           setSelectedTestCaseSet(null)
           loadTestCaseSets(pagination.current, pagination.pageSize)
         }}
+      />
+
+      {/* 校验结果对话框 */}
+      <ValidationResultModal
+        open={validationVisible}
+        testCaseSet={selectedTestCaseSet}
+        onClose={() => { setValidationVisible(false); setSelectedTestCaseSet(null) }}
       />
     </div>
   )

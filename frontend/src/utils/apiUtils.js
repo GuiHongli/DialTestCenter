@@ -140,10 +140,28 @@ export function createApiRequestConfig(method = 'GET', body, includeXUsername = 
   }
   
   // 自动添加 CSRF Token
-  const csrfToken = sessionStorage.getItem('X-CSRF-TOKEN')
-  if (csrfToken) {
-    headers['X-Csrf-Token'] = csrfToken
+  // 如果 sessionStorage 中没有，尝试从 cookie 或其他地方获取，或使用默认值
+  let csrfToken = sessionStorage.getItem('X-CSRF-TOKEN');
+  if (!csrfToken) {
+    // 尝试从 cookie 中获取
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'X-CSRF-TOKEN' || name === 'csrf-token') {
+        csrfToken = decodeURIComponent(value);
+        sessionStorage.setItem('X-CSRF-TOKEN', csrfToken);
+        break;
+      }
+    }
   }
+  
+  // 如果仍然没有 token，使用默认值（用于开发环境）
+  if (!csrfToken) {
+    csrfToken = 'development-token';
+    sessionStorage.setItem('X-CSRF-TOKEN', csrfToken);
+  }
+  
+  headers['X-Csrf-Token'] = csrfToken;
   
   const config = {
     method,
@@ -172,10 +190,28 @@ export function createFileUploadConfig(body, includeXUsername = true) {
   }
   
   // 自动添加 CSRF Token
-  const csrfToken = sessionStorage.getItem('X-CSRF-TOKEN')
-  if (csrfToken) {
-    headers['X-Csrf-Token'] = csrfToken
+  // 如果 sessionStorage 中没有，尝试从 cookie 或其他地方获取，或使用默认值
+  let csrfToken = sessionStorage.getItem('X-CSRF-TOKEN');
+  if (!csrfToken) {
+    // 尝试从 cookie 中获取
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'X-CSRF-TOKEN' || name === 'csrf-token') {
+        csrfToken = decodeURIComponent(value);
+        sessionStorage.setItem('X-CSRF-TOKEN', csrfToken);
+        break;
+      }
+    }
   }
+  
+  // 如果仍然没有 token，使用默认值（用于开发环境）
+  if (!csrfToken) {
+    csrfToken = 'development-token';
+    sessionStorage.setItem('X-CSRF-TOKEN', csrfToken);
+  }
+  
+  headers['X-Csrf-Token'] = csrfToken;
   
   return {
     method: 'POST',

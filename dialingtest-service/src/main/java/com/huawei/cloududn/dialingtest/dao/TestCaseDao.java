@@ -64,6 +64,26 @@ public interface TestCaseDao {
      */
     @Select("SELECT COUNT(*) FROM test_case WHERE test_case_set_id = #{testCaseSetId}")
     long countByTestCaseSetId(Long testCaseSetId);
+
+    /**
+     * 根据用例集ID查询全部测试用例
+     */
+    @Select("SELECT * FROM test_case WHERE test_case_set_id = #{testCaseSetId} ORDER BY id")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "testCaseSetId", column = "test_case_set_id"),
+        @Result(property = "caseName", column = "case_name"),
+        @Result(property = "caseNumber", column = "case_number"),
+        @Result(property = "testSteps", column = "test_steps"),
+        @Result(property = "expectedResult", column = "expected_result"),
+        @Result(property = "businessCategory", column = "business_category"),
+        @Result(property = "appName", column = "app_name"),
+        @Result(property = "dependenciesPackage", column = "dependencies_package"),
+        @Result(property = "dependenciesRule", column = "dependencies_rule"),
+        @Result(property = "environmentConfig", column = "environment_config"),
+        @Result(property = "scriptExists", column = "script_exists")
+    })
+    List<TestCase> findAllByTestCaseSetId(@Param("testCaseSetId") Long testCaseSetId);
     
     /**
      * 根据用例集ID查询缺失脚本的测试用例
