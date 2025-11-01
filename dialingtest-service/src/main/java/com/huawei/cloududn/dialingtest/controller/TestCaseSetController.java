@@ -11,6 +11,7 @@ import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
 import com.huawei.cloududn.dialingtest.service.TestCaseValidationService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +57,9 @@ public class TestCaseSetController implements TestCaseSetsApi {
     
     @Autowired
     private UserRoleService userRoleService;
+    
+    @Autowired
+    private PermissionValidator permissionValidator;
     
     @Override
     public ResponseEntity<TestCaseSetListResponse> getTestCaseSets(Integer page, Integer pageSize) {
@@ -109,8 +114,17 @@ public class TestCaseSetController implements TestCaseSetsApi {
     
     
     @Override
-    public ResponseEntity<Resource> downloadTestCaseSet(Long id) {
+    public ResponseEntity<Resource> downloadTestCaseSet(Long id, @RequestHeader(value = "X-Username", required = true) String xUsername) {
         try {
+            // 检查权限（需要ADMIN或OPERATOR权限）
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "下载用例集");
+            if (!permissionResult.isValid()) {
+                logger.warn("用户权限不足 - username: {}", xUsername);
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).build();
+            }
+            
             TestCaseSet testCaseSet = testCaseSetService.getTestCaseSetById(id);
             if (testCaseSet == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -127,11 +141,13 @@ public class TestCaseSetController implements TestCaseSetsApi {
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + testCaseSet.getName() + "_" + testCaseSet.getVersion() + ".zip\"");
             headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
             
+            logger.info("User {} downloaded test case set: {}", xUsername, id);
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentLength(fileContent.length)
                     .body(resource);
         } catch (Exception e) {
+            logger.error("Failed to download test case set: testCaseSetId={}, username={}", id, xUsername, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -139,6 +155,17 @@ public class TestCaseSetController implements TestCaseSetsApi {
     @Override
     public ResponseEntity<TestCaseSetResponse> updateTestCaseSet(String xUsername, Long id, UpdateTestCaseSetRequest body) {
         try {
+            // 检查权限（需要ADMIN或OPERATOR权限）
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "更新用例集");
+            if (!permissionResult.isValid()) {
+                TestCaseSetResponse response = new TestCaseSetResponse();
+                response.setSuccess(false);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
+            }
+            
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             TestCaseSet testCaseSet = testCaseSetService.updateTestCaseSet(id, body, operatorUsername);
             if (testCaseSet == null) {
@@ -170,6 +197,17 @@ public class TestCaseSetController implements TestCaseSetsApi {
     @Override
     public ResponseEntity<SuccessResponse> deleteTestCaseSet(Long id, String xUsername) {
         try {
+            // 检查权限（需要ADMIN或OPERATOR权限）
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除用例集");
+            if (!permissionResult.isValid()) {
+                SuccessResponse response = new SuccessResponse();
+                response.setSuccess(false);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
+            }
+            
             String operatorUsername = (xUsername != null && !xUsername.trim().isEmpty()) ? xUsername : "admin";
             boolean deleted = testCaseSetService.deleteTestCaseSet(id, operatorUsername);
             if (!deleted) {
@@ -254,14 +292,15 @@ public class TestCaseSetController implements TestCaseSetsApi {
         logger.info("触发用例集校验任务 - testCaseSetId: {}, username: {}", id, xUsername);
         try {
             // 检查用户权限（ADMIN或OPERATOR）
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            logger.debug("用户角色: {}", userRoles);
-            if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-                logger.warn("用户权限不足 - username: {}, roles: {}", xUsername, userRoles);
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "触发用例集校验");
+            if (!permissionResult.isValid()) {
+                logger.warn("用户权限不足 - username: {}", xUsername);
                 ValidationTaskResponse response = new ValidationTaskResponse();
                 response.setSuccess(false);
-                response.setMessage("权限不足，只有管理员和操作员可以触发校验");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
             }
             
             // 触发校验任务
@@ -412,11 +451,21 @@ public class TestCaseSetController implements TestCaseSetsApi {
      *
      * @param id 用例集ID
      * @param xCsrfToken CSRF防护令牌（可选）
+     * @param xUsername 操作用户名
      * @return Excel文件资源
      */
     @Override
-    public ResponseEntity<Resource> exportTestCaseSetValidation(Long id, String xCsrfToken) {
+    public ResponseEntity<Resource> exportTestCaseSetValidation(Long id, String xCsrfToken, @RequestHeader(value = "X-Username", required = true) String xUsername) {
         try {
+            // 检查权限（需要ADMIN或OPERATOR权限）
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "导出用例集校验结果");
+            if (!permissionResult.isValid()) {
+                logger.warn("用户权限不足 - username: {}", xUsername);
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).build();
+            }
+            
             // 获取校验结果
             com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
                 testCaseValidationService.getValidationResult(id);
@@ -437,7 +486,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
             String filename = String.format("%s_校验结果_%s.xlsx", testCaseSetName, timestamp);
             headers.setContentDispositionFormData("attachment", filename);
             
-            logger.info("Exported validation result Excel for test case set: {}", id);
+            logger.info("User {} exported validation result Excel for test case set: {}", xUsername, id);
             return ResponseEntity.ok()
                 .headers(headers)
                 .body(resource);
@@ -446,7 +495,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
             logger.error("Test case set not found: {}", id, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            logger.error("Failed to export validation result Excel: testCaseSetId={}", id, e);
+            logger.error("Failed to export validation result Excel: testCaseSetId={}, username={}", id, xUsername, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

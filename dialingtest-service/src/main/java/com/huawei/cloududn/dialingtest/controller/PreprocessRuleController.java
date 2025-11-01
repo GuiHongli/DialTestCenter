@@ -8,7 +8,9 @@ import com.huawei.cloududn.dialingtest.api.PreprocessRulePackagesApi;
 import com.huawei.cloududn.dialingtest.api.PreprocessRulesApi;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
+import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -37,6 +39,12 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     @Autowired
     private OperationLogUtil operationLogUtil;
     
+    @Autowired
+    private UserRoleService userRoleService;
+    
+    @Autowired
+    private PermissionValidator permissionValidator;
+    
     // ==================== ZIP包管理接口 ====================
     
     @Override
@@ -62,6 +70,17 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     @Override
     public ResponseEntity<SuccessResponse> deletePreprocessRulePackage(Long id, String xUsername) {
         try {
+            // 检查权限（需要ADMIN或OPERATOR权限）
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除预处理规则包");
+            if (!permissionResult.isValid()) {
+                SuccessResponse response = new SuccessResponse();
+                response.setSuccess(false);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
+            }
+            
             preprocessRuleService.deletePreprocessRulePackage(id, xUsername);
             
             SuccessResponse response = new SuccessResponse();

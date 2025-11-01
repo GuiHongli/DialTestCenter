@@ -14,6 +14,7 @@ import com.huawei.cloududn.dialingtest.model.RoleResponse;
 import com.huawei.cloududn.dialingtest.model.ExecutorCountResponse;
 import com.huawei.cloududn.dialingtest.model.UserRolePageResponseData;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,9 @@ public class UserRoleController implements UserRolesApi {
     @Autowired
     private OperationLogUtil operationLogUtil;
     
+    @Autowired
+    private PermissionValidator permissionValidator;
+    
     @Override
     public ResponseEntity<UserRolePageResponse> getUserRoles(Integer page, Integer size, String search) {
         try {
@@ -64,12 +68,14 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<UserRoleResponse> createUserRole(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, CreateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            if (!userRoles.contains("ADMIN")) {
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "创建用户角色");
+            if (!permissionResult.isValid()) {
                 UserRoleResponse response = new UserRoleResponse();
                 response.setSuccess(false);
-                response.setMessage("权限不足，需要ADMIN权限");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
             }
             
             UserRole userRole = userRoleService.createUserRole(
@@ -101,12 +107,14 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<UserRoleResponse> updateUserRole(String xUsername, Integer id, UpdateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            if (!userRoles.contains("ADMIN")) {
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "更新用户角色");
+            if (!permissionResult.isValid()) {
                 UserRoleResponse response = new UserRoleResponse();
                 response.setSuccess(false);
-                response.setMessage("权限不足，需要ADMIN权限");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
             }
             
             UserRole userRole = userRoleService.updateUserRole(
@@ -139,9 +147,11 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<Void> deleteUserRole(Integer id, String xUsername) {
         try {
             // 检查权限（需要ADMIN权限）
-            List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
-            if (!userRoles.contains("ADMIN")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "删除用户角色");
+            if (!permissionResult.isValid()) {
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).build();
             }
             
             userRoleService.deleteUserRole(id, xUsername);

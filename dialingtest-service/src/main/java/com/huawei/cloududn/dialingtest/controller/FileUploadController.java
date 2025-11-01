@@ -13,6 +13,7 @@ import com.huawei.cloududn.dialingtest.service.TestCaseValidationService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,9 @@ public class FileUploadController {
     @Autowired
     private TestCaseValidationService testCaseValidationService;
     
+    @Autowired
+    private PermissionValidator permissionValidator;
+    
     /**
      * 上传用例集文件
      *
@@ -84,9 +88,14 @@ public class FileUploadController {
         
         try {
             // 权限验证
-            ResponseEntity<TestCaseSetUploadResponse> permissionCheck = checkUploadPermission(xUsername, "用例集");
-            if (permissionCheck != null) {
-                return permissionCheck;
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传用例集");
+            if (!permissionResult.isValid()) {
+                TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
+                response.setSuccess(false);
+                response.setMessage(permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(response);
             }
             
             // 获取上传文件
@@ -154,9 +163,12 @@ public class FileUploadController {
         
         try {
             // 权限验证
-            ResponseEntity<?> permissionCheck = checkSoftwarePackageUploadPermission(xUsername);
-            if (permissionCheck != null) {
-                return permissionCheck;
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传软件包");
+            if (!permissionResult.isValid()) {
+                String errorResponse = String.format("{\"success\":false,\"message\":\"%s\"}", permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(errorResponse);
             }
             
             // 获取上传文件
@@ -241,9 +253,12 @@ public class FileUploadController {
 
         try {
             // 权限验证
-            ResponseEntity<String> permissionCheck = checkPreprocessRuleUploadPermission(xUsername);
-            if (permissionCheck != null) {
-                return permissionCheck;
+            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传预处理规则包");
+            if (!permissionResult.isValid()) {
+                String errorResponse = String.format("{\"success\":false,\"message\":\"%s\"}", permissionResult.getErrorMessage());
+                HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
+                    ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+                return ResponseEntity.status(status).body(errorResponse);
             }
             
             // 获取上传文件
@@ -296,46 +311,6 @@ public class FileUploadController {
     
     // ==================== 私有辅助方法 ====================
     
-    /**
-     * 检查上传权限（用例集）
-     */
-    private ResponseEntity<TestCaseSetUploadResponse> checkUploadPermission(String username, String resourceType) {
-        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
-        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-            logger.warn("Insufficient permission for {} upload by user: {}", resourceType, username);
-            TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
-            response.setSuccess(false);
-            response.setMessage("权限不足，只有管理员和操作员可以上传" + resourceType);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
-        return null;
-    }
-    
-    /**
-     * 检查软件包上传权限
-     */
-    private ResponseEntity<?> checkSoftwarePackageUploadPermission(String username) {
-        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
-        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-            logger.warn("Insufficient permission for software package upload by user: {}", username);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("{\"success\":false,\"message\":\"权限不足，只有管理员和操作员可以上传软件包\"}");
-        }
-        return null;
-    }
-    
-    /**
-     * 检查预处理规则包上传权限
-     */
-    private ResponseEntity<String> checkPreprocessRuleUploadPermission(String username) {
-        List<String> userRoles = userRoleService.getUserRolesByUsername(username);
-        if (!userRoles.contains("ADMIN") && !userRoles.contains("OPERATOR")) {
-            logger.warn("Insufficient permission for preprocess rule package upload by user: {}", username);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("{\"success\":false,\"message\":\"权限不足，只有管理员和操作员可以上传预处理规则包\"}");
-        }
-        return null;
-    }
     
     /**
      * 获取上传文件
