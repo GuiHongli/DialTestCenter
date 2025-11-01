@@ -390,7 +390,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.getSoftwarePackageNameById(1L)).thenReturn("test-app.apk");
 
         // Act
-        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("admin", mockDownloadRequest);
+        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", mockDownloadRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
@@ -411,7 +411,7 @@ public class SoftwarePackageControllerTest {
         when(userRoleService.getUserRolesByUsername("browser")).thenReturn(Arrays.asList("BROWSER"));
 
         // Act
-        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("browser", mockDownloadRequest);
+        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "browser", mockDownloadRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
@@ -433,7 +433,7 @@ public class SoftwarePackageControllerTest {
         when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
 
         // Act
-        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("admin", emptyRequest);
+        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", emptyRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
@@ -459,7 +459,7 @@ public class SoftwarePackageControllerTest {
         when(softwarePackageService.getSoftwarePackageNameById(1L)).thenReturn("test-app.apk");
 
         // Act
-        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("admin", singleRequest);
+        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", singleRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
@@ -483,7 +483,7 @@ public class SoftwarePackageControllerTest {
             .thenThrow(new RuntimeException("Download failed"));
 
         // Act
-        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("admin", mockDownloadRequest);
+        ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", mockDownloadRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
@@ -528,7 +528,7 @@ public class SoftwarePackageControllerTest {
             when(softwarePackagesService.getSoftwarePackageById(1L)).thenReturn(info);
             when(softwarePackagesService.getSoftwarePackageFileContent(1L)).thenReturn(new byte[]{1,2,3});
 
-            ResponseEntity<org.springframework.core.io.Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            ResponseEntity<org.springframework.core.io.Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(200, resp.getStatusCodeValue());
             Resource body = resp.getBody();
             assertNotNull(body);
@@ -543,7 +543,7 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_EmptyUsername_BadRequest() {
             request.setPackageIds(Collections.singletonList(1L));
-            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(" ", request);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", " ", request);
             assertEquals(400, resp.getStatusCodeValue());
         }
 
@@ -555,7 +555,7 @@ public class SoftwarePackageControllerTest {
             String xUsername = "user";
             when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("VIEWER"));
             request.setPackageIds(Collections.singletonList(1L));
-            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(403, resp.getStatusCodeValue());
         }
 
@@ -567,7 +567,7 @@ public class SoftwarePackageControllerTest {
             String xUsername = "admin";
             when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
             request.setPackageIds(Collections.emptyList());
-            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(400, resp.getStatusCodeValue());
         }
 
@@ -580,7 +580,7 @@ public class SoftwarePackageControllerTest {
             when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
             request.setPackageIds(Collections.singletonList(99L));
             when(softwarePackagesService.getSoftwarePackageById(99L)).thenReturn(null);
-            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(404, resp.getStatusCodeValue());
         }
 
@@ -599,7 +599,7 @@ public class SoftwarePackageControllerTest {
             when(softwarePackagesService.getSoftwarePackageById(1L)).thenReturn(info);
             when(softwarePackagesService.getSoftwarePackageFileContent(1L)).thenReturn(null);
 
-            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages(xUsername, request);
+            ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(404, resp.getStatusCodeValue());
         }
     }

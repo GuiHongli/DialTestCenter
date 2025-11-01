@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -178,7 +179,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     }
     
     @Override
-    public ResponseEntity<Resource> downloadSoftwarePackages(String xUsername, BatchDownloadRequest body) {
+    public ResponseEntity<Resource> downloadSoftwarePackages(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, BatchDownloadRequest body) {
         try {
             // 验证用户名
             if (xUsername == null || xUsername.trim().isEmpty()) {

@@ -337,7 +337,7 @@ public class DialUserControllerTest {
         when(dialUserService.createUser("newuser", "password", "admin")).thenReturn(createdUser);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -356,7 +356,7 @@ public class DialUserControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("operator", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "operator", request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -372,7 +372,7 @@ public class DialUserControllerTest {
         request.setPassword("password");
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "", request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -392,7 +392,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
@@ -412,7 +412,7 @@ public class DialUserControllerTest {
                 .thenThrow(new IllegalArgumentException("用户名不能为空"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -432,7 +432,7 @@ public class DialUserControllerTest {
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

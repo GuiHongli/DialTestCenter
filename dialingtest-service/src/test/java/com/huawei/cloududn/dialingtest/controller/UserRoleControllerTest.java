@@ -164,7 +164,7 @@ public class UserRoleControllerTest {
         when(userRoleService.createUserRole("testuser", "ADMIN", "admin")).thenReturn(testUserRole);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "admin", testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -183,7 +183,7 @@ public class UserRoleControllerTest {
         when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("operator", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "operator", testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -203,7 +203,7 @@ public class UserRoleControllerTest {
             .thenThrow(new IllegalArgumentException("用户角色关系已存在"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "admin", testCreateRequest);
 
         // Assert
         assertNotNull(response);

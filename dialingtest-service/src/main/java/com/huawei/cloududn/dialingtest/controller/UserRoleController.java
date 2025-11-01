@@ -18,6 +18,7 @@ import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -60,7 +61,7 @@ public class UserRoleController implements UserRolesApi {
     }
     
     @Override
-    public ResponseEntity<UserRoleResponse> createUserRole(String xUsername, CreateUserRoleRequest body) {
+    public ResponseEntity<UserRoleResponse> createUserRole(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, CreateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);

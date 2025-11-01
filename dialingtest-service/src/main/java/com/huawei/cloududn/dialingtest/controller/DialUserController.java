@@ -241,12 +241,13 @@ public class DialUserController implements DialusersApi {
     /**
      * 新增拨测用户
      * 
+     * @param xCsrfToken CSRF防护令牌
      * @param xUsername 操作用户名
      * @param body 创建请求
      * @return 创建的用户信息
      */
     @Override
-    public ResponseEntity<DialUserResponse> createDialUser(String xUsername, CreateDialUserRequest body) {
+    public ResponseEntity<DialUserResponse> createDialUser(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, CreateDialUserRequest body) {
         try {
             // 检查用户名是否提供
             if (xUsername == null || xUsername.trim().isEmpty()) {

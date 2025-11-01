@@ -181,7 +181,7 @@ public class OperationLogControllerTest {
                 .thenReturn(createResponse);
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog("csrf-token", "testuser", testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -206,7 +206,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new IllegalArgumentException("Username is required"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog("csrf-token", "testuser", testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -229,7 +229,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new IllegalStateException("Database operation failed"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog("csrf-token", "testuser", testCreateRequest);
         
         // Assert
         assertNotNull(response);
@@ -252,7 +252,7 @@ public class OperationLogControllerTest {
                 .thenThrow(new RuntimeException("Unexpected error"));
         
         // Act
-        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog(testCreateRequest);
+        ResponseEntity<OperationLogResponse> response = operationLogController.createOperationLog("csrf-token", "testuser", testCreateRequest);
         
         // Assert
         assertNotNull(response);

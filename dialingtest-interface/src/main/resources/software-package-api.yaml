@@ -185,6 +185,11 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/BatchDownloadRequest"
+        - name: "X-Csrf-Token"
+          in: "header"
+          required: true
+          type: "string"
+          description: "CSRF防护令牌"
         - name: "X-Username"
           in: "header"
           required: true

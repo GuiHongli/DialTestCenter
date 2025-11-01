@@ -18,6 +18,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -83,11 +84,13 @@ public class OperationLogController implements OperationLogsApi {
     /**
      * 创建操作记录
      *
+     * @param xCsrfToken CSRF防护令牌
+     * @param xUsername 操作用户名
      * @param body 操作记录创建请求
      * @return 操作记录响应
      */
     @Override
-    public ResponseEntity<OperationLogResponse> createOperationLog(@Valid CreateOperationLogRequest body) {
+    public ResponseEntity<OperationLogResponse> createOperationLog(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, @Valid CreateOperationLogRequest body) {
         try {
             logger.info("Creating operation log for user: {}, operation: {} {}", 
                        body.getUsername(), body.getOperationType(), body.getOperationTarget());
