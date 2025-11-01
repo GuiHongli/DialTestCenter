@@ -243,34 +243,6 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
 
-  /test-case-sets/{id}/missing-scripts:
-    get:
-      operationId: "getMissingScriptsByTestCaseSetId"
-      tags:
-        - "测试用例管理"
-      summary: "获取缺失脚本列表"
-      description: "获取指定用例集中缺失脚本的测试用例列表"
-      parameters:
-        - name: "id"
-          in: "path"
-          description: "用例集ID"
-          required: true
-          type: "integer"
-          format: "int64"
-      responses:
-        200:
-          description: "成功获取缺失脚本列表"
-          schema:
-            $ref: "#/definitions/MissingScriptsResponse"
-        404:
-          description: "用例集不存在"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        500:
-          description: "服务器内部错误"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-
   /test-case-sets/{id}/validation:
     post:
       operationId: "triggerTestCaseSetValidation"

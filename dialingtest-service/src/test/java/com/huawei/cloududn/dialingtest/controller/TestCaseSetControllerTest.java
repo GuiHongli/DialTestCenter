@@ -13,8 +13,6 @@ import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.model.SuccessResponse;
 import com.huawei.cloududn.dialingtest.model.TestCaseListResponse;
 import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
-import com.huawei.cloududn.dialingtest.model.MissingScriptsResponse;
-import com.huawei.cloududn.dialingtest.model.MissingScriptsResponseData;
 import com.huawei.cloududn.dialingtest.model.ValidationTaskResponse;
 import com.huawei.cloududn.dialingtest.model.ValidationResponse;
 import com.huawei.cloududn.dialingtest.entity.ValidationTask;
@@ -373,29 +371,6 @@ public class TestCaseSetControllerTest {
         assertEquals("获取测试用例列表成功", response.getBody().getMessage());
 
         verify(testCaseSetService, times(1)).getTestCases(1L, 1, 10);
-    }
-
-    /**
-     * 测试获取缺失脚本列表 - 成功场景
-     */
-    @Test
-    public void testTestCaseSetsIdMissingScriptsGet_Success_ReturnsOk() {
-        // Arrange
-        when(testCaseSetService.getMissingScripts(1L)).thenReturn(testTestCaseList);
-
-        // Act
-        ResponseEntity<MissingScriptsResponse> response = testCaseSetController.getMissingScriptsByTestCaseSetId(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isSuccess());
-        assertEquals("获取缺失脚本列表成功", response.getBody().getMessage());
-        assertNotNull(response.getBody().getData());
-        assertEquals(Integer.valueOf(1), Integer.valueOf(response.getBody().getData().getCount()));
-
-        verify(testCaseSetService, times(1)).getMissingScripts(1L);
     }
 
     /**

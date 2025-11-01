@@ -256,29 +256,6 @@ public class TestCaseSetController implements TestCaseSetsApi {
         }
     }
     
-    @Override
-    public ResponseEntity<MissingScriptsResponse> getMissingScriptsByTestCaseSetId(Long id) {
-        try {
-            List<TestCase> missingScripts = testCaseSetService.getMissingScripts(id);
-            
-            MissingScriptsResponse response = new MissingScriptsResponse();
-            response.setSuccess(true);
-            response.setMessage("获取缺失脚本列表成功");
-            
-            MissingScriptsResponseData data = new MissingScriptsResponseData();
-            data.setTestCases(missingScripts);
-            data.setCount(missingScripts.size());
-            response.setData(data);
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            MissingScriptsResponse response = new MissingScriptsResponse();
-            response.setSuccess(false);
-            response.setMessage("获取缺失脚本列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
     /**
      * 触发用例集校验任务
      *

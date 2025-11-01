@@ -564,49 +564,6 @@ public class TestCaseSetServiceTest {
         }
     }
 
-    /**
-     * 测试获取缺失脚本列表 - 成功场景
-     */
-    @Test
-    public void testGetMissingScripts_Success_ReturnsMissingScripts() {
-        // Arrange
-        Long testCaseSetId = 1L;
-        List<TestCase> missingScripts = Arrays.asList(testTestCase);
-        
-        when(testCaseSetDao.findById(testCaseSetId)).thenReturn(testTestCaseSet);
-        when(testCaseDao.findMissingScriptsByTestCaseSetId(testCaseSetId)).thenReturn(missingScripts);
-
-        // Act
-        List<TestCase> result = testCaseSetService.getMissingScripts(testCaseSetId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(testTestCase.getId(), result.get(0).getId());
-
-        verify(testCaseSetDao, times(1)).findById(testCaseSetId);
-        verify(testCaseDao, times(1)).findMissingScriptsByTestCaseSetId(testCaseSetId);
-    }
-
-    /**
-     * 测试获取缺失脚本列表 - 用例集不存在
-     */
-    @Test
-    public void testGetMissingScripts_TestCaseSetNotFound_ThrowsIllegalArgumentException() {
-        // Arrange
-        Long testCaseSetId = 999L;
-        
-        when(testCaseSetDao.findById(testCaseSetId)).thenReturn(null);
-
-        // Act & Assert
-        try {
-            testCaseSetService.getMissingScripts(testCaseSetId);
-            fail("应该抛出IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            assertEquals("用例集不存在，ID: 999", e.getMessage());
-        }
-    }
-
     // 辅助方法
 
     private TestCaseSet createTestTestCaseSet() {

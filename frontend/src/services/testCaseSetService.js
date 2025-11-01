@@ -154,14 +154,6 @@ class TestCaseSetService {
   }
 
   /**
-   * 获取用例集中没有脚本的测试用例列表
-   */
-  async getMissingScripts(testCaseSetId) {
-    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/missing-scripts`, createApiRequestConfig('GET', undefined, false))
-    return handleApiResponse(response)
-  }
-
-  /**
    * 触发用例集校验任务
    */
   async triggerValidation(testCaseSetId) {
