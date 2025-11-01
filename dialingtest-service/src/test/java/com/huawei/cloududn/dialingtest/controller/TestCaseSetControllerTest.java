@@ -20,6 +20,7 @@ import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
 import com.huawei.cloududn.dialingtest.service.TestCaseValidationService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,9 @@ public class TestCaseSetControllerTest {
 
     @Mock
     private OperationLogUtil operationLogUtil;
+
+    @Mock
+    private PermissionValidator permissionValidator;
 
     @InjectMocks
     private TestCaseSetController testCaseSetController;
@@ -225,16 +229,23 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdDownloadGet_Success_ReturnsOk() {
         // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "下载用例集"))
+            .thenReturn(successResult);
+        
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(testTestCaseSet);
 
         // Act
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
+        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L, username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
+        verify(permissionValidator).checkAdminOrOperator(username, "下载用例集");
         verify(testCaseSetService, times(1)).getTestCaseSetById(1L);
     }
 
@@ -244,15 +255,22 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdDownloadGet_NotFound_ReturnsNotFound() {
         // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "下载用例集"))
+            .thenReturn(successResult);
+        
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(null);
 
         // Act
-        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L);
+        ResponseEntity<Resource> response = testCaseSetController.downloadTestCaseSet(1L, username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 
+        verify(permissionValidator).checkAdminOrOperator(username, "下载用例集");
         verify(testCaseSetService, times(1)).getTestCaseSetById(1L);
     }
 
@@ -262,14 +280,20 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdPut_Success_ReturnsOk() {
         // Arrange
+        String username = "admin";
         UpdateTestCaseSetRequest request = new UpdateTestCaseSetRequest();
         request.setDescription("Updated description");
         request.setBusinessZh("Updated business");
 
-        when(testCaseSetService.updateTestCaseSet(1L, request, "admin")).thenReturn(testTestCaseSet);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "更新用例集"))
+            .thenReturn(successResult);
+
+        when(testCaseSetService.updateTestCaseSet(1L, request, username)).thenReturn(testTestCaseSet);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet("admin", 1L, request);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet(username, 1L, request);
 
         // Assert
         assertNotNull(response);
@@ -279,7 +303,8 @@ public class TestCaseSetControllerTest {
         assertEquals("更新用例集成功", response.getBody().getMessage());
         assertEquals(testTestCaseSet, response.getBody().getData());
 
-        verify(testCaseSetService, times(1)).updateTestCaseSet(1L, request, "admin");
+        verify(permissionValidator).checkAdminOrOperator(username, "更新用例集");
+        verify(testCaseSetService, times(1)).updateTestCaseSet(1L, request, username);
     }
 
     /**
@@ -288,11 +313,18 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdPut_NotFound_ReturnsNotFound() {
         // Arrange
+        String username = "admin";
         UpdateTestCaseSetRequest request = new UpdateTestCaseSetRequest();
-        when(testCaseSetService.updateTestCaseSet(1L, request, "admin")).thenReturn(null);
+        
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "更新用例集"))
+            .thenReturn(successResult);
+        
+        when(testCaseSetService.updateTestCaseSet(1L, request, username)).thenReturn(null);
 
         // Act
-        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet("admin", 1L, request);
+        ResponseEntity<TestCaseSetResponse> response = testCaseSetController.updateTestCaseSet(username, 1L, request);
 
         // Assert
         assertNotNull(response);
@@ -301,7 +333,8 @@ public class TestCaseSetControllerTest {
         assertFalse(response.getBody().isSuccess());
         assertEquals("用例集不存在", response.getBody().getMessage());
 
-        verify(testCaseSetService, times(1)).updateTestCaseSet(1L, request, "admin");
+        verify(permissionValidator).checkAdminOrOperator(username, "更新用例集");
+        verify(testCaseSetService, times(1)).updateTestCaseSet(1L, request, username);
     }
 
     /**
@@ -310,10 +343,16 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdDelete_Success_ReturnsOk() {
         // Arrange
-        when(testCaseSetService.deleteTestCaseSet(1L, "admin")).thenReturn(true);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "删除用例集"))
+            .thenReturn(successResult);
+        
+        when(testCaseSetService.deleteTestCaseSet(1L, username)).thenReturn(true);
 
         // Act
-        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, "admin");
+        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, username);
 
         // Assert
         assertNotNull(response);
@@ -322,7 +361,8 @@ public class TestCaseSetControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals("删除用例集成功", response.getBody().getMessage());
 
-        verify(testCaseSetService, times(1)).deleteTestCaseSet(1L, "admin");
+        verify(permissionValidator).checkAdminOrOperator(username, "删除用例集");
+        verify(testCaseSetService, times(1)).deleteTestCaseSet(1L, username);
     }
 
     /**
@@ -331,10 +371,16 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTestCaseSetsIdDelete_NotFound_ReturnsNotFound() {
         // Arrange
-        when(testCaseSetService.deleteTestCaseSet(1L, "admin")).thenReturn(false);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "删除用例集"))
+            .thenReturn(successResult);
+        
+        when(testCaseSetService.deleteTestCaseSet(1L, username)).thenReturn(false);
 
         // Act
-        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, "admin");
+        ResponseEntity<SuccessResponse> response = testCaseSetController.deleteTestCaseSet(1L, username);
 
         // Assert
         assertNotNull(response);
@@ -343,7 +389,8 @@ public class TestCaseSetControllerTest {
         assertFalse(response.getBody().isSuccess());
         assertEquals("用例集不存在", response.getBody().getMessage());
 
-        verify(testCaseSetService, times(1)).deleteTestCaseSet(1L, "admin");
+        verify(permissionValidator).checkAdminOrOperator(username, "删除用例集");
+        verify(testCaseSetService, times(1)).deleteTestCaseSet(1L, username);
     }
 
     /**
@@ -379,6 +426,7 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTriggerTestCaseSetValidation_Success_ReturnsAccepted() {
         // Arrange
+        String username = "admin";
         TestCaseValidationService.ValidationTaskInfo taskInfo = 
             new TestCaseValidationService.ValidationTaskInfo();
         taskInfo.setTaskId("task-123");
@@ -386,14 +434,18 @@ public class TestCaseSetControllerTest {
         taskInfo.setStatus("PENDING");
         taskInfo.setEstimatedTime(5);
 
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "触发用例集校验"))
+            .thenReturn(successResult);
+        
         when(testCaseValidationService.triggerValidation(1L)).thenReturn(taskInfo);
         when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(testTestCaseSet);
         doNothing().when(operationLogUtil).logTestCaseSetValidation(anyString(), any(TestCaseSet.class));
 
         // Act
         ResponseEntity<ValidationTaskResponse> response = 
-            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "admin");
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", username);
 
         // Assert
         assertNotNull(response);
@@ -404,6 +456,7 @@ public class TestCaseSetControllerTest {
         assertNotNull(response.getBody().getData());
         assertEquals("task-123", response.getBody().getData().getTaskId());
 
+        verify(permissionValidator).checkAdminOrOperator(username, "触发用例集校验");
         verify(testCaseValidationService, times(1)).triggerValidation(1L);
     }
 
@@ -413,11 +466,15 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTriggerTestCaseSetValidation_Unauthorized_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("user")).thenReturn(Arrays.asList("VIEWER"));
+        String username = "user";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，触发用例集校验需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator(username, "触发用例集校验"))
+            .thenReturn(failureResult);
 
         // Act
         ResponseEntity<ValidationTaskResponse> response = 
-            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "user");
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", username);
 
         // Assert
         assertNotNull(response);
@@ -426,6 +483,7 @@ public class TestCaseSetControllerTest {
         assertFalse(response.getBody().isSuccess());
         assertTrue(response.getBody().getMessage().contains("权限不足"));
 
+        verify(permissionValidator).checkAdminOrOperator(username, "触发用例集校验");
         verify(testCaseValidationService, never()).triggerValidation(anyLong());
     }
 
@@ -435,13 +493,18 @@ public class TestCaseSetControllerTest {
     @Test
     public void testTriggerTestCaseSetValidation_NotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "触发用例集校验"))
+            .thenReturn(successResult);
+        
         when(testCaseValidationService.triggerValidation(1L))
             .thenThrow(new IllegalArgumentException("Test case set not found: 1"));
 
         // Act
         ResponseEntity<ValidationTaskResponse> response = 
-            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "admin");
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", username);
 
         // Assert
         assertNotNull(response);
@@ -449,6 +512,8 @@ public class TestCaseSetControllerTest {
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertEquals("用例集不存在", response.getBody().getMessage());
+        
+        verify(permissionValidator).checkAdminOrOperator(username, "触发用例集校验");
     }
 
     /**
@@ -547,6 +612,12 @@ public class TestCaseSetControllerTest {
     @Test
     public void testExportTestCaseSetValidation_Success_ReturnsOk() {
         // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(successResult);
+        
         com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
             new com.huawei.cloududn.dialingtest.model.ValidationResult();
         serviceResult.setTestCaseSetId(1L);
@@ -557,12 +628,13 @@ public class TestCaseSetControllerTest {
 
         // Act
         ResponseEntity<Resource> response = 
-            testCaseSetController.exportTestCaseSetValidation(1L, "token");
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
         verify(testCaseValidationService, times(1)).getValidationResult(1L);
     }
 
@@ -572,15 +644,22 @@ public class TestCaseSetControllerTest {
     @Test
     public void testExportTestCaseSetValidation_NotFound_ReturnsNotFound() {
         // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(successResult);
+        
         when(testCaseValidationService.getValidationResult(1L)).thenReturn(null);
 
         // Act
         ResponseEntity<Resource> response = 
-            testCaseSetController.exportTestCaseSetValidation(1L, "token");
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
     }
 }
 
