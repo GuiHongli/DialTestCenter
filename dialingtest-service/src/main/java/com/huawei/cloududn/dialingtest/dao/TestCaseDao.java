@@ -86,32 +86,6 @@ public interface TestCaseDao {
     List<TestCase> findAllByTestCaseSetId(@Param("testCaseSetId") Long testCaseSetId);
     
     /**
-     * 根据用例集ID查询缺失脚本的测试用例
-     */
-    @Select("SELECT * FROM test_case WHERE test_case_set_id = #{testCaseSetId} AND script_exists = false")
-    @Results({
-        @Result(property = "id", column = "id"),
-        @Result(property = "testCaseSetId", column = "test_case_set_id"),
-        @Result(property = "caseName", column = "case_name"),
-        @Result(property = "caseNumber", column = "case_number"),
-        @Result(property = "testSteps", column = "test_steps"),
-        @Result(property = "expectedResult", column = "expected_result"),
-        @Result(property = "businessCategory", column = "business_category"),
-        @Result(property = "appName", column = "app_name"),
-        @Result(property = "dependenciesPackage", column = "dependencies_package"),
-        @Result(property = "dependenciesRule", column = "dependencies_rule"),
-        @Result(property = "environmentConfig", column = "environment_config"),
-        @Result(property = "scriptExists", column = "script_exists")
-    })
-    List<TestCase> findMissingScriptsByTestCaseSetId(Long testCaseSetId);
-    
-    /**
-     * 统计用例集下缺失脚本的测试用例数量
-     */
-    @Select("SELECT COUNT(*) FROM test_case WHERE test_case_set_id = #{testCaseSetId} AND script_exists = false")
-    long countMissingScriptsByTestCaseSetId(Long testCaseSetId);
-    
-    /**
      * 根据用例集ID删除测试用例
      */
     @Delete("DELETE FROM test_case WHERE test_case_set_id = #{testCaseSetId}")

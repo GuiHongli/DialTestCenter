@@ -236,17 +236,6 @@ public class TestCaseSetService {
     }
     
     /**
-     * 获取缺失脚本列表
-     */
-    @Transactional(readOnly = true)
-    public List<TestCase> getMissingScripts(Long testCaseSetId) {
-        // 验证用例集是否存在
-        getTestCaseSetById(testCaseSetId);
-        
-        return testCaseDao.findMissingScriptsByTestCaseSetId(testCaseSetId);
-    }
-    
-    /**
      * 文件验证
      */
     private void validateFile(MultipartFile file) {
