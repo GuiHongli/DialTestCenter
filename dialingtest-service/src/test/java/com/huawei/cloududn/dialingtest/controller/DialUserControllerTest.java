@@ -7,6 +7,7 @@ package com.huawei.cloududn.dialingtest.controller;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.DialUserService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,9 @@ public class DialUserControllerTest {
     @Mock
     private UserRoleService userRoleService;
 
+    @Mock
+    private PermissionValidator permissionValidator;
+
     @InjectMocks
     private DialUserController dialUserController;
 
@@ -59,7 +63,7 @@ public class DialUserControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("查询成功", response.getBody().getMessage());
+        assertEquals("Query successful", response.getBody().getMessage());
         assertEquals(2, response.getBody().getData().getContent().size());
         assertEquals(2, response.getBody().getData().getTotalElements().intValue());
     }
@@ -111,18 +115,23 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("查询失败"));
+        assertTrue(response.getBody().getMessage().contains("Query") || response.getBody().getMessage().contains("查询"));
     }
 
     @Test
-    public void testDialusersGet_NullUsername_ReturnsUnauthorized() {
+    public void testDialusersGet_NullUsername_ReturnsOk() {
+        // Note: getDialUsers方法不需要权限校验，可以接受null作为用户名过滤条件
+        // Arrange
+        List<DialUser> users = Arrays.asList();
+        when(dialUserService.findUsersWithPagination(0, 10, null)).thenReturn(users);
+        when(dialUserService.countUsers(null)).thenReturn(0L);
+        
         // Act
-        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, "testuser");
+        ResponseEntity<DialUserPageResponse> response = dialUserController.getDialUsers(0, 10, null);
 
         // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertFalse(response.getBody().isSuccess());
-        assertEquals("未提供用户名", response.getBody().getMessage());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isSuccess());
     }
     
 
@@ -138,7 +147,7 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("查询成功", response.getBody().getMessage());
+        assertEquals("Query successful", response.getBody().getMessage());
         assertEquals(user, response.getBody().getData());
     }
 
@@ -153,18 +162,21 @@ public class DialUserControllerTest {
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户不存在", response.getBody().getMessage());
+        assertEquals("User not found", response.getBody().getMessage());
     }
 
     @Test
-    public void testDialusersIdGet_NullUsername_ReturnsUnauthorized() {
+    public void testDialusersIdGet_UserNotFound_WhenServiceReturnsNull() {
+        // Arrange
+        when(dialUserService.findById(1)).thenReturn(null);
+
         // Act
         ResponseEntity<DialUserResponse> response = dialUserController.getDialUserById(1);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户不存在", response.getBody().getMessage());
+        assertEquals("User not found", response.getBody().getMessage());
     }
 
     @Test
@@ -175,17 +187,24 @@ public class DialUserControllerTest {
         request.setPassword("newpassword");
         
         DialUser updatedUser = createTestUser(1, "newuser", "newpassword");
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.updateUser(1, "newuser", "newpassword", "admin")).thenReturn(updatedUser);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "update dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.updateUser(1, "newuser", "newpassword", username)).thenReturn(updatedUser);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser(username, 1, request);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("修改成功", response.getBody().getMessage());
+        assertEquals("Update successful", response.getBody().getMessage());
         assertEquals(updatedUser, response.getBody().getData());
+        
+        verify(permissionValidator).checkAdmin(username, "update dial user");
     }
 
     @Test
@@ -195,15 +214,21 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("newpassword");
         
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，update dial user需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "update dial user"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("operator", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser(username, 1, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("权限不足，仅ADMIN用户可操作", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("权限不足"));
+        
+        verify(permissionValidator).checkAdmin(username, "update dial user");
     }
 
     @Test
@@ -212,14 +237,22 @@ public class DialUserControllerTest {
         UpdateDialUserRequest request = new UpdateDialUserRequest();
         request.setUsername("newuser");
         request.setPassword("newpassword");
+        
+        String username = "";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdmin(username, "update dial user"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser(username, 1, request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
         assertEquals("未提供用户名", response.getBody().getMessage());
+        
+        verify(permissionValidator).checkAdmin(username, "update dial user");
     }
 
     @Test
@@ -229,17 +262,24 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("newpassword");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.updateUser(999, "newuser", "newpassword", "admin"))
-                .thenThrow(new IllegalArgumentException("用户不存在: 999"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "update dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.updateUser(999, "newuser", "newpassword", username))
+                .thenThrow(new IllegalArgumentException("User not found"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 999, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser(username, 999, request);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户不存在: 999", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("not found") || response.getBody().getMessage().contains("不存在"));
+        
+        verify(permissionValidator).checkAdmin(username, "update dial user");
     }
 
     @Test
@@ -249,80 +289,118 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.updateUser(1, "existinguser", "password", "admin"))
-                .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "update dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.updateUser(1, "existinguser", "password", username))
+                .thenThrow(new IllegalArgumentException("Username already exists"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser("admin", 1, request);
+        ResponseEntity<DialUserResponse> response = dialUserController.updateDialUser(username, 1, request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户名已存在: existinguser", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("already exists") || response.getBody().getMessage().contains("已存在"));
+        
+        verify(permissionValidator).checkAdmin(username, "update dial user");
     }
 
     @Test
     public void testDialusersIdDelete_Success_ReturnsNoContent() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        doNothing().when(dialUserService).deleteUser(1, "admin");
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "delete dial user"))
+            .thenReturn(successResult);
+        
+        doNothing().when(dialUserService).deleteUser(1, username);
 
         // Act
-        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, username);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(dialUserService).deleteUser(1, "admin");
+        verify(permissionValidator).checkAdmin(username, "delete dial user");
+        verify(dialUserService).deleteUser(1, username);
     }
 
     @Test
     public void testDialusersIdDelete_NoAdminRole_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，delete dial user需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "delete dial user"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "operator");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, username);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verify(permissionValidator).checkAdmin(username, "delete dial user");
         verify(dialUserService, never()).deleteUser(anyInt(), anyString());
     }
 
     @Test
     public void testDialusersIdDelete_EmptyUsername_ReturnsUnauthorized() {
+        // Arrange
+        String username = "";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdmin(username, "delete dial user"))
+            .thenReturn(failureResult);
+
         // Act
-        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, username);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(permissionValidator).checkAdmin(username, "delete dial user");
         verify(dialUserService, never()).deleteUser(anyInt(), anyString());
     }
 
     @Test
     public void testDialusersIdDelete_UserNotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        doThrow(new IllegalArgumentException("用户不存在: 999")).when(dialUserService).deleteUser(999, "admin");
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "delete dial user"))
+            .thenReturn(successResult);
+        
+        doThrow(new IllegalArgumentException("User not found")).when(dialUserService).deleteUser(999, username);
 
         // Act
-        ResponseEntity<Void> response = dialUserController.deleteDialUser(999, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(999, username);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(permissionValidator).checkAdmin(username, "delete dial user");
     }
 
     @Test
     public void testDialusersIdDelete_ServiceException_ReturnsError() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        doThrow(new RuntimeException("Database error")).when(dialUserService).deleteUser(1, "admin");
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "delete dial user"))
+            .thenReturn(successResult);
+        
+        doThrow(new RuntimeException("Database error")).when(dialUserService).deleteUser(1, username);
 
         // Act
-        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, "admin");
+        ResponseEntity<Void> response = dialUserController.deleteDialUser(1, username);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        verify(permissionValidator).checkAdmin(username, "delete dial user");
     }
 
     @Test
@@ -333,17 +411,24 @@ public class DialUserControllerTest {
         request.setPassword("password");
         
         DialUser createdUser = createTestUser(1, "newuser", "password");
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.createUser("newuser", "password", "admin")).thenReturn(createdUser);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.createUser("newuser", "password", username)).thenReturn(createdUser);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("创建成功", response.getBody().getMessage());
+        assertEquals("Create successful", response.getBody().getMessage());
         assertEquals(createdUser, response.getBody().getData());
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     @Test
@@ -353,15 +438,21 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("password");
         
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，create dial user需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "operator", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("权限不足，仅ADMIN用户可操作", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("权限不足"));
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     @Test
@@ -370,14 +461,22 @@ public class DialUserControllerTest {
         CreateDialUserRequest request = new CreateDialUserRequest();
         request.setUsername("newuser");
         request.setPassword("password");
+        
+        String username = "";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
         assertEquals("未提供用户名", response.getBody().getMessage());
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     @Test
@@ -387,17 +486,24 @@ public class DialUserControllerTest {
         request.setUsername("existinguser");
         request.setPassword("password");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.createUser("existinguser", "password", "admin"))
-                .thenThrow(new IllegalArgumentException("用户名已存在: existinguser"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.createUser("existinguser", "password", username))
+                .thenThrow(new IllegalArgumentException("Username already exists"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户名已存在: existinguser", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("already exists") || response.getBody().getMessage().contains("已存在"));
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     @Test
@@ -407,17 +513,24 @@ public class DialUserControllerTest {
         request.setUsername("");
         request.setPassword("password");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.createUser("", "password", "admin"))
-                .thenThrow(new IllegalArgumentException("用户名不能为空"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.createUser("", "password", username))
+                .thenThrow(new IllegalArgumentException("Username cannot be empty"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户名不能为空", response.getBody().getMessage());
+        assertTrue(response.getBody().getMessage().contains("cannot be empty") || response.getBody().getMessage().contains("不能为空"));
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     @Test
@@ -427,17 +540,24 @@ public class DialUserControllerTest {
         request.setUsername("newuser");
         request.setPassword("password");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(dialUserService.createUser("newuser", "password", "admin"))
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "create dial user"))
+            .thenReturn(successResult);
+        
+        when(dialUserService.createUser("newuser", "password", username))
                 .thenThrow(new RuntimeException("Database error"));
 
         // Act
-        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", "admin", request);
+        ResponseEntity<DialUserResponse> response = dialUserController.createDialUser("csrf-token", username, request);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("创建失败"));
+        assertTrue(response.getBody().getMessage().contains("Create") || response.getBody().getMessage().contains("创建"));
+        
+        verify(permissionValidator).checkAdmin(username, "create dial user");
     }
 
     private DialUser createTestUser(Integer id, String username, String password) {

@@ -248,7 +248,7 @@ public class FileUploadControllerTest {
      * 测试上传软件包 - 成功场景
      */
     @Test
-    public void testUploadSoftwarePackage_AdminUser_Success() {
+    public void testUploadSoftwarePackage_AdminUser_Success() throws IOException {
         // Arrange
         MockMultipartFile apkFile = new MockMultipartFile(
             "file", "TestApp_1.0.0.apk", "application/vnd.android.package-archive", "test content".getBytes());
@@ -283,7 +283,7 @@ public class FileUploadControllerTest {
      * 测试上传软件包 - 权限不足
      */
     @Test
-    public void testUploadSoftwarePackage_InsufficientPermission_ReturnsForbidden() {
+    public void testUploadSoftwarePackage_InsufficientPermission_ReturnsForbidden() throws IOException {
         // Arrange
         MockMultipartFile apkFile = new MockMultipartFile(
             "file", "TestApp_1.0.0.apk", "application/vnd.android.package-archive", "test content".getBytes());
@@ -310,7 +310,7 @@ public class FileUploadControllerTest {
      * 测试上传预处理规则包 - 成功场景
      */
     @Test
-    public void testUploadPreprocessRulePackage_Success() {
+    public void testUploadPreprocessRulePackage_Success() throws IOException {
         // Arrange
         MockMultipartFile zipFile = new MockMultipartFile(
             "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
@@ -345,7 +345,7 @@ public class FileUploadControllerTest {
      * 测试上传预处理规则包 - 权限不足
      */
     @Test
-    public void testUploadPreprocessRulePackage_InsufficientPermission_ReturnsForbidden() {
+    public void testUploadPreprocessRulePackage_InsufficientPermission_ReturnsForbidden() throws IOException {
         // Arrange
         MockMultipartFile zipFile = new MockMultipartFile(
             "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
@@ -375,7 +375,7 @@ public class FileUploadControllerTest {
      * 测试上传预处理规则包 - 业务类型中文为空
      */
     @Test
-    public void testUploadPreprocessRulePackage_EmptyBusinessZh_ReturnsBadRequest() {
+    public void testUploadPreprocessRulePackage_EmptyBusinessZh_ReturnsBadRequest() throws IOException {
         // Arrange
         MockMultipartFile zipFile = new MockMultipartFile(
             "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
@@ -405,7 +405,7 @@ public class FileUploadControllerTest {
      * 测试上传预处理规则包 - 业务类型英文为空
      */
     @Test
-    public void testUploadPreprocessRulePackage_EmptyBusinessEn_ReturnsBadRequest() {
+    public void testUploadPreprocessRulePackage_EmptyBusinessEn_ReturnsBadRequest() throws IOException {
         // Arrange
         MockMultipartFile zipFile = new MockMultipartFile(
             "file", "preprocess-rule-v1.0.zip", "application/zip", "test zip content".getBytes());
