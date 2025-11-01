@@ -71,7 +71,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     public ResponseEntity<SuccessResponse> deletePreprocessRulePackage(Long id, String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除预处理规则包");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除预处理规则包");
             if (!permissionResult.isValid()) {
                 SuccessResponse response = new SuccessResponse();
                 response.setSuccess(false);

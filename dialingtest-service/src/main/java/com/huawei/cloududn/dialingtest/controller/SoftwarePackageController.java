@@ -100,7 +100,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     public ResponseEntity<SoftwarePackagePayload> updateSoftwarePackage(String xUsername, Long id, UpdateSoftwarePackageBody body) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "更新软件包信息");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "更新软件包信息");
             if (!permissionResult.isValid()) {
                 SoftwarePackagePayload response = new SoftwarePackagePayload();
                 response.setSuccess(false);
@@ -140,7 +140,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     public ResponseEntity<SuccessResponse> deleteSoftwarePackage(Long id, String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除软件包");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除软件包");
             if (!permissionResult.isValid()) {
                 SuccessResponse response = new SuccessResponse();
                 response.setSuccess(false);
@@ -184,7 +184,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
     public ResponseEntity<Resource> downloadSoftwarePackages(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, BatchDownloadRequest body) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "下载软件包");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "下载软件包");
             if (!permissionResult.isValid()) {
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
                     ? HttpStatus.BAD_REQUEST : HttpStatus.FORBIDDEN;

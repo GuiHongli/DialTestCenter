@@ -180,6 +180,11 @@ paths:
           required: true
           type: "integer"
           format: "int64"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       responses:
         200:
           description: "成功下载用例集文件"
@@ -352,7 +357,7 @@ paths:
       tags:
         - "测试用例管理"
       summary: "导出用例集校验结果Excel"
-      description: "导出用例集校验结果到Excel文件，包含每个用例的校验不通过原因"
+      description: "导出用例集校验结果到Excel文件，包含每个用例的校验不通过原因，仅ADMIN和OPERATOR有权限"
       parameters:
         - name: "id"
           in: "path"
@@ -365,6 +370,11 @@ paths:
           required: false
           type: "string"
           description: "CSRF防护令牌"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
       produces:
         - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       responses:
@@ -372,6 +382,10 @@ paths:
           description: "成功导出Excel文件"
           schema:
             type: "file"
+        403:
+          description: "权限不足"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
         404:
           description: "用例集不存在或校验结果不存在"
           schema:

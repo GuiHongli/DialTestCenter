@@ -127,7 +127,7 @@ public class DialUserController implements DialusersApi {
      * @param permissionResult 权限校验结果
      * @return 错误响应，如果权限通过则返回null
      */
-    private ResponseEntity<DialUserResponse> handlePermissionError(PermissionValidator.ValidationResult permissionResult) {
+    private ResponseEntity<DialUserResponse> handlePermissionError(PermissionValidator.PermissionValidationResult permissionResult) {
         if (permissionResult.isValid()) {
             return null;
         }
@@ -262,7 +262,7 @@ public class DialUserController implements DialusersApi {
     public ResponseEntity<DialUserResponse> updateDialUser(String xUsername, Integer id, UpdateDialUserRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "update dial user");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "update dial user");
             ResponseEntity<DialUserResponse> permissionError = handlePermissionError(permissionResult);
             if (permissionError != null) {
                 return permissionError;
@@ -293,7 +293,7 @@ public class DialUserController implements DialusersApi {
     public ResponseEntity<Void> deleteDialUser(Integer id, String xUsername) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "delete dial user");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "delete dial user");
             if (!permissionResult.isValid()) {
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
                     ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
@@ -326,7 +326,7 @@ public class DialUserController implements DialusersApi {
     public ResponseEntity<DialUserResponse> createDialUser(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, CreateDialUserRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "create dial user");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "create dial user");
             ResponseEntity<DialUserResponse> permissionError = handlePermissionError(permissionResult);
             if (permissionError != null) {
                 return permissionError;

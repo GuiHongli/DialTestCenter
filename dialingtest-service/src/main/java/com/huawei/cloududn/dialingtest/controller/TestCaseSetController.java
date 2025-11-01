@@ -117,7 +117,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     public ResponseEntity<Resource> downloadTestCaseSet(Long id, @RequestHeader(value = "X-Username", required = true) String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "下载用例集");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "下载用例集");
             if (!permissionResult.isValid()) {
                 logger.warn("用户权限不足 - username: {}", xUsername);
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
@@ -156,7 +156,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     public ResponseEntity<TestCaseSetResponse> updateTestCaseSet(String xUsername, Long id, UpdateTestCaseSetRequest body) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "更新用例集");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "更新用例集");
             if (!permissionResult.isValid()) {
                 TestCaseSetResponse response = new TestCaseSetResponse();
                 response.setSuccess(false);
@@ -198,7 +198,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     public ResponseEntity<SuccessResponse> deleteTestCaseSet(Long id, String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除用例集");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除用例集");
             if (!permissionResult.isValid()) {
                 SuccessResponse response = new SuccessResponse();
                 response.setSuccess(false);
@@ -292,7 +292,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
         logger.info("触发用例集校验任务 - testCaseSetId: {}, username: {}", id, xUsername);
         try {
             // 检查用户权限（ADMIN或OPERATOR）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "触发用例集校验");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "触发用例集校验");
             if (!permissionResult.isValid()) {
                 logger.warn("用户权限不足 - username: {}", xUsername);
                 ValidationTaskResponse response = new ValidationTaskResponse();
@@ -458,7 +458,7 @@ public class TestCaseSetController implements TestCaseSetsApi {
     public ResponseEntity<Resource> exportTestCaseSetValidation(Long id, String xCsrfToken, @RequestHeader(value = "X-Username", required = true) String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "导出用例集校验结果");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "导出用例集校验结果");
             if (!permissionResult.isValid()) {
                 logger.warn("用户权限不足 - username: {}", xUsername);
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 

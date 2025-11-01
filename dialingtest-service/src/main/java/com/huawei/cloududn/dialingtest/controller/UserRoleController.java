@@ -68,7 +68,7 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<UserRoleResponse> createUserRole(@RequestHeader("X-Csrf-Token") String xCsrfToken, @RequestHeader("X-Username") String xUsername, CreateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "创建用户角色");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "创建用户角色");
             if (!permissionResult.isValid()) {
                 UserRoleResponse response = new UserRoleResponse();
                 response.setSuccess(false);
@@ -107,7 +107,7 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<UserRoleResponse> updateUserRole(String xUsername, Integer id, UpdateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "更新用户角色");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "更新用户角色");
             if (!permissionResult.isValid()) {
                 UserRoleResponse response = new UserRoleResponse();
                 response.setSuccess(false);
@@ -147,7 +147,7 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<Void> deleteUserRole(Integer id, String xUsername) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "删除用户角色");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "删除用户角色");
             if (!permissionResult.isValid()) {
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
                     ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;

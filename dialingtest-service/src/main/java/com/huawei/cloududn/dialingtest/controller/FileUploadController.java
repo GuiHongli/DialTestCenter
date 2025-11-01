@@ -88,7 +88,7 @@ public class FileUploadController {
         
         try {
             // 权限验证
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传用例集");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传用例集");
             if (!permissionResult.isValid()) {
                 TestCaseSetUploadResponse response = new TestCaseSetUploadResponse();
                 response.setSuccess(false);
@@ -163,7 +163,7 @@ public class FileUploadController {
         
         try {
             // 权限验证
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传软件包");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传软件包");
             if (!permissionResult.isValid()) {
                 String errorResponse = String.format("{\"success\":false,\"message\":\"%s\"}", permissionResult.getErrorMessage());
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
@@ -253,7 +253,7 @@ public class FileUploadController {
 
         try {
             // 权限验证
-            PermissionValidator.ValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传预处理规则包");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "上传预处理规则包");
             if (!permissionResult.isValid()) {
                 String errorResponse = String.format("{\"success\":false,\"message\":\"%s\"}", permissionResult.getErrorMessage());
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 

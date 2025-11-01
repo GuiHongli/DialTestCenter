@@ -23,11 +23,11 @@ public class PermissionValidator {
     /**
      * 权限验证结果
      */
-    public static class ValidationResult {
+    public static class PermissionValidationResult {
         private final boolean valid;
         private final String errorMessage;
         
-        private ValidationResult(boolean valid, String errorMessage) {
+        private PermissionValidationResult(boolean valid, String errorMessage) {
             this.valid = valid;
             this.errorMessage = errorMessage;
         }
@@ -35,15 +35,15 @@ public class PermissionValidator {
         /**
          * 创建验证通过的结果
          */
-        public static ValidationResult success() {
-            return new ValidationResult(true, null);
+        public static PermissionValidationResult success() {
+            return new PermissionValidationResult(true, null);
         }
         
         /**
          * 创建验证失败的结果
          */
-        public static ValidationResult failure(String errorMessage) {
-            return new ValidationResult(false, errorMessage);
+        public static PermissionValidationResult failure(String errorMessage) {
+            return new PermissionValidationResult(false, errorMessage);
         }
         
         /**
@@ -67,11 +67,11 @@ public class PermissionValidator {
      * @param username 用户名
      * @return 验证结果，如果为空返回失败结果，否则返回成功结果
      */
-    public ValidationResult validateUsername(String username) {
+    public PermissionValidationResult validateUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
-            return ValidationResult.failure("未提供用户名");
+            return PermissionValidationResult.failure("未提供用户名");
         }
-        return ValidationResult.success();
+        return PermissionValidationResult.success();
     }
     
     /**
@@ -82,8 +82,8 @@ public class PermissionValidator {
      * @param operationDescription 操作描述（用于错误消息）
      * @return 验证结果
      */
-    public ValidationResult checkRole(String username, String requiredRole, String operationDescription) {
-        ValidationResult usernameCheck = validateUsername(username);
+    public PermissionValidationResult checkRole(String username, String requiredRole, String operationDescription) {
+        PermissionValidationResult usernameCheck = validateUsername(username);
         if (!usernameCheck.isValid()) {
             return usernameCheck;
         }
@@ -94,10 +94,10 @@ public class PermissionValidator {
             if (operationDescription != null && !operationDescription.isEmpty()) {
                 errorMessage = String.format("权限不足，%s需要%s权限", operationDescription, getRoleDisplayName(requiredRole));
             }
-            return ValidationResult.failure(errorMessage);
+            return PermissionValidationResult.failure(errorMessage);
         }
         
-        return ValidationResult.success();
+        return PermissionValidationResult.success();
     }
     
     /**
@@ -108,8 +108,8 @@ public class PermissionValidator {
      * @param operationDescription 操作描述（用于错误消息）
      * @return 验证结果
      */
-    public ValidationResult checkAnyRole(String username, List<String> requiredRoles, String operationDescription) {
-        ValidationResult usernameCheck = validateUsername(username);
+    public PermissionValidationResult checkAnyRole(String username, List<String> requiredRoles, String operationDescription) {
+        PermissionValidationResult usernameCheck = validateUsername(username);
         if (!usernameCheck.isValid()) {
             return usernameCheck;
         }
@@ -131,10 +131,10 @@ public class PermissionValidator {
             if (operationDescription != null && !operationDescription.isEmpty()) {
                 errorMessage = String.format("权限不足，%s需要%s权限", operationDescription, roleNames);
             }
-            return ValidationResult.failure(errorMessage);
+            return PermissionValidationResult.failure(errorMessage);
         }
         
-        return ValidationResult.success();
+        return PermissionValidationResult.success();
     }
     
     /**
@@ -144,7 +144,7 @@ public class PermissionValidator {
      * @param operationDescription 操作描述（用于错误消息）
      * @return 验证结果
      */
-    public ValidationResult checkAdmin(String username, String operationDescription) {
+    public PermissionValidationResult checkAdmin(String username, String operationDescription) {
         return checkRole(username, "ADMIN", operationDescription);
     }
     
@@ -155,7 +155,7 @@ public class PermissionValidator {
      * @param operationDescription 操作描述（用于错误消息）
      * @return 验证结果
      */
-    public ValidationResult checkAdminOrOperator(String username, String operationDescription) {
+    public PermissionValidationResult checkAdminOrOperator(String username, String operationDescription) {
         return checkAnyRole(username, Arrays.asList("ADMIN", "OPERATOR"), operationDescription);
     }
     
