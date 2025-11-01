@@ -25,8 +25,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -370,6 +372,110 @@ public class TestCaseValidationServiceTest {
         CaseValidationResult caseResult = result.getCaseResults().get(0);
         assertTrue(caseResult.isPreprocessRuleValid());
         assertTrue(caseResult.isSoftwarePackageValid());
+    }
+
+    /**
+     * 测试获取校验结果 - JSON解析失败
+     */
+    @Test
+    public void testGetValidationResult_InvalidJson_ReturnsNull() {
+        // Arrange
+        when(validationResultDao.findByTestCaseSetId(1L)).thenReturn("invalid json");
+        when(validationTaskDao.findLatestByTestCaseSetId(1L)).thenReturn(null);
+
+        // Act
+        ValidationResult result = testCaseValidationService.getValidationResult(1L);
+
+        // Assert
+        assertNull(result);
+    }
+
+    /**
+     * 测试获取校验结果 - 结果不存在且任务为PENDING
+     */
+    @Test
+    public void testGetValidationResult_TaskPending_ReturnsNull() {
+        // Arrange
+        when(validationResultDao.findByTestCaseSetId(1L)).thenReturn(null);
+        ValidationTask pendingTask = new ValidationTask();
+        pendingTask.setStatus("PENDING");
+        when(validationTaskDao.findLatestByTestCaseSetId(1L)).thenReturn(pendingTask);
+
+        // Act
+        ValidationResult result = testCaseValidationService.getValidationResult(1L);
+
+        // Assert
+        assertNull(result);
+    }
+
+    /**
+     * 测试获取校验结果 - 结果不存在且任务为COMPLETED
+     */
+    @Test
+    public void testGetValidationResult_TaskCompleted_ReturnsNull() {
+        // Arrange
+        when(validationResultDao.findByTestCaseSetId(1L)).thenReturn(null);
+        ValidationTask completedTask = new ValidationTask();
+        completedTask.setStatus("COMPLETED");
+        when(validationTaskDao.findLatestByTestCaseSetId(1L)).thenReturn(completedTask);
+
+        // Act
+        ValidationResult result = testCaseValidationService.getValidationResult(1L);
+
+        // Assert
+        assertNull(result);
+    }
+
+    /**
+     * 测试异步执行校验任务 - 成功场景
+     */
+    @Test
+    public void testExecuteValidationTaskAsync_Success_UpdatesTaskStatus() throws Exception {
+        // Arrange
+        String taskId = "task-123";
+        when(testCaseSetDao.findById(1L)).thenReturn(testTestCaseSet);
+        when(testCaseDao.findAllByTestCaseSetId(1L)).thenReturn(testCases);
+        when(archiveParseService.parseArchive(any(byte[].class))).thenReturn(archiveParseResult);
+        when(preprocessRuleDao.findByRuleNameAndBusinessZh(anyString(), anyString())).thenReturn(null);
+        when(softwarePackageDao.getSoftwarePackageByName(anyString())).thenReturn(null);
+        doNothing().when(validationTaskDao).updateStatus(anyString(), anyString(), anyInt(), 
+            any(LocalDateTime.class), any(LocalDateTime.class), anyString());
+        doNothing().when(validationResultDao).save(anyLong(), anyString(), anyString());
+
+        // Act
+        CompletableFuture<Void> future = testCaseValidationService.executeValidationTaskAsync(1L, taskId);
+
+        // Assert
+        assertNotNull(future);
+        future.get(); // Wait for completion
+        verify(validationTaskDao, atLeastOnce()).updateStatus(eq(taskId), eq("RUNNING"), eq(0), 
+            any(LocalDateTime.class), isNull(), isNull());
+        verify(validationTaskDao, atLeastOnce()).updateStatus(eq(taskId), eq("COMPLETED"), eq(100), 
+            any(LocalDateTime.class), any(LocalDateTime.class), isNull());
+        verify(validationResultDao, times(1)).save(eq(1L), eq(taskId), anyString());
+    }
+
+    /**
+     * 测试异步执行校验任务 - 校验失败场景
+     */
+    @Test
+    public void testExecuteValidationTaskAsync_ValidationFails_UpdatesTaskStatusToFailed() throws Exception {
+        // Arrange
+        String taskId = "task-123";
+        when(testCaseSetDao.findById(1L)).thenReturn(null); // 用例集不存在，会抛出异常
+        doNothing().when(validationTaskDao).updateStatus(anyString(), anyString(), isNull(), 
+            isNull(), any(LocalDateTime.class), anyString());
+
+        // Act
+        CompletableFuture<Void> future = testCaseValidationService.executeValidationTaskAsync(1L, taskId);
+
+        // Assert
+        assertNotNull(future);
+        future.get(); // Wait for completion
+        verify(validationTaskDao, atLeastOnce()).updateStatus(eq(taskId), eq("RUNNING"), eq(0), 
+            any(LocalDateTime.class), isNull(), isNull());
+        verify(validationTaskDao, atLeastOnce()).updateStatus(eq(taskId), eq("FAILED"), isNull(), 
+            isNull(), any(LocalDateTime.class), anyString());
     }
 }
 

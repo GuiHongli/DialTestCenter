@@ -517,6 +517,62 @@ public class TestCaseSetControllerTest {
     }
 
     /**
+     * 测试触发用例集校验 - 用户名为null
+     */
+    @Test
+    public void testTriggerTestCaseSetValidation_NullUsername_ReturnsUnauthorized() {
+        // Arrange
+        String username = null;
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdminOrOperator(username, "触发用例集校验"))
+            .thenReturn(failureResult);
+
+        // Act
+        ResponseEntity<ValidationTaskResponse> response = 
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("未提供用户名", response.getBody().getMessage());
+
+        verify(permissionValidator).checkAdminOrOperator(username, "触发用例集校验");
+        verify(testCaseValidationService, never()).triggerValidation(anyLong());
+    }
+
+    /**
+     * 测试触发用例集校验 - 服务异常
+     */
+    @Test
+    public void testTriggerTestCaseSetValidation_ServiceException_ReturnsInternalServerError() {
+        // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "触发用例集校验"))
+            .thenReturn(successResult);
+        
+        when(testCaseValidationService.triggerValidation(1L))
+            .thenThrow(new RuntimeException("Service error"));
+
+        // Act
+        ResponseEntity<ValidationTaskResponse> response = 
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertTrue(response.getBody().getMessage().contains("触发校验任务失败"));
+
+        verify(permissionValidator).checkAdminOrOperator(username, "触发用例集校验");
+    }
+
+    /**
      * 测试获取用例集校验结果 - 成功场景
      */
     @Test
@@ -607,6 +663,103 @@ public class TestCaseSetControllerTest {
     }
 
     /**
+     * 测试获取用例集校验结果 - 任务正在执行中
+     */
+    @Test
+    public void testGetTestCaseSetValidation_TaskRunning_ReturnsOk() {
+        // Arrange
+        ValidationTask task = new ValidationTask();
+        task.setStatus("RUNNING");
+        task.setCreatedTime(java.time.LocalDateTime.now());
+
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(null);
+        when(testCaseValidationService.getTaskStatus(1L)).thenReturn(task);
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", false);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertTrue(response.getBody().getMessage().contains("校验任务正在执行中"));
+    }
+
+    /**
+     * 测试获取用例集校验结果 - forceRefresh为null
+     */
+    @Test
+    public void testGetTestCaseSetValidation_NullForceRefresh_ReturnsOk() {
+        // Arrange
+        com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
+            new com.huawei.cloududn.dialingtest.model.ValidationResult();
+        serviceResult.setTestCaseSetId(1L);
+        serviceResult.setTotalCaseCount(1);
+
+        ValidationTask task = new ValidationTask();
+        task.setStatus("COMPLETED");
+
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(serviceResult);
+        when(testCaseValidationService.getTaskStatus(1L)).thenReturn(task);
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", null);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        verify(testCaseValidationService, times(1)).getValidationResult(1L);
+        verify(testCaseValidationService, never()).validateTestCaseSet(anyLong());
+    }
+
+    /**
+     * 测试获取用例集校验结果 - IllegalArgumentException异常
+     */
+    @Test
+    public void testGetTestCaseSetValidation_IllegalArgumentException_ReturnsNotFound() {
+        // Arrange
+        when(testCaseValidationService.getValidationResult(1L))
+            .thenThrow(new IllegalArgumentException("Test case set not found"));
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", false);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("用例集不存在", response.getBody().getMessage());
+    }
+
+    /**
+     * 测试获取用例集校验结果 - 服务异常
+     */
+    @Test
+    public void testGetTestCaseSetValidation_ServiceException_ReturnsInternalServerError() {
+        // Arrange
+        when(testCaseValidationService.getValidationResult(1L))
+            .thenThrow(new RuntimeException("Service error"));
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", false);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertTrue(response.getBody().getMessage().contains("获取校验结果失败"));
+    }
+
+    /**
      * 测试导出用例集校验结果 - 成功场景
      */
     @Test
@@ -659,6 +812,102 @@ public class TestCaseSetControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
+    }
+
+    /**
+     * 测试导出用例集校验结果 - 权限不足
+     */
+    @Test
+    public void testExportTestCaseSetValidation_NoPermission_ReturnsForbidden() {
+        // Arrange
+        String username = "user";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，导出用例集校验结果需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(failureResult);
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
+        verify(testCaseValidationService, never()).getValidationResult(anyLong());
+    }
+
+    /**
+     * 测试导出用例集校验结果 - 用户名为null
+     */
+    @Test
+    public void testExportTestCaseSetValidation_NullUsername_ReturnsUnauthorized() {
+        // Arrange
+        String username = null;
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(failureResult);
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
+        verify(testCaseValidationService, never()).getValidationResult(anyLong());
+    }
+
+    /**
+     * 测试导出用例集校验结果 - IllegalArgumentException异常
+     */
+    @Test
+    public void testExportTestCaseSetValidation_IllegalArgumentException_ReturnsNotFound() {
+        // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(successResult);
+        
+        when(testCaseValidationService.getValidationResult(1L))
+            .thenThrow(new IllegalArgumentException("Test case set not found"));
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
+    }
+
+    /**
+     * 测试导出用例集校验结果 - 服务异常
+     */
+    @Test
+    public void testExportTestCaseSetValidation_ServiceException_ReturnsInternalServerError() {
+        // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator(username, "导出用例集校验结果"))
+            .thenReturn(successResult);
+        
+        when(testCaseValidationService.getValidationResult(1L))
+            .thenThrow(new RuntimeException("Service error"));
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token", username);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         verify(permissionValidator).checkAdminOrOperator(username, "导出用例集校验结果");
     }
 }
