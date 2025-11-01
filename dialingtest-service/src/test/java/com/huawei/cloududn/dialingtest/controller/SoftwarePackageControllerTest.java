@@ -8,6 +8,7 @@ import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.SoftwarePackagesService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +46,9 @@ public class SoftwarePackageControllerTest {
 
     @Mock
     private OperationLogUtil operationLogUtil;
+
+    @Mock
+    private PermissionValidator permissionValidator;
 
     @InjectMocks
     private SoftwarePackageController softwarePackageController;
@@ -181,7 +185,8 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be NOT_FOUND", HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
+        assertFalse("Response should not be successful", response.getBody().isSuccess());
     }
 
     /**
@@ -195,7 +200,10 @@ public class SoftwarePackageControllerTest {
         updatedPackageInfo.setSoftwareName("test-app");
         updatedPackageInfo.setDescription("Updated description");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "更新软件包信息"))
+            .thenReturn(successResult);
         when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
         when(softwarePackageService.updateSoftwarePackage(1L, "Updated description")).thenReturn(updatedPackageInfo);
 
@@ -210,7 +218,7 @@ public class SoftwarePackageControllerTest {
         assertNotNull("Data should not be null", response.getBody().getData());
         assertEquals("Description should be updated", "Updated description", response.getBody().getData().getDescription());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "更新软件包信息");
         verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
         verify(softwarePackageService, times(1)).updateSoftwarePackage(1L, "Updated description");
         verify(operationLogUtil, times(1)).logSoftwarePackageUpdate("admin", mockPackageInfo, updatedPackageInfo);
@@ -222,7 +230,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testUpdateSoftwarePackage_InsufficientPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("browser")).thenReturn(Arrays.asList("BROWSER"));
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，更新软件包信息需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator("browser", "更新软件包信息"))
+            .thenReturn(failureResult);
 
         // Act
         ResponseEntity<SoftwarePackagePayload> response = softwarePackageController.updateSoftwarePackage("browser", 1L, mockUpdateRequest);
@@ -230,9 +241,9 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be FORBIDDEN", HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("browser");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("browser", "更新软件包信息");
         verify(softwarePackageService, never()).updateSoftwarePackage(anyLong(), anyString());
     }
 
@@ -242,7 +253,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testUpdateSoftwarePackage_NotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "更新软件包信息"))
+            .thenReturn(successResult);
         when(softwarePackageService.getSoftwarePackageById(999L)).thenReturn(null);
 
         // Act
@@ -251,9 +265,9 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be NOT_FOUND", HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "更新软件包信息");
         verify(softwarePackageService, times(1)).getSoftwarePackageById(999L);
         verify(softwarePackageService, never()).updateSoftwarePackage(anyLong(), anyString());
     }
@@ -269,19 +283,19 @@ public class SoftwarePackageControllerTest {
         updatedPackageInfo.setSoftwareName("test-app");
         updatedPackageInfo.setDescription("Updated description");
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
-        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
-        when(softwarePackageService.updateSoftwarePackage(1L, "Updated description")).thenReturn(updatedPackageInfo);
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdminOrOperator(null, "更新软件包信息"))
+            .thenReturn(failureResult);
 
         // Act
         ResponseEntity<SoftwarePackagePayload> response = softwarePackageController.updateSoftwarePackage(null, 1L, mockUpdateRequest);
 
         // Assert
         assertNotNull("Response should not be null", response);
-        assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
-        assertTrue("Response should be successful", response.getBody().isSuccess());
+        assertEquals("Status should be BAD_REQUEST", HttpStatus.BAD_REQUEST, response.getStatusCode());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator(null, "更新软件包信息");
     }
 
     /**
@@ -290,7 +304,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDeleteSoftwarePackage_Success_ReturnsCorrectResponse() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除软件包"))
+            .thenReturn(successResult);
         when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
         when(softwarePackageService.isReferencedByTestCaseSet(1L)).thenReturn(false);
         when(softwarePackageService.deleteSoftwarePackage(1L)).thenReturn(true);
@@ -304,7 +321,7 @@ public class SoftwarePackageControllerTest {
         assertTrue("Response should be successful", response.getBody().isSuccess());
         assertEquals("Message should be correct", "删除软件包成功", response.getBody().getMessage());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除软件包");
         verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
         verify(softwarePackageService, times(1)).isReferencedByTestCaseSet(1L);
         verify(softwarePackageService, times(1)).deleteSoftwarePackage(1L);
@@ -317,7 +334,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDeleteSoftwarePackage_InsufficientPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("browser")).thenReturn(Arrays.asList("BROWSER"));
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，删除软件包需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator("browser", "删除软件包"))
+            .thenReturn(failureResult);
 
         // Act
         ResponseEntity<SuccessResponse> response = softwarePackageController.deleteSoftwarePackage(1L, "browser");
@@ -325,9 +345,9 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be FORBIDDEN", HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("browser");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("browser", "删除软件包");
         verify(softwarePackageService, never()).deleteSoftwarePackage(anyLong());
     }
 
@@ -337,7 +357,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDeleteSoftwarePackage_NotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除软件包"))
+            .thenReturn(successResult);
         when(softwarePackageService.getSoftwarePackageById(999L)).thenReturn(null);
 
         // Act
@@ -346,9 +369,9 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be NOT_FOUND", HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除软件包");
         verify(softwarePackageService, times(1)).getSoftwarePackageById(999L);
         verify(softwarePackageService, never()).deleteSoftwarePackage(anyLong());
     }
@@ -359,7 +382,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDeleteSoftwarePackage_Referenced_ReturnsBadRequest() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除软件包"))
+            .thenReturn(successResult);
         when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
         when(softwarePackageService.isReferencedByTestCaseSet(1L)).thenReturn(true);
 
@@ -369,9 +395,9 @@ public class SoftwarePackageControllerTest {
         // Assert
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be BAD_REQUEST", HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull("Response body should be null", response.getBody());
+        assertNotNull("Response body should not be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除软件包");
         verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
         verify(softwarePackageService, times(1)).isReferencedByTestCaseSet(1L);
         verify(softwarePackageService, never()).deleteSoftwarePackage(anyLong());
@@ -383,11 +409,13 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDownloadSoftwarePackages_Success_ReturnsResource() {
         // Arrange
-        Resource mockResource = mock(Resource.class);
-        
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
-        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L, 2L), "test-packages")).thenReturn(mockResource);
-        when(softwarePackageService.getSoftwarePackageNameById(1L)).thenReturn("test-app.apk");
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
+            .thenReturn(successResult);
+        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
+        byte[] fileContent = new byte[]{1, 2, 3};
+        when(softwarePackageService.getSoftwarePackageFileContent(1L)).thenReturn(fileContent);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", mockDownloadRequest);
@@ -396,10 +424,10 @@ public class SoftwarePackageControllerTest {
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
         assertNotNull("Resource should not be null", response.getBody());
-        assertEquals("Resource should match", mockResource, response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
-        verify(softwarePackageService, times(1)).downloadSoftwarePackages(Arrays.asList(1L, 2L), "test-packages");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
+        verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
+        verify(softwarePackageService, times(1)).getSoftwarePackageFileContent(1L);
     }
 
     /**
@@ -408,7 +436,10 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDownloadSoftwarePackages_InsufficientPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("browser")).thenReturn(Arrays.asList("BROWSER"));
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，下载软件包需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator("browser", "下载软件包"))
+            .thenReturn(failureResult);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "browser", mockDownloadRequest);
@@ -418,8 +449,8 @@ public class SoftwarePackageControllerTest {
         assertEquals("Status should be FORBIDDEN", HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNull("Resource should be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("browser");
-        verify(softwarePackageService, never()).downloadSoftwarePackages(anyList(), anyString());
+        verify(permissionValidator, times(1)).checkAdminOrOperator("browser", "下载软件包");
+        verify(softwarePackageService, never()).getSoftwarePackageById(anyLong());
     }
 
     /**
@@ -430,7 +461,10 @@ public class SoftwarePackageControllerTest {
         BatchDownloadRequest emptyRequest = new BatchDownloadRequest();
         emptyRequest.setPackageIds(Arrays.asList());
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
+            .thenReturn(successResult);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", emptyRequest);
@@ -440,8 +474,8 @@ public class SoftwarePackageControllerTest {
         assertEquals("Status should be BAD_REQUEST", HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNull("Resource should be null", response.getBody());
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
-        verify(softwarePackageService, never()).downloadSoftwarePackages(anyList(), anyString());
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
+        verify(softwarePackageService, never()).getSoftwarePackageById(anyLong());
     }
 
     /**
@@ -450,13 +484,16 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDownloadSoftwarePackages_SingleFile_ReturnsCorrectHeaders() {
         // Arrange
-        Resource mockResource = mock(Resource.class);
         BatchDownloadRequest singleRequest = new BatchDownloadRequest();
         singleRequest.setPackageIds(Arrays.asList(1L));
         
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
-        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L), null)).thenReturn(mockResource);
-        when(softwarePackageService.getSoftwarePackageNameById(1L)).thenReturn("test-app.apk");
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
+            .thenReturn(successResult);
+        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
+        byte[] fileContent = new byte[]{1, 2, 3};
+        when(softwarePackageService.getSoftwarePackageFileContent(1L)).thenReturn(fileContent);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", singleRequest);
@@ -466,10 +503,11 @@ public class SoftwarePackageControllerTest {
         assertEquals("Status should be OK", HttpStatus.OK, response.getStatusCode());
         assertNotNull("Resource should not be null", response.getBody());
         assertTrue("Content-Disposition should contain filename", 
-                  response.getHeaders().getFirst("Content-Disposition").contains("test-app.apk"));
+                  response.getHeaders().getFirst("Content-Disposition").contains("test-app"));
         
-        verify(userRoleService, times(1)).getUserRolesByUsername("admin");
-        verify(softwarePackageService, times(1)).downloadSoftwarePackages(Arrays.asList(1L), null);
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
+        verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
+        verify(softwarePackageService, times(1)).getSoftwarePackageFileContent(1L);
     }
 
     /**
@@ -478,8 +516,11 @@ public class SoftwarePackageControllerTest {
     @Test
     public void testDownloadSoftwarePackages_Exception_ReturnsInternalServerError() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(adminRoles);
-        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L, 2L), "test-packages"))
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
+            .thenReturn(successResult);
+        when(softwarePackageService.getSoftwarePackageById(1L))
             .thenThrow(new RuntimeException("Download failed"));
 
         // Act
@@ -501,7 +542,7 @@ public class SoftwarePackageControllerTest {
         private SoftwarePackagesService softwarePackagesService;
 
         @Mock
-        private UserRoleService userRoleService;
+        private PermissionValidator permissionValidator;
 
         @InjectMocks
         private SoftwarePackageController controller;
@@ -519,7 +560,10 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_Single_Success() {
             String xUsername = "admin";
-            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            PermissionValidator.PermissionValidationResult successResult = 
+                PermissionValidator.PermissionValidationResult.success();
+            when(permissionValidator.checkAdminOrOperator(xUsername, "下载软件包"))
+                .thenReturn(successResult);
             request.setPackageIds(Collections.singletonList(1L));
 
             SoftwarePackageInfo info = new SoftwarePackageInfo();
@@ -542,6 +586,10 @@ public class SoftwarePackageControllerTest {
          */
         @Test
         public void testDownloadSoftwarePackages_EmptyUsername_BadRequest() {
+            PermissionValidator.PermissionValidationResult failureResult = 
+                PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+            when(permissionValidator.checkAdminOrOperator(" ", "下载软件包"))
+                .thenReturn(failureResult);
             request.setPackageIds(Collections.singletonList(1L));
             ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", " ", request);
             assertEquals(400, resp.getStatusCodeValue());
@@ -553,7 +601,10 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_NoPermission_Forbidden() {
             String xUsername = "user";
-            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("VIEWER"));
+            PermissionValidator.PermissionValidationResult failureResult = 
+                PermissionValidator.PermissionValidationResult.failure("权限不足，下载软件包需要管理员或操作员权限");
+            when(permissionValidator.checkAdminOrOperator(xUsername, "下载软件包"))
+                .thenReturn(failureResult);
             request.setPackageIds(Collections.singletonList(1L));
             ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(403, resp.getStatusCodeValue());
@@ -565,7 +616,10 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_EmptyIds_BadRequest() {
             String xUsername = "admin";
-            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            PermissionValidator.PermissionValidationResult successResult = 
+                PermissionValidator.PermissionValidationResult.success();
+            when(permissionValidator.checkAdminOrOperator(xUsername, "下载软件包"))
+                .thenReturn(successResult);
             request.setPackageIds(Collections.emptyList());
             ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
             assertEquals(400, resp.getStatusCodeValue());
@@ -577,7 +631,10 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_PackageNotFound_NotFound() {
             String xUsername = "admin";
-            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            PermissionValidator.PermissionValidationResult successResult = 
+                PermissionValidator.PermissionValidationResult.success();
+            when(permissionValidator.checkAdminOrOperator(xUsername, "下载软件包"))
+                .thenReturn(successResult);
             request.setPackageIds(Collections.singletonList(99L));
             when(softwarePackagesService.getSoftwarePackageById(99L)).thenReturn(null);
             ResponseEntity<Resource> resp = controller.downloadSoftwarePackages("csrf-token", xUsername, request);
@@ -590,7 +647,10 @@ public class SoftwarePackageControllerTest {
         @Test
         public void testDownloadSoftwarePackages_FileContentNull_NotFound() {
             String xUsername = "admin";
-            when(userRoleService.getUserRolesByUsername(xUsername)).thenReturn(Arrays.asList("ADMIN"));
+            PermissionValidator.PermissionValidationResult successResult = 
+                PermissionValidator.PermissionValidationResult.success();
+            when(permissionValidator.checkAdminOrOperator(xUsername, "下载软件包"))
+                .thenReturn(successResult);
             request.setPackageIds(Collections.singletonList(1L));
 
             SoftwarePackageInfo info = new SoftwarePackageInfo();
