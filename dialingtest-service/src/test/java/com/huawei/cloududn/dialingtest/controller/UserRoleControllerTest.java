@@ -7,6 +7,7 @@ package com.huawei.cloududn.dialingtest.controller;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +39,9 @@ public class UserRoleControllerTest {
 
     @Mock
     private OperationLogUtil operationLogUtil;
+
+    @Mock
+    private PermissionValidator permissionValidator;
 
     @InjectMocks
     private UserRoleController userRoleController;
@@ -160,11 +164,16 @@ public class UserRoleControllerTest {
     @Test
     public void testUserRolesPost_AdminUser_Success() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(userRoleService.createUserRole("testuser", "ADMIN", "admin")).thenReturn(testUserRole);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "创建用户角色"))
+            .thenReturn(successResult);
+        
+        when(userRoleService.createUserRole("testuser", "ADMIN", username)).thenReturn(testUserRole);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", username, testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -173,37 +182,46 @@ public class UserRoleControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals("创建用户角色成功", response.getBody().getMessage());
         assertEquals(testUserRole, response.getBody().getData());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).createUserRole("testuser", "ADMIN", "admin");
+        verify(permissionValidator).checkAdmin(username, "创建用户角色");
+        verify(userRoleService).createUserRole("testuser", "ADMIN", username);
     }
 
     @Test
     public void testUserRolesPost_NoPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，创建用户角色需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "创建用户角色"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "operator", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", username, testCreateRequest);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("权限不足，需要ADMIN权限", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("operator");
+        assertTrue(response.getBody().getMessage().contains("权限不足"));
+        verify(permissionValidator).checkAdmin(username, "创建用户角色");
         verify(userRoleService, never()).createUserRole(anyString(), anyString(), anyString());
     }
 
     @Test
     public void testUserRolesPost_IllegalArgument_ReturnsBadRequest() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(userRoleService.createUserRole("testuser", "ADMIN", "admin"))
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "创建用户角色"))
+            .thenReturn(successResult);
+        
+        when(userRoleService.createUserRole("testuser", "ADMIN", username))
             .thenThrow(new IllegalArgumentException("用户角色关系已存在"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", "admin", testCreateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.createUserRole("csrf-token", username, testCreateRequest);
 
         // Assert
         assertNotNull(response);
@@ -211,18 +229,23 @@ public class UserRoleControllerTest {
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertEquals("用户角色关系已存在", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).createUserRole("testuser", "ADMIN", "admin");
+        verify(permissionValidator).checkAdmin(username, "创建用户角色");
+        verify(userRoleService).createUserRole("testuser", "ADMIN", username);
     }
 
     @Test
     public void testUserRolesIdPut_AdminUser_Success() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin")).thenReturn(testUserRole);
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+            .thenReturn(successResult);
+        
+        when(userRoleService.updateUserRole(1, "testuser", "ADMIN", username)).thenReturn(testUserRole);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("admin", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
@@ -231,37 +254,46 @@ public class UserRoleControllerTest {
         assertTrue(response.getBody().isSuccess());
         assertEquals("更新用户角色成功", response.getBody().getMessage());
         assertEquals(testUserRole, response.getBody().getData());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", "admin");
+        verify(permissionValidator).checkAdmin(username, "更新用户角色");
+        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
     }
 
     @Test
     public void testUserRolesIdPut_NoPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，更新用户角色需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("operator", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("权限不足，需要ADMIN权限", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("operator");
+        assertTrue(response.getBody().getMessage().contains("权限不足"));
+        verify(permissionValidator).checkAdmin(username, "更新用户角色");
         verify(userRoleService, never()).updateUserRole(anyInt(), anyString(), anyString(), anyString());
     }
 
     @Test
     public void testUserRolesIdPut_NotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        when(userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin"))
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+            .thenReturn(successResult);
+        
+        when(userRoleService.updateUserRole(1, "testuser", "ADMIN", username))
             .thenThrow(new IllegalArgumentException("用户角色关系不存在"));
 
         // Act
-        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole("admin", Integer.valueOf(1), testUpdateRequest);
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
@@ -269,54 +301,67 @@ public class UserRoleControllerTest {
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
         assertEquals("用户角色关系不存在", response.getBody().getMessage());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", "admin");
+        verify(permissionValidator).checkAdmin(username, "更新用户角色");
+        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
     }
 
     @Test
     public void testUserRolesIdDelete_AdminUser_Success() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "删除用户角色"))
+            .thenReturn(successResult);
 
         // Act
-        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "admin");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).deleteUserRole(1, "admin");
+        verify(permissionValidator).checkAdmin(username, "删除用户角色");
+        verify(userRoleService).deleteUserRole(1, username);
     }
 
     @Test
     public void testUserRolesIdDelete_NoPermission_ReturnsForbidden() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("operator")).thenReturn(Arrays.asList("OPERATOR"));
+        String username = "operator";
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，删除用户角色需要管理员权限");
+        when(permissionValidator.checkAdmin(username, "删除用户角色"))
+            .thenReturn(failureResult);
 
         // Act
-        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "operator");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        verify(userRoleService).getUserRolesByUsername("operator");
+        verify(permissionValidator).checkAdmin(username, "删除用户角色");
         verify(userRoleService, never()).deleteUserRole(anyInt(), anyString());
     }
 
     @Test
     public void testUserRolesIdDelete_NotFound_ReturnsNotFound() {
         // Arrange
-        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
-        doThrow(new IllegalArgumentException("用户角色关系不存在")).when(userRoleService).deleteUserRole(1, "admin");
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "删除用户角色"))
+            .thenReturn(successResult);
+        
+        doThrow(new IllegalArgumentException("用户角色关系不存在")).when(userRoleService).deleteUserRole(1, username);
 
         // Act
-        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), "admin");
+        ResponseEntity<Void> response = userRoleController.deleteUserRole(Integer.valueOf(1), username);
 
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(userRoleService).getUserRolesByUsername("admin");
-        verify(userRoleService).deleteUserRole(1, "admin");
+        verify(permissionValidator).checkAdmin(username, "删除用户角色");
+        verify(userRoleService).deleteUserRole(1, username);
     }
 
     @Test
