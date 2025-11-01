@@ -15,7 +15,12 @@ import com.huawei.cloududn.dialingtest.model.TestCaseListResponse;
 import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
 import com.huawei.cloududn.dialingtest.model.MissingScriptsResponse;
 import com.huawei.cloududn.dialingtest.model.MissingScriptsResponseData;
+import com.huawei.cloududn.dialingtest.model.ValidationTaskResponse;
+import com.huawei.cloududn.dialingtest.model.ValidationResponse;
+import com.huawei.cloududn.dialingtest.entity.ValidationTask;
 import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
+import com.huawei.cloududn.dialingtest.service.TestCaseValidationService;
+import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +50,12 @@ public class TestCaseSetControllerTest {
 
     @Mock
     private TestCaseSetService testCaseSetService;
+
+    @Mock
+    private TestCaseValidationService testCaseValidationService;
+
+    @Mock
+    private UserRoleService userRoleService;
 
     @Mock
     private OperationLogUtil operationLogUtil;
@@ -385,6 +396,216 @@ public class TestCaseSetControllerTest {
         assertEquals(Integer.valueOf(1), Integer.valueOf(response.getBody().getData().getCount()));
 
         verify(testCaseSetService, times(1)).getMissingScripts(1L);
+    }
+
+    /**
+     * 测试触发用例集校验 - 成功场景
+     */
+    @Test
+    public void testTriggerTestCaseSetValidation_Success_ReturnsAccepted() {
+        // Arrange
+        TestCaseValidationService.ValidationTaskInfo taskInfo = 
+            new TestCaseValidationService.ValidationTaskInfo();
+        taskInfo.setTaskId("task-123");
+        taskInfo.setTestCaseSetId(1L);
+        taskInfo.setStatus("PENDING");
+        taskInfo.setEstimatedTime(5);
+
+        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
+        when(testCaseValidationService.triggerValidation(1L)).thenReturn(taskInfo);
+        when(testCaseSetService.getTestCaseSetById(1L)).thenReturn(testTestCaseSet);
+        doNothing().when(operationLogUtil).logTestCaseSetValidation(anyString(), any(TestCaseSet.class));
+
+        // Act
+        ResponseEntity<ValidationTaskResponse> response = 
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "admin");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("校验任务已提交", response.getBody().getMessage());
+        assertNotNull(response.getBody().getData());
+        assertEquals("task-123", response.getBody().getData().getTaskId());
+
+        verify(testCaseValidationService, times(1)).triggerValidation(1L);
+    }
+
+    /**
+     * 测试触发用例集校验 - 权限不足
+     */
+    @Test
+    public void testTriggerTestCaseSetValidation_Unauthorized_ReturnsForbidden() {
+        // Arrange
+        when(userRoleService.getUserRolesByUsername("user")).thenReturn(Arrays.asList("VIEWER"));
+
+        // Act
+        ResponseEntity<ValidationTaskResponse> response = 
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "user");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertTrue(response.getBody().getMessage().contains("权限不足"));
+
+        verify(testCaseValidationService, never()).triggerValidation(anyLong());
+    }
+
+    /**
+     * 测试触发用例集校验 - 用例集不存在
+     */
+    @Test
+    public void testTriggerTestCaseSetValidation_NotFound_ReturnsNotFound() {
+        // Arrange
+        when(userRoleService.getUserRolesByUsername("admin")).thenReturn(Arrays.asList("ADMIN"));
+        when(testCaseValidationService.triggerValidation(1L))
+            .thenThrow(new IllegalArgumentException("Test case set not found: 1"));
+
+        // Act
+        ResponseEntity<ValidationTaskResponse> response = 
+            testCaseSetController.triggerTestCaseSetValidation(1L, "token", "admin");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("用例集不存在", response.getBody().getMessage());
+    }
+
+    /**
+     * 测试获取用例集校验结果 - 成功场景
+     */
+    @Test
+    public void testGetTestCaseSetValidation_Success_ReturnsOk() {
+        // Arrange
+        com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
+            new com.huawei.cloududn.dialingtest.model.ValidationResult();
+        serviceResult.setTestCaseSetId(1L);
+        serviceResult.setTestCaseSetName("测试用例集");
+        serviceResult.setTotalCaseCount(2);
+        serviceResult.setPassedCaseCount(1);
+        serviceResult.setFailedCaseCount(1);
+        serviceResult.setMatchRate(50.0);
+
+        com.huawei.cloududn.dialingtest.model.CaseValidationResult caseResult = 
+            new com.huawei.cloududn.dialingtest.model.CaseValidationResult();
+        caseResult.setCaseNumber("TC001");
+        caseResult.setCaseName("测试用例1");
+        caseResult.setScriptMatchValid(true);
+        serviceResult.addCaseResult(caseResult);
+
+        ValidationTask task = new ValidationTask();
+        task.setStatus("COMPLETED");
+        task.setCreatedTime(java.time.LocalDateTime.now());
+
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(serviceResult);
+        when(testCaseValidationService.getTaskStatus(1L)).thenReturn(task);
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", false);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isSuccess());
+        assertNotNull(response.getBody().getData());
+        assertEquals(Long.valueOf(1L), response.getBody().getData().getTestCaseSetId());
+        assertEquals(Integer.valueOf(2), response.getBody().getData().getTotalCaseCount());
+    }
+
+    /**
+     * 测试获取用例集校验结果 - 强制刷新
+     */
+    @Test
+    public void testGetTestCaseSetValidation_ForceRefresh_ReturnsOk() {
+        // Arrange
+        com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
+            new com.huawei.cloududn.dialingtest.model.ValidationResult();
+        serviceResult.setTestCaseSetId(1L);
+        serviceResult.setTotalCaseCount(1);
+
+        ValidationTask task = new ValidationTask();
+        task.setStatus("COMPLETED");
+
+        when(testCaseValidationService.validateTestCaseSet(1L)).thenReturn(serviceResult);
+        when(testCaseValidationService.getTaskStatus(1L)).thenReturn(task);
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", true);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(testCaseValidationService, times(1)).validateTestCaseSet(1L);
+    }
+
+    /**
+     * 测试获取用例集校验结果 - 结果不存在
+     */
+    @Test
+    public void testGetTestCaseSetValidation_NotFound_ReturnsNotFound() {
+        // Arrange
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(null);
+        when(testCaseValidationService.getTaskStatus(1L)).thenReturn(null);
+
+        // Act
+        ResponseEntity<ValidationResponse> response = 
+            testCaseSetController.getTestCaseSetValidation(1L, "token", false);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+    }
+
+    /**
+     * 测试导出用例集校验结果 - 成功场景
+     */
+    @Test
+    public void testExportTestCaseSetValidation_Success_ReturnsOk() {
+        // Arrange
+        com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = 
+            new com.huawei.cloududn.dialingtest.model.ValidationResult();
+        serviceResult.setTestCaseSetId(1L);
+        serviceResult.setTestCaseSetName("测试用例集");
+        serviceResult.setTestCaseSetVersion("v1.0");
+
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(serviceResult);
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(testCaseValidationService, times(1)).getValidationResult(1L);
+    }
+
+    /**
+     * 测试导出用例集校验结果 - 结果不存在
+     */
+    @Test
+    public void testExportTestCaseSetValidation_NotFound_ReturnsNotFound() {
+        // Arrange
+        when(testCaseValidationService.getValidationResult(1L)).thenReturn(null);
+
+        // Act
+        ResponseEntity<Resource> response = 
+            testCaseSetController.exportTestCaseSetValidation(1L, "token");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 }
 
