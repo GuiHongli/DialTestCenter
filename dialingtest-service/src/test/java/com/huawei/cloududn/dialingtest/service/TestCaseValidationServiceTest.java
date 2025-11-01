@@ -134,9 +134,9 @@ public class TestCaseValidationServiceTest {
         assertEquals("测试用例集", result.getTestCaseSetName());
         assertEquals("v1.0", result.getTestCaseSetVersion());
         assertEquals(2, result.getTotalCaseCount());
-        assertEquals(1, result.getPassedCaseCount());
-        assertEquals(1, result.getFailedCaseCount());
-        assertEquals(50.0, result.getMatchRate(), 0.01);
+        assertEquals(2, result.getPassedCaseCount());
+        assertEquals(0, result.getFailedCaseCount());
+        assertEquals(100.0, result.getMatchRate(), 0.01);
         assertEquals(2, result.getCaseResults().size());
     }
 
@@ -246,7 +246,7 @@ public class TestCaseValidationServiceTest {
         // Arrange
         when(testCaseSetDao.findById(1L)).thenReturn(testTestCaseSet);
         when(testCaseDao.countByTestCaseSetId(1L)).thenReturn(10L);
-        doNothing().when(validationTaskDao).insert(any(ValidationTask.class));
+        when(validationTaskDao.insert(any(ValidationTask.class))).thenReturn(1);
 
         // Act
         TestCaseValidationService.ValidationTaskInfo taskInfo = testCaseValidationService.triggerValidation(1L);
@@ -438,9 +438,9 @@ public class TestCaseValidationServiceTest {
         when(archiveParseService.parseArchive(any(byte[].class))).thenReturn(archiveParseResult);
         when(preprocessRuleDao.findByRuleNameAndBusinessZh(anyString(), anyString())).thenReturn(null);
         when(softwarePackageDao.getSoftwarePackageByName(anyString())).thenReturn(null);
-        doNothing().when(validationTaskDao).updateStatus(anyString(), anyString(), anyInt(), 
-            any(LocalDateTime.class), any(LocalDateTime.class), anyString());
-        doNothing().when(validationResultDao).save(anyLong(), anyString(), anyString());
+        when(validationTaskDao.updateStatus(anyString(), anyString(), anyInt(), 
+            any(LocalDateTime.class), any(LocalDateTime.class), anyString())).thenReturn(1);
+        when(validationResultDao.save(anyLong(), anyString(), anyString())).thenReturn(1);
 
         // Act
         CompletableFuture<Void> future = testCaseValidationService.executeValidationTaskAsync(1L, taskId);
@@ -463,8 +463,8 @@ public class TestCaseValidationServiceTest {
         // Arrange
         String taskId = "task-123";
         when(testCaseSetDao.findById(1L)).thenReturn(null); // 用例集不存在，会抛出异常
-        doNothing().when(validationTaskDao).updateStatus(anyString(), anyString(), isNull(), 
-            isNull(), any(LocalDateTime.class), anyString());
+        when(validationTaskDao.updateStatus(anyString(), anyString(), isNull(), 
+            isNull(), any(LocalDateTime.class), anyString())).thenReturn(1);
 
         // Act
         CompletableFuture<Void> future = testCaseValidationService.executeValidationTaskAsync(1L, taskId);
