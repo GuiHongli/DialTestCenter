@@ -9,6 +9,7 @@ import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCaseSetUploadResponse;
 import com.huawei.cloududn.dialingtest.service.SoftwarePackagesService;
 import com.huawei.cloududn.dialingtest.service.TestCaseSetService;
+import com.huawei.cloududn.dialingtest.service.TestCaseValidationService;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -56,6 +57,9 @@ public class FileUploadController {
     
     @Autowired
     private OperationLogUtil operationLogUtil;
+    
+    @Autowired
+    private TestCaseValidationService testCaseValidationService;
     
     /**
      * 上传用例集文件
@@ -107,6 +111,17 @@ public class FileUploadController {
             
             logger.info("File upload completed successfully: {} v{}", 
                        testCaseSet.getName(), testCaseSet.getVersion());
+            
+            // 上传完成后自动触发校验（异步执行，不阻塞响应）
+            try {
+                testCaseValidationService.triggerValidation(testCaseSet.getId());
+                logger.info("Validation task triggered automatically after upload for test case set: {} (ID: {})", 
+                           testCaseSet.getName(), testCaseSet.getId());
+            } catch (Exception e) {
+                // 校验触发失败不影响上传成功的响应，只记录日志
+                logger.warn("Failed to trigger validation automatically after upload for test case set: {} (ID: {}), error: {}", 
+                           testCaseSet.getName(), testCaseSet.getId(), e.getMessage());
+            }
             
             return ResponseEntity.ok(response);
             

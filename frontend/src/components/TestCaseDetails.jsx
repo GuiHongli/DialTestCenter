@@ -15,6 +15,7 @@ import {
   Modal,
   Row,
   Space,
+  Spin,
   Table,
   Tag,
   Typography,
@@ -33,7 +34,7 @@ const TestCaseDetails = ({
   onCancel,
 }) => {
   const [validationResult, setValidationResult] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // 初始为true，避免首次渲染时闪烁
   const [exportLoading, setExportLoading] = useState(false)
 
   const { translateTestCaseSet } = useTranslation()
@@ -87,9 +88,12 @@ const TestCaseDetails = ({
 
   useEffect(() => {
     if (visible && testCaseSet) {
+      // 立即设置loading状态，避免显示"暂无结果"的闪烁
+      setLoading(true)
       loadValidationResult()
     } else {
       setValidationResult(null)
+      setLoading(false)
     }
   }, [visible, testCaseSet])
 
@@ -177,7 +181,11 @@ const TestCaseDetails = ({
           )}
 
           {/* 第二部分：统计卡片 */}
-          {validationResult ? (
+          {loading ? (
+            <div style={{ marginBottom: '16px', textAlign: 'center', padding: '20px' }}>
+              <Spin size="large" />
+            </div>
+          ) : validationResult ? (
             <Row gutter={16} style={{ marginBottom: '16px' }}>
               <Col span={8}>
                 <Card size="small">
@@ -253,12 +261,19 @@ const TestCaseDetails = ({
           </div>
 
           {/* 第三部分：用例详情表格 */}
-          {validationResult && validationResult.caseResults ? (
+          {loading || (visible && !validationResult) ? (
+            <Table
+              columns={columns}
+              dataSource={[]}
+              loading={true}
+              scroll={{ x: 1200 }}
+            />
+          ) : validationResult && validationResult.caseResults ? (
             <Table
               columns={columns}
               dataSource={validationResult.caseResults || []}
               rowKey={(record, index) => `${record.caseNumber || index}-${index}`}
-              loading={loading}
+              loading={false}
               scroll={{ x: 1200 }}
               pagination={{
                 pageSize: 10,
