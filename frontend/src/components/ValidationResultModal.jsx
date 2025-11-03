@@ -58,6 +58,13 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
         if (typeof res.data.progress === 'number') {
           setProgress(res.data.progress)
         }
+        // 如果返回了时间信息，更新 result（即使没有 caseResults）
+        if (res.data.validationTaskCreatedTime || res.data.validationTaskStartedTime || res.data.validationTaskCompletedTime) {
+          setResult(prevResult => ({
+            ...prevResult,
+            ...res.data
+          }))
+        }
         pollTimer.current = setTimeout(poll, POLL_INTERVAL_MS)
         return
       }
@@ -106,6 +113,43 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
     }
     return () => clearTimer()
   }, [open, testCaseSet])
+
+  // 格式化时间
+  const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) {
+      return '-'
+    }
+    try {
+      const date = new Date(dateTimeStr)
+      const locale = language === 'en' ? 'en-US' : 'zh-CN'
+      return date.toLocaleString(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    } catch (e) {
+      return dateTimeStr
+    }
+  }
+
+  // 计算耗时（秒）
+  const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) {
+      return null
+    }
+    try {
+      const start = new Date(startTime)
+      const end = new Date(endTime)
+      const durationMs = end.getTime() - start.getTime()
+      const durationSeconds = Math.round(durationMs / 1000)
+      return durationSeconds
+    } catch (e) {
+      return null
+    }
+  }
 
   // 用例详情表格列定义（使用共享工具函数）
   const handleShowDetail = (record) => {
@@ -159,6 +203,46 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
 
       {result && (
         <Space direction="vertical" style={{ width: '100%' }}>
+          {/* 任务时间信息 */}
+          {(result.validationTaskCreatedTime || result.validationTaskStartedTime || result.validationTaskCompletedTime) && (
+            <div style={{ marginBottom: '16px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                {result.validationTaskCreatedTime && (
+                  <div>
+                    <Text strong>{translateTestCaseSet('validation.triggerTime')}: </Text>
+                    <Text>{formatDateTime(result.validationTaskCreatedTime)}</Text>
+                  </div>
+                )}
+                {result.validationTaskStartedTime && (
+                  <div>
+                    <Text strong>{translateTestCaseSet('validation.startTime')}: </Text>
+                    <Text>{formatDateTime(result.validationTaskStartedTime)}</Text>
+                  </div>
+                )}
+                {result.validationTaskCompletedTime && (
+                  <div>
+                    <Text strong>{translateTestCaseSet('validation.completedTime')}: </Text>
+                    <Text>{formatDateTime(result.validationTaskCompletedTime)}</Text>
+                  </div>
+                )}
+                {(() => {
+                  const startTime = result.validationTaskStartedTime || result.validationTaskCreatedTime
+                  const endTime = result.validationTaskCompletedTime
+                  const duration = calculateDuration(startTime, endTime)
+                  if (duration !== null) {
+                    return (
+                      <div>
+                        <Text strong>{translateTestCaseSet('validation.duration')}: </Text>
+                        <Text>{duration}s</Text>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+              </Space>
+            </div>
+          )}
+
           <Alert
             type="success"
             message={translateTestCaseSet('validation.completed')}
