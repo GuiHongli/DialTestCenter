@@ -18,9 +18,15 @@ const TestCaseSetEdit = ({
 
   useEffect(() => {
     if (visible && testCaseSet) {
+      // Set business type value based on language environment
+      // Chinese environment: display businessZh, English environment: display businessEn
+      const businessValue = language === 'en' 
+        ? (testCaseSet.businessEn || 'VPN_BLOCK')
+        : (testCaseSet.businessZh || 'VPN阻断')
+      
       form.setFieldsValue({
-        description: testCaseSet.description,
-        businessZh: language === 'en' ? testCaseSet.businessEn : testCaseSet.businessZh
+        description: testCaseSet.description || '',
+        businessZh: businessValue
       })
     }
   }, [visible, testCaseSet, form, language])
@@ -30,17 +36,20 @@ const TestCaseSetEdit = ({
       const values = await form.validateFields()
       
       if (testCaseSet) {
-        // 根据当前语言环境，将值设置到对应的字段
+        // Update data based on language environment
+        // If editing in English, update businessEn, if in Chinese, update businessZh
         const updateData = {
-          description: values.description
+          description: values.description || ''
         }
         
         if (language === 'en') {
-          updateData.businessEn = values.businessZh
-          updateData.businessZh = testCaseSet.businessZh // 保持中文值不变
+          // English environment: update businessEn, keep businessZh unchanged
+          updateData.businessEn = values.businessZh || testCaseSet.businessEn || 'VPN_BLOCK'
+          updateData.businessZh = testCaseSet.businessZh || 'VPN阻断'
         } else {
-          updateData.businessZh = values.businessZh
-          updateData.businessEn = testCaseSet.businessEn // 保持英文值不变
+          // Chinese environment: update businessZh, keep businessEn unchanged
+          updateData.businessZh = values.businessZh || testCaseSet.businessZh || 'VPN阻断'
+          updateData.businessEn = testCaseSet.businessEn || 'VPN_BLOCK'
         }
         
         await testCaseSetService.updateTestCaseSet(testCaseSet.id, updateData)
@@ -114,8 +123,11 @@ const TestCaseSetEdit = ({
           ]}
         >
           <Select placeholder={translateTestCaseSet('table.business')}>
-            <Option value="VPN阻断">VPN阻断</Option>
-            <Option value="VPN_BLOCK">VPN_BLOCK</Option>
+            {language === 'en' ? (
+              <Option value="VPN_BLOCK">VPN_BLOCK</Option>
+            ) : (
+              <Option value="VPN阻断">VPN阻断</Option>
+            )}
           </Select>
         </Form.Item>
       </Form>

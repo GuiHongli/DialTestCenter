@@ -107,7 +107,7 @@ const PreprocessRulePackageManagement = () => {
       formData.append('file', file);
       formData.append('businessZh', values.businessZh);
       // businessEn 始终使用固定的英文值
-      formData.append('businessEn', 'VPN_BLOCKING');
+      formData.append('businessEn', 'VPN_BLOCK');
       if (values.description) {
         formData.append('description', values.description);
       }
@@ -120,7 +120,7 @@ const PreprocessRulePackageManagement = () => {
       console.log('FormData contents:', {
         file: file.name,
         businessZh: values.businessZh,
-        businessEn: 'VPN_BLOCKING',
+        businessEn: 'VPN_BLOCK',
         description: values.description,
         forceOverwrite
       });
@@ -491,7 +491,7 @@ const PreprocessRulePackageManagement = () => {
           >
             <Select placeholder={language === 'en' ? 'Please select business type' : '请选择业务类型'}>
               <Select.Option value="VPN阻断业务">
-                {language === 'en' ? t('preprocessRule.package.businessTypes.VPN阻断业务') : 'VPN阻断业务'}
+                {language === 'en' ? 'VPN_BLOCK' : 'VPN阻断业务'}
               </Select.Option>
             </Select>
           </Form.Item>

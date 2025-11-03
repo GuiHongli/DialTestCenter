@@ -56,7 +56,7 @@ const TestCaseSetUpload = ({
       
       // Map Chinese business types to English
       const businessTypeMap = {
-        'VPN阻断业务': 'VPN_BLOCK'
+        'VPN阻断': 'VPN_BLOCK'
       }
       
       // Get businessEn value from map or use default
@@ -231,12 +231,12 @@ const TestCaseSetUpload = ({
         <Form.Item 
           label={translateTestCaseSet('upload.businessType')} 
           name="businessZh" 
-          initialValue="VPN阻断业务"
+          initialValue="VPN阻断"
           rules={[{ required: true, message: translateTestCaseSet('upload.businessTypeRequired') }]}
         >
           <Select placeholder={translateTestCaseSet('upload.businessTypePlaceholder')}>
-            <Select.Option value="VPN阻断业务">
-              {language === 'en' ? translateTestCaseSet('upload.businessTypes.VPN阻断业务') : 'VPN阻断业务'}
+            <Select.Option value="VPN阻断">
+              {language === 'en' ? 'VPN_BLOCK' : 'VPN阻断'}
             </Select.Option>
           </Select>
         </Form.Item>

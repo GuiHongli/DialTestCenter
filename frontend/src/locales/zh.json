@@ -323,7 +323,7 @@
       "businessTypePlaceholder": "请选择业务类型",
       "businessTypeRequired": "请选择业务类型",
       "businessTypes": {
-        "VPN阻断业务": "VPN阻断业务"
+        "VPN阻断": "VPN阻断"
       },
       "validation": {
         "nameRequired": "请输入用例集名称",

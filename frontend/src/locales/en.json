@@ -323,7 +323,7 @@
       "businessTypePlaceholder": "Please select business type",
       "businessTypeRequired": "Please select business type",
       "businessTypes": {
-        "VPN阻断业务": "VPN Blocking Service"
+        "VPN阻断": "VPN_BLOCK"
       },
       "validation": {
         "nameRequired": "Please enter test case set name",
@@ -594,7 +594,7 @@
       "businessEnPlaceholder": "Enter business type in English",
       "descriptionPlaceholder": "Enter description",
       "businessTypes": {
-        "VPN阻断业务": "VPN Blocking Service"
+        "VPN阻断业务": "VPN_BLOCK"
       },
       "uploadSuccess": "ZIP package uploaded successfully",
       "uploadFailed": "ZIP package upload failed",
