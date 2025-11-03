@@ -206,24 +206,24 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
           {/* 任务时间信息 */}
           {(result.validationTaskCreatedTime || result.validationTaskStartedTime || result.validationTaskCompletedTime) && (
             <div style={{ marginBottom: '16px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Space size="middle" wrap>
                 {result.validationTaskCreatedTime && (
-                  <div>
+                  <Text>
                     <Text strong>{translateTestCaseSet('validation.triggerTime')}: </Text>
                     <Text>{formatDateTime(result.validationTaskCreatedTime)}</Text>
-                  </div>
+                  </Text>
                 )}
                 {result.validationTaskStartedTime && (
-                  <div>
+                  <Text>
                     <Text strong>{translateTestCaseSet('validation.startTime')}: </Text>
                     <Text>{formatDateTime(result.validationTaskStartedTime)}</Text>
-                  </div>
+                  </Text>
                 )}
                 {result.validationTaskCompletedTime && (
-                  <div>
+                  <Text>
                     <Text strong>{translateTestCaseSet('validation.completedTime')}: </Text>
                     <Text>{formatDateTime(result.validationTaskCompletedTime)}</Text>
-                  </div>
+                  </Text>
                 )}
                 {(() => {
                   const startTime = result.validationTaskStartedTime || result.validationTaskCreatedTime
@@ -231,10 +231,10 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
                   const duration = calculateDuration(startTime, endTime)
                   if (duration !== null) {
                     return (
-                      <div>
+                      <Text>
                         <Text strong>{translateTestCaseSet('validation.duration')}: </Text>
                         <Text>{duration}s</Text>
-                      </div>
+                      </Text>
                     )
                   }
                   return null
