@@ -11,6 +11,8 @@ import {
   message 
 } from 'antd'
 import React, { useEffect, useRef, useState } from 'react'
+import { useTranslation } from '../hooks/useTranslation.js'
+import { useI18n } from '../contexts/I18nContext.jsx'
 import testCaseSetService from '../services/testCaseSetService.js'
 import { getValidationResultColumns, showTestCaseDetail } from '../utils/validationUtils.js'
 
@@ -19,6 +21,8 @@ const { Text } = Typography
 const POLL_INTERVAL_MS = 2000
 
 const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
+  const { translateTestCaseSet, translateCommon } = useTranslation()
+  const { language } = useI18n()
   const [submitting, setSubmitting] = useState(false)
   const [status, setStatus] = useState(null) // PENDING/RUNNING/COMPLETED/FAILED
   const [estimatedTime, setEstimatedTime] = useState(null)
@@ -67,7 +71,7 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
 
   const startValidation = async () => {
     if (!testCaseSet || !testCaseSet.id) {
-      message.error('用例集信息不完整，无法触发校验')
+      message.error(translateTestCaseSet('validation.incompleteInfo'))
       return
     }
     
@@ -83,14 +87,14 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
           setEstimatedTime(res.data.estimatedTime || null)
           setStatus(res.data.status || 'PENDING')
         }
-        message.success('校验任务已提交')
+        message.success(translateTestCaseSet('validation.taskSubmitted'))
         pollTimer.current = setTimeout(poll, POLL_INTERVAL_MS)
       } else {
-        message.error(res?.message || '触发校验失败')
+        message.error(res?.message || translateTestCaseSet('validation.triggerFailed'))
       }
     } catch (e) {
       console.error('触发校验失败:', e)
-      message.error('触发校验失败')
+      message.error(translateTestCaseSet('validation.triggerFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -104,31 +108,39 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
   }, [open, testCaseSet])
 
   // 用例详情表格列定义（使用共享工具函数）
-  const columns = getValidationResultColumns(showTestCaseDetail)
+  const handleShowDetail = (record) => {
+    showTestCaseDetail(record, translateTestCaseSet)
+  }
+  const columns = getValidationResultColumns(handleShowDetail, translateTestCaseSet)
 
   return (
     <Modal
-      title={`用例集校验 - ${testCaseSet?.name || ''} ${testCaseSet?.version ? 'v' + testCaseSet.version : ''}`}
+      title={translateTestCaseSet('validation.modalTitle', { 
+        name: testCaseSet?.name || '', 
+        version: testCaseSet?.version ? 'v' + testCaseSet.version : '' 
+      })}
       open={open}
       width={1400}
       onCancel={() => { clearTimer(); onClose && onClose() }}
       footer={[
-        <Button key="close" onClick={() => { clearTimer(); onClose && onClose() }}>关闭</Button>,
+        <Button key="close" onClick={() => { clearTimer(); onClose && onClose() }}>
+          {translateCommon('close')}
+        </Button>,
       ]}
     >
       {!result && (
         <Space direction="vertical" style={{ width: '100%' }}>
           <Alert
             type="info"
-            message="校验任务已提交"
+            message={translateTestCaseSet('validation.taskSubmitted')}
             description={
               <Space>
-                <Text>状态：</Text>
+                <Text>{translateTestCaseSet('validation.statusLabel')}:</Text>
                 <Tag color={status === 'RUNNING' ? 'processing' : 'default'}>
-                  {status || 'PENDING'}
+                  {status ? translateTestCaseSet(`validation.status.${status}`) : translateTestCaseSet('validation.status.PENDING')}
                 </Tag>
                 {typeof estimatedTime === 'number' && (
-                  <Text>预计耗时：{estimatedTime}s</Text>
+                  <Text>{translateTestCaseSet('validation.estimatedTime')}: {estimatedTime}s</Text>
                 )}
               </Space>
             }
@@ -149,13 +161,13 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
         <Space direction="vertical" style={{ width: '100%' }}>
           <Alert
             type="success"
-            message="校验完成"
+            message={translateTestCaseSet('validation.completed')}
             description={
               <Space>
-                <Text>总用例数：{result.totalCaseCount}</Text>
-                <Text>通过：{result.passedCaseCount}</Text>
-                <Text>不通过：{result.failedCaseCount}</Text>
-                <Text>匹配率：{Number(result.matchRate).toFixed(2)}%</Text>
+                <Text>{translateTestCaseSet('validation.totalCases')}: {result.totalCaseCount}</Text>
+                <Text>{translateTestCaseSet('validation.passedCases')}: {result.passedCaseCount}</Text>
+                <Text>{translateTestCaseSet('validation.failedCases')}: {result.failedCaseCount}</Text>
+                <Text>{translateTestCaseSet('validation.matchRateLabel')}: {Number(result.matchRate).toFixed(2)}%</Text>
               </Space>
             }
             showIcon
@@ -169,7 +181,7 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
               pageSize: 10,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条记录`,
+              showTotal: (total) => translateTestCaseSet('validation.table.paginationTotal', { total }),
             }}
           />
         </Space>

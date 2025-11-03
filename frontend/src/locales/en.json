@@ -376,9 +376,21 @@
       "passedCases": "Fully Matched Cases"
     },
     "validation": {
+      "startValidation": "Start Validation",
+      "modalTitle": "Test Case Set Validation - {{name}} {{version}}",
       "taskStatus": "Validation Status",
       "triggerTime": "Trigger Time",
       "completedTime": "Completed Time",
+      "taskSubmitted": "Validation task submitted",
+      "triggerFailed": "Failed to trigger validation",
+      "incompleteInfo": "Test case set information is incomplete, cannot trigger validation",
+      "statusLabel": "Status",
+      "estimatedTime": "Estimated Time",
+      "completed": "Validation Completed",
+      "totalCases": "Total Cases",
+      "passedCases": "Passed",
+      "failedCases": "Failed",
+      "matchRateLabel": "Match Rate",
       "status": {
         "COMPLETED": "Completed",
         "RUNNING": "Running",

@@ -5,7 +5,7 @@ import {
   FileTextOutlined,
   FileZipOutlined,
   PlusOutlined,
-  ReloadOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -279,10 +279,10 @@ const TestCaseSetManagement = () => {
               />
             </Tooltip>
           </PagePermission>
-          <Tooltip title="开始校验">
+          <Tooltip title={translateTestCaseSet('validation.startValidation')}>
             <Button
               type="text"
-              icon={<ReloadOutlined />}
+              icon={<SafetyOutlined />}
               onClick={() => { setSelectedTestCaseSet(record); setValidationVisible(true) }}
             />
           </Tooltip>

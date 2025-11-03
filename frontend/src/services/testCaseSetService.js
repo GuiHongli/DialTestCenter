@@ -95,7 +95,7 @@ class TestCaseSetService {
    * 下载用例集
    */
   async downloadTestCaseSet(id) {
-    const response = await fetch(`${this.baseUrl}/${id}/download`, createApiRequestConfig('GET', undefined, false))
+    const response = await fetch(`${this.baseUrl}/${id}/download`, createApiRequestConfig('GET', undefined, true))
     if (!response.ok) {
       throw new Error('下载用例集失败')
     }
@@ -208,7 +208,7 @@ class TestCaseSetService {
    * 导出用例集校验结果Excel
    */
   async exportValidationResult(testCaseSetId) {
-    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/validation/export`, createApiRequestConfig('GET', undefined, false))
+    const response = await fetch(`${this.baseUrl}/${testCaseSetId}/validation/export`, createApiRequestConfig('GET', undefined, true))
     if (!response.ok) {
       throw new Error('导出校验结果失败')
     }

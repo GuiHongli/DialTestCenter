@@ -376,9 +376,21 @@
       "passedCases": "完全匹配用例数"
     },
     "validation": {
+      "startValidation": "开始校验",
+      "modalTitle": "用例集校验 - {{name}} {{version}}",
       "taskStatus": "校验状态",
       "triggerTime": "触发时间",
       "completedTime": "完成时间",
+      "taskSubmitted": "校验任务已提交",
+      "triggerFailed": "触发校验失败",
+      "incompleteInfo": "用例集信息不完整，无法触发校验",
+      "statusLabel": "状态",
+      "estimatedTime": "预计耗时",
+      "completed": "校验完成",
+      "totalCases": "总用例数",
+      "passedCases": "通过",
+      "failedCases": "不通过",
+      "matchRateLabel": "匹配率",
       "status": {
         "COMPLETED": "已完成",
         "RUNNING": "运行中",

@@ -20,7 +20,16 @@ const { Text } = Typography
  * @param {Function} translate - 翻译函数
  */
 export const showTestCaseDetail = (testCase, translate) => {
-  const t = translate || ((key, params) => key)
+  const t = translate || ((key, params) => {
+    if (typeof params === 'object' && params !== null) {
+      let result = key
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replace(`{{${k}}}`, v)
+      }
+      return result
+    }
+    return key
+  })
   Modal.info({
     title: t('validation.detailModal.title', { caseNumber: testCase.caseNumber }),
     width: 800,
@@ -86,10 +95,19 @@ export const showTestCaseDetail = (testCase, translate) => {
  * @returns {Array} 表格列配置数组
  */
 export const getValidationResultColumns = (onDetailClick, translate) => {
-  const t = translate || ((key, params) => key)
+  const t = translate || ((key, params) => {
+    if (typeof params === 'object' && params !== null) {
+      let result = key
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replace(`{{${k}}}`, v)
+      }
+      return result
+    }
+    return key
+  })
   const handleDetailClick = (record) => {
     if (onDetailClick) {
-      onDetailClick(record, translate)
+      onDetailClick(record)
     }
   }
   
