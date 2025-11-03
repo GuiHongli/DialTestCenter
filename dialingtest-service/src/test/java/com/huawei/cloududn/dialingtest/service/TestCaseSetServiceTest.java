@@ -150,6 +150,114 @@ public class TestCaseSetServiceTest {
     }
 
     /**
+     * 测试上传用例集 - businessZh为空
+     */
+    @Test
+    public void testUploadTestCaseSet_EmptyBusinessZh_ThrowsIllegalArgumentException() throws Exception {
+        // Arrange
+        String description = "测试用例集";
+        String businessZh = null;
+        String businessEn = "VPN_BLOCK";
+        boolean overwrite = false;
+        String operatorUsername = "testuser";
+        
+        when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
+        when(mockFile.getSize()).thenReturn(1024L);
+        when(mockFile.getBytes()).thenReturn("test content".getBytes());
+        
+        // Act & Assert
+        try {
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Business type (Chinese) is required", e.getMessage());
+        }
+        
+        verify(testCaseSetDao, never()).insert(any(TestCaseSet.class));
+    }
+
+    /**
+     * 测试上传用例集 - businessEn为空
+     */
+    @Test
+    public void testUploadTestCaseSet_EmptyBusinessEn_ThrowsIllegalArgumentException() throws Exception {
+        // Arrange
+        String description = "测试用例集";
+        String businessZh = "VPN阻断业务";
+        String businessEn = null;
+        boolean overwrite = false;
+        String operatorUsername = "testuser";
+        
+        when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
+        when(mockFile.getSize()).thenReturn(1024L);
+        when(mockFile.getBytes()).thenReturn("test content".getBytes());
+        
+        // Act & Assert
+        try {
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Business type (English) is required", e.getMessage());
+        }
+        
+        verify(testCaseSetDao, never()).insert(any(TestCaseSet.class));
+    }
+
+    /**
+     * 测试上传用例集 - businessZh为空字符串
+     */
+    @Test
+    public void testUploadTestCaseSet_BlankBusinessZh_ThrowsIllegalArgumentException() throws Exception {
+        // Arrange
+        String description = "测试用例集";
+        String businessZh = "   ";
+        String businessEn = "VPN_BLOCK";
+        boolean overwrite = false;
+        String operatorUsername = "testuser";
+        
+        when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
+        when(mockFile.getSize()).thenReturn(1024L);
+        when(mockFile.getBytes()).thenReturn("test content".getBytes());
+        
+        // Act & Assert
+        try {
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Business type (Chinese) is required", e.getMessage());
+        }
+        
+        verify(testCaseSetDao, never()).insert(any(TestCaseSet.class));
+    }
+
+    /**
+     * 测试上传用例集 - businessEn为空字符串
+     */
+    @Test
+    public void testUploadTestCaseSet_BlankBusinessEn_ThrowsIllegalArgumentException() throws Exception {
+        // Arrange
+        String description = "测试用例集";
+        String businessZh = "VPN阻断业务";
+        String businessEn = "   ";
+        boolean overwrite = false;
+        String operatorUsername = "testuser";
+        
+        when(mockFile.getOriginalFilename()).thenReturn("testcaseset_v1.0.zip");
+        when(mockFile.getSize()).thenReturn(1024L);
+        when(mockFile.getBytes()).thenReturn("test content".getBytes());
+        
+        // Act & Assert
+        try {
+            testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Business type (English) is required", e.getMessage());
+        }
+        
+        verify(testCaseSetDao, never()).insert(any(TestCaseSet.class));
+    }
+
+    /**
      * 测试上传用例集 - 文件为空
      */
     @Test

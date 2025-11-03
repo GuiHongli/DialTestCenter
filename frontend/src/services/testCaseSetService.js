@@ -32,12 +32,20 @@ class TestCaseSetService {
     if (uploadData.description) {
       formData.append('description', uploadData.description)
     }
+    
+    // businessZh and businessEn are required fields
     if (uploadData.businessZh) {
       formData.append('businessZh', uploadData.businessZh)
+    } else {
+      throw new Error('Business type (Chinese) is required')
     }
+    
     if (uploadData.businessEn) {
       formData.append('businessEn', uploadData.businessEn)
+    } else {
+      throw new Error('Business type (English) is required')
     }
+    
     formData.append('overwrite', 'false')
 
     const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
@@ -55,12 +63,20 @@ class TestCaseSetService {
     if (uploadData.description) {
       formData.append('description', uploadData.description)
     }
+    
+    // businessZh and businessEn are required fields
     if (uploadData.businessZh) {
       formData.append('businessZh', uploadData.businessZh)
+    } else {
+      throw new Error('Business type (Chinese) is required')
     }
+    
     if (uploadData.businessEn) {
       formData.append('businessEn', uploadData.businessEn)
+    } else {
+      throw new Error('Business type (English) is required')
     }
+    
     // Always set overwrite to 'true' for overwrite upload
     formData.append('overwrite', 'true')
     

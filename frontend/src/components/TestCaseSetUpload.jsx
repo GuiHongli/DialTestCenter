@@ -44,25 +44,40 @@ const TestCaseSetUpload = ({
 
       setUploading(true)
 
-      // Map businessZh to businessEn
+      // Map businessZh to businessEn (both are required)
       const businessZhValue = form.getFieldValue('businessZh')
-      let businessEnValue = 'VPN_BLOCK' // Default value
+      
+      // Validate businessZh is provided
+      if (!businessZhValue || businessZhValue.trim() === '') {
+        message.error(translateTestCaseSet('businessZhRequired'))
+        setUploading(false)
+        return
+      }
       
       // Map Chinese business types to English
       const businessTypeMap = {
         'VPN阻断业务': 'VPN_BLOCK'
       }
       
-      if (businessZhValue && businessTypeMap[businessZhValue]) {
+      // Get businessEn value from map or use default
+      let businessEnValue = 'VPN_BLOCK' // Default value
+      if (businessTypeMap[businessZhValue]) {
         businessEnValue = businessTypeMap[businessZhValue]
+      }
+      
+      // Validate businessEn is provided (should always have value after mapping)
+      if (!businessEnValue || businessEnValue.trim() === '') {
+        message.error(translateTestCaseSet('businessEnRequired'))
+        setUploading(false)
+        return
       }
 
       // Prepare upload data without overwrite field (will be set by service method)
       const uploadData = {
         file: file,
         description: form.getFieldValue('description') || '',
-        businessZh: businessZhValue || '',
-        businessEn: businessEnValue,
+        businessZh: businessZhValue.trim(),
+        businessEn: businessEnValue.trim(),
       }
       
       // Ensure overwrite is not included in uploadData

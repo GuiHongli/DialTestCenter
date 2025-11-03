@@ -54,18 +54,32 @@ public class TestCaseSetService {
         return uploadTestCaseSet(file, description, businessZh, null, overwrite, "admin");
     }
     
+    /**
+     * @deprecated This method is deprecated. Use uploadTestCaseSet with businessEn parameter instead.
+     * businessZh and businessEn are both required fields now.
+     */
+    @Deprecated
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, boolean overwrite, String operatorUsername) {
-        return uploadTestCaseSet(file, description, businessZh, null, overwrite, operatorUsername);
+        // This method is deprecated and will throw exception if businessEn is not provided
+        throw new UnsupportedOperationException("businessEn is required. Please use uploadTestCaseSet(file, description, businessZh, businessEn, overwrite, operatorUsername)");
     }
     
     public TestCaseSet uploadTestCaseSet(MultipartFile file, String description, String businessZh, String businessEn, boolean overwrite, String operatorUsername) {
-        // 1. 文件验证
+        // 1. File validation
         validateFile(file);
         
-        // 2. 文件名解析
+        // 2. Validate required business type fields (businessZh and businessEn are both required)
+        if (businessZh == null || businessZh.trim().isEmpty()) {
+            throw new IllegalArgumentException("Business type (Chinese) is required");
+        }
+        if (businessEn == null || businessEn.trim().isEmpty()) {
+            throw new IllegalArgumentException("Business type (English) is required");
+        }
+        
+        // 3. File name parsing
         FileNameInfo fileNameInfo = parseFileName(file.getOriginalFilename());
         
-        // 3. 重复性检查（如果不覆盖）
+        // 4. 重复性检查（如果不覆盖）
         if (!overwrite) {
             checkDuplicate(fileNameInfo.getName(), fileNameInfo.getVersion());
         } else {
@@ -74,22 +88,22 @@ public class TestCaseSetService {
         }
         
         try {
-            // 4. 读取文件内容
+            // 5. 读取文件内容
             byte[] fileContent = file.getBytes();
             
-            // 5. 计算SHA256哈希值
+            // 6. 计算SHA256哈希值
             String sha256 = calculateSHA256(fileContent);
             
-            // 6. 压缩包解析
+            // 7. 压缩包解析
             ArchiveParseResult archiveResult = archiveParseService.parseArchive(fileContent);
             
-            // 7. Excel文件解析
+            // 8. Excel文件解析
             List<TestCaseInfo> testCases = excelParseService.parseExcel(archiveResult.getExcelData());
             
-            // 8. 脚本文件匹配
+            // 9. 脚本文件匹配
             List<TestCaseInfo> matchedTestCases = matchScripts(testCases, archiveResult.getScriptFileNames());
             
-            // 9. 保存用例集
+            // 10. 保存用例集
             TestCaseSet testCaseSet = new TestCaseSet();
             testCaseSet.setName(fileNameInfo.getName());
             testCaseSet.setVersion(fileNameInfo.getVersion());
@@ -97,25 +111,15 @@ public class TestCaseSetService {
             testCaseSet.setFileSize(file.getSize());
             testCaseSet.setDescription(description);
             testCaseSet.setSha256(sha256);
-            testCaseSet.setBusinessZh(businessZh);
-            // Use provided businessEn, or set default if null or empty
-            if (businessEn != null && !businessEn.trim().isEmpty()) {
-                testCaseSet.setBusinessEn(businessEn);
-            } else {
-                // Map businessZh to businessEn if not provided
-                if ("VPN阻断业务".equals(businessZh)) {
-                    testCaseSet.setBusinessEn("VPN_BLOCK");
-                } else {
-                    testCaseSet.setBusinessEn("VPN_BLOCK"); // Default value
-                }
-            }
+            testCaseSet.setBusinessZh(businessZh.trim());
+            testCaseSet.setBusinessEn(businessEn.trim());
             
             testCaseSetDao.insert(testCaseSet);
             
-            // 10. 保存测试用例
+            // 11. 保存测试用例
             saveTestCases(testCaseSet.getId(), matchedTestCases);
             
-            // 11. 记录操作日志
+            // 12. 记录操作日志
             operationLogUtil.logTestCaseSetUpload(operatorUsername, testCaseSet);
             
             return testCaseSet;

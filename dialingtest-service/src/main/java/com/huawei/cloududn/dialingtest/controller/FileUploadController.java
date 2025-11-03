@@ -70,8 +70,8 @@ public class FileUploadController {
      *
      * @param request HTTP请求对象
      * @param description 用例集描述信息（可选）
-     * @param businessZh 业务类型中文（可选）
-     * @param businessEn 业务类型英文（可选）
+     * @param businessZh 业务类型中文（必填）
+     * @param businessEn 业务类型英文（必填）
      * @param overwrite 是否覆盖已存在的用例集（可选，默认为false）
      * @param xUsername 操作用户名（必需，Header中的X-Username）
      * @return 上传结果响应
@@ -80,8 +80,8 @@ public class FileUploadController {
     public ResponseEntity<TestCaseSetUploadResponse> uploadTestCaseSet(
             HttpServletRequest request,
             @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "businessZh", required = false) String businessZh,
-            @RequestParam(value = "businessEn", required = false) String businessEn,
+            @RequestParam(value = "businessZh", required = true) String businessZh,
+            @RequestParam(value = "businessEn", required = true) String businessEn,
             @RequestParam(value = "overwrite", required = false, defaultValue = "false") String overwrite,
             @RequestHeader(value = "X-Username", required = true) String xUsername) {
         logger.info("Received test case set upload request from user: {}", xUsername);
@@ -102,6 +102,14 @@ public class FileUploadController {
             MultipartFile file = getUploadFile(request, "test case set");
             if (file == null) {
                 return createTestCaseSetErrorResponse("未提供上传文件", HttpStatus.BAD_REQUEST);
+            }
+            
+            // Validate required business type fields
+            if (businessZh == null || businessZh.trim().isEmpty()) {
+                return createTestCaseSetErrorResponse("Business type (Chinese) is required", HttpStatus.BAD_REQUEST);
+            }
+            if (businessEn == null || businessEn.trim().isEmpty()) {
+                return createTestCaseSetErrorResponse("Business type (English) is required", HttpStatus.BAD_REQUEST);
             }
             
             // 设置默认值
