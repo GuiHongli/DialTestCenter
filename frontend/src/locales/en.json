@@ -109,6 +109,7 @@
       "usernamePlaceholder": "Please enter username",
       "password": "Password",
       "passwordPlaceholder": "Please enter password",
+      "passwordPlaceholderEdit": "Leave blank to keep current password",
       "confirmPassword": "Confirm Password",
       "confirmPasswordPlaceholder": "Please enter password again",
       "passwordMismatch": "Passwords do not match"

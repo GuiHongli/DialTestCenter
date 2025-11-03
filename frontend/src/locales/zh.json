@@ -109,6 +109,7 @@
       "usernamePlaceholder": "请输入用户名",
       "password": "密码",
       "passwordPlaceholder": "请输入密码",
+      "passwordPlaceholderEdit": "留空则不修改密码",
       "confirmPassword": "确认密码",
       "confirmPasswordPlaceholder": "请再次输入密码",
       "passwordMismatch": "两次输入的密码不一致"

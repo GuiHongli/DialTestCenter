@@ -13,6 +13,7 @@ const UserForm = ({
   const [form] = Form.useForm();
 
   const isEdit = !!user;
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -20,15 +21,36 @@ const UserForm = ({
         form.setFieldsValue({
           username: user.username,
         });
+        setShowConfirmPassword(false);
       } else {
         form.resetFields();
+        setShowConfirmPassword(true);
       }
     }
   }, [visible, user, form]);
 
+  const handlePasswordChange = (e) => {
+    const password = e.target.value;
+    if (isEdit) {
+      if (password && password.length > 0) {
+        setShowConfirmPassword(true);
+      } else {
+        setShowConfirmPassword(false);
+        form.setFieldsValue({ confirmPassword: undefined });
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      
+      // 编辑模式下，如果密码为空，则不发送密码和确认密码字段
+      if (isEdit && (!values.password || values.password.trim() === '')) {
+        delete values.password;
+        delete values.confirmPassword;
+      }
+      
       await onSubmit(values);
       form.resetFields();
     } catch (error) {
@@ -75,10 +97,13 @@ const UserForm = ({
             { min: 6, max: 50, message: '密码长度必须在6-50个字符之间' },
           ]}
         >
-          <Input.Password placeholder={translateUser('form.passwordPlaceholder')} />
+          <Input.Password 
+            placeholder={isEdit ? translateUser('form.passwordPlaceholderEdit') : translateUser('form.passwordPlaceholder')}
+            onChange={handlePasswordChange}
+          />
         </Form.Item>
 
-        {!isEdit && (
+        {(!isEdit || showConfirmPassword) && (
           <Form.Item
             name="confirmPassword"
             label={translateUser('form.confirmPassword')}
