@@ -106,28 +106,6 @@ export class UserRoleService {
   
   
   /**
-   * 获取所有角色定义
-   * @returns 角色列表
-   */
-  static async getAllRoles() {
-    const response = await fetch(
-      `${API_BASE_URL}/user-roles/roles`,
-      createApiRequestConfig('GET', undefined, false)
-    );
-    
-    if (!response.ok) {
-      throw new Error(`获取角色列表失败: ${response.statusText}`);
-    }
-    
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to get roles');
-    }
-    
-    return result.data;
-  }
-  
-  /**
    * 获取EXECUTOR角色数量
    * @returns EXECUTOR角色数量
    */

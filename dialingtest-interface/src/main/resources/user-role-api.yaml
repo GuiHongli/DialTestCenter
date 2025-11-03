@@ -199,25 +199,6 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-  /user-roles/roles:
-    get:
-      operationId: "getAllRoles"
-      summary: 获取所有角色列表
-      description: 获取系统中定义的所有角色
-      tags:
-        - UserRole
-      responses:
-        200:
-          description: 成功返回角色列表
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/RoleResponse'
-        500:
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-
   /user-roles/executor-count:
     get:
       operationId: "getExecutorCount"
@@ -380,49 +361,6 @@ definitions:
         required:
           - hasPermission
           - userRoles
-      message:
-        type: string
-        description: 响应消息
-    required:
-      - success
-      - data
-      - message
-
-  Role:
-    type: object
-    properties:
-      id:
-        type: integer
-        description: 主键ID
-      code:
-        type: string
-        description: 角色代码
-      nameZh:
-        type: string
-        description: 中文名称
-      nameEn:
-        type: string
-        description: 英文名称
-      descriptionZh:
-        type: string
-        description: 中文描述
-      descriptionEn:
-        type: string
-        description: 英文描述
-    required:
-      - id
-      - code
-      - nameZh
-      - nameEn
-
-  RoleResponse:
-    type: object
-    properties:
-      success:
-        type: boolean
-        description: 操作是否成功
-      data:
-        $ref: '#/definitions/Role'
       message:
         type: string
         description: 响应消息

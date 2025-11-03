@@ -9,8 +9,6 @@ import com.huawei.cloududn.dialingtest.model.UserRoleResponse;
 import com.huawei.cloududn.dialingtest.model.CreateUserRoleRequest;
 import com.huawei.cloududn.dialingtest.model.UpdateUserRoleRequest;
 import com.huawei.cloududn.dialingtest.model.UserRole;
-import com.huawei.cloududn.dialingtest.model.Role;
-import com.huawei.cloududn.dialingtest.model.RoleResponse;
 import com.huawei.cloududn.dialingtest.model.ExecutorCountResponse;
 import com.huawei.cloududn.dialingtest.model.UserRolePageResponseData;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -222,29 +220,6 @@ public class UserRoleController implements UserRolesApi {
             response.setSuccess(false);
             response.setMessage("获取用户权限信息失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-    
-    @Override
-    public ResponseEntity<List<RoleResponse>> getAllRoles() {
-        try {
-            List<Role> roles = userRoleService.getAllRoles();
-            
-            List<RoleResponse> responses = roles.stream().map(role -> {
-                RoleResponse response = new RoleResponse();
-                response.setSuccess(true);
-                response.setData(role);
-                response.setMessage("获取角色信息成功");
-                return response;
-            }).collect(Collectors.toList());
-            
-            return ResponseEntity.ok(responses);
-        } catch (Exception e) {
-            RoleResponse errorResponse = new RoleResponse();
-            errorResponse.setSuccess(false);
-            errorResponse.setMessage("获取角色列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Arrays.asList(errorResponse));
         }
     }
     

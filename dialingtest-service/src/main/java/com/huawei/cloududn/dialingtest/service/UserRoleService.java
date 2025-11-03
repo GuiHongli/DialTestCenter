@@ -1,6 +1,5 @@
 package com.huawei.cloududn.dialingtest.service;
 
-import com.huawei.cloududn.dialingtest.dao.RoleDao;
 import com.huawei.cloududn.dialingtest.dao.UserRoleDao;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -22,9 +21,6 @@ public class UserRoleService {
     
     @Autowired
     private UserRoleDao userRoleDao;
-    
-    @Autowired
-    private RoleDao roleDao;
     
     @Autowired
     private OperationLogUtil operationLogUtil;
@@ -156,13 +152,6 @@ public class UserRoleService {
         
         // 记录操作日志
         operationLogUtil.logUserRoleDelete(operatorUsername, existingUserRole);
-    }
-    
-    /**
-     * 获取所有角色定义
-     */
-    public List<Role> getAllRoles() {
-        return roleDao.findAll();
     }
     
     /**

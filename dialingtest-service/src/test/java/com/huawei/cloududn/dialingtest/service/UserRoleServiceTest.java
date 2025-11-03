@@ -4,7 +4,6 @@
 
 package com.huawei.cloududn.dialingtest.service;
 
-import com.huawei.cloududn.dialingtest.dao.RoleDao;
 import com.huawei.cloududn.dialingtest.dao.UserRoleDao;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -36,16 +35,12 @@ public class UserRoleServiceTest {
     private UserRoleDao userRoleDao;
 
     @Mock
-    private RoleDao roleDao;
-
-    @Mock
     private OperationLogUtil operationLogUtil;
 
     @InjectMocks
     private UserRoleService userRoleService;
 
     private UserRole testUserRole;
-    private Role testRole;
     private CreateUserRoleRequest testRequest;
 
     @Before
@@ -55,12 +50,6 @@ public class UserRoleServiceTest {
         testUserRole.setId(1);
         testUserRole.setUsername("testuser");
         testUserRole.setRole(UserRole.RoleEnum.ADMIN);
-
-        testRole = new Role();
-        testRole.setId(1);
-        testRole.setCode("ADMIN");
-        testRole.setNameZh("管理员");
-        testRole.setNameEn("Administrator");
 
         testRequest = new CreateUserRoleRequest();
         testRequest.setUsername("testuser");
@@ -344,22 +333,6 @@ public class UserRoleServiceTest {
         verify(operationLogUtil, never()).logUserRoleDelete(anyString(), any(UserRole.class));
     }
 
-    @Test
-    public void testGetAllRoles_Success_ReturnsRoleList() {
-        // Arrange
-        List<Role> roles = Arrays.asList(testRole);
-        when(roleDao.findAll()).thenReturn(roles);
-
-        // Act
-        List<Role> result = userRoleService.getAllRoles();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("ADMIN", result.get(0).getCode());
-        verify(roleDao).findAll();
-    }
-    
     @Test
     public void testGetExecutorCount_Success_ReturnsCount() {
         // Arrange

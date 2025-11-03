@@ -244,6 +244,9 @@ public class ExcelUtilTest {
         caseResult.setCaseNumber("TC001");
         caseResult.setCaseName("测试用例");
         caseResult.setScriptMatchValid(false);
+        caseResult.setPreprocessRuleValid(false);
+        caseResult.setSoftwarePackageValid(false);
+        caseResult.setOverallValid(false);
         caseResult.addInvalidReasonsItem("脚本不存在");
         caseResult.addInvalidReasonsItem("规则不存在");
         caseResult.addInvalidReasonsItem("软件包不存在");

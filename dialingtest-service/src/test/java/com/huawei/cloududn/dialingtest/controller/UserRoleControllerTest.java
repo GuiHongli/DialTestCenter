@@ -49,7 +49,6 @@ public class UserRoleControllerTest {
     private UserRole testUserRole;
     private CreateUserRoleRequest testCreateRequest;
     private UpdateUserRoleRequest testUpdateRequest;
-    private Role testRole;
 
     @Before
     public void setUp() {
@@ -66,12 +65,6 @@ public class UserRoleControllerTest {
         testUpdateRequest = new UpdateUserRoleRequest();
         testUpdateRequest.setUsername("testuser");
         testUpdateRequest.setRole(UpdateUserRoleRequest.RoleEnum.ADMIN);
-
-        testRole = new Role();
-        testRole.setId(1);
-        testRole.setCode("ADMIN");
-        testRole.setNameZh("管理员");
-        testRole.setNameEn("Administrator");
     }
 
     @Test
@@ -402,44 +395,6 @@ public class UserRoleControllerTest {
         verify(userRoleService).getUserRolesByUsername("testuser");
     }
 
-    @Test
-    public void testUserRolesRolesGet_Success() {
-        // Arrange
-        List<Role> roles = Arrays.asList(testRole);
-        when(userRoleService.getAllRoles()).thenReturn(roles);
-
-        // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.getAllRoles();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertTrue(response.getBody().get(0).isSuccess());
-        assertEquals("获取角色信息成功", response.getBody().get(0).getMessage());
-        assertEquals(testRole, response.getBody().get(0).getData());
-        verify(userRoleService).getAllRoles();
-    }
-
-    @Test
-    public void testUserRolesRolesGet_ServiceException_ReturnsInternalServerError() {
-        // Arrange
-        when(userRoleService.getAllRoles()).thenThrow(new RuntimeException("Database error"));
-
-        // Act
-        ResponseEntity<List<RoleResponse>> response = userRoleController.getAllRoles();
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertFalse(response.getBody().get(0).isSuccess());
-        assertTrue(response.getBody().get(0).getMessage().contains("获取角色列表失败"));
-        verify(userRoleService).getAllRoles();
-    }
-    
     @Test
     public void testUserRolesExecutorCountGet_Success_ReturnsExecutorCount() {
         // Arrange
