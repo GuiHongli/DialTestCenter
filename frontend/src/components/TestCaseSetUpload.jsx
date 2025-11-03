@@ -44,12 +44,29 @@ const TestCaseSetUpload = ({
 
       setUploading(true)
 
+      // Map businessZh to businessEn
+      const businessZhValue = form.getFieldValue('businessZh')
+      let businessEnValue = 'VPN_BLOCK' // Default value
+      
+      // Map Chinese business types to English
+      const businessTypeMap = {
+        'VPN阻断业务': 'VPN_BLOCK'
+      }
+      
+      if (businessZhValue && businessTypeMap[businessZhValue]) {
+        businessEnValue = businessTypeMap[businessZhValue]
+      }
+
+      // Prepare upload data without overwrite field (will be set by service method)
       const uploadData = {
         file: file,
-        description: form.getFieldValue('description'),
-        businessZh: form.getFieldValue('businessZh'),
-        businessEn: form.getFieldValue('businessEn'),
+        description: form.getFieldValue('description') || '',
+        businessZh: businessZhValue || '',
+        businessEn: businessEnValue,
       }
+      
+      // Ensure overwrite is not included in uploadData
+      delete uploadData.overwrite
 
       try {
         const result = await testCaseSetService.uploadTestCaseSet(uploadData)

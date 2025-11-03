@@ -107,7 +107,8 @@ public class FileUploadController {
             // 设置默认值
             boolean isOverwrite = "true".equalsIgnoreCase(overwrite);
             
-            logger.info("Processing file upload: {} by user: {}", file.getOriginalFilename(), xUsername);
+            logger.info("Processing file upload: {} by user: {}, overwrite parameter: {} (resolved to: {})", 
+                       file.getOriginalFilename(), xUsername, overwrite, isOverwrite);
             
             // 调用服务层处理文件上传
             TestCaseSet testCaseSet = testCaseSetService.uploadTestCaseSet(

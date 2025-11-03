@@ -28,16 +28,17 @@ class TestCaseSetService {
     const formData = new FormData()
     formData.append('file', uploadData.file)
     
-    // 创建uploadRequest对象，包含除了file之外的所有参数
-    const uploadRequest = {
-      description: uploadData.description || '',
-      businessZh: uploadData.businessZh || '',
-      businessEn: uploadData.businessEn || '',
-      overwrite: 'false'
+    // Add form fields as separate FormData entries
+    if (uploadData.description) {
+      formData.append('description', uploadData.description)
     }
-    
-    // 将uploadRequest对象作为JSON字符串添加到formData
-    formData.append('uploadRequest', JSON.stringify(uploadRequest))
+    if (uploadData.businessZh) {
+      formData.append('businessZh', uploadData.businessZh)
+    }
+    if (uploadData.businessEn) {
+      formData.append('businessEn', uploadData.businessEn)
+    }
+    formData.append('overwrite', 'false')
 
     const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
     return handleApiResponseWithError(response)
@@ -50,16 +51,25 @@ class TestCaseSetService {
     const formData = new FormData()
     formData.append('file', uploadData.file)
     
-    // 创建uploadRequest对象，包含除了file之外的所有参数
-    const uploadRequest = {
-      description: uploadData.description || '',
-      businessZh: uploadData.businessZh || '',
-      businessEn: uploadData.businessEn || '',
-      overwrite: 'true'
+    // Add form fields as separate FormData entries
+    if (uploadData.description) {
+      formData.append('description', uploadData.description)
     }
+    if (uploadData.businessZh) {
+      formData.append('businessZh', uploadData.businessZh)
+    }
+    if (uploadData.businessEn) {
+      formData.append('businessEn', uploadData.businessEn)
+    }
+    // Always set overwrite to 'true' for overwrite upload
+    formData.append('overwrite', 'true')
     
-    // 将uploadRequest对象作为JSON字符串添加到formData
-    formData.append('uploadRequest', JSON.stringify(uploadRequest))
+    console.log('Uploading with overwrite=true:', {
+      description: uploadData.description,
+      businessZh: uploadData.businessZh,
+      businessEn: uploadData.businessEn,
+      overwrite: 'true'
+    })
 
     const response = await fetch(`${this.baseUrl}`, createFileUploadConfig(formData))
     return handleApiResponseWithError(response)

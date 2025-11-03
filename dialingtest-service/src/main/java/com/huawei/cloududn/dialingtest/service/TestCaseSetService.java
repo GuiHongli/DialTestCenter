@@ -98,7 +98,17 @@ public class TestCaseSetService {
             testCaseSet.setDescription(description);
             testCaseSet.setSha256(sha256);
             testCaseSet.setBusinessZh(businessZh);
-            testCaseSet.setBusinessEn("VPN_BLOCK"); // 默认英文业务类型
+            // Use provided businessEn, or set default if null or empty
+            if (businessEn != null && !businessEn.trim().isEmpty()) {
+                testCaseSet.setBusinessEn(businessEn);
+            } else {
+                // Map businessZh to businessEn if not provided
+                if ("VPN阻断业务".equals(businessZh)) {
+                    testCaseSet.setBusinessEn("VPN_BLOCK");
+                } else {
+                    testCaseSet.setBusinessEn("VPN_BLOCK"); // Default value
+                }
+            }
             
             testCaseSetDao.insert(testCaseSet);
             
