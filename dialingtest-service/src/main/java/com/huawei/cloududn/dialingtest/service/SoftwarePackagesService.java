@@ -6,6 +6,9 @@ import com.huawei.cloududn.dialingtest.entity.SoftwarePackage;
 import com.huawei.cloududn.dialingtest.model.SoftwarePackageInfo;
 import com.huawei.cloududn.dialingtest.model.SoftwarePackageListResponseData;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -17,7 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -30,6 +34,8 @@ import java.util.zip.ZipOutputStream;
 @Service
 @Transactional
 public class SoftwarePackagesService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(SoftwarePackagesService.class);
     
     @Autowired
     private SoftwarePackageDao softwarePackageDao;
@@ -216,105 +222,189 @@ public class SoftwarePackagesService {
      * 上传ZIP包（解压后按单个软件包存储）
      */
     public List<SoftwarePackage> uploadZipPackage(MultipartFile file, boolean overwrite, String description, String operatorUsername) throws IOException {
+        logger.info("Starting ZIP package upload: {}, overwrite: {}", file.getOriginalFilename(), overwrite);
+        
         List<SoftwarePackage> uploadedPackages = new ArrayList<>();
-        int totalEntries = 0;
-        int validEntries = 0;
         
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry entry;
-            
             while ((entry = zis.getNextEntry()) != null) {
-                totalEntries++;
                 if (!entry.isDirectory()) {
-                    String fileName = entry.getName();
-                    System.out.println("Processing ZIP entry: " + fileName);
-                    
-                    // 跳过目录和系统文件
-                    if (fileName.contains("__MACOSX") || fileName.contains(".DS_Store")) {
-                        System.out.println("Skipping system file: " + fileName);
-                        continue;
-                    }
-                    
-                    // 获取文件名（去掉路径）
-                    String simpleFileName = fileName.substring(fileName.lastIndexOf("/") + 1);
-                    if (simpleFileName.isEmpty()) {
-                        System.out.println("Skipping empty filename: " + fileName);
-                        continue;
-                    }
-                    
-                    System.out.println("Processing file: " + simpleFileName);
-                    validEntries++;
-                    
-                    // 验证文件格式
-                    try {
-                        validateFileFormat(simpleFileName);
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("Skipping invalid file format: " + simpleFileName + " - " + e.getMessage());
-                        continue; // 跳过不支持的文件格式，继续处理其他文件
-                    }
-                    
-                    // 读取文件内容
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = zis.read(buffer)) != -1) {
-                        baos.write(buffer, 0, len);
-                    }
-                    byte[] fileContent = baos.toByteArray();
-                    baos.close();
-                    
-                    // 验证文件大小
-                    validateFileSize(fileContent.length);
-                    
-                    // 计算SHA256
-                    String sha256 = calculateSHA256(fileContent);
-                    
-                    // 检查软件名称是否已存在
-                    SoftwarePackageInfo existingPackage = null;
-                    if (softwarePackageDao.checkSoftwareNameExists(simpleFileName) > 0) {
-                        if (!overwrite) {
-                            throw new IllegalArgumentException("ZIP包中包含已存在的软件名称: " + simpleFileName);
-                        } else {
-                            // 获取已存在的软件包信息用于日志记录
-                            existingPackage = softwarePackageDao.getSoftwarePackageByName(simpleFileName);
-                            // 删除已存在的软件包
-                            deleteExistingPackageByName(simpleFileName);
-                        }
-                    }
-                    
-                    // 创建软件包实体
-                    SoftwarePackage softwarePackage = new SoftwarePackage(
-                        simpleFileName,
-                        description, // 使用ZIP包上传时填写的描述信息
-                        fileContent,
-                        sha256,
-                        (long) fileContent.length
-                    );
-                    
-                    // 插入数据库
-                    softwarePackageDao.insert(softwarePackage);
-                    uploadedPackages.add(softwarePackage);
-                    
-                    // 记录操作日志
-                    if (existingPackage != null) {
-                        // 覆盖操作
-                        operationLogUtil.logSoftwarePackageOverwrite(operatorUsername, existingPackage, softwarePackage);
-                    } else {
-                        // 新增操作
-                        operationLogUtil.logSoftwarePackageCreate(operatorUsername, softwarePackage);
+                    SoftwarePackage packageResult = processZipEntry(zis, entry, overwrite, description, operatorUsername);
+                    if (packageResult != null) {
+                        uploadedPackages.add(packageResult);
                     }
                 }
             }
         }
         
-        System.out.println("ZIP package processing completed. Total entries: " + totalEntries + ", Valid entries: " + validEntries + ", Uploaded packages: " + uploadedPackages.size());
+        validateUploadResult(uploadedPackages);
+        logger.info("ZIP package upload completed: {} packages uploaded", uploadedPackages.size());
         
-        // 检查是否至少上传了一个软件包
+        return uploadedPackages;
+    }
+    
+    /**
+     * 处理ZIP包中的单个条目
+     */
+    private SoftwarePackage processZipEntry(ZipInputStream zis, ZipEntry entry, boolean overwrite, 
+                                            String description, String operatorUsername) throws IOException {
+        String fileName = entry.getName();
+        
+        // 跳过系统文件
+        if (shouldSkipFile(fileName)) {
+            logger.debug("Skipping system file: {}", fileName);
+            return null;
+        }
+        
+        // 提取文件名
+        String simpleFileName = extractFileName(fileName);
+        if (simpleFileName.isEmpty()) {
+            logger.debug("Skipping empty filename: {}", fileName);
+            return null;
+        }
+        
+        // 验证文件格式
+        if (!isValidFileFormat(simpleFileName)) {
+            logger.debug("Skipping invalid file format: {}", simpleFileName);
+            return null;
+        }
+        
+        // 读取并处理文件
+        return processPackageFile(zis, simpleFileName, overwrite, description, operatorUsername);
+    }
+    
+    /**
+     * 判断是否应该跳过该文件
+     */
+    private boolean shouldSkipFile(String fileName) {
+        return fileName.contains("__MACOSX") || fileName.contains(".DS_Store");
+    }
+    
+    /**
+     * 从完整路径中提取文件名
+     */
+    private String extractFileName(String filePath) {
+        int lastIndex = filePath.lastIndexOf("/");
+        if (lastIndex == -1) {
+            lastIndex = filePath.lastIndexOf("\\");
+        }
+        return lastIndex >= 0 ? filePath.substring(lastIndex + 1) : filePath;
+    }
+    
+    /**
+     * 验证文件格式是否有效
+     */
+    private boolean isValidFileFormat(String fileName) {
+        try {
+            validateFileFormat(fileName);
+            return true;
+        } catch (IllegalArgumentException e) {
+            logger.debug("Invalid file format: {} - {}", fileName, e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 处理软件包文件（读取、验证、保存）
+     */
+    private SoftwarePackage processPackageFile(ZipInputStream zis, String fileName, boolean overwrite,
+                                               String description, String operatorUsername) throws IOException {
+        // 读取文件内容
+        byte[] fileContent = readZipEntryContent(zis);
+        
+        // 验证文件大小
+        validateFileSize(fileContent.length);
+        
+        // 计算SHA256
+        String sha256 = calculateSHA256(fileContent);
+        
+        // 处理已存在的软件包
+        SoftwarePackageInfo existingPackage = handleExistingPackage(fileName, overwrite);
+        
+        // 创建并保存软件包
+        SoftwarePackage softwarePackage = createAndSavePackage(fileName, description, fileContent, sha256);
+        
+        // 记录操作日志
+        logPackageOperation(operatorUsername, existingPackage, softwarePackage);
+        
+        return softwarePackage;
+    }
+    
+    /**
+     * 读取ZIP条目内容
+     */
+    private byte[] readZipEntryContent(ZipInputStream zis) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = zis.read(buffer)) != -1) {
+            baos.write(buffer, 0, len);
+        }
+        byte[] content = baos.toByteArray();
+        baos.close();
+        return content;
+    }
+    
+    /**
+     * 处理已存在的软件包
+     */
+    private SoftwarePackageInfo handleExistingPackage(String fileName, boolean overwrite) {
+        if (softwarePackageDao.checkSoftwareNameExists(fileName) == 0) {
+            return null;
+        }
+        
+        if (!overwrite) {
+            throw new IllegalArgumentException("ZIP包中包含已存在的软件名称: " + fileName);
+        }
+        
+        SoftwarePackageInfo existingPackage = softwarePackageDao.getSoftwarePackageByName(fileName);
+        deleteExistingPackageByName(fileName);
+        logger.info("Deleted existing package for overwrite: {}", fileName);
+        
+        return existingPackage;
+    }
+    
+    /**
+     * 创建并保存软件包
+     */
+    private SoftwarePackage createAndSavePackage(String fileName, String description, 
+                                                  byte[] fileContent, String sha256) {
+        SoftwarePackage softwarePackage = new SoftwarePackage(
+            fileName,
+            description,
+            fileContent,
+            sha256,
+            (long) fileContent.length
+        );
+        
+        softwarePackageDao.insert(softwarePackage);
+        logger.debug("Saved software package: {}", fileName);
+        
+        return softwarePackage;
+    }
+    
+    /**
+     * 记录软件包操作日志
+     */
+    private void logPackageOperation(String operatorUsername, SoftwarePackageInfo existingPackage, 
+                                     SoftwarePackage softwarePackage) {
+        if (existingPackage != null) {
+            operationLogUtil.logSoftwarePackageOverwrite(operatorUsername, existingPackage, softwarePackage);
+            logger.info("Logged overwrite operation for package: {}", softwarePackage.getSoftwareName());
+        } else {
+            operationLogUtil.logSoftwarePackageCreate(operatorUsername, softwarePackage);
+            logger.info("Logged create operation for package: {}", softwarePackage.getSoftwareName());
+        }
+    }
+    
+    /**
+     * 验证上传结果
+     */
+    private void validateUploadResult(List<SoftwarePackage> uploadedPackages) {
         if (uploadedPackages.isEmpty()) {
             throw new IllegalArgumentException("ZIP包中没有找到有效的软件包文件（.apk或.ipa）");
         }
-        
-        return uploadedPackages;
     }
     
     /**
