@@ -531,7 +531,25 @@
       "EXPORT": "导出",
       "IMPORT": "导入",
       "UPLOAD": "上传",
-      "DOWNLOAD": "下载"
+      "DOWNLOAD": "下载",
+      "OVERWRITE": "覆盖",
+      "VALIDATE": "校验",
+      "VALIDATION": "校验"
+    },
+    "operationTypes": {
+      "CREATE": "创建",
+      "UPDATE": "更新",
+      "DELETE": "删除",
+      "LOGIN": "登录",
+      "LOGOUT": "登出",
+      "VIEW": "查看",
+      "EXPORT": "导出",
+      "IMPORT": "导入",
+      "UPLOAD": "上传",
+      "DOWNLOAD": "下载",
+      "OVERWRITE": "覆盖",
+      "VALIDATE": "校验",
+      "VALIDATION": "校验"
     },
     "operationTarget": {
       "USER": "用户管理",

@@ -527,7 +527,10 @@
       "EXPORT": "Export",
       "IMPORT": "Import",
       "UPLOAD": "Upload",
-      "DOWNLOAD": "Download"
+      "DOWNLOAD": "Download",
+      "OVERWRITE": "Overwrite",
+      "VALIDATE": "Validate",
+      "VALIDATION": "Validate"
     },
     "operationTarget": {
       "USER": "User Management",

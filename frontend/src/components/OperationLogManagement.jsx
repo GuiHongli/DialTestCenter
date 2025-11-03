@@ -201,7 +201,7 @@ const OperationLogManagement = () => {
       width: 120,
       render: (text) => (
         <Tag color={getOperationTypeColor(text)}>
-          {translateOperationLog(`operationType.${text}`)}
+          {translateOperationLog(`operationTypes.${text}`)}
         </Tag>
       ),
     },
@@ -405,7 +405,7 @@ const OperationLogManagement = () => {
               </Descriptions.Item>
               <Descriptions.Item label={translateOperationLog('table.operationType')}>
                 <Tag color={getOperationTypeColor(selectedLog.operationType)}>
-                  {translateOperationLog(`operationType.${selectedLog.operationType}`)}
+                  {translateOperationLog(`operationTypes.${selectedLog.operationType}`)}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label={translateOperationLog('table.operationTarget')}>
