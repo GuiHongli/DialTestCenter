@@ -4,7 +4,6 @@
 
 -- 删除已存在的表（按依赖关系顺序删除）
 DROP TABLE IF EXISTS test_case CASCADE;
-DROP TABLE IF EXISTS app_type CASCADE;
 DROP TABLE IF EXISTS test_case_set CASCADE;
 
 -- 1. 用例集表（test_case_set）
@@ -39,27 +38,15 @@ CREATE TABLE test_case (
     CONSTRAINT uk_test_case_set_case_number UNIQUE (test_case_set_id, case_number)
 );
 
--- 3. 应用类型表（app_type）
-CREATE TABLE app_type (
-    id BIGSERIAL PRIMARY KEY,
-    business_category VARCHAR(200) NOT NULL,
-    app_name VARCHAR(200) NOT NULL,
-    description VARCHAR(500),
-    CONSTRAINT uk_business_app UNIQUE (business_category, app_name)
-);
-
--- 4. 创建索引
+-- 3. 创建索引
 CREATE INDEX idx_test_case_set_name ON test_case_set (name);
 CREATE INDEX idx_test_case_set_id ON test_case (test_case_set_id);
 CREATE INDEX idx_case_number ON test_case (case_number);
 CREATE INDEX idx_script_exists ON test_case (script_exists);
-CREATE INDEX idx_app_type_category ON app_type (business_category);
-CREATE INDEX idx_app_type_app ON app_type (app_name);
 
--- 5. 添加注释
+-- 4. 添加注释
 COMMENT ON TABLE test_case_set IS 'Test case set table';
 COMMENT ON TABLE test_case IS 'Test case table';
-COMMENT ON TABLE app_type IS 'Application type table';
 
 COMMENT ON COLUMN test_case_set.id IS 'Primary key ID, auto increment';
 COMMENT ON COLUMN test_case_set.name IS 'Test case set name';
@@ -83,8 +70,3 @@ COMMENT ON COLUMN test_case.dependencies_package IS 'Dependencies package';
 COMMENT ON COLUMN test_case.dependencies_rule IS 'Dependencies rule';
 COMMENT ON COLUMN test_case.environment_config IS 'Environment configuration (JSON)';
 COMMENT ON COLUMN test_case.script_exists IS 'Script exists flag';
-
-COMMENT ON COLUMN app_type.id IS 'Primary key ID, auto increment';
-COMMENT ON COLUMN app_type.business_category IS 'Business category';
-COMMENT ON COLUMN app_type.app_name IS 'Application name';
-COMMENT ON COLUMN app_type.description IS 'Description';

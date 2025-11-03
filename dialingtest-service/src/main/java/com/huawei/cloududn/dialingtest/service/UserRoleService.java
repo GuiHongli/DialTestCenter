@@ -29,24 +29,24 @@ public class UserRoleService {
      * 创建用户角色关系
      */
     public UserRole createUserRole(String username, String role, String operatorUsername) {
-        // 验证角色有效性
+        // Validate role
         if (!isValidRole(role)) {
-            throw new IllegalArgumentException("无效的角色: " + role);
+            throw new IllegalArgumentException("Invalid role: " + role);
         }
         
-        // 检查是否已存在
+        // Check if already exists
         if (userRoleDao.existsByUsernameAndRole(username, role)) {
-            throw new IllegalArgumentException("用户角色关系已存在");
+            throw new IllegalArgumentException("User role relationship already exists");
         }
         
-        // 创建用户角色关系
+        // Create user role relationship
         UserRole userRole = new UserRole();
         userRole.setUsername(username);
         userRole.setRole(UserRole.RoleEnum.fromValue(role));
         
         userRoleDao.insert(userRole);
         
-        // 记录操作日志到操作记录模块
+        // Log operation to operation log module
         operationLogUtil.logUserRoleCreate(operatorUsername, userRole);
         
         return userRole;
@@ -101,34 +101,42 @@ public class UserRoleService {
      * 更新用户角色关系
      */
     public UserRole updateUserRole(Integer id, String username, String role, String operatorUsername) {
-        // 验证角色有效性
+        // Validate role
         if (!isValidRole(role)) {
-            throw new IllegalArgumentException("无效的角色: " + role);
+            throw new IllegalArgumentException("Invalid role: " + role);
         }
         
-        // 查找现有记录
+        // Find existing record
         UserRole existingUserRole = userRoleDao.findById(id);
         if (existingUserRole == null) {
-            throw new IllegalArgumentException("用户角色关系不存在");
+            throw new IllegalArgumentException("User role relationship does not exist");
         }
         
         String oldUsername = existingUserRole.getUsername();
         String oldRole = existingUserRole.getRole().toString();
         
-        // 更新用户角色关系
+        // If username or role changed, check if new username and role combination already exists (excluding current record)
+        boolean usernameChanged = !oldUsername.equals(username);
+        boolean roleChanged = !oldRole.equals(role);
+        if (usernameChanged || roleChanged) {
+            UserRole existingWithSameKey = userRoleDao.findByUsernameAndRole(username, role);
+            if (existingWithSameKey != null && !existingWithSameKey.getId().equals(id)) {
+                throw new IllegalArgumentException("User role already exists");
+            }
+        }
+        
+        // Update user role relationship
         existingUserRole.setUsername(username);
         existingUserRole.setRole(UserRole.RoleEnum.fromValue(role));
         
         userRoleDao.update(existingUserRole);
-        
-      
         
         UserRole newUserRole = new UserRole();
         newUserRole.setId(existingUserRole.getId());
         newUserRole.setUsername(username);
         newUserRole.setRole(UserRole.RoleEnum.fromValue(role));
         
-        // 记录操作日志
+        // Log operation
         operationLogUtil.logUserRoleUpdate(operatorUsername, existingUserRole, newUserRole);
         
         return existingUserRole;
@@ -138,19 +146,19 @@ public class UserRoleService {
      * 删除用户角色关系
      */
     public void deleteUserRole(Integer id, String operatorUsername) {
-        // 查找现有记录
+        // Find existing record
         UserRole existingUserRole = userRoleDao.findById(id);
         if (existingUserRole == null) {
-            throw new IllegalArgumentException("用户角色关系不存在");
+            throw new IllegalArgumentException("User role relationship does not exist");
         }
         
         String username = existingUserRole.getUsername();
         String role = existingUserRole.getRole().toString();
         
-        // 删除用户角色关系
+        // Delete user role relationship
         userRoleDao.deleteById(id);
         
-        // 记录操作日志
+        // Log operation
         operationLogUtil.logUserRoleDelete(operatorUsername, existingUserRole);
     }
     

@@ -2,12 +2,10 @@ package com.huawei.cloududn.dialingtest.service;
 
 import com.huawei.cloududn.dialingtest.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtest.dao.TestCaseDao;
-import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
 import com.huawei.cloududn.dialingtest.model.TestCaseSetListResponseData;
 import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
-import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -34,9 +32,6 @@ public class TestCaseSetService {
     
     @Autowired
     private TestCaseDao testCaseDao;
-    
-    @Autowired
-    private AppTypeDao appTypeDao;
     
     @Autowired
     private ArchiveParseService archiveParseService;
@@ -341,29 +336,10 @@ public class TestCaseSetService {
             testCase.setScriptExists(testCaseInfo.isScriptExists());
             
             testCases.add(testCase);
-            
-            // 保存应用类型信息
-            saveAppType(testCaseInfo.getBusinessCategory(), testCaseInfo.getAppName());
         }
         
         if (!testCases.isEmpty()) {
             testCaseDao.batchInsert(testCases);
-        }
-    }
-    
-    /**
-     * 保存应用类型信息
-     */
-    private void saveAppType(String businessCategory, String appName) {
-        if (businessCategory != null && appName != null) {
-            int count = appTypeDao.existsByBusinessCategoryAndAppName(businessCategory, appName);
-            if (count == 0) {
-                AppType appType = new AppType();
-                appType.setBusinessCategory(businessCategory);
-                appType.setAppName(appName);
-                appType.setDescription("自动创建的应用类型");
-                appTypeDao.insert(appType);
-            }
         }
     }
     

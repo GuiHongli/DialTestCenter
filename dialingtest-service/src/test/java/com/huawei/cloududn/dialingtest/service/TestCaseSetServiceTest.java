@@ -6,13 +6,11 @@ package com.huawei.cloududn.dialingtest.service;
 
 import com.huawei.cloududn.dialingtest.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtest.dao.TestCaseDao;
-import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.TestCase;
 import com.huawei.cloududn.dialingtest.model.TestCaseInfo;
 import com.huawei.cloududn.dialingtest.model.TestCaseSetListResponseData;
 import com.huawei.cloududn.dialingtest.model.TestCaseListResponseData;
-import com.huawei.cloududn.dialingtest.entity.AppType;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.service.ArchiveParseResult;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -45,9 +43,6 @@ public class TestCaseSetServiceTest {
 
     @Mock
     private TestCaseDao testCaseDao;
-
-    @Mock
-    private AppTypeDao appTypeDao;
 
     @Mock
     private ArchiveParseService archiveParseService;
@@ -98,8 +93,6 @@ public class TestCaseSetServiceTest {
         when(excelParseService.parseExcel(any(byte[].class))).thenReturn(Arrays.asList(testTestCaseInfo));
         when(testCaseSetDao.insert(any(TestCaseSet.class))).thenReturn(1);
         when(testCaseDao.batchInsert(anyList())).thenReturn(1);
-        when(appTypeDao.existsByBusinessCategoryAndAppName("VPN", "TestApp")).thenReturn(0);
-        when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
 
         // Act
         TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
@@ -120,7 +113,6 @@ public class TestCaseSetServiceTest {
         verify(excelParseService, times(1)).parseExcel(any(byte[].class));
         verify(testCaseSetDao, times(1)).insert(any(TestCaseSet.class));
         verify(testCaseDao, times(1)).batchInsert(anyList());
-        verify(appTypeDao, times(1)).insert(any(AppType.class));
         verify(operationLogUtil, times(1)).logTestCaseSetUpload(eq(operatorUsername), any(TestCaseSet.class));
     }
 
@@ -146,8 +138,6 @@ public class TestCaseSetServiceTest {
         when(excelParseService.parseExcel(any(byte[].class))).thenReturn(Arrays.asList(testTestCaseInfo));
         when(testCaseSetDao.insert(any(TestCaseSet.class))).thenReturn(1);
         when(testCaseDao.batchInsert(anyList())).thenReturn(1);
-        when(appTypeDao.existsByBusinessCategoryAndAppName("VPN", "TestApp")).thenReturn(0);
-        when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
 
         // Act
         TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
@@ -328,8 +318,6 @@ public class TestCaseSetServiceTest {
         when(excelParseService.parseExcel(any(byte[].class))).thenReturn(Arrays.asList(testTestCaseInfo));
         when(testCaseSetDao.insert(any(TestCaseSet.class))).thenReturn(1);
         when(testCaseDao.batchInsert(anyList())).thenReturn(1);
-        when(appTypeDao.existsByBusinessCategoryAndAppName("VPN", "TestApp")).thenReturn(0);
-        when(appTypeDao.insert(any(AppType.class))).thenReturn(1);
 
         // Act
         TestCaseSet result = testCaseSetService.uploadTestCaseSet(mockFile, description, businessZh, businessEn, overwrite, operatorUsername);
@@ -347,7 +335,6 @@ public class TestCaseSetServiceTest {
         verify(excelParseService, times(1)).parseExcel(any(byte[].class));
         verify(testCaseSetDao, times(1)).insert(any(TestCaseSet.class));
         verify(testCaseDao, times(1)).batchInsert(anyList());
-        verify(appTypeDao, times(1)).insert(any(AppType.class));
         verify(operationLogUtil, times(1)).logTestCaseSetUpload(eq(operatorUsername), any(TestCaseSet.class));
     }
 

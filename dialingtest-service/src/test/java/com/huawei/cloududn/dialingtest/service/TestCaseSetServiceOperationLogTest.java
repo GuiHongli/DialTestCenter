@@ -6,7 +6,6 @@ package com.huawei.cloududn.dialingtest.service;
 
 import com.huawei.cloududn.dialingtest.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtest.dao.TestCaseDao;
-import com.huawei.cloududn.dialingtest.dao.AppTypeDao;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.model.UpdateTestCaseSetRequest;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
@@ -37,9 +36,6 @@ public class TestCaseSetServiceOperationLogTest {
 
     @Mock
     private TestCaseDao testCaseDao;
-
-    @Mock
-    private AppTypeDao appTypeDao;
 
     @Mock
     private ArchiveParseService archiveParseService;

@@ -24,10 +24,8 @@ SELECT
     ol.username,
     ol.operation_description_zh,
     ol.operation_description_en,
-    ot.name_zh as operation_type_name,
-    otg.name_zh as operation_target_name,
+    ol.operation_type,
+    ol.operation_target,
     ol.operation_time
 FROM operation_logs ol
-LEFT JOIN operation_types ot ON ol.operation_type = ot.code
-LEFT JOIN operation_targets otg ON ol.operation_target = otg.code
 ORDER BY ol.operation_time DESC;

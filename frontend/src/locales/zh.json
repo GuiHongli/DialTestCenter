@@ -199,6 +199,13 @@
     "createFailed": "创建用户角色失败",
     "updateFailed": "更新用户角色失败",
     "deleteFailed": "删除用户角色失败",
+    "errors": {
+      "userRoleAlreadyExists": "用户角色已经存在",
+      "userRoleRelationshipAlreadyExists": "用户角色关系已存在",
+      "userRoleRelationshipDoesNotExist": "用户角色关系不存在",
+      "invalidRole": "无效的角色",
+      "userRoleNotFound": "用户角色不存在"
+    },
     "loadFailed": "加载用户角色列表失败",
     "getUserRolesFailed": "获取用户角色失败",
     "gettingUserPermission": "正在获取用户权限信息...",

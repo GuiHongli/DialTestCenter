@@ -232,7 +232,7 @@ public class UserRoleControllerTest {
         String username = "admin";
         PermissionValidator.PermissionValidationResult successResult = 
             PermissionValidator.PermissionValidationResult.success();
-        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+        when(permissionValidator.checkAdmin(username, "update user role"))
             .thenReturn(successResult);
         
         when(userRoleService.updateUserRole(1, "testuser", "ADMIN", username)).thenReturn(testUserRole);
@@ -245,9 +245,9 @@ public class UserRoleControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isSuccess());
-        assertEquals("更新用户角色成功", response.getBody().getMessage());
+        assertEquals("Update user role successful", response.getBody().getMessage());
         assertEquals(testUserRole, response.getBody().getData());
-        verify(permissionValidator).checkAdmin(username, "更新用户角色");
+        verify(permissionValidator).checkAdmin(username, "update user role");
         verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
     }
 
@@ -257,7 +257,7 @@ public class UserRoleControllerTest {
         String username = "operator";
         PermissionValidator.PermissionValidationResult failureResult = 
             PermissionValidator.PermissionValidationResult.failure("权限不足，更新用户角色需要管理员权限");
-        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+        when(permissionValidator.checkAdmin(username, "update user role"))
             .thenReturn(failureResult);
 
         // Act
@@ -279,22 +279,74 @@ public class UserRoleControllerTest {
         String username = "admin";
         PermissionValidator.PermissionValidationResult successResult = 
             PermissionValidator.PermissionValidationResult.success();
-        when(permissionValidator.checkAdmin(username, "更新用户角色"))
+        when(permissionValidator.checkAdmin(username, "update user role"))
             .thenReturn(successResult);
         
         when(userRoleService.updateUserRole(1, "testuser", "ADMIN", username))
-            .thenThrow(new IllegalArgumentException("用户角色关系不存在"));
+            .thenThrow(new IllegalArgumentException("User role relationship does not exist"));
 
         // Act
         ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
 
         // Assert
         assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertEquals("用户角色关系不存在", response.getBody().getMessage());
-        verify(permissionValidator).checkAdmin(username, "更新用户角色");
+        assertEquals("User role relationship does not exist", response.getBody().getMessage());
+        verify(permissionValidator).checkAdmin(username, "update user role");
+        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
+    }
+
+    @Test
+    public void testUserRolesIdPut_UserRoleAlreadyExists_ReturnsBadRequest() {
+        // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "update user role"))
+            .thenReturn(successResult);
+        
+        when(userRoleService.updateUserRole(1, "newuser", "ADMIN", username))
+            .thenThrow(new IllegalArgumentException("User role already exists"));
+
+        // Act
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("User role already exists", response.getBody().getMessage());
+        verify(permissionValidator).checkAdmin(username, "update user role");
+        verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
+    }
+
+    @Test
+    public void testUserRolesIdPut_DataIntegrityViolation_ReturnsBadRequest() {
+        // Arrange
+        String username = "admin";
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdmin(username, "update user role"))
+            .thenReturn(successResult);
+        
+        org.springframework.dao.DataIntegrityViolationException exception = 
+            new org.springframework.dao.DataIntegrityViolationException("duplicate key value violates unique constraint 'user_roles_username_role_key'");
+        when(userRoleService.updateUserRole(1, "testuser", "ADMIN", username))
+            .thenThrow(exception);
+
+        // Act
+        ResponseEntity<UserRoleResponse> response = userRoleController.updateUserRole(username, Integer.valueOf(1), testUpdateRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("User role already exists", response.getBody().getMessage());
+        verify(permissionValidator).checkAdmin(username, "update user role");
         verify(userRoleService).updateUserRole(1, "testuser", "ADMIN", username);
     }
 

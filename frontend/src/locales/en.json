@@ -199,6 +199,13 @@
     "createFailed": "Failed to create user role",
     "updateFailed": "Failed to update user role",
     "deleteFailed": "Failed to delete user role",
+    "errors": {
+      "userRoleAlreadyExists": "User role already exists",
+      "userRoleRelationshipAlreadyExists": "User role relationship already exists",
+      "userRoleRelationshipDoesNotExist": "User role relationship does not exist",
+      "invalidRole": "Invalid role",
+      "userRoleNotFound": "User role not found"
+    },
     "loadFailed": "Failed to load user role list",
     "getUserRolesFailed": "Failed to get user roles",
     "gettingUserPermission": "Getting user permission information...",

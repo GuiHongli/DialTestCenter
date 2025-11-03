@@ -81,7 +81,7 @@ public class UserRoleServiceTest {
             userRoleService.createUserRole("testuser", "INVALID", "admin");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            assertEquals("无效的角色: INVALID", e.getMessage());
+            assertEquals("Invalid role: INVALID", e.getMessage());
         }
 
         verify(userRoleDao, never()).existsByUsernameAndRole(anyString(), anyString());
@@ -99,7 +99,7 @@ public class UserRoleServiceTest {
             userRoleService.createUserRole("testuser", "ADMIN", "admin");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            assertEquals("用户角色关系已存在", e.getMessage());
+            assertEquals("User role relationship already exists", e.getMessage());
         }
 
         verify(userRoleDao).existsByUsernameAndRole("testuser", "ADMIN");
@@ -269,7 +269,7 @@ public class UserRoleServiceTest {
             userRoleService.updateUserRole(1, "testuser", "INVALID", "admin");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            assertEquals("无效的角色: INVALID", e.getMessage());
+            assertEquals("Invalid role: INVALID", e.getMessage());
         }
 
         verify(userRoleDao).findById(1);
@@ -287,12 +287,95 @@ public class UserRoleServiceTest {
             userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            assertEquals("用户角色关系不存在", e.getMessage());
+            assertEquals("User role relationship does not exist", e.getMessage());
         }
 
         verify(userRoleDao).findById(1);
         verify(userRoleDao, never()).update(any(UserRole.class));
         verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), any(UserRole.class), any(UserRole.class));
+    }
+
+    @Test
+    public void testUpdateUserRole_UserRoleAlreadyExists_ThrowsException() {
+        // Arrange
+        UserRole existingUserRole = new UserRole();
+        existingUserRole.setId(1);
+        existingUserRole.setUsername("testuser");
+        existingUserRole.setRole(UserRole.RoleEnum.OPERATOR);
+
+        UserRole conflictingUserRole = new UserRole();
+        conflictingUserRole.setId(2);
+        conflictingUserRole.setUsername("newuser");
+        conflictingUserRole.setRole(UserRole.RoleEnum.ADMIN);
+
+        when(userRoleDao.findById(1)).thenReturn(existingUserRole);
+        when(userRoleDao.findByUsernameAndRole("newuser", "ADMIN")).thenReturn(conflictingUserRole);
+
+        // Act & Assert
+        try {
+            userRoleService.updateUserRole(1, "newuser", "ADMIN", "admin");
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("User role already exists", e.getMessage());
+        }
+
+        verify(userRoleDao).findById(1);
+        verify(userRoleDao).findByUsernameAndRole("newuser", "ADMIN");
+        verify(userRoleDao, never()).update(any(UserRole.class));
+        verify(operationLogUtil, never()).logUserRoleUpdate(anyString(), any(UserRole.class), any(UserRole.class));
+    }
+
+    @Test
+    public void testUpdateUserRole_SameUsernameDifferentRole_ChecksDuplicate() {
+        // Arrange
+        UserRole existingUserRole = new UserRole();
+        existingUserRole.setId(1);
+        existingUserRole.setUsername("testuser");
+        existingUserRole.setRole(UserRole.RoleEnum.OPERATOR);
+
+        UserRole conflictingUserRole = new UserRole();
+        conflictingUserRole.setId(2);
+        conflictingUserRole.setUsername("testuser");
+        conflictingUserRole.setRole(UserRole.RoleEnum.ADMIN);
+
+        when(userRoleDao.findById(1)).thenReturn(existingUserRole);
+        when(userRoleDao.findByUsernameAndRole("testuser", "ADMIN")).thenReturn(conflictingUserRole);
+
+        // Act & Assert
+        try {
+            userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin");
+            fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertEquals("User role already exists", e.getMessage());
+        }
+
+        verify(userRoleDao).findById(1);
+        verify(userRoleDao).findByUsernameAndRole("testuser", "ADMIN");
+        verify(userRoleDao, never()).update(any(UserRole.class));
+    }
+
+    @Test
+    public void testUpdateUserRole_SameUserRole_NoDuplicateCheck() {
+        // Arrange
+        UserRole existingUserRole = new UserRole();
+        existingUserRole.setId(1);
+        existingUserRole.setUsername("testuser");
+        existingUserRole.setRole(UserRole.RoleEnum.ADMIN);
+
+        when(userRoleDao.findById(1)).thenReturn(existingUserRole);
+        when(userRoleDao.update(any(UserRole.class))).thenReturn(1);
+
+        // Act
+        UserRole result = userRoleService.updateUserRole(1, "testuser", "ADMIN", "admin");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("testuser", result.getUsername());
+        assertEquals(UserRole.RoleEnum.ADMIN, result.getRole());
+        verify(userRoleDao).findById(1);
+        verify(userRoleDao, never()).findByUsernameAndRole(anyString(), anyString());
+        verify(userRoleDao).update(any(UserRole.class));
+        verify(operationLogUtil).logUserRoleUpdate("admin", any(UserRole.class), any(UserRole.class));
     }
 
     @Test
@@ -325,7 +408,7 @@ public class UserRoleServiceTest {
             userRoleService.deleteUserRole(1, "admin");
             fail("Expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            assertEquals("用户角色关系不存在", e.getMessage());
+            assertEquals("User role relationship does not exist", e.getMessage());
         }
 
         verify(userRoleDao).findById(1);

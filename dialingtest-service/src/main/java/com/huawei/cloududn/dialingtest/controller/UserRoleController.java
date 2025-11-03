@@ -15,6 +15,7 @@ import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import com.huawei.cloududn.dialingtest.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -105,7 +106,7 @@ public class UserRoleController implements UserRolesApi {
     public ResponseEntity<UserRoleResponse> updateUserRole(String xUsername, Integer id, UpdateUserRoleRequest body) {
         try {
             // 检查权限（需要ADMIN权限）
-            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "更新用户角色");
+            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdmin(xUsername, "update user role");
             if (!permissionResult.isValid()) {
                 UserRoleResponse response = new UserRoleResponse();
                 response.setSuccess(false);
@@ -125,18 +126,34 @@ public class UserRoleController implements UserRolesApi {
             UserRoleResponse response = new UserRoleResponse();
             response.setSuccess(true);
             response.setData(userRole);
-            response.setMessage("更新用户角色成功");
+            response.setMessage("Update user role successful");
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             UserRoleResponse response = new UserRoleResponse();
             response.setSuccess(false);
             response.setMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (DataIntegrityViolationException e) {
+            // Catch database unique constraint violation exception
+            String errorMessage = e.getMessage();
+            if (errorMessage != null && (errorMessage.contains("user_roles_username_role_key") 
+                    || errorMessage.contains("duplicate key") 
+                    || errorMessage.contains("unique constraint"))) {
+                UserRoleResponse response = new UserRoleResponse();
+                response.setSuccess(false);
+                response.setMessage("User role already exists");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            } else {
+                UserRoleResponse response = new UserRoleResponse();
+                response.setSuccess(false);
+                response.setMessage("Failed to update user role: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
         } catch (Exception e) {
             UserRoleResponse response = new UserRoleResponse();
             response.setSuccess(false);
-            response.setMessage("更新用户角色失败: " + e.getMessage());
+            response.setMessage("Failed to update user role: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

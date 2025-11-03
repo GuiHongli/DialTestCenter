@@ -98,7 +98,17 @@ export const UserRoleManagement = () => {
       await loadUserRoles(pagination.current - 1, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : translateUserRole('createFailed'));
+      const errorMessage = err instanceof Error ? err.message : '';
+      // Map backend error messages to i18n keys
+      let i18nKey = null;
+      if (errorMessage === 'User role relationship already exists' ||
+          errorMessage.includes('User role relationship already exists')) {
+        i18nKey = translateUserRole('errors.userRoleRelationshipAlreadyExists');
+      } else if (errorMessage.includes('Invalid role')) {
+        i18nKey = translateUserRole('errors.invalidRole');
+      }
+      
+      message.error(i18nKey || errorMessage || translateUserRole('createFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -116,7 +126,23 @@ export const UserRoleManagement = () => {
       await loadUserRoles(pagination.current - 1, pagination.pageSize, searchText);
       await loadExecutorCount();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : translateUserRole('updateFailed'));
+      const errorMessage = err instanceof Error ? err.message : '';
+      // Map backend error messages to i18n keys
+      let i18nKey = null;
+      if (errorMessage === 'User role already exists' || 
+          errorMessage.includes('User role already exists')) {
+        i18nKey = translateUserRole('errors.userRoleAlreadyExists');
+      } else if (errorMessage === 'User role relationship already exists' ||
+                 errorMessage.includes('User role relationship already exists')) {
+        i18nKey = translateUserRole('errors.userRoleRelationshipAlreadyExists');
+      } else if (errorMessage === 'User role relationship does not exist' ||
+                 errorMessage.includes('User role relationship does not exist')) {
+        i18nKey = translateUserRole('errors.userRoleRelationshipDoesNotExist');
+      } else if (errorMessage.includes('Invalid role')) {
+        i18nKey = translateUserRole('errors.invalidRole');
+      }
+      
+      message.error(i18nKey || errorMessage || translateUserRole('updateFailed'));
     } finally {
       setFormLoading(false);
     }
