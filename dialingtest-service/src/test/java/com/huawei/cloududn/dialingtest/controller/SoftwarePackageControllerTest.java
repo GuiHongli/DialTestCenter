@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -413,9 +414,9 @@ public class SoftwarePackageControllerTest {
             PermissionValidator.PermissionValidationResult.success();
         when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
             .thenReturn(successResult);
-        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
         byte[] fileContent = new byte[]{1, 2, 3};
-        when(softwarePackageService.getSoftwarePackageFileContent(1L)).thenReturn(fileContent);
+        Resource mockResource = new ByteArrayResource(fileContent);
+        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L, 2L))).thenReturn(mockResource);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", mockDownloadRequest);
@@ -426,8 +427,7 @@ public class SoftwarePackageControllerTest {
         assertNotNull("Resource should not be null", response.getBody());
         
         verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
-        verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
-        verify(softwarePackageService, times(1)).getSoftwarePackageFileContent(1L);
+        verify(softwarePackageService, times(1)).downloadSoftwarePackages(Arrays.asList(1L, 2L));
     }
 
     /**
@@ -491,9 +491,10 @@ public class SoftwarePackageControllerTest {
             PermissionValidator.PermissionValidationResult.success();
         when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
             .thenReturn(successResult);
-        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
         byte[] fileContent = new byte[]{1, 2, 3};
-        when(softwarePackageService.getSoftwarePackageFileContent(1L)).thenReturn(fileContent);
+        Resource mockResource = new ByteArrayResource(fileContent);
+        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L))).thenReturn(mockResource);
+        when(softwarePackageService.getSoftwarePackageById(1L)).thenReturn(mockPackageInfo);
 
         // Act
         ResponseEntity<Resource> response = softwarePackageController.downloadSoftwarePackages("csrf-token", "admin", singleRequest);
@@ -506,8 +507,8 @@ public class SoftwarePackageControllerTest {
                   response.getHeaders().getFirst("Content-Disposition").contains("test-app"));
         
         verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
+        verify(softwarePackageService, times(1)).downloadSoftwarePackages(Arrays.asList(1L));
         verify(softwarePackageService, times(1)).getSoftwarePackageById(1L);
-        verify(softwarePackageService, times(1)).getSoftwarePackageFileContent(1L);
     }
 
     /**
@@ -520,7 +521,7 @@ public class SoftwarePackageControllerTest {
             PermissionValidator.PermissionValidationResult.success();
         when(permissionValidator.checkAdminOrOperator("admin", "下载软件包"))
             .thenReturn(successResult);
-        when(softwarePackageService.getSoftwarePackageById(1L))
+        when(softwarePackageService.downloadSoftwarePackages(Arrays.asList(1L, 2L)))
             .thenThrow(new RuntimeException("Download failed"));
 
         // Act
@@ -530,6 +531,9 @@ public class SoftwarePackageControllerTest {
         assertNotNull("Response should not be null", response);
         assertEquals("Status should be INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNull("Resource should be null", response.getBody());
+        
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "下载软件包");
+        verify(softwarePackageService, times(1)).downloadSoftwarePackages(Arrays.asList(1L, 2L));
     }
 
     /**
