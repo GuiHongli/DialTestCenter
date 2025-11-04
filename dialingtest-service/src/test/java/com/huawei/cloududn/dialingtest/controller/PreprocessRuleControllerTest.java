@@ -3,6 +3,7 @@ package com.huawei.cloududn.dialingtest.controller;
 import com.huawei.cloududn.dialingtest.model.*;
 import com.huawei.cloududn.dialingtest.service.PreprocessRuleService;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
+import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,9 @@ public class PreprocessRuleControllerTest {
     
     @Mock
     private OperationLogUtil operationLogUtil;
+    
+    @Mock
+    private PermissionValidator permissionValidator;
     
     @InjectMocks
     private PreprocessRuleController preprocessRuleController;
@@ -113,35 +117,121 @@ public class PreprocessRuleControllerTest {
     
     @Test
     public void testPreprocessRulePackagesIdDelete_Success() {
-        // 执行测试
+        // Arrange
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除预处理规则包"))
+            .thenReturn(successResult);
+        
+        // Act
         ResponseEntity<SuccessResponse> result = 
             preprocessRuleController.deletePreprocessRulePackage(1L, "admin");
         
-        // 验证结果
+        // Assert
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
         assertTrue(result.getBody().isSuccess());
         assertEquals("删除ZIP包成功", result.getBody().getMessage());
         
         // 验证服务方法被调用
-        verify(preprocessRuleService).deletePreprocessRulePackage(1L, "admin");
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除预处理规则包");
+        verify(preprocessRuleService, times(1)).deletePreprocessRulePackage(1L, "admin");
+    }
+    
+    @Test
+    public void testPreprocessRulePackagesIdDelete_Unauthorized() {
+        // Arrange
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("未提供用户名");
+        when(permissionValidator.checkAdminOrOperator(null, "删除预处理规则包"))
+            .thenReturn(failureResult);
+        
+        // Act
+        ResponseEntity<SuccessResponse> result = 
+            preprocessRuleController.deletePreprocessRulePackage(1L, null);
+        
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertFalse(result.getBody().isSuccess());
+        assertEquals("未提供用户名", result.getBody().getMessage());
+        
+        // 验证服务方法未被调用
+        verify(permissionValidator, times(1)).checkAdminOrOperator(null, "删除预处理规则包");
+        verify(preprocessRuleService, never()).deletePreprocessRulePackage(anyLong(), anyString());
+    }
+    
+    @Test
+    public void testPreprocessRulePackagesIdDelete_Forbidden() {
+        // Arrange
+        PermissionValidator.PermissionValidationResult failureResult = 
+            PermissionValidator.PermissionValidationResult.failure("权限不足，删除预处理规则包需要管理员或操作员权限");
+        when(permissionValidator.checkAdminOrOperator("browser", "删除预处理规则包"))
+            .thenReturn(failureResult);
+        
+        // Act
+        ResponseEntity<SuccessResponse> result = 
+            preprocessRuleController.deletePreprocessRulePackage(1L, "browser");
+        
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertFalse(result.getBody().isSuccess());
+        assertEquals("权限不足，删除预处理规则包需要管理员或操作员权限", result.getBody().getMessage());
+        
+        // 验证服务方法未被调用
+        verify(permissionValidator, times(1)).checkAdminOrOperator("browser", "删除预处理规则包");
+        verify(preprocessRuleService, never()).deletePreprocessRulePackage(anyLong(), anyString());
     }
     
     @Test
     public void testPreprocessRulePackagesIdDelete_IllegalArgumentException() {
-        // 模拟参数错误异常
+        // Arrange
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除预处理规则包"))
+            .thenReturn(successResult);
         doThrow(new IllegalArgumentException("ZIP包不存在"))
             .when(preprocessRuleService).deletePreprocessRulePackage(1L, "admin");
         
-        // 执行测试
+        // Act
         ResponseEntity<SuccessResponse> result = 
             preprocessRuleController.deletePreprocessRulePackage(1L, "admin");
         
-        // 验证结果
+        // Assert
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
         assertNotNull(result.getBody());
         assertFalse(result.getBody().isSuccess());
         assertEquals("ZIP包不存在", result.getBody().getMessage());
+        
+        // 验证服务方法被调用
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除预处理规则包");
+        verify(preprocessRuleService, times(1)).deletePreprocessRulePackage(1L, "admin");
+    }
+    
+    @Test
+    public void testPreprocessRulePackagesIdDelete_Exception() {
+        // Arrange
+        PermissionValidator.PermissionValidationResult successResult = 
+            PermissionValidator.PermissionValidationResult.success();
+        when(permissionValidator.checkAdminOrOperator("admin", "删除预处理规则包"))
+            .thenReturn(successResult);
+        doThrow(new RuntimeException("数据库连接失败"))
+            .when(preprocessRuleService).deletePreprocessRulePackage(1L, "admin");
+        
+        // Act
+        ResponseEntity<SuccessResponse> result = 
+            preprocessRuleController.deletePreprocessRulePackage(1L, "admin");
+        
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertFalse(result.getBody().isSuccess());
+        assertTrue(result.getBody().getMessage().contains("删除ZIP包失败"));
+        
+        // 验证服务方法被调用
+        verify(permissionValidator, times(1)).checkAdminOrOperator("admin", "删除预处理规则包");
+        verify(preprocessRuleService, times(1)).deletePreprocessRulePackage(1L, "admin");
     }
     
     @Test
