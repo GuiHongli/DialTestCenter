@@ -489,10 +489,11 @@ const SoftwarePackageManagement = () => {
           </Button>
           <Button
             icon={<DownloadOutlined />}
-            disabled={selectedRowKeys.length === 0}
             onClick={handleBatchDownload}
           >
-            {translateSoftwarePackage('batchDownload') || `批量下载 (${selectedRowKeys.length})`}
+            {selectedRowKeys.length > 0 
+              ? `${translateSoftwarePackage('messages.batchDownload')} (${selectedRowKeys.length})`
+              : translateSoftwarePackage('messages.batchDownload')}
           </Button>
           <Button
             icon={<ReloadOutlined />}
