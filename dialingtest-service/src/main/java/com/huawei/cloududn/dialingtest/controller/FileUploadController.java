@@ -285,12 +285,12 @@ public class FileUploadController {
             // 验证必填业务类型参数
             if (businessZh == null || businessZh.trim().isEmpty()) {
                 logger.warn("Business type (Chinese) is empty for upload request by user: {}", xUsername);
-                return createStringErrorResponse("业务类型（中文）不能为空", HttpStatus.BAD_REQUEST);
+                return createStringErrorResponse("Business type (Chinese) cannot be empty", HttpStatus.BAD_REQUEST);
             }
             
             if (businessEn == null || businessEn.trim().isEmpty()) {
                 logger.warn("Business type (English) is empty for upload request by user: {}", xUsername);
-                return createStringErrorResponse("业务类型（英文）不能为空", HttpStatus.BAD_REQUEST);
+                return createStringErrorResponse("Business type (English) cannot be empty", HttpStatus.BAD_REQUEST);
             }
             
             // 去除首尾空格

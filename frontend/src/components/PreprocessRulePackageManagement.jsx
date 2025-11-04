@@ -183,7 +183,16 @@ const PreprocessRulePackageManagement = () => {
           });
           return; // 提前返回，不执行finally中的setUploading(false)
         } else {
-          message.error(response.message || t('preprocessRule.package.uploadFailed'));
+          // Map backend error messages to i18n keys
+          let errorMessage = response.message || t('preprocessRule.package.uploadFailed');
+          if (response.message) {
+            if (response.message.includes('Business type (Chinese) cannot be empty')) {
+              errorMessage = t('preprocessRule.package.businessZhRequired');
+            } else if (response.message.includes('Business type (English) cannot be empty')) {
+              errorMessage = t('preprocessRule.package.businessEnRequired');
+            }
+          }
+          message.error(errorMessage);
         }
       }
     } catch (error) {
