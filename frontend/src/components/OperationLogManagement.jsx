@@ -61,16 +61,25 @@ const OperationLogManagement = () => {
   const [selectedLog, setSelectedLog] = useState(null)
 
   // 加载操作记录
-  const loadLogs = useCallback(async (page = 1, pageSize = 10) => {
+  const loadLogs = useCallback(async (page = 0, pageSize = 10) => {
     setLoading(true)
     try {
       const params = {
         page,
-        pageSize,
-        ...filters,
-        startTime: filters.dateRange && filters.dateRange[0] ? filters.dateRange[0].format('YYYY-MM-DD HH:mm:ss') : null,
-        endTime: filters.dateRange && filters.dateRange[1] ? filters.dateRange[1].format('YYYY-MM-DD HH:mm:ss') : null,
+        size: pageSize, // 使用 size 而不是 pageSize
+        operationType: filters.operationType || undefined,
+        operationTarget: filters.operationTarget || undefined,
+        username: filters.username || undefined,
+        startTime: filters.dateRange && filters.dateRange[0] ? filters.dateRange[0].format('YYYY-MM-DD HH:mm:ss') : undefined,
+        endTime: filters.dateRange && filters.dateRange[1] ? filters.dateRange[1].format('YYYY-MM-DD HH:mm:ss') : undefined,
       }
+      
+      // 移除空的参数
+      Object.keys(params).forEach(key => {
+        if (params[key] === undefined || params[key] === null || params[key] === '') {
+          delete params[key]
+        }
+      })
       
       const response = await OperationLogService.getOperationLogs(params)
       
@@ -85,7 +94,7 @@ const OperationLogManagement = () => {
         // 如果API返回的数据格式不正确，设置默认值
         setLogs([])
         setPagination({
-          current: page,
+          current: page + 1,
           pageSize: pageSize,
           total: 0,
         })
@@ -95,27 +104,61 @@ const OperationLogManagement = () => {
     } finally {
       setLoading(false)
     }
-  }, []) // 移除依赖项，避免无限循环
+  }, [filters, translateOperationLog]) // 添加 filters 到依赖项
 
   useEffect(() => {
-    loadLogs(0, 10) // 页面初次访问时查询第一页数据（后端页码0）
+    loadLogs(0, 10) // 只在组件挂载时执行一次，使用默认的 pageSize
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // 只在组件挂载时执行一次
 
   // 处理搜索
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, current: 1 }))
-    loadLogs(0, pagination.pageSize) // 搜索时从第一页开始（后端页码0）
+    // 使用最新的 filters 重新加载数据
+    loadLogs(0, pagination.pageSize)
   }
 
   // 处理重置
-  const handleReset = () => {
-    setFilters({
+  const handleReset = async () => {
+    const resetFilters = {
       operationType: '',
       operationTarget: '',
       username: '',
       dateRange: null,
-    })
+    }
+    setFilters(resetFilters)
     setPagination(prev => ({ ...prev, current: 1 }))
+    
+    // 使用重置后的 filters 重新加载数据
+    setLoading(true)
+    try {
+      const params = {
+        page: 0,
+        size: pagination.pageSize,
+      }
+      
+      const response = await OperationLogService.getOperationLogs(params)
+      
+      if (response && response.content && Array.isArray(response.content)) {
+        setLogs(response.content)
+        setPagination({
+          current: response.number + 1,
+          pageSize: response.size,
+          total: response.totalElements,
+        })
+      } else {
+        setLogs([])
+        setPagination({
+          current: 1,
+          pageSize: pagination.pageSize,
+          total: 0,
+        })
+      }
+    } catch (error) {
+      message.error(translateOperationLog('loadFailed'))
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 处理查看详情
@@ -132,11 +175,6 @@ const OperationLogManagement = () => {
     } catch (error) {
       message.error(translateOperationLog('exportFailed'))
     }
-  }
-
-  // 处理分页变化
-  const handleTableChange = (newPagination) => {
-    loadLogs(newPagination.current - 1, newPagination.pageSize) // 转换为后端页码（从0开始）
   }
 
   // 获取操作类型标签颜色
@@ -377,8 +415,15 @@ const OperationLogManagement = () => {
           showQuickJumper: true,
           showTotal: (total, range) => 
             translateOperationLog('table.pagination', { start: range[0], end: range[1], total }),
+          onChange: (page, pageSize) => {
+            setPagination(prev => ({ ...prev, current: page, pageSize: pageSize || prev.pageSize }))
+            loadLogs(page - 1, pageSize || pagination.pageSize) // 转换为后端页码（从0开始）
+          },
+          onShowSizeChange: (current, size) => {
+            setPagination(prev => ({ ...prev, current: 1, pageSize: size }))
+            loadLogs(0, size) // 切换每页条数时，从第一页开始（后端页码0）
+          },
         }}
-        onChange={handleTableChange}
         scroll={{ x: 1200 }}
         size="middle"
       />
