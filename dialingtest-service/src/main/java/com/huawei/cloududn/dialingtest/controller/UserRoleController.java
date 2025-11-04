@@ -182,45 +182,9 @@ public class UserRoleController implements UserRolesApi {
     @Override
     public ResponseEntity<UserPermissionResponse> getUserPermission(String xUsername) {
         try {
-            // 获取用户角色
             List<String> userRoles = userRoleService.getUserRolesByUsername(xUsername);
+            Map<String, UserPermissionResponseDataPagePermissions> pagePermissions = buildPagePermissions(userRoles);
             
-            // 构建页面权限映射
-            Map<String, UserPermissionResponseDataPagePermissions> pagePermissions = new HashMap<>();
-            
-            // 用户管理页面权限
-            UserPermissionResponseDataPagePermissions userManagementPerms = new UserPermissionResponseDataPagePermissions();
-            userManagementPerms.setHasAccess(true); // 所有用户都能访问页面
-            if (userRoles.contains("ADMIN")) {
-                userManagementPerms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
-            } else {
-                userManagementPerms.setOperations(Arrays.asList("view"));
-            }
-            pagePermissions.put("user-management", userManagementPerms);
-            
-            // 用例集管理页面权限
-            UserPermissionResponseDataPagePermissions testCaseSetPerms = new UserPermissionResponseDataPagePermissions();
-            testCaseSetPerms.setHasAccess(true); // 所有用户都能访问页面
-            if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
-                testCaseSetPerms.setOperations(Arrays.asList("upload", "download", "delete", "view","edit"));
-            } else if (userRoles.contains("BROWSER")) {
-                testCaseSetPerms.setOperations(Arrays.asList("download", "view"));
-            } else {
-                testCaseSetPerms.setOperations(Arrays.asList("view"));
-            }
-            pagePermissions.put("test-case-set", testCaseSetPerms);
-            
-            // 用户角色管理页面权限
-            UserPermissionResponseDataPagePermissions userRolePerms = new UserPermissionResponseDataPagePermissions();
-            userRolePerms.setHasAccess(true); // 所有用户都能访问页面
-            if (userRoles.contains("ADMIN")) {
-                userRolePerms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
-            } else {
-                userRolePerms.setOperations(Arrays.asList("view"));
-            }
-            pagePermissions.put("user-role-management", userRolePerms);
-            
-            // 构建响应数据
             UserPermissionResponseData data = new UserPermissionResponseData();
             data.setUsername(xUsername);
             data.setRoles(userRoles);
@@ -238,6 +202,109 @@ public class UserRoleController implements UserRolesApi {
             response.setMessage("获取用户权限信息失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    /**
+     * 构建所有页面的权限映射
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限映射
+     */
+    private Map<String, UserPermissionResponseDataPagePermissions> buildPagePermissions(List<String> userRoles) {
+        Map<String, UserPermissionResponseDataPagePermissions> pagePermissions = new HashMap<>();
+        
+        pagePermissions.put("user-management", buildUserManagementPermissions(userRoles));
+        pagePermissions.put("test-case-set", buildTestCaseSetPermissions(userRoles));
+        pagePermissions.put("software-package", buildSoftwarePackagePermissions(userRoles));
+        pagePermissions.put("user-role-management", buildUserRoleManagementPermissions(userRoles));
+        pagePermissions.put("preprocess-rule-management", buildPreprocessRuleManagementPermissions(userRoles));
+        
+        return pagePermissions;
+    }
+    
+    /**
+     * 构建用户管理页面权限
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限配置
+     */
+    private UserPermissionResponseDataPagePermissions buildUserManagementPermissions(List<String> userRoles) {
+        UserPermissionResponseDataPagePermissions perms = new UserPermissionResponseDataPagePermissions();
+        perms.setHasAccess(true);
+        if (userRoles.contains("ADMIN")) {
+            perms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
+        } else {
+            perms.setOperations(Arrays.asList("view"));
+        }
+        return perms;
+    }
+    
+    /**
+     * 构建用例集管理页面权限
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限配置
+     */
+    private UserPermissionResponseDataPagePermissions buildTestCaseSetPermissions(List<String> userRoles) {
+        UserPermissionResponseDataPagePermissions perms = new UserPermissionResponseDataPagePermissions();
+        perms.setHasAccess(true);
+        if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
+            perms.setOperations(Arrays.asList("upload", "download", "delete", "view", "edit", "validate"));
+        } else {
+            perms.setOperations(Arrays.asList("view"));
+        }
+        return perms;
+    }
+    
+    /**
+     * 构建软件包管理页面权限
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限配置
+     */
+    private UserPermissionResponseDataPagePermissions buildSoftwarePackagePermissions(List<String> userRoles) {
+        UserPermissionResponseDataPagePermissions perms = new UserPermissionResponseDataPagePermissions();
+        perms.setHasAccess(true);
+        if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
+            perms.setOperations(Arrays.asList("upload", "download", "delete", "view", "edit"));
+        } else {
+            perms.setOperations(Arrays.asList("view"));
+        }
+        return perms;
+    }
+    
+    /**
+     * 构建用户角色管理页面权限
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限配置
+     */
+    private UserPermissionResponseDataPagePermissions buildUserRoleManagementPermissions(List<String> userRoles) {
+        UserPermissionResponseDataPagePermissions perms = new UserPermissionResponseDataPagePermissions();
+        perms.setHasAccess(true);
+        if (userRoles.contains("ADMIN")) {
+            perms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
+        } else {
+            perms.setOperations(Arrays.asList("view"));
+        }
+        return perms;
+    }
+    
+    /**
+     * 构建预处理规则管理页面权限
+     *
+     * @param userRoles 用户角色列表
+     * @return 页面权限配置
+     */
+    private UserPermissionResponseDataPagePermissions buildPreprocessRuleManagementPermissions(List<String> userRoles) {
+        UserPermissionResponseDataPagePermissions perms = new UserPermissionResponseDataPagePermissions();
+        perms.setHasAccess(true);
+        if (userRoles.contains("ADMIN") || userRoles.contains("OPERATOR")) {
+            perms.setOperations(Arrays.asList("create", "edit", "delete", "view"));
+        } else {
+            perms.setOperations(Arrays.asList("view"));
+        }
+        return perms;
     }
     
     @Override

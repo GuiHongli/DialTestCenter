@@ -23,6 +23,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
 import { useI18n } from '../contexts/I18nContext.jsx'
+import { usePermission } from '../hooks/usePermission.js'
 import testCaseSetService from '../services/testCaseSetService.js'
 import { getValidationResultColumns, showTestCaseDetail } from '../utils/validationUtils.js'
 
@@ -39,6 +40,9 @@ const TestCaseDetails = ({
 
   const { translateTestCaseSet } = useTranslation()
   const { language } = useI18n()
+  const { hasPagePermission } = usePermission()
+  // 只有ADMIN和OPERATOR用户才能导出校验结果
+  const canExport = hasPagePermission('test-case-set', 'validate')
 
   // 加载校验结果
   const loadValidationResult = async (forceRefresh = false) => {
@@ -247,7 +251,7 @@ const TestCaseDetails = ({
               >
                 {translateTestCaseSet('validation.refresh')}
               </Button>
-              {validationResult && (
+              {validationResult && canExport && (
                 <Button
                   type="primary"
                   icon={<DownloadOutlined />}

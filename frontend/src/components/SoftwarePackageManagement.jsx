@@ -42,6 +42,7 @@ import {
   getSoftwarePackageStatistics,
 } from '../services/softwarePackageService.js';
 import { useTranslation } from '../hooks/useTranslation.js';
+import { usePermission } from '../hooks/usePermission.js';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -49,6 +50,13 @@ const { Title, Text } = Typography;
 
 const SoftwarePackageManagement = () => {
   const { translateSoftwarePackage, translateCommon } = useTranslation();
+  const { hasPagePermission } = usePermission();
+  
+  // 检查各种操作权限
+  const canUpload = hasPagePermission('software-package', 'upload');
+  const canDownload = hasPagePermission('software-package', 'download');
+  const canEdit = hasPagePermission('software-package', 'edit');
+  const canDelete = hasPagePermission('software-package', 'delete');
   const [softwarePackages, setSoftwarePackages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -425,34 +433,40 @@ const SoftwarePackageManagement = () => {
       width: 150,
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={translateSoftwarePackage('table.download')}>
-            <Button
-              type="text"
-              icon={<DownloadOutlined />}
-              onClick={() => handleDownload(record)}
-            />
-          </Tooltip>
-          <Tooltip title={translateSoftwarePackage('table.edit')}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Popconfirm
-            title={translateSoftwarePackage('messages.confirmDelete')}
-            onConfirm={() => handleDelete(record.id)}
-            okText={translateCommon('confirm')}
-            cancelText={translateCommon('cancel')}
-          >
-            <Tooltip title={translateSoftwarePackage('table.delete')}>
+          {canDownload && (
+            <Tooltip title={translateSoftwarePackage('table.download')}>
               <Button
                 type="text"
-                danger
-                icon={<DeleteOutlined />}
+                icon={<DownloadOutlined />}
+                onClick={() => handleDownload(record)}
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+          {canEdit && (
+            <Tooltip title={translateSoftwarePackage('table.edit')}>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            </Tooltip>
+          )}
+          {canDelete && (
+            <Popconfirm
+              title={translateSoftwarePackage('messages.confirmDelete')}
+              onConfirm={() => handleDelete(record.id)}
+              okText={translateCommon('confirm')}
+              cancelText={translateCommon('cancel')}
+            >
+              <Tooltip title={translateSoftwarePackage('table.delete')}>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -477,33 +491,39 @@ const SoftwarePackageManagement = () => {
           </Text>
         </div>
         <Space>
-          <Button
-            type="primary"
-            icon={<UploadOutlined />}
-            onClick={() => {
-              setUploadType('single');
-              setUploadModalVisible(true);
-            }}
-          >
-            {translateSoftwarePackage('uploadSingle')}
-          </Button>
-          <Button
-            icon={<FileZipOutlined />}
-            onClick={() => {
-              setUploadType('zip');
-              setUploadModalVisible(true);
-            }}
-          >
-            {translateSoftwarePackage('uploadZip')}
-          </Button>
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={handleBatchDownload}
-          >
-            {selectedRowKeys.length > 0 
-              ? `${translateSoftwarePackage('messages.batchDownload')} (${selectedRowKeys.length})`
-              : translateSoftwarePackage('messages.batchDownload')}
-          </Button>
+          {canUpload && (
+            <>
+              <Button
+                type="primary"
+                icon={<UploadOutlined />}
+                onClick={() => {
+                  setUploadType('single');
+                  setUploadModalVisible(true);
+                }}
+              >
+                {translateSoftwarePackage('uploadSingle')}
+              </Button>
+              <Button
+                icon={<FileZipOutlined />}
+                onClick={() => {
+                  setUploadType('zip');
+                  setUploadModalVisible(true);
+                }}
+              >
+                {translateSoftwarePackage('uploadZip')}
+              </Button>
+            </>
+          )}
+          {canDownload && (
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={handleBatchDownload}
+            >
+              {selectedRowKeys.length > 0 
+                ? `${translateSoftwarePackage('messages.batchDownload')} (${selectedRowKeys.length})`
+                : translateSoftwarePackage('messages.batchDownload')}
+            </Button>
+          )}
           <Button
             icon={<ReloadOutlined />}
             onClick={() => loadSoftwarePackages()}
@@ -574,12 +594,16 @@ const SoftwarePackageManagement = () => {
           dataSource={softwarePackages}
           rowKey="id"
           loading={loading}
-          rowSelection={{
-            selectedRowKeys,
-            onChange: (selectedKeys) => {
-              setSelectedRowKeys(selectedKeys);
-            },
-          }}
+          rowSelection={
+            canDownload
+              ? {
+                  selectedRowKeys,
+                  onChange: (selectedKeys) => {
+                    setSelectedRowKeys(selectedKeys);
+                  },
+                }
+              : null
+          }
           pagination={{
             ...pagination,
             showSizeChanger: true,

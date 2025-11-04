@@ -32,6 +32,7 @@ import {
 import { preprocessRuleService } from '../services/preprocessRuleService.js';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useTranslation } from '../hooks/useTranslation.js';
+import { usePermission, PagePermission } from '../hooks/usePermission.js';
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -39,6 +40,12 @@ const { TextArea } = Input;
 const PreprocessRulePackageManagement = () => {
   const { language } = useI18n();
   const { t, translateCommon } = useTranslation();
+  const { hasPagePermission } = usePermission();
+  
+  // 检查各种操作权限
+  const canCreate = hasPagePermission('preprocess-rule-management', 'create');
+  const canDelete = hasPagePermission('preprocess-rule-management', 'delete');
+  const canDownload = hasPagePermission('preprocess-rule-management', 'delete'); // 下载权限使用delete权限控制
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -370,27 +377,31 @@ const PreprocessRulePackageManagement = () => {
       key: 'actions',
       render: (record) => (
         <Space>
-          <Button
-            type="link"
-            icon={<DownloadOutlined />}
-            onClick={() => handleDownload(record.id, record.packageName)}
-          >
-            {translateCommon('download')}
-          </Button>
-          <Popconfirm
-            title={t('preprocessRule.package.deleteConfirm')}
-            onConfirm={() => handleDelete(record.id)}
-            okText={translateCommon('confirm')}
-            cancelText={translateCommon('cancel')}
-          >
+          {canDownload && (
             <Button
               type="link"
-              danger
-              icon={<DeleteOutlined />}
+              icon={<DownloadOutlined />}
+              onClick={() => handleDownload(record.id, record.packageName)}
             >
-              {translateCommon('delete')}
+              {translateCommon('download')}
             </Button>
-          </Popconfirm>
+          )}
+          {canDelete && (
+            <Popconfirm
+              title={t('preprocessRule.package.deleteConfirm')}
+              onConfirm={() => handleDelete(record.id)}
+              okText={translateCommon('confirm')}
+              cancelText={translateCommon('cancel')}
+            >
+              <Button
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                {translateCommon('delete')}
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       )
     }
@@ -418,13 +429,15 @@ const PreprocessRulePackageManagement = () => {
           </Text>
         </div>
         <Space>
-          <Button
-            type="primary"
-            icon={<UploadOutlined />}
-            onClick={() => setUploadModalVisible(true)}
-          >
-            {t('preprocessRule.package.upload')}
-          </Button>
+          <PagePermission pageId="preprocess-rule-management" operation="create">
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              onClick={() => setUploadModalVisible(true)}
+            >
+              {t('preprocessRule.package.upload')}
+            </Button>
+          </PagePermission>
           <Button
             icon={<ReloadOutlined />}
             onClick={() => loadPackages()}

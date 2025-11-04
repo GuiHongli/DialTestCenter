@@ -52,6 +52,8 @@ const TestCaseSetManagement = () => {
   const canEdit = hasPagePermission('test-case-set', 'edit')
   const canDelete = hasPagePermission('test-case-set', 'delete')
   const canDownload = hasPagePermission('test-case-set', 'download')
+  // 只有ADMIN和OPERATOR用户才能进行校验操作
+  const canValidate = hasPagePermission('test-case-set', 'validate')
 
   // 加载用例集列表
   const loadTestCaseSets = async (page = 1, pageSize = 10) => {
@@ -280,13 +282,15 @@ const TestCaseSetManagement = () => {
               />
             </Tooltip>
           </PagePermission>
-          <Tooltip title={translateTestCaseSet('validation.startValidation')}>
-            <Button
-              type="text"
-              icon={<SafetyOutlined />}
-              onClick={() => { setSelectedTestCaseSet(record); setValidationVisible(true) }}
-            />
-          </Tooltip>
+          {canValidate && (
+            <Tooltip title={translateTestCaseSet('validation.startValidation')}>
+              <Button
+                type="text"
+                icon={<SafetyOutlined />}
+                onClick={() => { setSelectedTestCaseSet(record); setValidationVisible(true) }}
+              />
+            </Tooltip>
+          )}
           <PagePermission pageId="test-case-set" operation="delete">
             <Tooltip title={translateTestCaseSet('table.delete')}>
               <Button
