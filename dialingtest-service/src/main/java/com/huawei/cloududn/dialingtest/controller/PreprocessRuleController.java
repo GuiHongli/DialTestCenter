@@ -60,10 +60,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            PreprocessRulePackageListResponse response = new PreprocessRulePackageListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取ZIP包列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(PreprocessRulePackageListResponse.class, "获取ZIP包列表失败: " + e.getMessage());
         }
     }
     
@@ -71,14 +68,12 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
     public ResponseEntity<SuccessResponse> deletePreprocessRulePackage(Long id, String xUsername) {
         try {
             // 检查权限（需要ADMIN或OPERATOR权限）
-            PermissionValidator.PermissionValidationResult permissionResult = permissionValidator.checkAdminOrOperator(xUsername, "删除预处理规则包");
+            PermissionValidator.PermissionValidationResult permissionResult = 
+                permissionValidator.checkAdminOrOperator(xUsername, "删除预处理规则包");
             if (!permissionResult.isValid()) {
-                SuccessResponse response = new SuccessResponse();
-                response.setSuccess(false);
-                response.setMessage(permissionResult.getErrorMessage());
                 HttpStatus status = permissionResult.getErrorMessage().contains("未提供用户名") 
                     ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
-                return ResponseEntity.status(status).body(response);
+                return createSuccessResponseError(permissionResult.getErrorMessage(), status);
             }
             
             preprocessRuleService.deletePreprocessRulePackage(id, xUsername);
@@ -89,15 +84,9 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            SuccessResponse response = new SuccessResponse();
-            response.setSuccess(false);
-            response.setMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return createSuccessResponseError(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            SuccessResponse response = new SuccessResponse();
-            response.setSuccess(false);
-            response.setMessage("删除ZIP包失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createSuccessResponseError("删除ZIP包失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -114,9 +103,9 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
                 .contentLength(fileContent.length)
                 .body(resource);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return createResourceError(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return createResourceError(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -136,10 +125,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            PreprocessRuleListResponse response = new PreprocessRuleListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取预处理规则列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(PreprocessRuleListResponse.class, "获取预处理规则列表失败: " + e.getMessage());
         }
     }
     
@@ -151,10 +137,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             BusinessTypeListResponse response = preprocessRuleService.getAllBusinessTypes();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            BusinessTypeListResponse response = new BusinessTypeListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取业务类型列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(BusinessTypeListResponse.class, "获取业务类型列表失败: " + e.getMessage());
         }
     }
     
@@ -164,10 +147,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             CategoryListResponse response = preprocessRuleService.getCategoriesByBusiness(businessZh);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            CategoryListResponse response = new CategoryListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取分类列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(CategoryListResponse.class, "获取分类列表失败: " + e.getMessage());
         }
     }
     
@@ -177,10 +157,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             AppNameListResponse response = preprocessRuleService.getAppNamesByBusinessAndCategory(businessZh, category);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            AppNameListResponse response = new AppNameListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取应用名称列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(AppNameListResponse.class, "获取应用名称列表失败: " + e.getMessage());
         }
     }
     
@@ -192,10 +169,7 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
                 businessZh, category, appName);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            RuleNameListResponse response = new RuleNameListResponse();
-            response.setSuccess(false);
-            response.setMessage("获取规则名称列表失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(RuleNameListResponse.class, "获取规则名称列表失败: " + e.getMessage());
         }
     }
     
@@ -205,11 +179,73 @@ public class PreprocessRuleController implements PreprocessRulePackagesApi, Prep
             FilterOptionsResponse response = preprocessRuleService.getFilterOptions();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            FilterOptionsResponse response = new FilterOptionsResponse();
-            response.setSuccess(false);
-            response.setMessage("获取筛选选项失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createErrorResponse(FilterOptionsResponse.class, "获取筛选选项失败: " + e.getMessage());
         }
+    }
+    
+    // ==================== 私有辅助方法 ====================
+    
+    /**
+     * 创建通用错误响应
+     *
+     * @param responseClass 响应类型
+     * @param errorMessage 错误消息
+     * @param <T> 响应类型，必须包含setSuccess和setMessage方法
+     * @return ResponseEntity<T>
+     */
+    private <T> ResponseEntity<T> createErrorResponse(Class<T> responseClass, String errorMessage) {
+        try {
+            T response = responseClass.getDeclaredConstructor().newInstance();
+            if (response instanceof PreprocessRulePackageListResponse) {
+                ((PreprocessRulePackageListResponse) response).setSuccess(false);
+                ((PreprocessRulePackageListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof PreprocessRuleListResponse) {
+                ((PreprocessRuleListResponse) response).setSuccess(false);
+                ((PreprocessRuleListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof BusinessTypeListResponse) {
+                ((BusinessTypeListResponse) response).setSuccess(false);
+                ((BusinessTypeListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof CategoryListResponse) {
+                ((CategoryListResponse) response).setSuccess(false);
+                ((CategoryListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof AppNameListResponse) {
+                ((AppNameListResponse) response).setSuccess(false);
+                ((AppNameListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof RuleNameListResponse) {
+                ((RuleNameListResponse) response).setSuccess(false);
+                ((RuleNameListResponse) response).setMessage(errorMessage);
+            } else if (response instanceof FilterOptionsResponse) {
+                ((FilterOptionsResponse) response).setSuccess(false);
+                ((FilterOptionsResponse) response).setMessage(errorMessage);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * 创建SuccessResponse错误响应
+     *
+     * @param errorMessage 错误消息
+     * @param status HTTP状态码
+     * @return ResponseEntity<SuccessResponse>
+     */
+    private ResponseEntity<SuccessResponse> createSuccessResponseError(String errorMessage, HttpStatus status) {
+        SuccessResponse response = new SuccessResponse();
+        response.setSuccess(false);
+        response.setMessage(errorMessage);
+        return ResponseEntity.status(status).body(response);
+    }
+    
+    /**
+     * 创建Resource错误响应
+     *
+     * @param status HTTP状态码
+     * @return ResponseEntity<Resource>
+     */
+    private ResponseEntity<Resource> createResourceError(HttpStatus status) {
+        return ResponseEntity.status(status).build();
     }
 }
 
