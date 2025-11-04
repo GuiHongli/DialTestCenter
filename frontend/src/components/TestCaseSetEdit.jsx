@@ -126,7 +126,7 @@ const TestCaseSetEdit = ({
             {language === 'en' ? (
               <Option value="VPN_BLOCK">VPN_BLOCK</Option>
             ) : (
-              <Option value="VPN阻断">VPN阻断</Option>
+            <Option value="VPN阻断">VPN阻断</Option>
             )}
           </Select>
         </Form.Item>

@@ -14,7 +14,6 @@ import com.huawei.cloududn.dialingtest.util.PermissionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -193,33 +192,42 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             
             List<Long> packageIds = body.getPackageIds();
             if (packageIds == null || packageIds.isEmpty()) {
+                logger.warn("Empty package IDs list for download request by user: {}", xUsername);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
             
-            // 仅实现单个软件包下载（参考用例集下载逻辑）
-            Long packageId = packageIds.get(0);
-            SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(packageId);
-            if (packageInfo == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            String zipFileName = body.getZipFileName();
+            if (zipFileName == null || zipFileName.trim().isEmpty()) {
+                zipFileName = "software_packages_batch";
             }
             
-            byte[] fileContent = softwarePackageService.getSoftwarePackageFileContent(packageId);
-            if (fileContent == null) {
+            // 调用服务层处理批量下载
+            Resource resource = softwarePackageService.downloadSoftwarePackages(packageIds, zipFileName);
+            if (resource == null) {
+                logger.warn("No software packages found for download request by user: {}", xUsername);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
-            
-            ByteArrayResource resource = new ByteArrayResource(fileContent);
             
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + packageInfo.getSoftwareName() + "\"");
-            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            
-            // 记录操作日志 - 简化版本
-            logger.info("Software package download by user: {}, message: {}", xUsername, "下载软件包ID: " + packageId);
+            if (packageIds.size() == 1) {
+                // 单个文件下载
+                SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(packageIds.get(0));
+                if (packageInfo != null) {
+                    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + packageInfo.getSoftwareName() + "\"");
+                    headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                }
+                logger.info("Software package single download by user: {}, package ID: {}", xUsername, packageIds.get(0));
+            } else {
+                // 批量下载，返回ZIP文件
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipFileName + ".zip\"");
+                headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+                logger.info("Software packages batch download by user: {}, count: {}, zip file: {}.zip", 
+                           xUsername, packageIds.size(), zipFileName);
+            }
             
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentLength(fileContent.length)
+                    .contentLength(resource.contentLength())
                     .body(resource);
         } catch (Exception e) {
             logger.error("Software package download failed for user: {}", xUsername, e);

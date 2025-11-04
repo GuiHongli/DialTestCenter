@@ -168,6 +168,10 @@
       "deleteFailed": "删除失败",
       "downloadSuccess": "下载成功",
       "downloadFailed": "下载失败",
+      "batchDownload": "批量下载",
+      "batchDownloadSuccess": "批量下载成功",
+      "batchDownloadFailed": "批量下载失败",
+      "selectPackagesToDownload": "请选择要下载的软件包",
       "updateSuccess": "更新成功",
       "updateFailed": "更新失败",
       "uploadSuccess": "上传成功",
@@ -520,6 +524,21 @@
       "todayCount": "今日操作数",
       "activeUsers": "活跃用户数",
       "operationTypes": "操作类型数"
+    },
+    "operationType": {
+      "CREATE": "创建",
+      "UPDATE": "更新",
+      "DELETE": "删除",
+      "LOGIN": "登录",
+      "LOGOUT": "登出",
+      "VIEW": "查看",
+      "EXPORT": "导出",
+      "IMPORT": "导入",
+      "UPLOAD": "上传",
+      "DOWNLOAD": "下载",
+      "OVERWRITE": "覆盖",
+      "VALIDATE": "校验",
+      "VALIDATION": "校验"
     },
     "operationTypes": {
       "CREATE": "创建",

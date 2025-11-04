@@ -287,13 +287,13 @@ const OperationLogManagement = () => {
               allowClear
               style={{ width: '100%' }}
             >
-              <Option value="CREATE">{translateOperationLog('operationTypes.CREATE')}</Option>
-              <Option value="UPDATE">{translateOperationLog('operationTypes.UPDATE')}</Option>
-              <Option value="DELETE">{translateOperationLog('operationTypes.DELETE')}</Option>
-              <Option value="DOWNLOAD">{translateOperationLog('operationTypes.DOWNLOAD')}</Option>
-              <Option value="UPLOAD">{translateOperationLog('operationTypes.UPLOAD')}</Option>
-              <Option value="LOGIN">{translateOperationLog('operationTypes.LOGIN')}</Option>
-              <Option value="LOGOUT">{translateOperationLog('operationTypes.LOGOUT')}</Option>
+              <Option value="CREATE">{translateOperationLog('operationType.CREATE')}</Option>
+              <Option value="UPDATE">{translateOperationLog('operationType.UPDATE')}</Option>
+              <Option value="DELETE">{translateOperationLog('operationType.DELETE')}</Option>
+              <Option value="DOWNLOAD">{translateOperationLog('operationType.DOWNLOAD')}</Option>
+              <Option value="UPLOAD">{translateOperationLog('operationType.UPLOAD')}</Option>
+              <Option value="LOGIN">{translateOperationLog('operationType.LOGIN')}</Option>
+              <Option value="LOGOUT">{translateOperationLog('operationType.LOGOUT')}</Option>
             </Select>
           </Col>
           

@@ -255,16 +255,16 @@ public class SoftwarePackagesService {
         if (shouldSkipFile(fileName)) {
             logger.debug("Skipping system file: {}", fileName);
             return null;
-        }
-        
+                    }
+                    
         // 提取文件名
         String simpleFileName = extractFileName(fileName);
-        if (simpleFileName.isEmpty()) {
+                    if (simpleFileName.isEmpty()) {
             logger.debug("Skipping empty filename: {}", fileName);
             return null;
         }
-        
-        // 验证文件格式
+                    
+                    // 验证文件格式
         if (!isValidFileFormat(simpleFileName)) {
             logger.debug("Skipping invalid file format: {}", simpleFileName);
             return null;
@@ -299,26 +299,26 @@ public class SoftwarePackagesService {
         try {
             validateFileFormat(fileName);
             return true;
-        } catch (IllegalArgumentException e) {
+                    } catch (IllegalArgumentException e) {
             logger.debug("Invalid file format: {} - {}", fileName, e.getMessage());
             return false;
         }
-    }
-    
+                    }
+                    
     /**
      * 处理软件包文件（读取、验证、保存）
      */
     private SoftwarePackage processPackageFile(ZipInputStream zis, String fileName, boolean overwrite,
                                                String description, String operatorUsername) throws IOException {
-        // 读取文件内容
+                    // 读取文件内容
         byte[] fileContent = readZipEntryContent(zis);
-        
-        // 验证文件大小
-        validateFileSize(fileContent.length);
-        
-        // 计算SHA256
-        String sha256 = calculateSHA256(fileContent);
-        
+                    
+                    // 验证文件大小
+                    validateFileSize(fileContent.length);
+                    
+                    // 计算SHA256
+                    String sha256 = calculateSHA256(fileContent);
+                    
         // 处理已存在的软件包
         SoftwarePackageInfo existingPackage = handleExistingPackage(fileName, overwrite);
         
@@ -354,7 +354,7 @@ public class SoftwarePackagesService {
             return null;
         }
         
-        if (!overwrite) {
+                        if (!overwrite) {
             throw new IllegalArgumentException("ZIP包中包含已存在的软件名称: " + fileName);
         }
         
@@ -363,22 +363,22 @@ public class SoftwarePackagesService {
         logger.info("Deleted existing package for overwrite: {}", fileName);
         
         return existingPackage;
-    }
-    
+                    }
+                    
     /**
      * 创建并保存软件包
      */
     private SoftwarePackage createAndSavePackage(String fileName, String description, 
                                                   byte[] fileContent, String sha256) {
-        SoftwarePackage softwarePackage = new SoftwarePackage(
+                    SoftwarePackage softwarePackage = new SoftwarePackage(
             fileName,
             description,
-            fileContent,
-            sha256,
-            (long) fileContent.length
-        );
-        
-        softwarePackageDao.insert(softwarePackage);
+                        fileContent,
+                        sha256,
+                        (long) fileContent.length
+                    );
+                    
+                    softwarePackageDao.insert(softwarePackage);
         logger.debug("Saved software package: {}", fileName);
         
         return softwarePackage;
@@ -389,11 +389,11 @@ public class SoftwarePackagesService {
      */
     private void logPackageOperation(String operatorUsername, SoftwarePackageInfo existingPackage, 
                                      SoftwarePackage softwarePackage) {
-        if (existingPackage != null) {
-            operationLogUtil.logSoftwarePackageOverwrite(operatorUsername, existingPackage, softwarePackage);
+                    if (existingPackage != null) {
+                        operationLogUtil.logSoftwarePackageOverwrite(operatorUsername, existingPackage, softwarePackage);
             logger.info("Logged overwrite operation for package: {}", softwarePackage.getSoftwareName());
-        } else {
-            operationLogUtil.logSoftwarePackageCreate(operatorUsername, softwarePackage);
+                    } else {
+                        operationLogUtil.logSoftwarePackageCreate(operatorUsername, softwarePackage);
             logger.info("Logged create operation for package: {}", softwarePackage.getSoftwareName());
         }
     }

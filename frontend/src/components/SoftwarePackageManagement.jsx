@@ -51,6 +51,7 @@ const SoftwarePackageManagement = () => {
   const { translateSoftwarePackage, translateCommon } = useTranslation();
   const [softwarePackages, setSoftwarePackages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -116,7 +117,7 @@ const SoftwarePackageManagement = () => {
     }
   };
 
-  // 下载软件包
+  // 下载软件包（单个）
   const handleDownload = async (record) => {
     try {
       await downloadSoftwarePackage([record.id], record.softwareName);
@@ -124,6 +125,24 @@ const SoftwarePackageManagement = () => {
     } catch (error) {
       message.error(translateSoftwarePackage('messages.downloadFailed'));
       console.error('Error downloading software package:', error);
+    }
+  };
+
+  // 批量下载软件包
+  const handleBatchDownload = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning(translateSoftwarePackage('messages.selectPackagesToDownload') || '请选择要下载的软件包');
+      return;
+    }
+    
+    try {
+      const zipFileName = `software_packages_${new Date().getTime()}`;
+      await downloadSoftwarePackage(selectedRowKeys, zipFileName);
+      message.success(translateSoftwarePackage('messages.batchDownloadSuccess') || `成功下载 ${selectedRowKeys.length} 个软件包`);
+      setSelectedRowKeys([]);
+    } catch (error) {
+      message.error(translateSoftwarePackage('messages.batchDownloadFailed') || '批量下载失败');
+      console.error('Error batch downloading software packages:', error);
     }
   };
 
@@ -469,6 +488,13 @@ const SoftwarePackageManagement = () => {
             {translateSoftwarePackage('uploadZip')}
           </Button>
           <Button
+            icon={<DownloadOutlined />}
+            disabled={selectedRowKeys.length === 0}
+            onClick={handleBatchDownload}
+          >
+            {translateSoftwarePackage('batchDownload') || `批量下载 (${selectedRowKeys.length})`}
+          </Button>
+          <Button
             icon={<ReloadOutlined />}
             onClick={() => loadSoftwarePackages()}
           >
@@ -538,6 +564,12 @@ const SoftwarePackageManagement = () => {
           dataSource={softwarePackages}
           rowKey="id"
           loading={loading}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: (selectedKeys) => {
+              setSelectedRowKeys(selectedKeys);
+            },
+          }}
           pagination={{
             ...pagination,
             showSizeChanger: true,
