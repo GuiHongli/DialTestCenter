@@ -138,34 +138,123 @@ const PreprocessRulePackageManagement = () => {
         forceOverwrite
       });
 
-      const response = await preprocessRuleService.uploadPreprocessRulePackage(formData);
-      
-      console.log('Upload response:', response);
-      console.log('Response message:', response.message);
-      console.log('Force overwrite:', forceOverwrite);
-      
-      if (response.success) {
-        message.success(t('preprocessRule.package.uploadSuccess'));
-        setUploadModalVisible(false);
-        uploadForm.resetFields();
-        setFileList([]);
-        loadPackages();
-      } else {
-        // 检查是否是重复错误（ZIP包重复或规则重复）
-        const isDuplicateZip = response.message && response.message.includes('已存在同名ZIP包');
-        const isDuplicateRule = response.message && response.message.includes('已存在的预处理规则');
+      try {
+        const response = await preprocessRuleService.uploadPreprocessRulePackage(formData);
+        
+        console.log('Upload response:', response);
+        console.log('Response message:', response.message);
+        console.log('Force overwrite:', forceOverwrite);
+        
+        if (response.success) {
+          message.success(t('preprocessRule.package.uploadSuccess'));
+          setUploadModalVisible(false);
+          uploadForm.resetFields();
+          setFileList([]);
+          loadPackages();
+        } else {
+          // 检查是否是重复错误（ZIP包重复或规则重复）
+          // 后端错误消息格式： "上传失败: 该业务类型下已存在同名ZIP包: packageName" 或 "上传失败: ZIP包中包含已存在的预处理规则，请选择是否覆盖"
+          const isDuplicateZip = response.message && (
+            response.message.includes('已存在同名ZIP包') || 
+            response.message.includes('上传失败: 该业务类型下已存在同名ZIP包')
+          );
+          const isDuplicateRule = response.message && (
+            response.message.includes('已存在的预处理规则') ||
+            response.message.includes('ZIP包中包含已存在的预处理规则')
+          );
+          
+          if ((isDuplicateZip || isDuplicateRule) && !forceOverwrite) {
+            // 不要在finally中设置uploading=false，因为用户可能会选择覆盖
+            setUploading(false);
+            
+            // 提取ZIP包名称（如果错误消息中包含）
+            let packageName = '';
+            if (response.message && response.message.includes(':')) {
+              const parts = response.message.split(': ');
+              if (parts.length > 1) {
+                packageName = parts[parts.length - 1];
+              }
+            }
+            
+            // 根据不同的重复类型显示不同的提示信息
+            let title, content;
+            if (isDuplicateZip) {
+              title = language === 'en' ? 'Duplicate ZIP Package' : '重复的ZIP包';
+              content = language === 'en' 
+                ? packageName 
+                  ? `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`
+                  : 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.'
+                : packageName
+                  ? `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`
+                  : '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+            } else {
+              title = language === 'en' ? 'Duplicate Rules' : '重复的预处理规则';
+              content = language === 'en' 
+                ? 'The ZIP package contains rules that already exist for this business type. Do you want to overwrite them?'
+                : 'ZIP包中包含已存在的预处理规则。是否覆盖这些规则？';
+            }
+            
+            Modal.confirm({
+              title,
+              content,
+              okText: language === 'en' ? 'Overwrite' : '覆盖',
+              cancelText: language === 'en' ? 'Cancel' : '取消',
+              onOk: () => {
+                // 用户确认覆盖，重新调用上传函数，传入覆盖标志
+                handleUpload(true);
+              },
+              onCancel: () => {
+                setUploading(false);
+              }
+            });
+            return; // 提前返回，不执行finally中的setUploading(false)
+          } else {
+            // Map backend error messages to i18n keys
+            let errorMessage = response.message || t('preprocessRule.package.uploadFailed');
+            if (response.message) {
+              if (response.message.includes('Business type (Chinese) cannot be empty')) {
+                errorMessage = t('preprocessRule.package.businessZhRequired');
+              } else if (response.message.includes('Business type (English) cannot be empty')) {
+                errorMessage = t('preprocessRule.package.businessEnRequired');
+              }
+            }
+            message.error(errorMessage);
+          }
+        }
+      } catch (uploadError) {
+        // 检查是否是重复上传错误（可能从异常中获取）
+        const errorMessage = uploadError instanceof Error ? uploadError.message : '';
+        const isDuplicateZip = errorMessage && (
+          errorMessage.includes('已存在同名ZIP包') || 
+          errorMessage.includes('上传失败: 该业务类型下已存在同名ZIP包')
+        );
+        const isDuplicateRule = errorMessage && (
+          errorMessage.includes('已存在的预处理规则') ||
+          errorMessage.includes('ZIP包中包含已存在的预处理规则')
+        );
         
         if ((isDuplicateZip || isDuplicateRule) && !forceOverwrite) {
-          // 不要在finally中设置uploading=false，因为用户可能会选择覆盖
           setUploading(false);
           
-          // 根据不同的重复类型显示不同的提示信息
+          // 提取ZIP包名称
+          let packageName = '';
+          if (errorMessage && errorMessage.includes(':')) {
+            const parts = errorMessage.split(': ');
+            if (parts.length > 1) {
+              packageName = parts[parts.length - 1];
+            }
+          }
+          
           let title, content;
           if (isDuplicateZip) {
             title = language === 'en' ? 'Duplicate ZIP Package' : '重复的ZIP包';
             content = language === 'en' 
-              ? 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.'
-              : '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+              ? packageName 
+                ? `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`
+                : 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.'
+              : packageName
+                ? `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`
+                : '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
           } else {
             title = language === 'en' ? 'Duplicate Rules' : '重复的预处理规则';
             content = language === 'en' 
@@ -179,25 +268,19 @@ const PreprocessRulePackageManagement = () => {
             okText: language === 'en' ? 'Overwrite' : '覆盖',
             cancelText: language === 'en' ? 'Cancel' : '取消',
             onOk: () => {
-              // 用户确认覆盖，重新调用上传函数，传入覆盖标志
               handleUpload(true);
+            },
+            onCancel: () => {
+              setUploading(false);
             }
           });
-          return; // 提前返回，不执行finally中的setUploading(false)
-        } else {
-          // Map backend error messages to i18n keys
-          let errorMessage = response.message || t('preprocessRule.package.uploadFailed');
-          if (response.message) {
-            if (response.message.includes('Business type (Chinese) cannot be empty')) {
-              errorMessage = t('preprocessRule.package.businessZhRequired');
-            } else if (response.message.includes('Business type (English) cannot be empty')) {
-              errorMessage = t('preprocessRule.package.businessEnRequired');
-            }
-          }
-          message.error(errorMessage);
+          return;
         }
+        
+        message.error(errorMessage || t('preprocessRule.package.uploadFailed'));
       }
     } catch (error) {
+      // 处理其他类型的错误（如网络错误等）
       message.error(t('preprocessRule.package.uploadFailed'));
     } finally {
       setUploading(false);
