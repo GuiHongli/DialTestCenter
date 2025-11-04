@@ -113,7 +113,7 @@ public class SoftwarePackagesService {
     /**
      * 下载软件包文件
      */
-    public Resource downloadSoftwarePackages(List<Long> packageIds, String zipFileName) {
+    public Resource downloadSoftwarePackages(List<Long> packageIds) {
         if (packageIds.size() == 1) {
             // 单个文件下载
             Long packageId = packageIds.get(0);
@@ -125,29 +125,36 @@ public class SoftwarePackagesService {
             return null;
         } else {
             // 批量下载，打包为ZIP
-            try {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ZipOutputStream zos = new ZipOutputStream(baos);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
                 
                 for (Long packageId : packageIds) {
                     SoftwarePackageInfo packageInfo = softwarePackageDao.getSoftwarePackageById(packageId);
                     if (packageInfo != null) {
                         byte[] fileContent = softwarePackageDao.getSoftwarePackageFileContent(packageId);
-                        ZipEntry entry = new ZipEntry(packageInfo.getSoftwareName());
-                        zos.putNextEntry(entry);
-                        zos.write(fileContent);
-                        zos.closeEntry();
+                        if (fileContent != null && fileContent.length > 0) {
+                            ZipEntry entry = new ZipEntry(packageInfo.getSoftwareName());
+                            zos.putNextEntry(entry);
+                            zos.write(fileContent);
+                            zos.closeEntry();
+                        }
                     }
                 }
                 
-                zos.close();
-                byte[] zipContent = baos.toByteArray();
-                
-                return new ByteArrayResource(zipContent);
-                
+                zos.finish();
+                zos.flush();
             } catch (IOException e) {
+                logger.error("Failed to create ZIP file for batch download", e);
                 throw new RuntimeException("创建ZIP文件失败", e);
             }
+            
+            byte[] zipContent = baos.toByteArray();
+            if (zipContent.length == 0) {
+                logger.warn("Generated ZIP file is empty for package IDs: {}", packageIds);
+                throw new IllegalArgumentException("无法生成ZIP文件，没有可下载的软件包");
+            }
+            
+            return new ByteArrayResource(zipContent);
         }
     }
     

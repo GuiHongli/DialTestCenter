@@ -202,7 +202,7 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
             }
             
             // 调用服务层处理批量下载
-            Resource resource = softwarePackageService.downloadSoftwarePackages(packageIds, zipFileName);
+            Resource resource = softwarePackageService.downloadSoftwarePackages(packageIds);
             if (resource == null) {
                 logger.warn("No software packages found for download request by user: {}", xUsername);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -213,8 +213,8 @@ public class SoftwarePackageController implements SoftwarePackagesApi {
                 // 单个文件下载
                 SoftwarePackageInfo packageInfo = softwarePackageService.getSoftwarePackageById(packageIds.get(0));
                 if (packageInfo != null) {
-                    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + packageInfo.getSoftwareName() + "\"");
-                    headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + packageInfo.getSoftwareName() + "\"");
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
                 }
                 logger.info("Software package single download by user: {}, package ID: {}", xUsername, packageIds.get(0));
             } else {
