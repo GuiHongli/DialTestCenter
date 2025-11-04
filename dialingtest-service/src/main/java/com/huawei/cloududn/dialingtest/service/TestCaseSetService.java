@@ -79,11 +79,14 @@ public class TestCaseSetService {
         // 3. File name parsing
         FileNameInfo fileNameInfo = parseFileName(file.getOriginalFilename());
         
-        // 4. 重复性检查（如果不覆盖）
+        // 4. 重复性检查和覆盖处理
+        TestCaseSet oldTestCaseSet = null;
         if (!overwrite) {
             checkDuplicate(fileNameInfo.getName(), fileNameInfo.getVersion());
         } else {
-            // 如果覆盖，先删除已存在的用例集
+            // 如果覆盖，先获取已存在的用例集信息（用于日志记录）
+            oldTestCaseSet = testCaseSetDao.findByNameAndVersion(fileNameInfo.getName(), fileNameInfo.getVersion());
+            // 然后删除已存在的用例集
             deleteExistingTestCaseSet(fileNameInfo.getName(), fileNameInfo.getVersion());
         }
         
@@ -120,7 +123,13 @@ public class TestCaseSetService {
             saveTestCases(testCaseSet.getId(), matchedTestCases);
             
             // 12. 记录操作日志
-            operationLogUtil.logTestCaseSetUpload(operatorUsername, testCaseSet);
+            if (overwrite && oldTestCaseSet != null) {
+                // 覆盖操作：记录覆盖日志
+                operationLogUtil.logTestCaseSetOverwrite(operatorUsername, oldTestCaseSet, testCaseSet);
+            } else {
+                // 创建操作：记录创建日志
+                operationLogUtil.logTestCaseSetUpload(operatorUsername, testCaseSet);
+            }
             
             return testCaseSet;
         } catch (Exception e) {
