@@ -126,9 +126,15 @@ const PreprocessRuleListManagement = ({ refreshTrigger }) => {
   const loadFilterOptions = async () => {
     try {
       const response = await preprocessRuleService.getFilterOptions();
-      // handleApiResponse 已经返回了 result.data，所以直接使用
-      if (response && Array.isArray(response)) {
-        setFilterOptions(response);
+      // handleApiResponse 已经返回了 result.data，data 是一个对象，包含 businessTypes, categories, appNames, ruleNames
+      if (response && typeof response === 'object' && !Array.isArray(response)) {
+        // 确保所有字段都存在，如果不存在则使用空数组
+        setFilterOptions({
+          businessTypes: Array.isArray(response.businessTypes) ? response.businessTypes : [],
+          categories: Array.isArray(response.categories) ? response.categories : [],
+          appNames: Array.isArray(response.appNames) ? response.appNames : [],
+          ruleNames: Array.isArray(response.ruleNames) ? response.ruleNames : []
+        });
       } else {
         // 如果API返回的数据格式不正确，设置默认值
         setFilterOptions({
