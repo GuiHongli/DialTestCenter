@@ -251,8 +251,8 @@ public class FileUploadController {
     @PostMapping("/preprocess-rule-packages/upload")
     public ResponseEntity<String> uploadPreprocessRulePackage(
             HttpServletRequest request,
-            @RequestParam(value = "businessZh", required = false) String businessZh,
-            @RequestParam(value = "businessEn", required = false) String businessEn,
+            @RequestParam(value = "businessZh", required = true) String businessZh,
+            @RequestParam(value = "businessEn", required = true) String businessEn,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "forceOverwrite", required = false) String forceOverwrite,
             @RequestHeader(value = "X-Username", required = true) String xUsername) {
@@ -282,14 +282,20 @@ public class FileUploadController {
                 return createStringErrorResponse("仅支持ZIP格式文件", HttpStatus.BAD_REQUEST);
             }
             
-            // 验证业务类型参数
+            // 验证必填业务类型参数
             if (businessZh == null || businessZh.trim().isEmpty()) {
-                return createStringErrorResponse("业务类型中文名称不能为空", HttpStatus.BAD_REQUEST);
+                logger.warn("Business type (Chinese) is empty for upload request by user: {}", xUsername);
+                return createStringErrorResponse("业务类型（中文）不能为空", HttpStatus.BAD_REQUEST);
             }
             
             if (businessEn == null || businessEn.trim().isEmpty()) {
-                return createStringErrorResponse("业务类型英文名称不能为空", HttpStatus.BAD_REQUEST);
+                logger.warn("Business type (English) is empty for upload request by user: {}", xUsername);
+                return createStringErrorResponse("业务类型（英文）不能为空", HttpStatus.BAD_REQUEST);
             }
+            
+            // 去除首尾空格
+            businessZh = businessZh.trim();
+            businessEn = businessEn.trim();
             
             logger.info("Processing preprocess rule package upload: {} by user: {}", originalFilename, xUsername);
             

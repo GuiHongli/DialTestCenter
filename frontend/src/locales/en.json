@@ -611,11 +611,13 @@
       "businessZh": "Business Type (Chinese)",
       "businessEn": "Business Type (English)",
       "businessRequired": "Please enter business type",
+      "businessZhRequired": "Business type (Chinese) is required",
+      "businessEnRequired": "Business type (English) is required",
       "businessZhPlaceholder": "Enter business type in Chinese",
       "businessEnPlaceholder": "Enter business type in English",
       "descriptionPlaceholder": "Enter description",
       "businessTypes": {
-        "VPN阻断业务": "VPN_BLOCK"
+        "VPN阻断": "VPN_BLOCK"
       },
       "uploadSuccess": "ZIP package uploaded successfully",
       "uploadFailed": "ZIP package upload failed",

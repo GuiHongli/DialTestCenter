@@ -101,13 +101,24 @@ const PreprocessRulePackageManagement = () => {
         return;
       }
 
+      // 验证必填字段
+      if (!values.businessZh || values.businessZh.trim() === '') {
+        message.error(t('preprocessRule.package.businessZhRequired') || '业务类型（中文）不能为空');
+        setUploading(false);
+        return;
+      }
+      if (!values.businessEn || values.businessEn.trim() === '') {
+        message.error(t('preprocessRule.package.businessEnRequired') || '业务类型（英文）不能为空');
+        setUploading(false);
+        return;
+      }
+
       setUploading(true);
       const formData = new FormData();
       // 直接使用文件对象
       formData.append('file', file);
-      formData.append('businessZh', values.businessZh);
-      // businessEn 始终使用固定的英文值
-      formData.append('businessEn', 'VPN_BLOCK');
+      formData.append('businessZh', values.businessZh.trim());
+      formData.append('businessEn', values.businessEn.trim());
       if (values.description) {
         formData.append('description', values.description);
       }
@@ -119,8 +130,8 @@ const PreprocessRulePackageManagement = () => {
       // 调试日志
       console.log('FormData contents:', {
         file: file.name,
-        businessZh: values.businessZh,
-        businessEn: 'VPN_BLOCK',
+        businessZh: values.businessZh.trim(),
+        businessEn: values.businessEn.trim(),
         description: values.description,
         forceOverwrite
       });
@@ -483,17 +494,28 @@ const PreprocessRulePackageManagement = () => {
 
           <Form.Item
             name="businessZh"
-            label={t('preprocessRule.package.business')}
-            initialValue="VPN阻断业务"
+            label={t('preprocessRule.package.businessZh')}
+            initialValue="VPN阻断"
             rules={[
-              { required: true, message: t('preprocessRule.package.businessRequired') }
+              { required: true, message: t('preprocessRule.package.businessZhRequired') || '业务类型（中文）不能为空' }
             ]}
           >
-            <Select placeholder={language === 'en' ? 'Please select business type' : '请选择业务类型'}>
-              <Select.Option value="VPN阻断业务">
-                {language === 'en' ? 'VPN_BLOCK' : 'VPN阻断业务'}
+            <Select placeholder={language === 'en' ? 'Please select business type (Chinese)' : '请选择业务类型（中文）'}>
+              <Select.Option value="VPN阻断">
+                {language === 'en' ? 'VPN_BLOCK' : 'VPN阻断'}
               </Select.Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="businessEn"
+            label={t('preprocessRule.package.businessEn')}
+            initialValue="VPN_BLOCK"
+            rules={[
+              { required: true, message: t('preprocessRule.package.businessEnRequired') || '业务类型（英文）不能为空' }
+            ]}
+          >
+            <Input placeholder={language === 'en' ? 'Please enter business type (English)' : '请输入业务类型（英文）'} />
           </Form.Item>
 
           <Form.Item

@@ -633,6 +633,8 @@
       "businessZh": "业务类型（中文）",
       "businessEn": "业务类型（英文）",
       "businessRequired": "请输入业务类型",
+      "businessZhRequired": "业务类型（中文）不能为空",
+      "businessEnRequired": "业务类型（英文）不能为空",
       "businessZhPlaceholder": "请输入业务类型中文名称",
       "businessEnPlaceholder": "请输入业务类型英文名称",
       "descriptionPlaceholder": "请输入描述信息",
@@ -641,7 +643,7 @@
       "invalidFileType": "只能上传ZIP格式的文件",
       "fileTooLarge": "文件大小不能超过100MB",
       "businessTypes": {
-        "VPN阻断业务": "VPN阻断业务"
+        "VPN阻断": "VPN阻断"
       },
       "uploadSuccess": "ZIP包上传成功",
       "uploadFailed": "ZIP包上传失败",
