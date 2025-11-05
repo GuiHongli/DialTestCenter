@@ -16,6 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.springframework.dao.DuplicateKeyException;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -357,6 +361,332 @@ public class PreprocessRuleServiceTest {
         // 执行测试（不覆盖）
         preprocessRuleService.uploadPreprocessRulePackage(
             multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 解析包含apps的JSON文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_ParseJsonWithApps() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"},\"kuaishou\":{\"text\":\"kuaishou\"}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("预处理规则包上传成功"));
+        assertTrue(result.contains("\"rulesCount\":2"));
+        
+        // 验证规则被正确插入（2个规则：douyin和kuaishou）
+        verify(preprocessRuleDao, times(2)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 解析包含custom_rules的JSON文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_ParseJsonWithCustomRules() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"VIDEO\",\"custom_rules\":{\"rule1\":{\"app1\":{\"text\":\"app1\"},\"app2\":{\"text\":\"app2\"}}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "视频业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "视频业务", "VIDEO_STREAMING", "测试包", "admin", false);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("\"rulesCount\":2"));
+        
+        // 验证规则被正确插入（2个自定义规则）
+        verify(preprocessRuleDao, times(2)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 解析同时包含apps和custom_rules的JSON文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_ParseJsonWithAppsAndCustomRules() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"}},\"custom_rules\":{\"rule1\":{\"app1\":{\"text\":\"app1\"}}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("\"rulesCount\":2"));
+        
+        // 验证规则被正确插入（1个apps规则 + 1个custom_rules规则）
+        verify(preprocessRuleDao, times(2)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - JSON文件缺少category字段
+     */
+    @Test(expected = IOException.class)
+    public void testUploadPreprocessRulePackage_JsonMissingCategory() throws IOException {
+        // Arrange
+        String jsonContent = "{\"apps\":{\"douyin\":{\"text\":\"douyin\"}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        
+        // Act
+        preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - ZIP文件包含多个JSON文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_MultipleJsonFiles() throws IOException {
+        // Arrange
+        String jsonContent1 = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"}}}";
+        String jsonContent2 = "{\"category\":\"VIDEO\",\"apps\":{\"app1\":{\"text\":\"app1\"}}}";
+        byte[] zipContent = createZipFileWithMultipleEntries(
+            new String[]{"file1.json", "file2.json"},
+            new byte[][]{jsonContent1.getBytes("UTF-8"), jsonContent2.getBytes("UTF-8")});
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("\"rulesCount\":2"));
+        
+        // 验证规则被正确插入（2个JSON文件，每个1个规则）
+        verify(preprocessRuleDao, times(2)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - ZIP文件包含目录和非JSON文件
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_ZipWithDirectoryAndNonJsonFiles() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"}}}";
+        byte[] zipContent = createZipFileWithMultipleEntries(
+            new String[]{"folder/", "test.json", "readme.txt"},
+            new byte[][]{null, jsonContent.getBytes("UTF-8"), "This is a readme".getBytes("UTF-8")});
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("\"rulesCount\":1"));
+        
+        // 验证只有JSON文件被处理
+        verify(preprocessRuleDao, times(1)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 强制覆盖模式
+     */
+    @Test
+    public void testUploadPreprocessRulePackage_ForceOverwrite() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        PreprocessRulePackageEntity existingPackage = new PreprocessRulePackageEntity();
+        existingPackage.setId(1L);
+        existingPackage.setPackageName("test_package.zip");
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(existingPackage);
+        when(preprocessRulePackageDao.update(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.deleteByPackageId(1L)).thenReturn(1);
+        when(preprocessRuleDao.deleteByRuleNameAndBusiness("LIVE-douyin", "直播业务")).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class))).thenReturn(1);
+        
+        // Act
+        String result = preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", true);
+        
+        // Assert
+        assertTrue(result.contains("\"success\":true"));
+        assertTrue(result.contains("\"rulesCount\":1"));
+        
+        // 验证删除和插入操作
+        verify(preprocessRuleDao, times(1)).deleteByPackageId(1L);
+        verify(preprocessRuleDao, times(1)).deleteByRuleNameAndBusiness("LIVE-douyin", "直播业务");
+        verify(preprocessRuleDao, times(1)).insert(any(PreprocessRule.class));
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 重复规则异常（DuplicateKeyException）
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testUploadPreprocessRulePackage_DuplicateRuleException() throws IOException {
+        // Arrange
+        String jsonContent = "{\"category\":\"LIVE\",\"apps\":{\"douyin\":{\"text\":\"douyin\"}}}";
+        byte[] zipContent = createZipFile("test.json", jsonContent.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        when(preprocessRuleDao.insert(any(PreprocessRule.class)))
+            .thenThrow(new DuplicateKeyException("uk_rule_name_business violation"));
+        
+        // Act
+        preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - 无效的JSON格式
+     */
+    @Test(expected = IOException.class)
+    public void testUploadPreprocessRulePackage_InvalidJsonFormat() throws IOException {
+        // Arrange
+        String invalidJson = "{\"category\":\"LIVE\",\"apps\":{invalid}}";
+        byte[] zipContent = createZipFile("test.json", invalidJson.getBytes("UTF-8"));
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(zipContent);
+        when(multipartFile.getSize()).thenReturn((long) zipContent.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        
+        // Act
+        preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - ZIP文件为空
+     */
+    @Test(expected = IOException.class)
+    public void testUploadPreprocessRulePackage_EmptyZipFile() throws IOException {
+        // Arrange
+        byte[] emptyZip = new byte[0];
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(emptyZip);
+        when(multipartFile.getSize()).thenReturn(0L);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        
+        // Act
+        preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    /**
+     * 测试uploadPreprocessRulePackage - ZIP文件解析异常
+     */
+    @Test(expected = IOException.class)
+    public void testUploadPreprocessRulePackage_InvalidZipFormat() throws IOException {
+        // Arrange
+        byte[] invalidZip = "This is not a zip file".getBytes("UTF-8");
+        
+        when(multipartFile.getOriginalFilename()).thenReturn("test_package.zip");
+        when(multipartFile.getBytes()).thenReturn(invalidZip);
+        when(multipartFile.getSize()).thenReturn((long) invalidZip.length);
+        when(preprocessRulePackageDao.findByPackageNameAndBusiness("test_package.zip", "直播业务")).thenReturn(null);
+        when(preprocessRulePackageDao.insert(any(PreprocessRulePackageEntity.class))).thenReturn(1);
+        
+        // Act
+        preprocessRuleService.uploadPreprocessRulePackage(
+            multipartFile, "直播业务", "LIVE_STREAMING", "测试包", "admin", false);
+    }
+    
+    // ==================== 私有辅助方法 ====================
+    
+    /**
+     * 创建包含单个文件的ZIP字节数组
+     *
+     * @param fileName 文件名
+     * @param fileContent 文件内容
+     * @return ZIP文件字节数组
+     * @throws IOException IO异常
+     */
+    private byte[] createZipFile(String fileName, byte[] fileContent) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            ZipEntry entry = new ZipEntry(fileName);
+            zos.putNextEntry(entry);
+            zos.write(fileContent);
+            zos.closeEntry();
+        }
+        return baos.toByteArray();
+    }
+    
+    /**
+     * 创建包含多个文件的ZIP字节数组
+     *
+     * @param fileNames 文件名数组
+     * @param fileContents 文件内容数组
+     * @return ZIP文件字节数组
+     * @throws IOException IO异常
+     */
+    private byte[] createZipFileWithMultipleEntries(String[] fileNames, byte[][] fileContents) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            for (int i = 0; i < fileNames.length; i++) {
+                ZipEntry entry = new ZipEntry(fileNames[i]);
+                zos.putNextEntry(entry);
+                if (fileContents[i] != null) {
+                    zos.write(fileContents[i]);
+                }
+                zos.closeEntry();
+            }
+        }
+        return baos.toByteArray();
     }
 }
 

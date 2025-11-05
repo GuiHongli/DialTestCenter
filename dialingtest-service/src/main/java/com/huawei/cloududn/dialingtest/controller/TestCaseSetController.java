@@ -332,95 +332,184 @@ public class TestCaseSetController implements TestCaseSetsApi {
     @Override
     public ResponseEntity<ValidationResponse> getTestCaseSetValidation(Long id, String xCsrfToken, Boolean forceRefresh) {
         try {
-            com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = null;
+            com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult = getValidationResult(id, forceRefresh);
             
-            // 如果强制刷新，重新执行校验（同步）
-            if (forceRefresh != null && forceRefresh) {
-                serviceResult = testCaseValidationService.validateTestCaseSet(id);
-            } else {
-                // 优先从缓存读取
-                serviceResult = testCaseValidationService.getValidationResult(id);
-            }
-            
-            // 如果结果为空，查询任务状态
             if (serviceResult == null) {
-                ValidationTask task = testCaseValidationService.getTaskStatus(id);
-                if (task == null) {
-                    ValidationResponse response = new ValidationResponse();
-                    response.setSuccess(false);
-                    response.setMessage("校验结果不存在，请先触发校验");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                }
-                
-                // 任务正在执行中
-                ValidationResponse response = new ValidationResponse();
-                response.setSuccess(true);
-                response.setMessage("校验任务正在执行中，状态: " + task.getStatus());
-                return ResponseEntity.ok(response);
+                return handleTaskInProgress(id);
             }
             
-            // 返回完整校验结果
-            ValidationResponse response = new ValidationResponse();
-            response.setSuccess(true);
-            response.setMessage("获取校验结果成功");
-            
-            ValidationResponseData data = new ValidationResponseData();
-            data.setTestCaseSetId(serviceResult.getTestCaseSetId());
-            data.setTestCaseSetName(serviceResult.getTestCaseSetName());
-            data.setTestCaseSetVersion(serviceResult.getTestCaseSetVersion());
-            data.setBusinessZh(serviceResult.getBusinessZh());
-            data.setBusinessEn(serviceResult.getBusinessEn());
-            data.setTotalCaseCount(serviceResult.getTotalCaseCount());
-            data.setPassedCaseCount(serviceResult.getPassedCaseCount());
-            data.setFailedCaseCount(serviceResult.getFailedCaseCount());
-            data.setMatchRate(serviceResult.getMatchRate());
-            
-            // 获取任务状态信息
-            ValidationTask task = testCaseValidationService.getTaskStatus(id);
-            if (task != null) {
-                data.setValidationTaskStatus(task.getStatus());
-                if (task.getCreatedTime() != null) {
-                    data.setValidationTaskCreatedTime(task.getCreatedTime().toString());
-                }
-                if (task.getStartedTime() != null) {
-                    data.setValidationTaskStartedTime(task.getStartedTime().toString());
-                }
-                if (task.getCompletedTime() != null) {
-                    data.setValidationTaskCompletedTime(task.getCompletedTime().toString());
-                }
-            }
-            
-            List<CaseValidationResult> caseResults = new ArrayList<>();
-            for (com.huawei.cloududn.dialingtest.model.CaseValidationResult caseResult : 
-                    serviceResult.getCaseResults()) {
-                CaseValidationResult apiCaseResult = new CaseValidationResult();
-                apiCaseResult.setCaseNumber(caseResult.getCaseNumber());
-                apiCaseResult.setCaseName(caseResult.getCaseName());
-                apiCaseResult.setBusinessCategory(caseResult.getBusinessCategory());
-                apiCaseResult.setAppName(caseResult.getAppName());
-                apiCaseResult.setScriptMatchValid(caseResult.isScriptMatchValid());
-                apiCaseResult.setPreprocessRuleValid(caseResult.isPreprocessRuleValid());
-                apiCaseResult.setSoftwarePackageValid(caseResult.isSoftwarePackageValid());
-                apiCaseResult.setOverallValid(caseResult.isOverallValid());
-                apiCaseResult.setValidReasons(caseResult.getValidReasons());
-                apiCaseResult.setInvalidReasons(caseResult.getInvalidReasons());
-                caseResults.add(apiCaseResult);
-            }
-            data.setCaseResults(caseResults);
-            
-            response.setData(data);
+            ValidationResponse response = buildValidationResponse(serviceResult, id);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            ValidationResponse response = new ValidationResponse();
-            response.setSuccess(false);
-            response.setMessage("用例集不存在");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return createNotFoundResponse("用例集不存在");
         } catch (Exception e) {
-            ValidationResponse response = new ValidationResponse();
-            response.setSuccess(false);
-            response.setMessage("获取校验结果失败: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return createInternalServerErrorResponse("获取校验结果失败: " + e.getMessage());
         }
+    }
+    
+    /**
+     * 获取校验结果
+     *
+     * @param id 用例集ID
+     * @param forceRefresh 是否强制刷新
+     * @return 校验结果
+     */
+    private com.huawei.cloududn.dialingtest.model.ValidationResult getValidationResult(Long id, Boolean forceRefresh) {
+        if (forceRefresh != null && forceRefresh) {
+            return testCaseValidationService.validateTestCaseSet(id);
+        } else {
+            return testCaseValidationService.getValidationResult(id);
+        }
+    }
+    
+    /**
+     * 处理任务执行中的情况
+     *
+     * @param id 用例集ID
+     * @return 响应实体
+     */
+    private ResponseEntity<ValidationResponse> handleTaskInProgress(Long id) {
+        ValidationTask task = testCaseValidationService.getTaskStatus(id);
+        if (task == null) {
+            return createNotFoundResponse("校验结果不存在，请先触发校验");
+        }
+        
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(true);
+        response.setMessage("校验任务正在执行中，状态: " + task.getStatus());
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 构建校验响应
+     *
+     * @param serviceResult 服务层校验结果
+     * @param id 用例集ID
+     * @return 校验响应
+     */
+    private ValidationResponse buildValidationResponse(
+            com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult, Long id) {
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(true);
+        response.setMessage("获取校验结果成功");
+        
+        ValidationResponseData data = buildValidationResponseData(serviceResult, id);
+        response.setData(data);
+        
+        return response;
+    }
+    
+    /**
+     * 构建校验响应数据
+     *
+     * @param serviceResult 服务层校验结果
+     * @param id 用例集ID
+     * @return 校验响应数据
+     */
+    private ValidationResponseData buildValidationResponseData(
+            com.huawei.cloududn.dialingtest.model.ValidationResult serviceResult, Long id) {
+        ValidationResponseData data = new ValidationResponseData();
+        
+        data.setTestCaseSetId(serviceResult.getTestCaseSetId());
+        data.setTestCaseSetName(serviceResult.getTestCaseSetName());
+        data.setTestCaseSetVersion(serviceResult.getTestCaseSetVersion());
+        data.setBusinessZh(serviceResult.getBusinessZh());
+        data.setBusinessEn(serviceResult.getBusinessEn());
+        data.setTotalCaseCount(serviceResult.getTotalCaseCount());
+        data.setPassedCaseCount(serviceResult.getPassedCaseCount());
+        data.setFailedCaseCount(serviceResult.getFailedCaseCount());
+        data.setMatchRate(serviceResult.getMatchRate());
+        
+        setTaskStatusInfo(data, id);
+        data.setCaseResults(convertCaseResults(serviceResult.getCaseResults()));
+        
+        return data;
+    }
+    
+    /**
+     * 设置任务状态信息
+     *
+     * @param data 校验响应数据
+     * @param id 用例集ID
+     */
+    private void setTaskStatusInfo(ValidationResponseData data, Long id) {
+        ValidationTask task = testCaseValidationService.getTaskStatus(id);
+        if (task != null) {
+            data.setValidationTaskStatus(task.getStatus());
+            if (task.getCreatedTime() != null) {
+                data.setValidationTaskCreatedTime(task.getCreatedTime().toString());
+            }
+            if (task.getStartedTime() != null) {
+                data.setValidationTaskStartedTime(task.getStartedTime().toString());
+            }
+            if (task.getCompletedTime() != null) {
+                data.setValidationTaskCompletedTime(task.getCompletedTime().toString());
+            }
+        }
+    }
+    
+    /**
+     * 转换用例结果列表
+     *
+     * @param serviceCaseResults 服务层用例结果列表
+     * @return API用例结果列表
+     */
+    private List<CaseValidationResult> convertCaseResults(
+            List<com.huawei.cloududn.dialingtest.model.CaseValidationResult> serviceCaseResults) {
+        List<CaseValidationResult> caseResults = new ArrayList<>();
+        for (com.huawei.cloududn.dialingtest.model.CaseValidationResult caseResult : serviceCaseResults) {
+            CaseValidationResult apiCaseResult = convertSingleCaseResult(caseResult);
+            caseResults.add(apiCaseResult);
+        }
+        return caseResults;
+    }
+    
+    /**
+     * 转换单个用例结果
+     *
+     * @param caseResult 服务层用例结果
+     * @return API用例结果
+     */
+    private CaseValidationResult convertSingleCaseResult(
+            com.huawei.cloududn.dialingtest.model.CaseValidationResult caseResult) {
+        CaseValidationResult apiCaseResult = new CaseValidationResult();
+        apiCaseResult.setCaseNumber(caseResult.getCaseNumber());
+        apiCaseResult.setCaseName(caseResult.getCaseName());
+        apiCaseResult.setBusinessCategory(caseResult.getBusinessCategory());
+        apiCaseResult.setAppName(caseResult.getAppName());
+        apiCaseResult.setScriptMatchValid(caseResult.isScriptMatchValid());
+        apiCaseResult.setPreprocessRuleValid(caseResult.isPreprocessRuleValid());
+        apiCaseResult.setSoftwarePackageValid(caseResult.isSoftwarePackageValid());
+        apiCaseResult.setOverallValid(caseResult.isOverallValid());
+        apiCaseResult.setValidReasons(caseResult.getValidReasons());
+        apiCaseResult.setInvalidReasons(caseResult.getInvalidReasons());
+        return apiCaseResult;
+    }
+    
+    /**
+     * 创建未找到响应
+     *
+     * @param message 错误消息
+     * @return 响应实体
+     */
+    private ResponseEntity<ValidationResponse> createNotFoundResponse(String message) {
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(false);
+        response.setMessage(message);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    
+    /**
+     * 创建内部服务器错误响应
+     *
+     * @param message 错误消息
+     * @return 响应实体
+     */
+    private ResponseEntity<ValidationResponse> createInternalServerErrorResponse(String message) {
+        ValidationResponse response = new ValidationResponse();
+        response.setSuccess(false);
+        response.setMessage(message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
     
     /**
