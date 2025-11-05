@@ -185,61 +185,69 @@ const TestCaseDetails = ({
           )}
 
           {/* 第二部分：统计卡片 */}
-          {loading ? (
-            <div style={{ marginBottom: '16px', textAlign: 'center', padding: '20px' }}>
-              <Spin size="large" />
-            </div>
-          ) : validationResult ? (
-            <Row gutter={16} style={{ marginBottom: '16px' }}>
-              <Col span={8}>
-                <Card size="small">
-                  <Space>
-                    <InfoCircleOutlined style={{ color: '#1890ff', fontSize: '24px' }} />
-                    <div>
-                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                        {validationResult.totalCaseCount || 0}
-                      </div>
-                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.totalCases')}</div>
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card size="small">
-                  <Space>
-                    <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px' }} />
-                    <div>
-                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                        {validationResult.passedCaseCount || 0}
-                      </div>
-                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.passedCases')}</div>
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card size="small">
-                  <Space>
-                    <InfoCircleOutlined style={{ color: '#722ed1', fontSize: '24px' }} />
-                    <div>
-                      <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                        {validationResult.matchRate ? Number(validationResult.matchRate).toFixed(2) : '0.00'}%
-                      </div>
-                      <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.matchRate')}</div>
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-          ) : (
-            <Alert
-              message={translateTestCaseSet('validation.noResult')}
-              description={translateTestCaseSet('validation.noResultDescription')}
-              type="info"
-              showIcon
-              style={{ marginBottom: '16px' }}
-            />
-          )}
+          {(() => {
+            if (loading) {
+              return (
+                <div style={{ marginBottom: '16px', textAlign: 'center', padding: '20px' }}>
+                  <Spin size="large" />
+                </div>
+              );
+            } else if (validationResult) {
+              return (
+                <Row gutter={16} style={{ marginBottom: '16px' }}>
+                  <Col span={8}>
+                    <Card size="small">
+                      <Space>
+                        <InfoCircleOutlined style={{ color: '#1890ff', fontSize: '24px' }} />
+                        <div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                            {validationResult.totalCaseCount || 0}
+                          </div>
+                          <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.totalCases')}</div>
+                        </div>
+                      </Space>
+                    </Card>
+                  </Col>
+                  <Col span={8}>
+                    <Card size="small">
+                      <Space>
+                        <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px' }} />
+                        <div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                            {validationResult.passedCaseCount || 0}
+                          </div>
+                          <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.passedCases')}</div>
+                        </div>
+                      </Space>
+                    </Card>
+                  </Col>
+                  <Col span={8}>
+                    <Card size="small">
+                      <Space>
+                        <InfoCircleOutlined style={{ color: '#722ed1', fontSize: '24px' }} />
+                        <div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                            {validationResult.matchRate ? Number(validationResult.matchRate).toFixed(2) : '0.00'}%
+                          </div>
+                          <div style={{ color: '#666' }}>{translateTestCaseSet('statistics.matchRate')}</div>
+                        </div>
+                      </Space>
+                    </Card>
+                  </Col>
+                </Row>
+              );
+            } else {
+              return (
+                <Alert
+                  message={translateTestCaseSet('validation.noResult')}
+                  description={translateTestCaseSet('validation.noResultDescription')}
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: '16px' }}
+                />
+              );
+            }
+          })()}
 
           {/* 操作按钮 */}
           <div style={{ marginBottom: '16px', textAlign: 'right' }}>
@@ -265,35 +273,43 @@ const TestCaseDetails = ({
           </div>
 
           {/* 第三部分：用例详情表格 */}
-          {loading || (visible && !validationResult) ? (
-            <Table
-              columns={columns}
-              dataSource={[]}
-              loading={true}
-              scroll={{ x: 1200 }}
-            />
-          ) : validationResult && validationResult.caseResults ? (
-            <Table
-              columns={columns}
-              dataSource={validationResult.caseResults || []}
-              rowKey={(record, index) => `${record.caseNumber || index}-${index}`}
-              loading={false}
-              scroll={{ x: 1200 }}
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total) => translateTestCaseSet('validation.table.paginationTotal', { total }),
-              }}
-            />
-          ) : (
-            <Alert
-              message={translateTestCaseSet('validation.noCaseData')}
-              description={translateTestCaseSet('validation.noCaseDataDescription')}
-              type="warning"
-              showIcon
-            />
-          )}
+          {(() => {
+            if (loading || (visible && !validationResult)) {
+              return (
+                <Table
+                  columns={columns}
+                  dataSource={[]}
+                  loading={true}
+                  scroll={{ x: 1200 }}
+                />
+              );
+            } else if (validationResult && validationResult.caseResults) {
+              return (
+                <Table
+                  columns={columns}
+                  dataSource={validationResult.caseResults || []}
+                  rowKey={(record, index) => `${record.caseNumber || index}-${index}`}
+                  loading={false}
+                  scroll={{ x: 1200 }}
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total) => translateTestCaseSet('validation.table.paginationTotal', { total }),
+                  }}
+                />
+              );
+            } else {
+              return (
+                <Alert
+                  message={translateTestCaseSet('validation.noCaseData')}
+                  description={translateTestCaseSet('validation.noCaseDataDescription')}
+                  type="warning"
+                  showIcon
+                />
+              );
+            }
+          })()}
         </div>
       )}
     </Modal>

@@ -191,12 +191,24 @@ const ValidationResultModal = ({ open, testCaseSet, onClose }) => {
             showIcon
           />
           <div style={{ padding: 8 }}>
-            <Progress
-              percent={typeof progress === 'number' ? progress : undefined}
-              status={status === 'FAILED' ? 'exception' : (status === 'COMPLETED' ? 'success' : 'active')}
-              strokeColor={{ from: '#108ee9', to: '#87d068' }}
-              icon={<LoadingOutlined />}
-            />
+            {(() => {
+              let progressStatus;
+              if (status === 'FAILED') {
+                progressStatus = 'exception';
+              } else if (status === 'COMPLETED') {
+                progressStatus = 'success';
+              } else {
+                progressStatus = 'active';
+              }
+              return (
+                <Progress
+                  percent={typeof progress === 'number' ? progress : undefined}
+                  status={progressStatus}
+                  strokeColor={{ from: '#108ee9', to: '#87d068' }}
+                  icon={<LoadingOutlined />}
+                />
+              );
+            })()}
           </div>
         </Space>
       )}

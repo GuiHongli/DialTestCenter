@@ -184,21 +184,32 @@ const PreprocessRulePackageManagement = () => {
             }
             
             // 根据不同的重复类型显示不同的提示信息
-            let title, content;
+            let title;
+            let content;
             if (isDuplicateZip) {
-              title = language === 'en' ? 'Duplicate ZIP Package' : '重复的ZIP包';
-              content = language === 'en' 
-                ? packageName 
-                  ? `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`
-                  : 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.'
-                : packageName
-                  ? `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`
-                  : '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+              if (language === 'en') {
+                title = 'Duplicate ZIP Package';
+                if (packageName) {
+                  content = `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`;
+                } else {
+                  content = 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.';
+                }
+              } else {
+                title = '重复的ZIP包';
+                if (packageName) {
+                  content = `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`;
+                } else {
+                  content = '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+                }
+              }
             } else {
-              title = language === 'en' ? 'Duplicate Rules' : '重复的预处理规则';
-              content = language === 'en' 
-                ? 'The ZIP package contains rules that already exist for this business type. Do you want to overwrite them?'
-                : 'ZIP包中包含已存在的预处理规则。是否覆盖这些规则？';
+              if (language === 'en') {
+                title = 'Duplicate Rules';
+                content = 'The ZIP package contains rules that already exist for this business type. Do you want to overwrite them?';
+              } else {
+                title = '重复的预处理规则';
+                content = 'ZIP包中包含已存在的预处理规则。是否覆盖这些规则？';
+              }
             }
             
             Modal.confirm({
@@ -252,21 +263,32 @@ const PreprocessRulePackageManagement = () => {
             }
           }
           
-          let title, content;
+          let title;
+          let content;
           if (isDuplicateZip) {
-            title = language === 'en' ? 'Duplicate ZIP Package' : '重复的ZIP包';
-            content = language === 'en' 
-              ? packageName 
-                ? `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`
-                : 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.'
-              : packageName
-                ? `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`
-                : '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+            if (language === 'en') {
+              title = 'Duplicate ZIP Package';
+              if (packageName) {
+                content = `ZIP package "${packageName}" already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.`;
+              } else {
+                content = 'A ZIP package with the same name already exists for this business type. Do you want to overwrite it? This will also overwrite any rules with the same name.';
+              }
+            } else {
+              title = '重复的ZIP包';
+              if (packageName) {
+                content = `该业务类型下已存在ZIP包 "${packageName}"。是否覆盖？这也会覆盖同名的预处理规则。`;
+              } else {
+                content = '该业务类型下已存在同名ZIP包。是否覆盖？这也会覆盖同名的预处理规则。';
+              }
+            }
           } else {
-            title = language === 'en' ? 'Duplicate Rules' : '重复的预处理规则';
-            content = language === 'en' 
-              ? 'The ZIP package contains rules that already exist for this business type. Do you want to overwrite them?'
-              : 'ZIP包中包含已存在的预处理规则。是否覆盖这些规则？';
+            if (language === 'en') {
+              title = 'Duplicate Rules';
+              content = 'The ZIP package contains rules that already exist for this business type. Do you want to overwrite them?';
+            } else {
+              title = '重复的预处理规则';
+              content = 'ZIP包中包含已存在的预处理规则。是否覆盖这些规则？';
+            }
           }
           
           Modal.confirm({

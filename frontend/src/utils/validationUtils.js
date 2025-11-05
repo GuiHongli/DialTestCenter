@@ -148,11 +148,16 @@ export const getValidationResultColumns = (onDetailClick, translate) => {
       key: 'scriptMatchValid',
       width: 100,
       render: (valid, record) => {
-        const tooltipTitle = valid 
-          ? t('validation.tooltip.scriptPassed')
-          : (record.invalidReasons && record.invalidReasons.length > 0
-              ? record.invalidReasons.filter(r => r.includes('script') || r.includes('脚本')).join('; ')
-              : t('validation.tooltip.scriptFailed'))
+        let tooltipTitle;
+        if (valid) {
+          tooltipTitle = t('validation.tooltip.scriptPassed');
+        } else {
+          if (record.invalidReasons && record.invalidReasons.length > 0) {
+            tooltipTitle = record.invalidReasons.filter(r => r.includes('script') || r.includes('脚本')).join('; ');
+          } else {
+            tooltipTitle = t('validation.tooltip.scriptFailed');
+          }
+        }
         return (
           <Tooltip title={tooltipTitle}>
             <Tag color={valid ? 'success' : 'error'}>
@@ -169,11 +174,16 @@ export const getValidationResultColumns = (onDetailClick, translate) => {
       key: 'preprocessRuleValid',
       width: 120,
       render: (valid, record) => {
-        const tooltipTitle = valid 
-          ? t('validation.tooltip.rulePassed')
-          : (record.invalidReasons && record.invalidReasons.length > 0
-              ? record.invalidReasons.filter(r => r.includes('rule') || r.includes('规则')).join('; ')
-              : t('validation.tooltip.ruleFailed'))
+        let tooltipTitle;
+        if (valid) {
+          tooltipTitle = t('validation.tooltip.rulePassed');
+        } else {
+          if (record.invalidReasons && record.invalidReasons.length > 0) {
+            tooltipTitle = record.invalidReasons.filter(r => r.includes('rule') || r.includes('规则')).join('; ');
+          } else {
+            tooltipTitle = t('validation.tooltip.ruleFailed');
+          }
+        }
         return (
           <Tooltip title={tooltipTitle}>
             <Tag color={valid ? 'success' : 'error'}>
@@ -190,11 +200,16 @@ export const getValidationResultColumns = (onDetailClick, translate) => {
       key: 'softwarePackageValid',
       width: 140,
       render: (valid, record) => {
-        const tooltipTitle = valid 
-          ? t('validation.tooltip.packagePassed')
-          : (record.invalidReasons && record.invalidReasons.length > 0
-              ? record.invalidReasons.filter(r => r.includes('package') || r.includes('软件包')).join('; ')
-              : t('validation.tooltip.packageFailed'))
+        let tooltipTitle;
+        if (valid) {
+          tooltipTitle = t('validation.tooltip.packagePassed');
+        } else {
+          if (record.invalidReasons && record.invalidReasons.length > 0) {
+            tooltipTitle = record.invalidReasons.filter(r => r.includes('package') || r.includes('软件包')).join('; ');
+          } else {
+            tooltipTitle = t('validation.tooltip.packageFailed');
+          }
+        }
         return (
           <Tooltip title={tooltipTitle}>
             <Tag color={valid ? 'success' : 'error'}>
@@ -211,11 +226,16 @@ export const getValidationResultColumns = (onDetailClick, translate) => {
       key: 'overallValid',
       width: 120,
       render: (valid, record) => {
-        const tooltipTitle = valid 
-          ? t('validation.tooltip.overallPassed')
-          : (record.invalidReasons && record.invalidReasons.length > 0
-              ? record.invalidReasons.join('; ')
-              : t('validation.tooltip.overallFailed'))
+        let tooltipTitle;
+        if (valid) {
+          tooltipTitle = t('validation.tooltip.overallPassed');
+        } else {
+          if (record.invalidReasons && record.invalidReasons.length > 0) {
+            tooltipTitle = record.invalidReasons.join('; ');
+          } else {
+            tooltipTitle = t('validation.tooltip.overallFailed');
+          }
+        }
         return (
           <Tooltip title={tooltipTitle}>
             <Tag color={valid ? 'success' : 'error'}>
