@@ -44,7 +44,9 @@ public class TemplateMgmtService {
         if (r <= 0) {
             throw new IllegalStateException("Update template failed");
         } else {
-            return entity;
+            // Re-query to get the updated entity with updateTime
+            TemplateEntity updated = templateDao.findById(entity.getId() == null ? null : entity.getId().longValue());
+            return updated == null ? entity : updated;
         }
     }
 

@@ -6,15 +6,11 @@ package com.huawei.cloududn.dialingtest.service.taskmanagement.orchestration.act
 
 import com.huawei.cloududn.dialingtest.service.taskmanagement.dto.TaskContext;
 import com.huawei.cloududn.dialingtest.service.taskmanagement.orchestration.impl.ReplayTaskImpl;
-import com.huawei.cloududn.dialingtest.service.taskmanagement.orchestration.state.TaskEvent;
-import com.huawei.cloududn.dialingtest.service.taskmanagement.orchestration.state.TaskState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.statemachine.StateContext;
-import org.springframework.statemachine.action.Action;
 
 /**
  * 回放动作：进入 START_MODEL_REPLAY/START_FULL_REPLAY 时触发。
@@ -25,22 +21,19 @@ import org.springframework.statemachine.action.Action;
  * @since 2025-10-24
  */
 @Component
-public class ReplayAction implements Action<TaskState, TaskEvent> {
+public class ReplayAction implements TaskAction {
     private static final Logger logger = LoggerFactory.getLogger(ReplayAction.class);
-
     @Autowired
     private ReplayTaskImpl replayTask;
 
     @Override
-    public void execute(StateContext<TaskState, TaskEvent> context) {
-        Object ctxObj = context.getExtendedState().getVariables().get("TASK_CONTEXT");
-        if (!(ctxObj instanceof TaskContext)) {
-            logger.warn("Missing TASK_CONTEXT in extended state");
+    public void execute(TaskContext context) {
+        if (context == null) {
+            logger.warn("Task context is null");
             return;
         } else {
-            TaskContext taskContext = (TaskContext) ctxObj;
-            String jobId = replayTask.start(taskContext);
-            taskContext.getData().put("async_job_id", jobId);
+            String jobId = replayTask.start(context);
+            context.getData().put("async_job_id", jobId);
             logger.info("ReplayAction started replay job: {}", jobId);
         }
     }
