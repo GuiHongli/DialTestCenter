@@ -18,9 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
+
+import javax.websocket.Session;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -44,7 +45,7 @@ public class TaskInterfaceServiceTest {
     private TaskExecutorMappingDao taskExecutorMappingDao;
 
     @Mock
-    private WebSocketSession webSocketSession;
+    private Session webSocketSession;
 
     @InjectMocks
     private TaskInterfaceService taskInterfaceService;

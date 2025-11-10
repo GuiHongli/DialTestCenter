@@ -38,12 +38,6 @@
             </exclusions>
         </dependency>
         
-        <!-- Spring WebSocket for WSS gateway -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-        
         <!-- Log4j2 Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

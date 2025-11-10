@@ -10,12 +10,12 @@ import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.d
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.websocket.Session;
 
 /**
  * Session registry for WebSocket connections.
@@ -30,7 +30,7 @@ public class WebSocketSessionRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionRegistry.class);
 
-    private final Map<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
+    private final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,9 +39,9 @@ public class WebSocketSessionRegistry {
      *
      * @param session WebSocket session
      */
-    public void addSession(WebSocketSession session) {
+    public void addSession(Session session) {
         if (session == null) {
-            logger.warn("Attempted to add null WebSocketSession");
+            logger.warn("Attempted to add null Session");
             return;
         }
         sessionMap.put(session.getId(), session);
@@ -67,9 +67,9 @@ public class WebSocketSessionRegistry {
      * Get session by id.
      *
      * @param sessionId session id
-     * @return WebSocketSession or null
+     * @return Session or null
      */
-    public WebSocketSession getSession(String sessionId) {
+    public Session getSession(String sessionId) {
         return sessionMap.get(sessionId);
     }
 
@@ -81,14 +81,16 @@ public class WebSocketSessionRegistry {
      * @throws IOException when sending fails
      */
     public void sendMessage(String sessionId, WssMessage message) throws IOException {
-        WebSocketSession session = sessionMap.get(sessionId);
+        Session session = sessionMap.get(sessionId);
         if (session == null) {
             logger.warn("Session not found for sessionId={}", sessionId);
             return;
         }
+        if (!session.isOpen()) {
+            logger.warn("Session is closed, sessionId={}", sessionId);
+            return;
+        }
         String json = objectMapper.writeValueAsString(message);
-        session.sendMessage(new TextMessage(json));
+        session.getBasicRemote().sendText(json);
     }
 }
-
-

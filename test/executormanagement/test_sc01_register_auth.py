@@ -13,23 +13,26 @@ class TestRegisterAuth(BaseTestCase):
     @unittest.skipUnless(AGENT_NTLM_HASH, "未提供 EXEC_AGENT_NTLM_HASH，跳过成功注册用例")
     def test_tc_01_001_register_success(self):
         """TC-01-001: 成功注册并获取token"""
-        token = self._ws_register_and_get_token()
-        self.assertTrue(token, "Token 应该非空")
-        
-        # 验证数据库状态：executor.status=1（ONLINE），token已更新
-        def _check_online():
-            ex = self.db.get_executor_by_name(AGENT_NAME)
-            if not ex:
-                return False
-            return (ex.get('status') == 1 and 
-                    ex.get('token') is not None and
-                    ex.get('last_online_time') is not None)
-        
-        ok = wait_for_condition(_check_online, timeout=5, interval=0.5)
-        self.assertTrue(ok, "executor 应该更新为 ONLINE 状态，并设置 token 和 last_online_time")
-        
-        # 验证 Challenge 长度（Base64编码后应为24字符，对应16字节）
-        # 这个验证已在 base.py 的 _ws_register_and_get_token 中隐式完成
+        ws, token = self._ws_register_and_keep_connection()
+        try:
+            self.assertTrue(token, "Token 应该非空")
+            
+            # 验证数据库状态：executor.status=1（ONLINE），token已更新
+            def _check_online():
+                ex = self.db.get_executor_by_name(AGENT_NAME)
+                if not ex:
+                    return False
+                return (ex.get('status') == 1 and 
+                        ex.get('token') is not None and
+                        ex.get('last_online_time') is not None)
+            
+            ok = wait_for_condition(_check_online, timeout=5, interval=0.5)
+            self.assertTrue(ok, "executor 应该更新为 ONLINE 状态，并设置 token 和 last_online_time")
+            
+            # 验证 Challenge 长度（Base64编码后应为24字符，对应16字节）
+            # 这个验证已在 base.py 的 _ws_register_and_keep_connection 中隐式完成
+        finally:
+            ws.close()
 
     def test_tc_01_002_register_user_not_found(self):
         """TC-01-002: 用户名不存在"""

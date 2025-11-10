@@ -13,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.time.Instant;
+
+import javax.websocket.Session;
 import java.util.Iterator;
 
 /**
@@ -46,7 +47,7 @@ public class ExecutorMgmtService {
      * @param data    heartbeat payload
      * @param session ws session
      */
-    public void handleHeartbeatStatus(JsonNode data, WebSocketSession session) {
+    public void handleHeartbeatStatus(JsonNode data, Session session) {
         logger.info("Received heartbeat, sessionId={}", session.getId());
         String executorName = registry.getExecutorName(session.getId());
         if (executorName == null) {
@@ -100,7 +101,7 @@ public class ExecutorMgmtService {
      * @param data    deregister payload
      * @param session ws session
      */
-    public void handleDeregister(JsonNode data, WebSocketSession session) {
+    public void handleDeregister(JsonNode data, Session session) {
         String executorName = text(data, "name");
         logger.info("Received deregister request, executorName={}, sessionId={}", executorName, session.getId());
         if (executorName == null || executorName.isEmpty()) {
@@ -125,7 +126,7 @@ public class ExecutorMgmtService {
      * @param data    executor info payload
      * @param session ws session
      */
-    public void handleExecutorInfoResponse(JsonNode data, WebSocketSession session) {
+    public void handleExecutorInfoResponse(JsonNode data, Session session) {
         String executorName = text(data, "executor_name");
         logger.info("Received executor_info_response, executorName={}, sessionId={}", executorName, session.getId());
         if (executorName == null || executorName.isEmpty()) {

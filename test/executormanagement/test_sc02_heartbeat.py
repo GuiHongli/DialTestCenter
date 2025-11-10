@@ -15,7 +15,7 @@ class TestHeartbeat(BaseTestCase):
     def test_tc_02_001_heartbeat_updates_online(self):
         """TC-02-001: 心跳更新状态"""
         # 注册并保持连接（心跳需要在同一会话中发送）
-        ws = self._ws_register_and_keep_connection()
+        ws, _ = self._ws_register_and_keep_connection()
         try:
             hb = {
                 "message_type": "heartbeat_status",
@@ -79,7 +79,7 @@ class TestHeartbeat(BaseTestCase):
     def test_tc_02_002_ue_list_changes(self):
         """TC-02-002: UE 清单变更"""
         # 注册并保持连接
-        ws = self._ws_register_and_keep_connection()
+        ws, _ = self._ws_register_and_keep_connection()
         try:
             # 第一次心跳：发送 3 个 UE
             hb1 = {
@@ -139,7 +139,7 @@ class TestHeartbeat(BaseTestCase):
     def test_tc_02_003_offline_on_disconnect(self):
         """TC-02-003: 离线处理"""
         # 注册并保持连接
-        ws = self._ws_register_and_keep_connection()
+        ws, _ = self._ws_register_and_keep_connection()
         try:
             hb = {
                 "message_type": "heartbeat_status",

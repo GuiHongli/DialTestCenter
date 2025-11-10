@@ -16,9 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+
+import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,7 +65,7 @@ public class AuthSessionService {
      * @param data    request data
      * @param session session
      */
-    public void handleRegisterRequest(JsonNode data, WebSocketSession session) {
+    public void handleRegisterRequest(JsonNode data, Session session) {
         String executorName = getText(data, "name");
         String username = getText(data, "username");
         byte[] challengeBytes = generateChallenge();
@@ -81,7 +82,7 @@ public class AuthSessionService {
      * @param data    auth data
      * @param session session
      */
-    public void handleRegisterAuth(JsonNode data, WebSocketSession session) {
+    public void handleRegisterAuth(JsonNode data, Session session) {
         PendingAuthContext ctx = pendingMap.get(session.getId());
         if (ctx == null || isExpired(ctx)) {
             sendAck(session.getId(), false, "challenge expired or not found", null);

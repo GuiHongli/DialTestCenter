@@ -20,8 +20,8 @@ public interface ExecutorDao {
             "#{name}, #{ip}, #{token}, #{proxy}, #{description}, #{status}, #{lastOnlineTime}")
     int insert(Executor entity);
 
-    @Insert("INSERT INTO executor(name, token, status, last_online_time) VALUES(#{name}, #{token}, #{status}, #{lastOnlineTime}) " +
-            "ON CONFLICT (name) DO UPDATE SET token = EXCLUDED.token, status = EXCLUDED.status, last_online_time = EXCLUDED.last_online_time")
+    @Update("INSERT INTO executor(name, token, status, last_online_time) VALUES(#{name}, #{token}, #{status}, #{lastOnlineTime}) " +
+            "ON CONFLICT (name) DO UPDATE SET token = #{token}, status = #{status}, last_online_time = #{lastOnlineTime}")
     int updateTokenAndStatus(@Param("name") String name,
                              @Param("token") String token,
                              @Param("status") Integer status,

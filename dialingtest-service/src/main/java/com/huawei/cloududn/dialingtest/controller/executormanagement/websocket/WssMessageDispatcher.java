@@ -13,7 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketSession;
+
+import javax.websocket.Session;
 
 /**
  * Dispatch inbound WSS messages by message_type.
@@ -44,7 +45,7 @@ public class WssMessageDispatcher {
      * @param data        JSON data
      * @param session     ws session
      */
-    public void dispatch(String messageType, JsonNode data, WebSocketSession session) {
+    public void dispatch(String messageType, JsonNode data, Session session) {
         if (messageType == null) {
             logger.warn("Missing message_type, sessionId={}", session.getId());
             return;
@@ -72,5 +73,3 @@ public class WssMessageDispatcher {
         }
     }
 }
-
-

@@ -11,7 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.socket.WebSocketSession;
+
+import javax.websocket.Session;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
@@ -39,7 +40,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleHeartbeatStatus_WithBinding_UpdatesDaoAndUe() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
         when(registry.getExecutorName("s1")).thenReturn("Exec_01");
         String data = "{ \"ue_list\": [] }";
@@ -51,7 +52,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleHeartbeatStatus_NoBinding_SkipUpdate() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
         when(registry.getExecutorName("s1")).thenReturn(null);
 
@@ -79,7 +80,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleDeregister_MatchingName_UpdatesAndUnbinds() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
         when(registry.getExecutorName("s1")).thenReturn("Exec_01");
         String data = "{\"name\":\"Exec_01\"}";
@@ -92,7 +93,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleDeregister_MismatchedName_SkipsUpdate() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s2");
         when(registry.getExecutorName("s2")).thenReturn("Exec_01");
         String data = "{\"name\":\"Exec_02\"}";
@@ -105,7 +106,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleDeregister_MissingName_SkipsUpdate() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s3");
         String data = "{}";
 
@@ -117,7 +118,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleExecutorInfoResponse_WithUeDetails_UpsertsCalled() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
         String data = "{\"executor_name\":\"Exec_01\",\"ue_details\":[{\"msisdn\":\"86138\",\"vendor\":\"Huawei\"}]}";
 
@@ -128,7 +129,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleExecutorInfoResponse_NoUeDetails_NoDaoCall() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s2");
         String data = "{\"executor_name\":\"Exec_02\"}";
 
@@ -139,7 +140,7 @@ public class ExecutorMgmtServiceTest {
 
     @Test
     public void testHandleExecutorInfoResponse_MissingExecutorName_SkipsProcessing() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s3");
         String data = "{\"ue_details\":[]}";
 

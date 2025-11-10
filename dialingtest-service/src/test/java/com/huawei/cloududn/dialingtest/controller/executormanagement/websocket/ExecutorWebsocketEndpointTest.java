@@ -7,10 +7,9 @@ import com.huawei.cloududn.dialingtest.service.executormanagement.ExecutorMgmtSe
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
+import javax.websocket.CloseReason;
+import javax.websocket.Session;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.eq;
@@ -37,35 +36,37 @@ public class ExecutorWebsocketEndpointTest {
     }
 
     @Test
-    public void testAfterConnectionEstablished_AddsSession() {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+    public void testOnOpen_AddsSession() {
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
-        endpoint.afterConnectionEstablished(session);
+        endpoint.onOpen(session);
         verify(registry).addSession(session);
     }
 
     @Test
-    public void testHandleTextMessage_EmptyPayload_NoDispatch() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+    public void testOnMessage_EmptyPayload_NoDispatch() {
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
-        endpoint.handleTextMessage(session, new TextMessage("   "));
+        endpoint.onMessage("   ", session);
         verify(dispatcher, never()).dispatch(Mockito.anyString(), Mockito.any(), Mockito.eq(session));
     }
 
     @Test
-    public void testHandleTextMessage_DispatchesMessage() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+    public void testOnMessage_DispatchesMessage() {
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
         String json = "{\"message_type\":\"heartbeat_status\",\"data\":{\"ue_list\":[]}}";
-        endpoint.handleTextMessage(session, new TextMessage(json));
+        endpoint.onMessage(json, session);
         verify(dispatcher).dispatch(eq("heartbeat_status"), Mockito.any(), eq(session));
     }
 
     @Test
-    public void testAfterConnectionClosed_RemovesAndNotifiesDisconnect() {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+    public void testOnClose_RemovesAndNotifiesDisconnect() {
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
-        endpoint.afterConnectionClosed(session, CloseStatus.NORMAL);
+        CloseReason reason = Mockito.mock(CloseReason.class);
+        when(reason.getReasonPhrase()).thenReturn("Normal closure");
+        endpoint.onClose(session, reason);
         verify(registry).removeSession("s1");
         verify(execService).handleExecutorDisconnect("s1");
     }
@@ -79,7 +80,7 @@ public class ExecutorWebsocketEndpointTest {
 
     @Test
     public void testGetSession_DelegatesToRegistry() {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(registry.getSession("s2")).thenReturn(session);
         assertSame(session, endpoint.getSession("s2"));
     }
@@ -94,5 +95,3 @@ public class ExecutorWebsocketEndpointTest {
         }
     }
 }
-
-

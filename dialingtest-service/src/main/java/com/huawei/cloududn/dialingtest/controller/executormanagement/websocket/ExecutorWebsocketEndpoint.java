@@ -13,14 +13,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
+import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * WebSocket endpoint for agent connections.
@@ -31,36 +33,48 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025-11-04
  */
 @Component
-public class ExecutorWebsocketEndpoint extends TextWebSocketHandler {
+@ServerEndpoint("/wss/agents")
+public class ExecutorWebsocketEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutorWebsocketEndpoint.class);
 
-    @Autowired
-    private WebSocketSessionRegistry sessionRegistry;
+    private static WebSocketSessionRegistry sessionRegistry;
 
-    @Autowired
-    private WssMessageDispatcher dispatcher;
+    private static WssMessageDispatcher dispatcher;
 
-    @Autowired
-    private ExecutorMgmtService executorMgmtService;
+    private static ExecutorMgmtService executorMgmtService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
+    @Autowired
+    public void setSessionRegistry(WebSocketSessionRegistry registry) {
+        ExecutorWebsocketEndpoint.sessionRegistry = registry;
+    }
+
+    @Autowired
+    public void setDispatcher(WssMessageDispatcher disp) {
+        ExecutorWebsocketEndpoint.dispatcher = disp;
+    }
+
+    @Autowired
+    public void setExecutorMgmtService(ExecutorMgmtService service) {
+        ExecutorWebsocketEndpoint.executorMgmtService = service;
+    }
+
+    @OnOpen
+    public void onOpen(Session session) {
         sessionRegistry.addSession(session);
         logger.info("Agent connected, sessionId={}", session.getId());
     }
 
-    @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
-        String payload = message.getPayload();
-        if (payload == null || payload.trim().isEmpty()) {
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        if (message == null || message.trim().isEmpty()) {
             logger.warn("Received empty message, sessionId={}", session.getId());
             return;
         }
         try {
-            JsonNode node = objectMapper.readTree(payload);
+            JsonNode node = objectMapper.readTree(message);
             String messageType = node.has("message_type") ? node.get("message_type").asText() : "";
             logger.debug("Received WebSocket message, sessionId={}, messageType={}", session.getId(), messageType);
             JsonNode dataNode = node.get("data");
@@ -70,15 +84,19 @@ public class ExecutorWebsocketEndpoint extends TextWebSocketHandler {
             dispatcher.dispatch(messageType, dataNode, session);
         } catch (IOException e) {
             logger.error("Failed to parse WebSocket message, sessionId={}", session.getId(), e);
-            throw e;
         }
     }
 
-    @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    @OnClose
+    public void onClose(Session session, CloseReason reason) {
         sessionRegistry.removeSession(session.getId());
-        logger.info("Agent disconnected, sessionId={}, code={}", session.getId(), status.getCode());
+        logger.info("Agent disconnected, sessionId={}, code={}", session.getId(), reason.getReasonPhrase());
         executorMgmtService.handleExecutorDisconnect(session.getId());
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        logger.error("WebSocket error, sessionId={}", session.getId(), throwable);
     }
 
     /**
@@ -103,11 +121,9 @@ public class ExecutorWebsocketEndpoint extends TextWebSocketHandler {
      * Get a session by id.
      *
      * @param sessionId session id
-     * @return WebSocketSession or null
+     * @return Session or null
      */
-    public WebSocketSession getSession(String sessionId) {
+    public Session getSession(String sessionId) {
         return sessionRegistry.getSession(sessionId);
     }
 }
-
-

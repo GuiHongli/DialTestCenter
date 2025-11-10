@@ -15,9 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.security.MessageDigest;
+
+import javax.websocket.Session;
 import java.util.Base64;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -54,7 +55,7 @@ public class AuthSessionServiceTest {
 
     @Test
     public void testHandleRegisterRequest_SendsChallenge() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("S-REQ-1");
         JsonNode req = mapper.readTree("{\"name\":\"Exec_01\",\"username\":\"u1\",\"ne_name\":\"NE1\"}");
 
@@ -74,7 +75,7 @@ public class AuthSessionServiceTest {
 
     @Test
     public void testHandleRegisterAuth_UserNotFound_AcksFailed() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("S-AUTH-2");
         JsonNode req = mapper.readTree("{\"name\":\"Exec_02\",\"username\":\"nouser\"}");
         service.handleRegisterRequest(req, session);
@@ -94,7 +95,7 @@ public class AuthSessionServiceTest {
 
     @Test
     public void testHandleRegisterAuth_NoPending_AcksFailed() throws Exception {
-        WebSocketSession session = Mockito.mock(WebSocketSession.class);
+        Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("S-AUTH-4");
         ArgumentCaptor<WssMessage> cap = ArgumentCaptor.forClass(WssMessage.class);
 

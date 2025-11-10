@@ -13,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
+
+import javax.websocket.Session;
 import java.util.Map;
 
 /**
@@ -46,7 +47,7 @@ public class TaskInterfaceService {
      * @param data    status data
      * @param session session
      */
-    public void handleTaskStatusUpdate(JsonNode data, WebSocketSession session) {
+    public void handleTaskStatusUpdate(JsonNode data, Session session) {
         String taskId = text(data, "task_id");
         String status = text(data, "status");
         logger.info("Handle task_status_update, taskId={}, status={}, sessionId={}", taskId, status, session.getId());
@@ -198,7 +199,7 @@ public class TaskInterfaceService {
      * @param data    response data
      * @param session ws session
      */
-    public void handleUeScreencapResponse(JsonNode data, WebSocketSession session) {
+    public void handleUeScreencapResponse(JsonNode data, Session session) {
         String ueSerial = text(data, "ue_serial");
         String status = text(data, "status");
         logger.info("Handle ue_screencap_response, ueSerial={}, status={}, sessionId={}", ueSerial, status, session.getId());
@@ -211,7 +212,7 @@ public class TaskInterfaceService {
      * @param data    result data
      * @param session ws session
      */
-    public void handleAppInstallResult(JsonNode data, WebSocketSession session) {
+    public void handleAppInstallResult(JsonNode data, Session session) {
         String ueSerial = text(data, "ue_serial");
         String status = text(data, "status");
         logger.info("Handle app_install_result, ueSerial={}, status={}, sessionId={}", ueSerial, status, session.getId());
@@ -224,7 +225,7 @@ public class TaskInterfaceService {
      * @param data    ack data
      * @param session ws session
      */
-    public void handleScriptUpdateAck(JsonNode data, WebSocketSession session) {
+    public void handleScriptUpdateAck(JsonNode data, Session session) {
         String packageName = text(data, "package_name");
         String version = text(data, "version");
         String status = text(data, "status");

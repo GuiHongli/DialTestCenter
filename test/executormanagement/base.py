@@ -91,7 +91,7 @@ class BaseTestCase(unittest.TestCase):
             ws.close()
 
     def _ws_register_and_keep_connection(self):
-        """注册并返回保持打开的 WebSocket 连接（调用者负责关闭）"""
+        """注册并返回保持打开的 WebSocket 连接和 token（调用者负责关闭）"""
         if not WS_ENABLE:
             self.skipTest('WS 未启用')
         if not AGENT_NTLM_HASH:
@@ -114,6 +114,6 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(data.get("status"), "success")
         token = data.get("token")
         self.assertTrue(token)
-        return ws
+        return ws, token
 
 
