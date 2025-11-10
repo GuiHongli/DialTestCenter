@@ -1,0 +1,98 @@
+swagger: '2.0'
+info:
+  title: Template API
+  version: 1.0.0
+  description: Task template CRUD API
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+paths:
+  /templates:
+    get:
+      operationId: getTemplates
+      summary: List templates
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TemplateEntity'
+    post:
+      operationId: createTemplate
+      summary: Create template
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/TemplateEntity'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/TemplateEntity'
+  /templates/{id}:
+    get:
+      operationId: getTemplateById
+      summary: Get template detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/TemplateEntity'
+        '404':
+          description: Not Found
+    put:
+      operationId: updateTemplate
+      summary: Update template
+      consumes:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/TemplateEntity'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/TemplateEntity'
+    delete:
+      operationId: deleteTemplate
+      summary: Delete template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: No Content
+definitions:
+  TemplateEntity:
+    type: object
+    properties:
+      id: {type: integer}
+      name: {type: string}
+      cron: {type: string}
+      enabled: {type: boolean}
+      input: {type: string}
+      creator: {type: string}
+      createTime: {type: string}
+      updateTime: {type: string}
+      description: {type: string}
+
