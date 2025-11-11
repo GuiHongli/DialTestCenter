@@ -9,14 +9,14 @@ from common.config import (
 )
 
 # API 配置（统一从 common 读取，兼容 EXEC_API_BASE_URL 与 API_BASE_URL）
-BASE_URL = load_base_url(preferred_env_vars=['EXEC_API_BASE_URL'])
+BASE_URL = load_base_url(preferred_env_vars=['EXEC_API_BASE_URL'], default_base='https://localhost:8087/dialingtest')
 API_ENDPOINTS = {
     'LIST_EXECUTORS': '/api/executors',
     'REFRESH_EXECUTOR': '/api/executors/refresh',
 }
 
 # WebSocket 配置
-WS_URL = os.getenv('EXEC_WS_URL', 'wss://localhost:8087/dialingtest/wss/agents')
+WS_URL = os.getenv('EXEC_WS_URL', 'wss://localhost:8087/dialingtest/ws/executor')
 WS_ENABLE = os.getenv('EXEC_WS_ENABLE', '1') == '1'  # 改为 '1' 默认启用
 
 # Agent 凭据（用于 SC-01/02/07 的真实用例）

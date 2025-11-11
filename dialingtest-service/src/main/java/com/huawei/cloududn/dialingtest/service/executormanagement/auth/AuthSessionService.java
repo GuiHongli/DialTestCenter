@@ -114,9 +114,12 @@ public class AuthSessionService {
         RegisterChallengeDto challengeDto = new RegisterChallengeDto(challengeId, challengeBytes);
         ByteBuffer buffer = DtoTlvConverter.encodeRegisterChallenge(challengeDto);
         wssMessageSender.sendBinary(session.getId(), buffer);
-        
-        logger.info("Sent Register-Challenge to sessionId={}, challengeId={}, hostname={}", 
-            session.getId(), challengeId, hostname);
+
+        // DEBUG: Log challenge details
+        logger.info("Sent Register-Challenge to sessionId={}, challengeId={}, hostname={}, challengeBytes.length={}, buffer.remaining={}",
+            session.getId(), challengeId, hostname, challengeBytes.length, buffer.remaining());
+        logger.debug("Challenge bytes (hex): {}", bytesToHexString(challengeBytes));
+        logger.debug("Challenge Base64: {}", Base64.getEncoder().encodeToString(challengeBytes));
     }
 
     /**
@@ -169,9 +172,10 @@ public class AuthSessionService {
         int challengeId = decoded.getField(FieldTag.CHALLENGE_ID).getAsInt();
         String username = decoded.getField(FieldTag.USERNAME).getAsString();
         byte[] response = decoded.getField(FieldTag.RESPONSE).getAsBytes();
-        
-        logger.info("Received Register-Response from sessionId={}, challengeId={}, username={}", 
-            session.getId(), challengeId, username);
+
+        logger.info("Received Register-Response from sessionId={}, challengeId={}, username={}, response.length={}",
+            session.getId(), challengeId, username, response.length);
+        logger.debug("Response bytes (hex): {}", bytesToHexString(response));
         
         // Verify pending context
         PendingAuthContext ctx = pendingMap.get(session.getId());
@@ -197,6 +201,11 @@ public class AuthSessionService {
         
         // Verify CHAP response
         byte[] expectedResponse = computeChapResponseV3(user.getPassword(), ctx.challenge);
+        logger.debug("Auth verification: username={}, ntlmHash={}, challengeBase64={}",
+            username, user.getPassword(), ctx.challenge);
+        logger.debug("Expected response (hex): {}", bytesToHexString(expectedResponse));
+        logger.debug("Actual response (hex): {}", bytesToHexString(response));
+
         if (!Arrays.equals(expectedResponse, response)) {
             sendRegisterResult(session.getId(), 4, "Authentication failed", null);
             logger.warn("Auth failed: incorrect response, username={}", username);
@@ -365,11 +374,18 @@ public class AuthSessionService {
         try {
             byte[] ntlmBytes = hexStringToBytes(ntlmHash);
             byte[] challengeBytes = Base64.getDecoder().decode(challengeBase64);
-            
+
+            logger.debug("CHAP calculation: ntlmBytes.length={}, challengeBytes.length={}", ntlmBytes.length, challengeBytes.length);
+            logger.debug("NTLM bytes (hex): {}", bytesToHexString(ntlmBytes));
+            logger.debug("Challenge bytes (hex): {}", bytesToHexString(challengeBytes));
+
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             md5.update(ntlmBytes);
             md5.update(challengeBytes);
-            return md5.digest();
+            byte[] result = md5.digest();
+
+            logger.debug("CHAP result (hex): {}", bytesToHexString(result));
+            return result;
         } catch (NoSuchAlgorithmException e) {
             logger.error("Failed to compute CHAP response", e);
             return new byte[16];

@@ -137,13 +137,45 @@ public class DtoTlvConverter {
         Map<FieldTag, TlvField> fieldMap = TlvDecoder.toFieldMap(fields);
         
         UeItemDto dto = new UeItemDto();
-        dto.setSerialNo(fieldMap.get(FieldTag.SERIAL_NO).getAsString());
-        dto.setBrand(fieldMap.get(FieldTag.BRAND).getAsString());
-        dto.setModel(fieldMap.get(FieldTag.MODEL).getAsString());
-        dto.setOs(fieldMap.get(FieldTag.OS).getAsString());
-        dto.setVersion(fieldMap.get(FieldTag.VERSION).getAsString());
-        dto.setWmsize(fieldMap.get(FieldTag.WMSIZE).getAsString());
         
+        // 必需字段 - 如果不存在则使用默认值
+        if (fieldMap.containsKey(FieldTag.SERIAL_NO)) {
+            dto.setSerialNo(fieldMap.get(FieldTag.SERIAL_NO).getAsString());
+        } else {
+            dto.setSerialNo("");
+        }
+        
+        if (fieldMap.containsKey(FieldTag.BRAND)) {
+            dto.setBrand(fieldMap.get(FieldTag.BRAND).getAsString());
+        } else {
+            dto.setBrand("");
+        }
+        
+        if (fieldMap.containsKey(FieldTag.MODEL)) {
+            dto.setModel(fieldMap.get(FieldTag.MODEL).getAsString());
+        } else {
+            dto.setModel("");
+        }
+        
+        if (fieldMap.containsKey(FieldTag.OS)) {
+            dto.setOs(fieldMap.get(FieldTag.OS).getAsString());
+        } else {
+            dto.setOs("");
+        }
+        
+        if (fieldMap.containsKey(FieldTag.VERSION)) {
+            dto.setVersion(fieldMap.get(FieldTag.VERSION).getAsString());
+        } else {
+            dto.setVersion("");
+        }
+        
+        if (fieldMap.containsKey(FieldTag.WMSIZE)) {
+            dto.setWmsize(fieldMap.get(FieldTag.WMSIZE).getAsString());
+        } else {
+            dto.setWmsize("");
+        }
+        
+        // 可选字段
         if (fieldMap.containsKey(FieldTag.IPV4)) {
             dto.setIpv4(fieldMap.get(FieldTag.IPV4).getAsString());
         }

@@ -343,26 +343,29 @@ def _decode_challenge(challenge: str) -> bytes:
     return challenge.encode('utf-8')
 
 
-def compute_chap_response(ntlm_hash_hex: str, challenge_base64: str) -> str:
+def compute_chap_response(ntlm_hash_hex: str, challenge_hex: str) -> str:
     """
     计算 CHAP 摘要，符合设计文档规范。
-    
+
     根据《执行机管理软件实现设计》文档：
     Formula: Response = MD5(NTLM-Hash bytes + Challenge bytes)
-    
+
     Args:
         ntlm_hash_hex: NTLM Hash（十六进制字符串）
-        challenge_base64: Challenge（Base64 编码字符串）
-        
+        challenge_hex: Challenge（十六进制字符串，32字符表示16字节）
+
     Returns:
-        MD5 hex 字符串（小写）
+        MD5 hex 字符串（小写，32字符）
     """
     # Decode NTLM Hash from hex string
     ntlm_bytes = binascii.unhexlify(ntlm_hash_hex)
-    
-    # Decode Challenge from Base64
-    challenge_bytes = base64.b64decode(challenge_base64)
-    
+
+    # Decode Challenge from hex string (兼容处理，如果已经是bytes则直接使用)
+    if isinstance(challenge_hex, bytes):
+        challenge_bytes = challenge_hex
+    else:
+        challenge_bytes = binascii.unhexlify(challenge_hex)
+
     # Concatenate and compute MD5
     combined = ntlm_bytes + challenge_bytes
     md5 = hashlib.md5()
