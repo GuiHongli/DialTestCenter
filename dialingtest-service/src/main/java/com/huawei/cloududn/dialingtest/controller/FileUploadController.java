@@ -325,7 +325,7 @@ public class FileUploadController {
      * @return 上传结果响应
      */
     private ResponseEntity<String> processSoftwarePackageUpload(
-            MultipartFile file, String description, boolean isOverwrite, String xUsername) {
+            MultipartFile file, String description, boolean isOverwrite, String xUsername) throws IOException {
         String fileName = file.getOriginalFilename();
         if (fileName == null) {
             return createStringErrorResponse("文件名不能为空", HttpStatus.BAD_REQUEST);
@@ -353,7 +353,7 @@ public class FileUploadController {
      * @return 上传结果响应
      */
     private ResponseEntity<String> handleZipPackageUpload(
-            MultipartFile file, String description, boolean isOverwrite, String xUsername) {
+            MultipartFile file, String description, boolean isOverwrite, String xUsername) throws IOException {
         String fileName = file.getOriginalFilename();
         logger.info("Processing ZIP package upload: {}", fileName);
         
@@ -378,7 +378,7 @@ public class FileUploadController {
      * @return 上传结果响应
      */
     private ResponseEntity<String> handleSinglePackageUpload(
-            MultipartFile file, String description, boolean isOverwrite, String xUsername) {
+            MultipartFile file, String description, boolean isOverwrite, String xUsername) throws IOException {
         String fileName = file.getOriginalFilename();
         logger.info("Processing single package upload: {}", fileName);
         
@@ -494,7 +494,7 @@ public class FileUploadController {
      */
     private ResponseEntity<String> processPreprocessRulePackageUpload(
             MultipartFile file, String businessZh, String businessEn, String description, 
-            String forceOverwrite, String xUsername) {
+            String forceOverwrite, String xUsername) throws IOException {
         String originalFilename = file.getOriginalFilename();
         logger.info("Processing preprocess rule package upload: {} by user: {}", originalFilename, xUsername);
         
