@@ -157,6 +157,34 @@ public class TaskOrchestratorService {
         }
     }
 
+    /**
+     * 停止任务执行
+     *
+     * @param mainTaskId 主任务ID
+     */
+    public void stopTask(Long mainTaskId) {
+        logger.info("Stopping task: {}", mainTaskId);
+
+        TaskEntity task = taskMgmtService.findById(mainTaskId);
+        if (task == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found: " + mainTaskId);
+        }
+
+        TaskContext ctx = readContext(task);
+        TaskState currentState = ctx.getStep() == null ? TaskState.START_VALIDATION : ctx.getStep();
+
+        ctx.getData().put("taskId", mainTaskId);
+        ctx.getData().put("stop_reason", "manual_stop");
+
+        TaskState newState = taskStateMachine.sendEvent(currentState, TaskEvent.STOP, ctx);
+        logger.info("Task {} sent STOP event on {} -> {}", mainTaskId, currentState, newState);
+
+        // 更新任务状态为停止
+        taskMgmtService.updateStatusAndContext(mainTaskId, "STOPPED", "STOPPED", toJson(ctx));
+
+        logger.info("Task {} stopped successfully", mainTaskId);
+    }
+
     private TaskContext readContext(TaskEntity task) {
         try {
             if (task.getContext() == null || task.getContext().trim().isEmpty()) {

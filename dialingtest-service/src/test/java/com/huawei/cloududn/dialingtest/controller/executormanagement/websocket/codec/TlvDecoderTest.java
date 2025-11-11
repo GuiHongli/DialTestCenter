@@ -54,7 +54,7 @@ public class TlvDecoderTest {
         // Given
         ByteBuffer buffer = ByteBuffer.allocate(50);
         // Field: Tag(0x0001) + Length(2) + Value("TestHost")
-        buffer.putShort(FieldTag.HOSTNAME.getValue()); // Tag
+        buffer.putShort((short) FieldTag.HOSTNAME.getValue()); // Tag
         buffer.putShort((short) 8); // Length
         buffer.put("TestHost".getBytes()); // Value
         buffer.flip();
@@ -74,17 +74,17 @@ public class TlvDecoderTest {
         // Given
         ByteBuffer buffer = ByteBuffer.allocate(100);
         // Field 1: hostname
-        buffer.putShort(FieldTag.HOSTNAME.getValue());
+        buffer.putShort((short) FieldTag.HOSTNAME.getValue());
         buffer.putShort((short) 5);
         buffer.put("Host1".getBytes());
 
         // Field 2: token
-        buffer.putShort(FieldTag.TOKEN.getValue());
+        buffer.putShort((short) FieldTag.TOKEN.getValue());
         buffer.putShort((short) 8);
         buffer.putLong(123456789L);
 
         // Field 3: state
-        buffer.putShort(FieldTag.STATE.getValue());
+        buffer.putShort((short) FieldTag.STATE.getValue());
         buffer.putShort((short) 6);
         buffer.put("Normal".getBytes());
 
@@ -110,7 +110,7 @@ public class TlvDecoderTest {
     public void testDecodeFields_EmptyValue_HandlesCorrectly() {
         // Given - Field with empty value
         ByteBuffer buffer = ByteBuffer.allocate(10);
-        buffer.putShort(FieldTag.HOSTNAME.getValue());
+        buffer.putShort((short) FieldTag.HOSTNAME.getValue());
         buffer.putShort((short) 0); // Empty value
         buffer.flip();
 
@@ -129,7 +129,7 @@ public class TlvDecoderTest {
     public void testDecodeFields_PartialData_StopsGracefully() {
         // Given - Buffer with incomplete field data
         ByteBuffer buffer = ByteBuffer.allocate(10);
-        buffer.putShort(FieldTag.HOSTNAME.getValue());
+        buffer.putShort((short) FieldTag.HOSTNAME.getValue());
         buffer.putShort((short) 10); // Length longer than remaining data
         buffer.put("Test".getBytes()); // Only partial data
         buffer.flip();

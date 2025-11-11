@@ -15,7 +15,9 @@ import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.d
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.UeItemDto;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.UeDao;
+import com.huawei.cloududn.dialingtest.model.Executor;
 import com.huawei.cloududn.dialingtest.model.Ue;
+import com.huawei.cloududn.dialingtest.service.executormanagement.dto.ExecutorDetailDto;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.WssMessageSender;
 
 import org.slf4j.Logger;
@@ -28,6 +30,8 @@ import java.time.Instant;
 
 import javax.websocket.Session;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Core executor management service: heartbeat and disconnect handling.
@@ -347,6 +351,80 @@ public class ExecutorMgmtService {
                 logger.debug("No UE details in executor info response");
             }
         }
+    }
+
+    /**
+     * 获取执行机详细信息列表
+     * V3版本：返回包含UE列表的执行机详情
+     *
+     * @return 执行机详情列表
+     */
+    public List<ExecutorDetailDto> getExecutorDetails() {
+        logger.info("Getting executor details");
+        try {
+            // 获取所有执行机
+            List<Executor> executors = executorDao.findPage(null, null, 0, 1000);
+            logger.debug("Found {} executors", executors.size());
+
+            return executors.stream().map(executor -> {
+                // 获取该执行机关联的UE列表
+                List<Ue> ueList = ueDao.findByExecutorName(executor.getName());
+                List<UeItemDto> ueItemDtos = ueList.stream().map(this::convertUeToUeItemDto)
+                        .collect(Collectors.toList());
+
+                ExecutorDetailDto dto = new ExecutorDetailDto();
+                dto.setName(executor.getName());
+                dto.setIp(executor.getIp());
+                dto.setStatus(executor.getStatus());
+                dto.setLastOnlineTime(executor.getLastOnlineTime());
+                dto.setUeList(ueItemDtos);
+
+                return dto;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("Failed to get executor details", e);
+            throw new RuntimeException("Failed to get executor details", e);
+        }
+    }
+
+    /**
+     * 发送心跳应答
+     * V3版本：发送Report-Ack消息
+     *
+     * @param sessionId 会话ID
+     * @param token     认证令牌
+     */
+    public void sendReportAck(String sessionId, Long token) {
+        logger.info("Sending Report-Ack for sessionId={}, token={}", sessionId, token);
+        ReportAckDto ackDto = new ReportAckDto(token, 0); // 0=OK
+        ByteBuffer buffer = DtoTlvConverter.encodeReportAck(ackDto);
+        wssMessageSender.sendBinary(sessionId, buffer);
+        logger.debug("Sent Report-Ack to sessionId={}", sessionId);
+    }
+
+    /**
+     * 将Ue实体转换为UeItemDto
+     * V3版本：用于构造执行机详情响应
+     *
+     * @param ue UE实体
+     * @return UeItemDto
+     */
+    private UeItemDto convertUeToUeItemDto(Ue ue) {
+        // 解析UE信息JSON (简化实现)
+        UeItemDto dto = new UeItemDto();
+        dto.setSerialNo(ue.getMsisdn()); // 使用msisdn作为serialNo
+        dto.setBrand("Unknown"); // 从info字段解析
+        dto.setModel("Unknown");
+        dto.setOs(ue.getOs() != null ? ue.getOs() : "Unknown");
+        dto.setVersion("Unknown");
+        dto.setWmsize("Unknown");
+        dto.setIpv4("Unknown");
+        dto.setIpv6("Unknown");
+        dto.setBattery(0);
+
+        // TODO: 从ue.getInfo() JSON字段解析详细信息
+        return dto;
     }
 
     private static String text(JsonNode node, String field) {

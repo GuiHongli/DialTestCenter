@@ -229,6 +229,124 @@ public class DtoTlvConverter {
     }
     
     /**
+     * 编码TaskStartRequest TLV消息
+     * V3版本：任务启动请求(0x33)
+     *
+     * @param dto TaskStartRequestDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeTaskStart(TaskStartRequestDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofInt(FieldTag.TASKID, dto.getTaskId()));
+        fields.add(TlvField.ofString(FieldTag.SCRIPT_NAME, dto.getScriptName()));
+        fields.add(TlvField.ofString(FieldTag.VERSION, dto.getVersion()));
+
+        // serial-no-list容器
+        if (dto.getSerialNoList() != null && !dto.getSerialNoList().isEmpty()) {
+            List<TlvField> serialList = new ArrayList<>();
+            for (String serialNo : dto.getSerialNoList()) {
+                serialList.add(TlvField.ofString(FieldTag.SERIAL_NO, serialNo));
+            }
+            fields.add(TlvEncoder.encodeContainer(FieldTag.SERIAL_NO_LIST, serialList));
+        }
+
+        fields.add(TlvField.ofInt(FieldTag.PROCTYPE, dto.getProcType()));
+        fields.add(TlvField.ofString(FieldTag.PARAMETERS, dto.getParameters()));
+
+        return TlvEncoder.encodeMessage(MessageType.TASK_START_REQUEST, fields);
+    }
+
+    /**
+     * 编码TaskStopRequest TLV消息
+     * V3版本：任务停止请求(0x35)
+     *
+     * @param dto TaskStopRequestDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeTaskStop(TaskStopRequestDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofInt(FieldTag.TASKID, dto.getTaskId()));
+        return TlvEncoder.encodeMessage(MessageType.TASK_STOP_REQUEST, fields);
+    }
+
+    /**
+     * 编码AppListQuery TLV消息
+     * V3版本：App列表查询请求(0x21)
+     *
+     * @param dto AppListQueryDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeAppListQuery(AppListQueryDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofString(FieldTag.SERIAL_NO, dto.getSerialNo()));
+        return TlvEncoder.encodeMessage(MessageType.APP_LIST_QUERY, fields);
+    }
+
+    /**
+     * 编码AppInstallRequest TLV消息
+     * V3版本：App安装请求(0x23)
+     *
+     * @param dto AppInstallRequestDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeAppInstallRequest(AppInstallRequestDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofString(FieldTag.SERIAL_NO, dto.getSerialNo()));
+        fields.add(TlvField.ofInt(FieldTag.TASKID, dto.getTaskId()));
+        fields.add(TlvField.ofString(FieldTag.APPNAME, dto.getAppName()));
+
+        // script或package字段（二选一）
+        if (dto.getScript() != null && dto.getScript().length > 0) {
+            fields.add(TlvField.ofBytes(FieldTag.SCRIPT, dto.getScript()));
+        }
+        if (dto.getPackageFile() != null && dto.getPackageFile().length > 0) {
+            fields.add(TlvField.ofBytes(FieldTag.PACKAGE, dto.getPackageFile()));
+        }
+
+        if (dto.getCrc() != null) {
+            fields.add(TlvField.ofBytes(FieldTag.CRC, dto.getCrc()));
+        }
+
+        return TlvEncoder.encodeMessage(MessageType.APP_INSTALL_REQUEST, fields);
+    }
+
+    /**
+     * 编码ScriptUpdateNotify TLV消息
+     * V3版本：脚本更新通知(0x31)
+     *
+     * @param dto ScriptUpdateNotifyDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeScriptUpdateNotify(ScriptUpdateNotifyDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofString(FieldTag.SCRIPT_NAME, dto.getScriptName()));
+        fields.add(TlvField.ofString(FieldTag.VERSION, dto.getVersion()));
+        fields.add(TlvField.ofInt(FieldTag.FILELEN, dto.getFileLen()));
+        fields.add(TlvField.ofBytes(FieldTag.SCRIPTFILE, dto.getScriptFile()));
+        fields.add(TlvField.ofBytes(FieldTag.CRC, dto.getCrc()));
+        return TlvEncoder.encodeMessage(MessageType.SCRIPT_UPDATE_NOTIFY, fields);
+    }
+
+    /**
+     * 编码ScreencapQuery TLV消息
+     * V3版本：截屏查询请求(0x25)
+     *
+     * @param dto ScreencapQueryDto
+     * @return 编码后的ByteBuffer
+     */
+    public static ByteBuffer encodeScreencapQuery(ScreencapQueryDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofString(FieldTag.SERIAL_NO, dto.getSerialNo()));
+        return TlvEncoder.encodeMessage(MessageType.SCREENCAP_QUERY, fields);
+    }
+
+    /**
      * 通用解码方法：根据消息类型解码为对应的DTO
      *
      * @param buffer 二进制缓冲区
@@ -238,7 +356,7 @@ public class DtoTlvConverter {
     public static Object decode(ByteBuffer buffer) {
         TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
         MessageType messageType = decoded.getMessageType();
-        
+
         if (messageType == MessageType.REGISTER_REQUEST) {
             return decodeRegisterRequest(decoded);
         } else if (messageType == MessageType.REPORT_MSG) {

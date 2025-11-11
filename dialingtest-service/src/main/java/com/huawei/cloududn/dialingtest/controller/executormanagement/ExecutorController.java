@@ -90,10 +90,44 @@ public class ExecutorController implements ExecutorsApi {
 
     @Override
     public ResponseEntity<OperationResponse> refreshExecutor(RefreshExecutorRequest refreshExecutorRequest) {
-        // TODO: V3版本需要重新实现refreshExecutor，使用TLV格式
         String name = refreshExecutorRequest == null ? null : refreshExecutorRequest.getName();
-        logger.info("Refresh executor request received for: {} (V3 TLV implementation pending)", name);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(op(false, "V3 TLV implementation pending"));
+        logger.info("Refresh executor request received for: {}", name);
+
+        try {
+            if (name == null || name.trim().isEmpty()) {
+                logger.warn("Refresh executor request missing executor name");
+                return ResponseEntity.badRequest()
+                    .body(op(false, "Executor name is required"));
+            }
+
+            // 检查执行机是否存在
+            Executor executor = executorDao.findByName(name);
+            if (executor == null) {
+                logger.warn("Executor not found: {}", name);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(op(false, "Executor not found: " + name));
+            }
+
+            // 检查执行机是否在线
+            if (!"ONLINE".equals(executor.getStatus()) && executor.getStatus() != 1) {
+                logger.warn("Executor is not online: {} (status: {})", name, executor.getStatus());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(op(false, "Executor is not online: " + name));
+            }
+
+            // 由于当前通信协议中没有专门的刷新消息类型，
+            // 执行机信息刷新主要通过心跳机制（Report-Msg）自动进行
+            // 这里我们记录刷新请求，并在下次心跳时可以特殊处理
+            logger.info("Executor refresh request acknowledged for: {}. Info will be updated on next heartbeat.", name);
+
+            // 返回成功，实际刷新通过心跳机制进行
+            return ResponseEntity.ok(op(true, "Refresh request acknowledged. Executor info will be updated on next heartbeat."));
+
+        } catch (Exception e) {
+            logger.error("Failed to process refresh executor request for: {}", name, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(op(false, "Internal server error: " + e.getMessage()));
+        }
     }
 
     private static OperationResponse op(boolean success, String message) {

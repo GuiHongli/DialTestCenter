@@ -7,6 +7,9 @@ package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.MessageType;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvEncoder;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvField;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterRequestDto;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.TaskStartResponseDto;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.TaskStopResponseDto;
 import com.huawei.cloududn.dialingtest.service.executormanagement.ExecutorMgmtService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.auth.AuthSessionService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.TaskInterfaceService;
@@ -57,7 +60,7 @@ public class WssMessageDispatcherTest {
         ByteBuffer buffer = createRegisterRequestBuffer("Executor_PC_001");
 
         dispatcher.dispatch(buffer, session);
-        verify(auth).handleRegisterRequest(any(), eq(session));
+        verify(auth).handleRegisterRequest(any(RegisterRequestDto.class), eq(session));
     }
 
     @Test
@@ -153,7 +156,7 @@ public class WssMessageDispatcherTest {
         ByteBuffer buffer = createTaskStartResponseBuffer(1001, "Success");
 
         dispatcher.dispatch(buffer, session);
-        verify(task).handleTaskStartResponse(any(), eq(session));
+        verify(task).handleTaskStartResponse(any(TaskStartResponseDto.class), eq(session));
     }
 
     @Test
@@ -165,7 +168,7 @@ public class WssMessageDispatcherTest {
         ByteBuffer buffer = createTaskStopResponseBuffer(1001, 0);
 
         dispatcher.dispatch(buffer, session);
-        verify(task).handleTaskStopResponse(any(), eq(session));
+        verify(task).handleTaskStopResponse(any(TaskStopResponseDto.class), eq(session));
     }
 
     @Test
@@ -183,7 +186,7 @@ public class WssMessageDispatcherTest {
         dispatcher.dispatch(buffer, session);
 
         // Verify no services were called
-        verify(auth, never()).handleRegisterRequest(any(), any());
+        verify(auth, never()).handleRegisterRequest(any(RegisterRequestDto.class), any(Session.class));
         verify(exec, never()).handleReportMsg(any(), any());
         verify(task, never()).handleAppListResponse(any(), any());
     }

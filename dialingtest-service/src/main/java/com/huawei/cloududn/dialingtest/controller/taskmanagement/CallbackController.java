@@ -69,7 +69,9 @@ public class CallbackController {
                     }
                     java.util.Map<String, Object> resultData = null;
                     if (rd instanceof java.util.Map) {
-                        resultData = (java.util.Map<String, Object>) rd;
+                        @SuppressWarnings("unchecked")
+                        java.util.Map<String, Object> tempMap = (java.util.Map<String, Object>) rd;
+                        resultData = tempMap;
                     }
                     if (resultData == null) {
                         orchestratorService.sendResultEvent(mainTaskId, success);

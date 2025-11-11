@@ -114,7 +114,7 @@ public class WebSocketSessionRegistryTest {
         when(session.getId()).thenReturn("s5");
         when(session.isOpen()).thenReturn(true);
         when(session.getBasicRemote()).thenReturn(basicRemote);
-        when(basicRemote.sendBinary(any(ByteBuffer.class))).thenThrow(new IOException("Network error"));
+        doThrow(new IOException("Network error")).when(basicRemote).sendBinary(any(ByteBuffer.class));
         registry.addSession(session);
 
         ByteBuffer buffer = ByteBuffer.allocate(4);

@@ -4,6 +4,7 @@
 
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.Test;
@@ -30,12 +31,14 @@ public class WssMessageTest {
     }
 
     @Test
-    public void testParameterizedConstructor() {
+    public void testParameterizedConstructor() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> data = new HashMap<>();
         data.put("key", "value");
-        WssMessage message = new WssMessage("heartbeat_status", data);
+        JsonNode jsonData = mapper.valueToTree(data);
+        WssMessage message = new WssMessage("heartbeat_status", jsonData);
         assertEquals("heartbeat_status", message.getMessage_type());
-        assertEquals(data, message.getData());
+        assertEquals(jsonData, message.getData());
     }
 
     @Test
@@ -46,35 +49,43 @@ public class WssMessageTest {
     }
 
     @Test
-    public void testSetAndGetData() {
+    public void testSetAndGetData() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
         WssMessage message = new WssMessage();
         Map<String, Object> data = new HashMap<>();
         data.put("ue_list", new String[]{"ue1", "ue2"});
-        message.setData(data);
-        assertNotNull(message.getData());
-        assertEquals(data, message.getData());
-    }
-
-    @Test
-    public void testSetAndGetData_JsonNode() throws Exception {
-        WssMessage message = new WssMessage();
-        ObjectMapper mapper = new ObjectMapper();
-        Object jsonData = mapper.readTree("{\"status\":\"online\"}");
+        JsonNode jsonData = mapper.valueToTree(data);
         message.setData(jsonData);
         assertNotNull(message.getData());
         assertEquals(jsonData, message.getData());
     }
 
     @Test
-    public void testSetMessageType_Null() {
-        WssMessage message = new WssMessage("initial", new HashMap<>());
+    public void testSetAndGetData_JsonNode() throws Exception {
+        WssMessage message = new WssMessage();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonData = mapper.readTree("{\"status\":\"online\"}");
+        message.setData(jsonData);
+        assertNotNull(message.getData());
+        assertEquals(jsonData, message.getData());
+    }
+
+    @Test
+    public void testSetMessageType_Null() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> data = new HashMap<>();
+        JsonNode jsonData = mapper.valueToTree(data);
+        WssMessage message = new WssMessage("initial", jsonData);
         message.setMessage_type(null);
         assertNull(message.getMessage_type());
     }
 
     @Test
-    public void testSetData_Null() {
-        WssMessage message = new WssMessage("type", new HashMap<>());
+    public void testSetData_Null() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> data = new HashMap<>();
+        JsonNode jsonData = mapper.valueToTree(data);
+        WssMessage message = new WssMessage("type", jsonData);
         message.setData(null);
         assertNull(message.getData());
     }
