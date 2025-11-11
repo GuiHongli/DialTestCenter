@@ -1,22 +1,31 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2025. All rights reserved.
+ */
+
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
 import com.huawei.cloududn.dialingtest.service.executormanagement.ExecutorMgmtService;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+/**
+ * V3版本ExecutorWebsocketEndpoint测试
+ * 测试TLV二进制消息接收和发送功能
+ *
+ * @author DialTestCenter
+ * @since 2025-11-11
+ */
 public class ExecutorWebsocketEndpointTest {
 
     private ExecutorWebsocketEndpoint endpoint;
@@ -44,20 +53,36 @@ public class ExecutorWebsocketEndpointTest {
     }
 
     @Test
-    public void testOnMessage_EmptyPayload_NoDispatch() {
+    public void testOnMessage_EmptyBuffer_NoDispatch() {
         Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
-        endpoint.onMessage("   ", session);
-        verify(dispatcher, never()).dispatch(Mockito.anyString(), Mockito.any(), Mockito.eq(session));
+        ByteBuffer emptyBuffer = ByteBuffer.allocate(0);
+        endpoint.onMessage(emptyBuffer, session);
+        verify(dispatcher, never()).dispatch(any(ByteBuffer.class), eq(session));
     }
 
     @Test
-    public void testOnMessage_DispatchesMessage() {
+    public void testOnMessage_NullBuffer_NoDispatch() {
         Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("s1");
-        String json = "{\"message_type\":\"heartbeat_status\",\"data\":{\"ue_list\":[]}}";
-        endpoint.onMessage(json, session);
-        verify(dispatcher).dispatch(eq("heartbeat_status"), Mockito.any(), eq(session));
+        endpoint.onMessage(null, session);
+        verify(dispatcher, never()).dispatch(any(ByteBuffer.class), eq(session));
+    }
+
+    @Test
+    public void testOnMessage_ValidBuffer_DispatchesToDispatcher() {
+        Session session = Mockito.mock(Session.class);
+        when(session.getId()).thenReturn("s1");
+
+        // Create a valid TLV buffer (Register-Request message)
+        ByteBuffer buffer = ByteBuffer.allocate(10);
+        buffer.put((byte) 0x01); // MessageType.REGISTER_REQUEST
+        buffer.putInt(4);        // Body length
+        buffer.putInt(42);       // Sample data
+        buffer.flip();
+
+        endpoint.onMessage(buffer, session);
+        verify(dispatcher).dispatch(eq(buffer), eq(session));
     }
 
     @Test
@@ -72,10 +97,19 @@ public class ExecutorWebsocketEndpointTest {
     }
 
     @Test
-    public void testSendMessage_DelegatesToRegistry() throws Exception {
-        WssMessage msg = new WssMessage("update_executor_info", new ObjectMapper().createObjectNode());
-        endpoint.sendMessage("s1", msg);
-        verify(registry).sendMessage("s1", msg);
+    public void testSendBinary_DelegatesToRegistry() throws IOException {
+        Session session = Mockito.mock(Session.class);
+        when(session.getId()).thenReturn("s1");
+
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.putLong(123456789L);
+        buffer.flip();
+
+        // Mock registry.getSession to return the session
+        when(registry.getSession("s1")).thenReturn(session);
+
+        endpoint.sendBinary("s1", buffer);
+        verify(registry).sendBinary("s1", buffer);
     }
 
     @Test

@@ -6,10 +6,17 @@ package com.huawei.cloududn.dialingtest.service.executormanagement.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.DtoTlvConverter;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvDecoder;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterChallengeDto;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterRequestDto;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterResultDto;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.AgentUserDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
 import com.huawei.cloududn.dialingtest.model.AgentUser;
+import com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.WssMessageSender;
 
 import org.slf4j.Logger;
@@ -18,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.websocket.Session;
 import java.nio.charset.StandardCharsets;
@@ -25,10 +33,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * CHAP authentication and session binding service.
@@ -57,14 +67,18 @@ public class AuthSessionService {
     private ExecutorDao executorDao;
 
     @Autowired
-    private com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry registry;
+    private SessionBindingRegistry registry;
+    
+    private final AtomicInteger challengeIdCounter = new AtomicInteger(1);
 
     /**
-     * Handle register_request: generate and send challenge.
+     * Handle register_request: generate and send challenge (Legacy JSON version).
      *
      * @param data    request data
      * @param session session
+     * @deprecated Use {@link #handleRegisterRequest(RegisterRequestDto, Session)} for V3 TLV protocol
      */
+    @Deprecated
     public void handleRegisterRequest(JsonNode data, Session session) {
         String executorName = getText(data, "name");
         String username = getText(data, "username");
@@ -75,13 +89,44 @@ public class AuthSessionService {
         send(session.getId(), new WssMessage("register_challenge", resp));
         logger.info("Sent register_challenge to sessionId={}, executor={}", session.getId(), executorName);
     }
+    
+    /**
+     * Handle Register-Request (0x01): generate and send challenge (V3 TLV version).
+     * 阶段1→2：接收注册请求，生成并发送挑战
+     *
+     * @param dto     RegisterRequest DTO
+     * @param session WebSocket session
+     */
+    public void handleRegisterRequest(RegisterRequestDto dto, Session session) {
+        String hostname = dto.getHostname();
+        logger.info("Received Register-Request from sessionId={}, hostname={}", 
+            session.getId(), hostname);
+        
+        // Generate challenge
+        int challengeId = challengeIdCounter.getAndIncrement();
+        byte[] challengeBytes = generateChallenge();
+        
+        // Store pending context with empty username (will be provided in response)
+        pendingMap.put(session.getId(), 
+            new PendingAuthContext("", hostname, Base64.getEncoder().encodeToString(challengeBytes), Instant.now(), challengeId));
+        
+        // Send Register-Challenge (0x02)
+        RegisterChallengeDto challengeDto = new RegisterChallengeDto(challengeId, challengeBytes);
+        ByteBuffer buffer = DtoTlvConverter.encodeRegisterChallenge(challengeDto);
+        wssMessageSender.sendBinary(session.getId(), buffer);
+        
+        logger.info("Sent Register-Challenge to sessionId={}, challengeId={}, hostname={}", 
+            session.getId(), challengeId, hostname);
+    }
 
     /**
-     * Handle register_auth: verify response and bind token.
+     * Handle register_auth: verify response and bind token (Legacy JSON version).
      *
      * @param data    auth data
      * @param session session
+     * @deprecated Use {@link #handleRegisterResponse(TlvDecoder.DecodedMessage, Session)} for V3 TLV protocol
      */
+    @Deprecated
     public void handleRegisterAuth(JsonNode data, Session session) {
         PendingAuthContext ctx = pendingMap.get(session.getId());
         if (ctx == null || isExpired(ctx)) {
@@ -110,6 +155,78 @@ public class AuthSessionService {
         sendAck(session.getId(), true, "", token);
         pendingMap.remove(session.getId());
         logger.info("Auth success, executor={}, sessionId={}", ctx.executorName, session.getId());
+    }
+    
+    /**
+     * Handle Register-Response (0x03): verify response and bind token (V3 TLV version).
+     * 阶段3→4：接收认证应答，验证后发送结果
+     *
+     * @param decoded Decoded TLV message
+     * @param session WebSocket session
+     */
+    public void handleRegisterResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        // Extract fields from TLV message
+        int challengeId = decoded.getField(FieldTag.CHALLENGE_ID).getAsInt();
+        String username = decoded.getField(FieldTag.USERNAME).getAsString();
+        byte[] response = decoded.getField(FieldTag.RESPONSE).getAsBytes();
+        
+        logger.info("Received Register-Response from sessionId={}, challengeId={}, username={}", 
+            session.getId(), challengeId, username);
+        
+        // Verify pending context
+        PendingAuthContext ctx = pendingMap.get(session.getId());
+        if (ctx == null || isExpired(ctx)) {
+            sendRegisterResult(session.getId(), 1, "Challenge expired or not found", null);
+            logger.warn("Auth failed: challenge missing or expired, sessionId={}", session.getId());
+            return;
+        }
+        
+        if (ctx.challengeId != challengeId) {
+            sendRegisterResult(session.getId(), 2, "Challenge ID mismatch", null);
+            logger.warn("Auth failed: challenge ID mismatch, sessionId={}", session.getId());
+            return;
+        }
+        
+        // Query user from database
+        AgentUser user = agentUserDao.findByUsername(username);
+        if (user == null) {
+            sendRegisterResult(session.getId(), 3, "User not found", null);
+            logger.warn("Auth failed: user not found, username={}", username);
+            return;
+        }
+        
+        // Verify CHAP response
+        byte[] expectedResponse = computeChapResponseV3(user.getPassword(), ctx.challenge);
+        if (!Arrays.equals(expectedResponse, response)) {
+            sendRegisterResult(session.getId(), 4, "Authentication failed", null);
+            logger.warn("Auth failed: incorrect response, username={}", username);
+            return;
+        }
+        
+        // Generate token (8 bytes)
+        long token = generateTokenV3();
+        
+        // Update executor database
+        try {
+            executorDao.saveOrUpdateExecutor(ctx.executorName, token, "ONLINE");
+            logger.info("Executor registered successfully: hostname={}, token={}", ctx.executorName, token);
+        } catch (IllegalArgumentException e) {
+            sendRegisterResult(session.getId(), 5, "Database error: " + e.getMessage(), null);
+            logger.error("Failed to update executor in database, hostname={}", ctx.executorName, e);
+            return;
+        }
+        
+        // Bind session to executor
+        registry.bind(session.getId(), ctx.executorName, token);
+        
+        // Send Register-Result (0x04) - Success
+        sendRegisterResult(session.getId(), 0, "Authentication successful", token);
+        
+        // Cleanup
+        pendingMap.remove(session.getId());
+        
+        logger.info("Authentication successful: sessionId={}, hostname={}, username={}, token={}", 
+            session.getId(), ctx.executorName, username, token);
     }
 
     private static String getText(JsonNode node, String field) {
@@ -218,27 +335,82 @@ public class AuthSessionService {
     }
 
     private void send(String sessionId, WssMessage msg) {
-        try {
-            logger.debug("Sending auth message, sessionId={}, messageType={}", sessionId, msg.getMessage_type());
-            wssMessageSender.send(sessionId, msg);
-        } catch (Exception e) {
-            logger.error("Failed to send auth message, sessionId={}, messageType={}", sessionId, msg.getMessage_type(), e);
-        }
+        // Legacy JSON protocol is deprecated in V3; no-op for compatibility
+        logger.warn("Legacy JSON send is deprecated and ignored, sessionId={}, messageType={}",
+            sessionId, msg != null ? msg.getMessage_type() : "null");
     }
 
+    /**
+     * Send Register-Result (0x04).
+     *
+     * @param sessionId   session ID
+     * @param resultCode  result code (0=success, non-zero=failure)
+     * @param description description
+     * @param token       token (null if failed)
+     */
+    private void sendRegisterResult(String sessionId, int resultCode, String description, Long token) {
+        RegisterResultDto resultDto = new RegisterResultDto(resultCode, description, token);
+        ByteBuffer buffer = DtoTlvConverter.encodeRegisterResult(resultDto);
+        wssMessageSender.sendBinary(sessionId, buffer);
+    }
+    
+    /**
+     * Compute CHAP response for V3: MD5(NTLM-Hash + Challenge).
+     *
+     * @param ntlmHash       NTLM hash stored in database (hex string)
+     * @param challengeBase64 challenge bytes (Base64 encoded)
+     * @return MD5 response (16 bytes)
+     */
+    private byte[] computeChapResponseV3(String ntlmHash, String challengeBase64) {
+        try {
+            byte[] ntlmBytes = hexStringToBytes(ntlmHash);
+            byte[] challengeBytes = Base64.getDecoder().decode(challengeBase64);
+            
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(ntlmBytes);
+            md5.update(challengeBytes);
+            return md5.digest();
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("Failed to compute CHAP response", e);
+            return new byte[16];
+        }
+    }
+    
+    /**
+     * Generate 8-byte token.
+     *
+     * @return token as long
+     */
+    private long generateTokenV3() {
+        byte[] bytes = new byte[8];
+        new SecureRandom().nextBytes(bytes);
+        long token = 0;
+        for (int i = 0; i < 8; i++) {
+            token = (token << 8) | (bytes[i] & 0xFF);
+        }
+        return token;
+    }
+    
     private static class PendingAuthContext {
         private final String username;
         private final String executorName;
         private final String challenge;
         private final Instant createdAt;
+        private final int challengeId;
 
         private PendingAuthContext(String username, String executorName, String challenge, Instant createdAt) {
+            this(username, executorName, challenge, createdAt, 0);
+        }
+        
+        private PendingAuthContext(String username, String executorName, String challenge, Instant createdAt, int challengeId) {
             this.username = username;
             this.executorName = executorName;
             this.challenge = challenge;
             this.createdAt = createdAt;
+            this.challengeId = challengeId;
         }
     }
 }
+
 
 

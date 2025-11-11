@@ -4,7 +4,7 @@
 
 package com.huawei.cloududn.dialingtest.service.executormanagement.task;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvDecoder;
 import com.huawei.cloududn.dialingtest.dao.taskmanagement.TaskExecutorMappingDao;
 import com.huawei.cloududn.dialingtest.entity.TaskExecutorMapping;
 import com.huawei.cloududn.dialingtest.service.taskmanagement.orchestration.TaskOrchestratorService;
@@ -42,31 +42,15 @@ public class TaskInterfaceService {
     private TaskExecutorMappingDao taskExecutorMappingDao;
 
     /**
-     * Handle inbound task status update and trigger state machine event.
+     * Handle inbound task status update and trigger state machine event (V3 TLV format).
+     * V3版本：处理TLV格式的任务状态更新
      *
-     * @param data    status data
+     * @param decoded decoded TLV message
      * @param session session
      */
-    public void handleTaskStatusUpdate(JsonNode data, Session session) {
-        String taskId = text(data, "task_id");
-        String status = text(data, "status");
-        logger.info("Handle task_status_update, taskId={}, status={}, sessionId={}", taskId, status, session.getId());
-        boolean isSuccess = mapStatusToSuccess(status);
-        Map<String, Object> resultData = extractResultData(data);
-        try {
-            TaskExecutorMapping mapping = taskExecutorMappingDao.findByTaskId(taskId);
-            if (mapping == null) {
-                logger.warn("No task executor mapping found for taskId={}, treating as direct task ID", taskId);
-            } else {
-                logger.debug("Found mapping for taskId={}, executorName={}", taskId, mapping.getExecutorName());
-            }
-            taskOrchestratorService.sendResultEvent(parseMainTaskId(taskId), isSuccess, resultData);
-            logger.info("Successfully triggered state machine event for taskId={}, success={}", taskId, isSuccess);
-        } catch (NumberFormatException e) {
-            logger.error("Failed to parse task ID: taskId={}", taskId, e);
-        } catch (Exception e) {
-            logger.error("Failed to process task status update: taskId={}", taskId, e);
-        }
+    public void handleTaskStatusUpdate(TlvDecoder.DecodedMessage decoded, Session session) {
+        // TODO: V3版本需要重新实现任务状态更新处理
+        logger.info("Task status update received (V3 TLV implementation pending), sessionId={}", session.getId());
     }
 
     /**
@@ -94,24 +78,16 @@ public class TaskInterfaceService {
     }
 
     /**
-     * Extract result data from task status update message.
+     * Extract result data from task status update message (V3 TLV format).
+     * V3版本：从TLV消息中提取结果数据
      *
-     * @param data JSON data
+     * @param decoded decoded TLV message
      * @return result data map
      */
-    private Map<String, Object> extractResultData(JsonNode data) {
+    private Map<String, Object> extractResultData(TlvDecoder.DecodedMessage decoded) {
+        // TODO: V3版本需要重新实现结果数据提取
         Map<String, Object> resultData = new HashMap<>();
-        if (data != null) {
-            if (data.has("result_code")) {
-                resultData.put("result_code", data.get("result_code").asInt(0));
-            }
-            if (data.has("message")) {
-                resultData.put("message", data.get("message").asText(""));
-            }
-            if (data.has("log_path")) {
-                resultData.put("log_path", data.get("log_path").asText(""));
-            }
-        }
+        logger.debug("Extract result data (V3 TLV implementation pending)");
         return resultData;
     }
 
@@ -136,18 +112,23 @@ public class TaskInterfaceService {
     }
 
     /**
-     * Dispatch task_assign to specified agent session.
+     * Dispatch task_assign to specified agent session (V3 TLV format).
+     * V3版本：使用TLV格式发送任务分配
      *
      * @param sessionId target session id
-     * @param taskPayload task payload with fields defined by design
+     * @param taskId task ID
+     * @param scriptName script name
+     * @param version script version
+     * @param parameters parameters string
      */
-    public void dispatchTaskToAgent(String sessionId, Object taskPayload) {
-        logger.info("Dispatch task_assign to sessionId={}", sessionId);
-        wssMessageSender.sendTaskAssign(sessionId, taskPayload);
+    public void dispatchTaskToAgent(String sessionId, String taskId, String scriptName, String version, String parameters) {
+        logger.info("Dispatch task_assign to sessionId={}, taskId={}", sessionId, taskId);
+        wssMessageSender.sendTaskAssign(sessionId, taskId, scriptName, version, parameters);
     }
 
     /**
-     * Dispatch task_cancel to specified agent session.
+     * Dispatch task_cancel to specified agent session (V3 TLV format).
+     * V3版本：使用TLV格式发送任务取消
      *
      * @param sessionId target session id
      * @param taskId task id to cancel
@@ -158,84 +139,136 @@ public class TaskInterfaceService {
     }
 
     /**
-     * Dispatch script_update_notify to specified agent session.
+     * Dispatch script_update_notify to specified agent session (V3 TLV format).
+     * V3版本：使用TLV格式发送脚本更新通知
      *
      * @param sessionId target session id
-     * @param packageName script package name
+     * @param scriptName script name
      * @param version script version
-     * @param packageUrl script package URL
-     * @param checksum package checksum
+     * @param fileLen file length
+     * @param scriptFile script file content
+     * @param crc CRC checksum
      */
-    public void dispatchScriptUpdate(String sessionId, String packageName, String version, String packageUrl, String checksum) {
-        logger.info("Dispatch script_update_notify to sessionId={}, package={}, version={}", sessionId, packageName, version);
-        wssMessageSender.sendScriptUpdateNotify(sessionId, packageName, version, packageUrl, checksum);
+    public void dispatchScriptUpdate(String sessionId, String scriptName, String version, int fileLen, byte[] scriptFile, String crc) {
+        logger.info("Dispatch script_update_notify to sessionId={}, scriptName={}, version={}", sessionId, scriptName, version);
+        wssMessageSender.sendScriptUpdateNotify(sessionId, scriptName, version, fileLen, scriptFile, crc);
     }
 
     /**
-     * Dispatch app_install to specified agent session.
+     * Dispatch app_install to specified agent session (V3 TLV format).
+     * V3版本：使用TLV格式发送App安装
      *
      * @param sessionId target session id
-     * @param installPayload app install payload
+     * @param serialNo UE serial number
+     * @param taskId task ID
+     * @param appName app name
+     * @param script install script (optional)
+     * @param packageData app package data (optional)
+     * @param crc CRC checksum (optional)
      */
-    public void dispatchAppInstall(String sessionId, Object installPayload) {
-        logger.info("Dispatch app_install to sessionId={}", sessionId);
-        wssMessageSender.sendAppInstall(sessionId, installPayload);
+    public void dispatchAppInstall(String sessionId, String serialNo, int taskId, String appName, byte[] script, byte[] packageData, String crc) {
+        logger.info("Dispatch app_install to sessionId={}, serialNo={}", sessionId, serialNo);
+        wssMessageSender.sendAppInstall(sessionId, serialNo, taskId, appName, script, packageData, crc);
     }
 
     /**
-     * Query UE screencap from specified agent session.
+     * Query UE screencap from specified agent session (V3 TLV format).
+     * V3版本：使用TLV格式查询UE截屏
      *
      * @param sessionId target session id
-     * @param ueSerial UE serial number
+     * @param serialNo UE serial number
      */
-    public void queryUeScreencap(String sessionId, String ueSerial) {
-        logger.info("Query UE screencap from sessionId={}, ueSerial={}", sessionId, ueSerial);
-        wssMessageSender.sendQueryUeScreencap(sessionId, ueSerial);
+    public void queryUeScreencap(String sessionId, String serialNo) {
+        logger.info("Query UE screencap from sessionId={}, serialNo={}", sessionId, serialNo);
+        wssMessageSender.sendQueryUeScreencap(sessionId, serialNo);
     }
 
     /**
-     * Handle inbound UE screencap response.
+     * Handle inbound UE screencap response (V3 TLV format).
+     * V3版本：处理TLV格式的UE截屏响应
      *
-     * @param data    response data
+     * @param decoded decoded TLV message
      * @param session ws session
      */
-    public void handleUeScreencapResponse(JsonNode data, Session session) {
-        String ueSerial = text(data, "ue_serial");
-        String status = text(data, "status");
-        logger.info("Handle ue_screencap_response, ueSerial={}, status={}, sessionId={}", ueSerial, status, session.getId());
+    public void handleScreencapResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        String serialNo = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.SERIAL_NO).getAsString();
+        int result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsInt();
+        logger.info("Handle screencap_response, serialNo={}, result={}, sessionId={}", serialNo, result, session.getId());
         // TODO: notify upper module with image payload if needed
     }
 
     /**
-     * Handle inbound app install result.
+     * Handle inbound app install response (V3 TLV format).
+     * V3版本：处理TLV格式的App安装响应
      *
-     * @param data    result data
+     * @param decoded decoded TLV message
      * @param session ws session
      */
-    public void handleAppInstallResult(JsonNode data, Session session) {
-        String ueSerial = text(data, "ue_serial");
-        String status = text(data, "status");
-        logger.info("Handle app_install_result, ueSerial={}, status={}, sessionId={}", ueSerial, status, session.getId());
+    public void handleAppInstallResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        String serialNo = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.SERIAL_NO).getAsString();
+        int taskId = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.TASKID).getAsInt();
+        int result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsInt();
+        logger.info("Handle app_install_response, serialNo={}, taskId={}, result={}, sessionId={}", serialNo, taskId, result, session.getId());
         // TODO: notify upper module with install result if needed
     }
 
     /**
-     * Handle inbound script update ack.
+     * Handle inbound script update ack (V3 TLV format).
+     * V3版本：处理TLV格式的脚本更新确认
      *
-     * @param data    ack data
+     * @param decoded decoded TLV message
      * @param session ws session
      */
-    public void handleScriptUpdateAck(JsonNode data, Session session) {
-        String packageName = text(data, "package_name");
-        String version = text(data, "version");
-        String status = text(data, "status");
-        logger.info("Handle script_update_ack, package={}, version={}, status={}, sessionId={}", packageName, version, status, session.getId());
+    public void handleScriptUpdateAck(TlvDecoder.DecodedMessage decoded, Session session) {
+        String scriptName = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.SCRIPT_NAME).getAsString();
+        String version = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.VERSION).getAsString();
+        int result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsInt();
+        logger.info("Handle script_update_ack, scriptName={}, version={}, result={}, sessionId={}", scriptName, version, result, session.getId());
         // TODO: notify upper module with script update result if needed
     }
 
-    private static String text(JsonNode node, String field) {
-        return node != null && node.has(field) ? node.get(field).asText("") : "";
+    /**
+     * Handle inbound task start response (V3 TLV format).
+     * V3版本：处理TLV格式的任务启动响应
+     *
+     * @param decoded decoded TLV message
+     * @param session ws session
+     */
+    public void handleTaskStartResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        int taskId = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.TASKID).getAsInt();
+        String result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsString();
+        logger.info("Handle task_start_response, taskId={}, result={}, sessionId={}", taskId, result, session.getId());
+        // TODO: process task result and sub-results
     }
+
+    /**
+     * Handle inbound task stop response (V3 TLV format).
+     * V3版本：处理TLV格式的任务停止响应
+     *
+     * @param decoded decoded TLV message
+     * @param session ws session
+     */
+    public void handleTaskStopResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        int taskId = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.TASKID).getAsInt();
+        int result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsInt();
+        logger.info("Handle task_stop_response, taskId={}, result={}, sessionId={}", taskId, result, session.getId());
+        // TODO: process task stop confirmation
+    }
+
+    /**
+     * Handle inbound app list response (V3 TLV format).
+     * V3版本：处理TLV格式的App列表响应
+     *
+     * @param decoded decoded TLV message
+     * @param session ws session
+     */
+    public void handleAppListResponse(TlvDecoder.DecodedMessage decoded, Session session) {
+        String serialNo = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.SERIAL_NO).getAsString();
+        int result = decoded.getField(com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.FieldTag.RESULT).getAsInt();
+        logger.info("Handle app_list_response, serialNo={}, result={}, sessionId={}", serialNo, result, session.getId());
+        // TODO: process app list data
+    }
+
 }
 
 

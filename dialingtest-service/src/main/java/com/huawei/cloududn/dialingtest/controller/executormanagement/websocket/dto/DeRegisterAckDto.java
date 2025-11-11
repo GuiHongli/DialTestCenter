@@ -1,61 +1,48 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2020-2025. All rights reserved.
+ */
+
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto;
 
 /**
- * DeRegister-Ack (0x06) 消息DTO
- * 方向: ADCA ← CloudUDN
- * 说明: 去注册应答
- * 
- * @author DialTestCenter
- * @version V3
+ * DeRegister-Ack DTO (0x06).
+ * V3新增：注销确认消息
+ *
+ * @author g00940940
+ * @since 2025-11-11
  */
 public class DeRegisterAckDto {
-    
-    /**
-     * 会话Token
-     * Tag: 0x0008
-     */
     private long token;
-    
-    /**
-     * 错误码：0-成功，非0-失败
-     * Tag: 0x0006
-     */
-    private int result;
-    
-    public DeRegisterAckDto() {
-    }
-    
-    public DeRegisterAckDto(long token, int result) {
+    private int resultCode;
+    private String description;
+
+    public DeRegisterAckDto(long token, int resultCode, String description) {
         this.token = token;
-        this.result = result;
+        this.resultCode = resultCode;
+        this.description = description;
     }
-    
+
     public long getToken() {
         return token;
     }
-    
+
     public void setToken(long token) {
         this.token = token;
     }
-    
-    public int getResult() {
-        return result;
+
+    public int getResultCode() {
+        return resultCode;
     }
-    
-    public void setResult(int result) {
-        this.result = result;
+
+    public void setResultCode(int resultCode) {
+        this.resultCode = resultCode;
     }
-    
-    public boolean isSuccess() {
-        return result == 0;
+
+    public String getDescription() {
+        return description;
     }
-    
-    @Override
-    public String toString() {
-        return "DeRegisterAckDto{" +
-                "token=" + token +
-                ", result=" + result +
-                '}';
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
-

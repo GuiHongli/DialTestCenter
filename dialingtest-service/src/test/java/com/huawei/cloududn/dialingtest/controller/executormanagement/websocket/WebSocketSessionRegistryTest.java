@@ -4,11 +4,11 @@
 
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket;
 
-import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -17,10 +17,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for WebSocketSessionRegistry.
+ * V3版本WebSocketSessionRegistry测试
+ * 测试二进制消息发送功能
  *
- * @author g00940940
- * @since 2025-11-06
+ * @author DialTestCenter
+ * @since 2025-11-11
  */
 public class WebSocketSessionRegistryTest {
 
@@ -55,7 +56,16 @@ public class WebSocketSessionRegistryTest {
     }
 
     @Test
-    public void testSendMessage_CallsSessionSendText() throws Exception {
+    public void testRemoveSession_WithNullId_DoesNotThrow() {
+        // Should not throw exception
+        registry.removeSession(null);
+
+        // Should not throw exception
+        registry.removeSession("");
+    }
+
+    @Test
+    public void testSendBinary_CallsSessionSendBinary() throws IOException {
         Session session = mock(Session.class);
         RemoteEndpoint.Basic basicRemote = mock(RemoteEndpoint.Basic.class);
         when(session.getId()).thenReturn("s3");
@@ -63,11 +73,81 @@ public class WebSocketSessionRegistryTest {
         when(session.getBasicRemote()).thenReturn(basicRemote);
         registry.addSession(session);
 
-        WssMessage msg = new WssMessage("test_type", "payload");
-        registry.sendMessage("s3", msg);
+        ByteBuffer buffer = ByteBuffer.allocate(8);
+        buffer.putLong(123456789L);
+        buffer.flip();
 
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(basicRemote, times(1)).sendText(captor.capture());
-        assertTrue(captor.getValue().contains("test_type"));
+        registry.sendBinary("s3", buffer);
+
+        verify(basicRemote, times(1)).sendBinary(buffer);
+    }
+
+    @Test
+    public void testSendBinary_SessionNotFound_DoesNotThrow() throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(42);
+        buffer.flip();
+
+        // Should not throw exception when session not found
+        registry.sendBinary("nonexistent", buffer);
+    }
+
+    @Test
+    public void testSendBinary_SessionNotOpen_DoesNotThrow() throws IOException {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("s4");
+        when(session.isOpen()).thenReturn(false); // Session is closed
+        registry.addSession(session);
+
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(42);
+        buffer.flip();
+
+        // Should not throw exception when session is closed
+        registry.sendBinary("s4", buffer);
+    }
+
+    @Test
+    public void testSendBinary_SendBinaryThrowsIOException_DoesNotPropagate() throws IOException {
+        Session session = mock(Session.class);
+        RemoteEndpoint.Basic basicRemote = mock(RemoteEndpoint.Basic.class);
+        when(session.getId()).thenReturn("s5");
+        when(session.isOpen()).thenReturn(true);
+        when(session.getBasicRemote()).thenReturn(basicRemote);
+        when(basicRemote.sendBinary(any(ByteBuffer.class))).thenThrow(new IOException("Network error"));
+        registry.addSession(session);
+
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(42);
+        buffer.flip();
+
+        // Should not throw exception even when sendBinary fails
+        registry.sendBinary("s5", buffer);
+    }
+
+    @Test
+    public void testAddSession_WithNullSession_DoesNotThrow() {
+        // Should not throw exception when adding null session
+        registry.addSession(null);
+    }
+
+    @Test
+    public void testGetSession_NonExistentSession_ReturnsNull() {
+        Session result = registry.getSession("nonexistent");
+        assertNull(result);
+    }
+
+    @Test
+    public void testAddSession_ReplaceExistingSession() {
+        Session session1 = mock(Session.class);
+        Session session2 = mock(Session.class);
+        when(session1.getId()).thenReturn("s6");
+        when(session2.getId()).thenReturn("s6");
+
+        registry.addSession(session1);
+        registry.addSession(session2); // Should replace session1
+
+        Session fetched = registry.getSession("s6");
+        assertEquals(session2, fetched);
     }
 }

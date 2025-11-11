@@ -4,14 +4,12 @@
 
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,11 +17,12 @@ import javax.websocket.Session;
 
 /**
  * Session registry for WebSocket connections.
+ * V3版本：支持二进制消息发送
  *
- * <p>Provides thread-safe session storage and message sending.</p>
+ * <p>Provides thread-safe session storage and binary message sending.</p>
  *
  * @author g00940940
- * @since 2025-11-06
+ * @since 2025-11-11
  */
 @Component
 public class WebSocketSessionRegistry {
@@ -31,8 +30,6 @@ public class WebSocketSessionRegistry {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionRegistry.class);
 
     private final Map<String, Session> sessionMap = new ConcurrentHashMap<>();
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Add a new session to the registry.
@@ -57,10 +54,9 @@ public class WebSocketSessionRegistry {
         if (sessionId == null) {
             logger.warn("Attempted to remove session with null id");
         } else {
-            // no-op
+            sessionMap.remove(sessionId);
+            logger.debug("Session removed, sessionId={}", sessionId);
         }
-        sessionMap.remove(sessionId);
-        logger.debug("Session removed, sessionId={}", sessionId);
     }
 
     /**
@@ -74,13 +70,14 @@ public class WebSocketSessionRegistry {
     }
 
     /**
-     * Send a JSON message to the given session id.
+     * Send a binary TLV message to the given session id.
+     * V3版本：使用二进制格式发送
      *
      * @param sessionId target session id
-     * @param message   message wrapper
+     * @param buffer    TLV binary buffer
      * @throws IOException when sending fails
      */
-    public void sendMessage(String sessionId, WssMessage message) throws IOException {
+    public void sendBinary(String sessionId, ByteBuffer buffer) throws IOException {
         Session session = sessionMap.get(sessionId);
         if (session == null) {
             logger.warn("Session not found for sessionId={}", sessionId);
@@ -90,7 +87,6 @@ public class WebSocketSessionRegistry {
             logger.warn("Session is closed, sessionId={}", sessionId);
             return;
         }
-        String json = objectMapper.writeValueAsString(message);
-        session.getBasicRemote().sendText(json);
+        session.getBasicRemote().sendBinary(buffer);
     }
 }

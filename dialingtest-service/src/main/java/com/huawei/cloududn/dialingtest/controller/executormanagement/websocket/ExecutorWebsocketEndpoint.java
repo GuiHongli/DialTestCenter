@@ -4,9 +4,6 @@
 
 package com.huawei.cloududn.dialingtest.controller.executormanagement.websocket;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
 import com.huawei.cloududn.dialingtest.service.executormanagement.ExecutorMgmtService;
 
 import org.slf4j.Logger;
@@ -15,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -26,14 +24,15 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * WebSocket endpoint for agent connections.
+ * V3版本：支持TLV二进制协议
  *
  * <p>Acts as the single gateway for agent registration, heartbeat and task reporting.</p>
  *
  * @author g00940940
- * @since 2025-11-04
+ * @since 2025-11-11
  */
 @Component
-@ServerEndpoint("/wss/agents")
+@ServerEndpoint("/ws/executor")
 public class ExecutorWebsocketEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutorWebsocketEndpoint.class);
@@ -43,8 +42,6 @@ public class ExecutorWebsocketEndpoint {
     private static WssMessageDispatcher dispatcher;
 
     private static ExecutorMgmtService executorMgmtService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public void setSessionRegistry(WebSocketSessionRegistry registry) {
@@ -61,32 +58,45 @@ public class ExecutorWebsocketEndpoint {
         ExecutorWebsocketEndpoint.executorMgmtService = service;
     }
 
+    /**
+     * 连接建立事件
+     *
+     * @param session WebSocket会话
+     */
     @OnOpen
     public void onOpen(Session session) {
         sessionRegistry.addSession(session);
         logger.info("Agent connected, sessionId={}", session.getId());
     }
 
+    /**
+     * 接收二进制消息（V3版本）
+     * V3变更：从String消息改为ByteBuffer二进制消息
+     *
+     * @param message 二进制消息缓冲区
+     * @param session WebSocket会话
+     */
     @OnMessage
-    public void onMessage(String message, Session session) {
-        if (message == null || message.trim().isEmpty()) {
-            logger.warn("Received empty message, sessionId={}", session.getId());
+    public void onMessage(ByteBuffer message, Session session) {
+        if (message == null || message.remaining() == 0) {
+            logger.warn("Received empty binary message, sessionId={}", session.getId());
             return;
         }
         try {
-            JsonNode node = objectMapper.readTree(message);
-            String messageType = node.has("message_type") ? node.get("message_type").asText() : "";
-            logger.debug("Received WebSocket message, sessionId={}, messageType={}", session.getId(), messageType);
-            JsonNode dataNode = node.get("data");
-            if (dataNode == null) {
-                dataNode = objectMapper.createObjectNode();
-            }
-            dispatcher.dispatch(messageType, dataNode, session);
-        } catch (IOException e) {
-            logger.error("Failed to parse WebSocket message, sessionId={}", session.getId(), e);
+            logger.debug("Received binary WebSocket message, sessionId={}, size={} bytes", 
+                session.getId(), message.remaining());
+            dispatcher.dispatch(message, session);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to parse TLV message, sessionId={}", session.getId(), e);
         }
     }
 
+    /**
+     * 连接关闭事件
+     *
+     * @param session WebSocket会话
+     * @param reason 关闭原因
+     */
     @OnClose
     public void onClose(Session session, CloseReason reason) {
         sessionRegistry.removeSession(session.getId());
@@ -94,25 +104,33 @@ public class ExecutorWebsocketEndpoint {
         executorMgmtService.handleExecutorDisconnect(session.getId());
     }
 
+    /**
+     * 错误事件
+     *
+     * @param session WebSocket会话
+     * @param throwable 异常信息
+     */
     @OnError
     public void onError(Session session, Throwable throwable) {
         logger.error("WebSocket error, sessionId={}", session.getId(), throwable);
     }
 
     /**
-     * Send JSON message to a specific session.
+     * Send binary TLV message to a specific session.
+     * V3版本：使用二进制格式发送
      *
      * @param sessionId target session id
-     * @param message   message wrapper
+     * @param buffer    TLV binary buffer
      * @throws IOException when send fails
      */
-    public void sendMessage(String sessionId, WssMessage message) throws IOException {
-        logger.debug("Sending WebSocket message, sessionId={}, messageType={}", sessionId, message.getMessage_type());
+    public void sendBinary(String sessionId, ByteBuffer buffer) throws IOException {
+        logger.debug("Sending binary WebSocket message, sessionId={}, size={} bytes", 
+            sessionId, buffer.remaining());
         try {
-            sessionRegistry.sendMessage(sessionId, message);
-            logger.debug("WebSocket message sent successfully, sessionId={}", sessionId);
+            sessionRegistry.sendBinary(sessionId, buffer);
+            logger.debug("Binary WebSocket message sent successfully, sessionId={}", sessionId);
         } catch (IOException e) {
-            logger.error("Failed to send WebSocket message, sessionId={}, messageType={}", sessionId, message.getMessage_type(), e);
+            logger.error("Failed to send binary WebSocket message, sessionId={}", sessionId, e);
             throw e;
         }
     }

@@ -67,6 +67,23 @@ public interface ExecutorDao {
             "</script>"
     })
     int count(@Param("status") Integer status, @Param("keyword") String keyword);
+    
+    /**
+     * Save or update executor with long token (V3 TLV protocol).
+     *
+     * @param name   executor name
+     * @param token  8-byte token as long
+     * @param status status string ("ONLINE", "OFFLINE", etc.)
+     */
+    @Insert("INSERT INTO executor(name, token, status, last_online_time) " +
+            "VALUES(#{name}, #{token}::TEXT, CASE WHEN #{status} = 'ONLINE' THEN 1 WHEN #{status} = 'OFFLINE' THEN 0 ELSE 2 END, NOW()) " +
+            "ON CONFLICT (name) DO UPDATE SET " +
+            "token = #{token}::TEXT, " +
+            "status = CASE WHEN #{status} = 'ONLINE' THEN 1 WHEN #{status} = 'OFFLINE' THEN 0 ELSE 2 END, " +
+            "last_online_time = NOW()")
+    int saveOrUpdateExecutor(@Param("name") String name,
+                             @Param("token") long token,
+                             @Param("status") String status);
 }
 
 

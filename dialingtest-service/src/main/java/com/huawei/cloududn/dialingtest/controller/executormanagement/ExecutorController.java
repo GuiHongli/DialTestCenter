@@ -90,26 +90,10 @@ public class ExecutorController implements ExecutorsApi {
 
     @Override
     public ResponseEntity<OperationResponse> refreshExecutor(RefreshExecutorRequest refreshExecutorRequest) {
+        // TODO: V3版本需要重新实现refreshExecutor，使用TLV格式
         String name = refreshExecutorRequest == null ? null : refreshExecutorRequest.getName();
-        logger.info("Received refresh request for executor: {}", name);
-        if (name == null || name.trim().isEmpty()) {
-            logger.warn("Refresh request rejected: missing executor name");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(op(false, "Missing executor name"));
-        }
-        String sessionId = registry.getSessionId(name);
-        if (sessionId == null) {
-            logger.warn("Refresh request rejected: executor not online, name={}", name);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(op(false, "Executor not online"));
-        }
-        try {
-            logger.debug("Sending refresh command to executor, name={}, sessionId={}", name, sessionId);
-            endpoint.sendMessage(sessionId, new WssMessage("update_executor_info", new HashMap<>()));
-            logger.info("Refresh command sent successfully to executor: {}", name);
-            return ResponseEntity.ok(op(true, "Refresh command sent"));
-        } catch (IOException e) {
-            logger.error("Failed to send refresh to executor: {}", name, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(op(false, "Send failed"));
-        }
+        logger.info("Refresh executor request received for: {} (V3 TLV implementation pending)", name);
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(op(false, "V3 TLV implementation pending"));
     }
 
     private static OperationResponse op(boolean success, String message) {

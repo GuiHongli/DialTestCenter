@@ -200,6 +200,35 @@ public class DtoTlvConverter {
     }
     
     /**
+     * 编码DeRegisterAck DTO为TLV消息
+     * V3新增：注销应答(0x06)
+     *
+     * @param dto DeRegisterAck DTO
+     * @return TLV二进制缓冲区
+     */
+    public static ByteBuffer encodeDeRegisterAck(DeRegisterAckDto dto) {
+        List<TlvField> fields = new ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, dto.getToken()));
+        fields.add(TlvField.ofInt(FieldTag.RESULT, dto.getResultCode()));
+        fields.add(TlvField.ofString(FieldTag.DESCRIPTION, dto.getDescription()));
+        return TlvEncoder.encodeMessage(MessageType.DEREGISTER_ACK, fields);
+    }
+    
+    /**
+     * 解码DeRegisterRequest TLV消息为DTO
+     * V3新增：注销请求(0x05)
+     *
+     * @param decoded 解码后的消息
+     * @return DeRegisterRequest DTO
+     */
+    public static DeRegisterRequestDto decodeDeRegisterRequest(TlvDecoder.DecodedMessage decoded) {
+        DeRegisterRequestDto dto = new DeRegisterRequestDto();
+        dto.setToken(decoded.getField(FieldTag.TOKEN).getAsLong());
+        dto.setHostname(decoded.getField(FieldTag.HOSTNAME).getAsString());
+        return dto;
+    }
+    
+    /**
      * 通用解码方法：根据消息类型解码为对应的DTO
      *
      * @param buffer 二进制缓冲区
