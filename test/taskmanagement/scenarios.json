@@ -1,0 +1,29 @@
+{
+  "happy_path": [
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "validation" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "training_dialing" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "model_train" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "model_replay" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "gray_validation" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "full_replay" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "whitelist" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "full_release" } }
+  ],
+  "model_train_failed": [
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "validation" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "training_dialing" } },
+    { "status": "FAILED",  "delay": 5, "result_data": { "phase": "model_train", "error": "training failed" } }
+  ],
+  "loop_training_then_success": [
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "validation" } },
+    { "status": "FAILED",  "delay": 5, "result_data": { "phase": "training_dialing" } },
+    { "status": "FAILED",  "delay": 5, "result_data": { "phase": "training_dialing" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "training_dialing" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "model_train" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "model_replay" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "gray_validation" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "full_replay" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "whitelist" } },
+    { "status": "SUCCESS", "delay": 5, "result_data": { "phase": "full_release" } }
+  ]
+}

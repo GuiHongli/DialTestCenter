@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -134,6 +136,48 @@ public class GlobalExceptionHandler {
         String message = "请求的资源不存在: " + e.getRequestURL();
         Map<String, Object> response = createErrorResponse("NOT_FOUND", message, 404);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    
+    /**
+     * 处理数据库唯一约束违反异常（重复键）
+     * 
+     * @param e 重复键异常
+     * @param request HTTP请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateKeyException(DuplicateKeyException e, HttpServletRequest request) {
+        logger.warn("重复键异常 - URI: {}, Method: {}, Message: {}", 
+                request.getRequestURI(), request.getMethod(), e.getMessage());
+        
+        String message = "数据已存在，请检查唯一性约束";
+        String errorMessage = e.getMessage();
+        if (errorMessage != null && errorMessage.contains("uk_template_task_name")) {
+            message = "模板名称已存在";
+        }
+        Map<String, Object> response = createErrorResponse("DUPLICATE_KEY", message, 409);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+    
+    /**
+     * 处理ResponseStatusException（保留原始HTTP状态码）
+     * 
+     * @param e ResponseStatusException
+     * @param request HTTP请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException e, HttpServletRequest request) {
+        HttpStatus status = e.getStatus();
+        logger.warn("ResponseStatusException - URI: {}, Method: {}, Status: {}, Message: {}", 
+                request.getRequestURI(), request.getMethod(), status, e.getReason());
+        
+        String message = e.getReason() != null ? e.getReason() : status.getReasonPhrase();
+        Map<String, Object> response = createErrorResponse(
+            status.name().replace(" ", "_"), 
+            message, 
+            status.value());
+        return ResponseEntity.status(status).body(response);
     }
     
     /**

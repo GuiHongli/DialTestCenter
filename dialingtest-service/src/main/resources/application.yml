@@ -66,7 +66,7 @@ spring:
 
   # Jackson配置
   jackson:
-    default-property-inclusion: non_null
+    default-property-inclusion: always
     serialization:
       write-dates-as-timestamps: false
       fail-on-empty-beans: false
@@ -80,5 +80,18 @@ mybatis:
     default-fetch-size: 100
     default-statement-timeout: 30
   type-aliases-package: com.huawei.cloududn.dialingtest.model
+
+# WebSocket配置（V3版本：支持大容量二进制消息）
+websocket:
+  # 文本消息缓冲区大小（字节）
+  text-buffer-size: 2097152
+  # 二进制消息缓冲区大小（字节）- V3版本增大以支持大文件传输
+  binary-buffer-size: 10485760
+  # 最大空闲超时时间（毫秒）- 考虑心跳间隔30秒
+  max-idle-timeout: 300000
+  # 异步发送超时时间（毫秒）
+  async-send-timeout: 180000
+  # 最大会话数
+  max-sessions: 1000
 
 logging.config: classpath:config/log4j2-spring.xml

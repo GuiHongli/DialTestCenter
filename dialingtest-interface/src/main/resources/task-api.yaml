@@ -1,0 +1,141 @@
+swagger: '2.0'
+info:
+  title: Task API
+  version: 1.0.0
+  description: Task management API (start/list/detail)
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+paths:
+  /tasks/start:
+    post:
+      operationId: startTask
+      summary: Start a dialing task manually
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/StartTaskRequest'
+      responses:
+        '202':
+          description: Accepted
+          schema:
+            $ref: '#/definitions/TaskEntity'
+  /tasks:
+    get:
+      operationId: getTasks
+      summary: List main tasks with pagination
+      parameters:
+        - name: page
+          in: query
+          type: integer
+          required: false
+          default: 0
+        - name: size
+          in: query
+          type: integer
+          required: false
+          default: 20
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/TaskPageResponse'
+  /tasks/{id}:
+    get:
+      operationId: getTaskById
+      summary: Get task detail by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/TaskEntity'
+        '404':
+          description: Not Found
+  /tasks/{id}/subtasks:
+    get:
+      operationId: getSubTasksByMainTaskId
+      summary: List sub tasks by main task id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TaskEntity'
+definitions:
+  StartTaskRequest:
+    type: object
+    properties:
+      business_type:
+        type: string
+      scenario:
+        type: string
+        enum: [TRAINING, VALIDATION]
+      script_names:
+        type: array
+        items:
+          type: string
+      target_ues:
+        type: array
+        items:
+          type: string
+      failed_apps:
+        type: array
+        items:
+          type: string
+  TaskEntity:
+    type: object
+    properties:
+      id:
+        type: integer
+      mainTaskId:
+        type: integer
+      parentTaskId:
+        type: integer
+      creator:
+        type: string
+      startTime:
+        type: string
+      endTime:
+        type: string
+      status:
+        type: string
+      result:
+        type: string
+      input:
+        type: string
+      output:
+        type: string
+      context:
+        type: string
+      templateTaskId:
+        type: integer
+  TaskPageResponse:
+    type: object
+    properties:
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/TaskEntity'
+      totalElements:
+        type: integer
+      size:
+        type: integer
+      number:
+        type: integer
+
