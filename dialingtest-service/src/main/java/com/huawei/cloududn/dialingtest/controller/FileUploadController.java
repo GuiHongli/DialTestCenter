@@ -296,9 +296,6 @@ public class FileUploadController {
         } catch (IllegalArgumentException e) {
             logger.warn("Software package upload validation failed: {}", e.getMessage());
             return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (IOException e) {
-            logger.error("Software package upload failed", e);
-            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             logger.error("Software package upload failed", e);
             return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -357,15 +354,20 @@ public class FileUploadController {
         String fileName = file.getOriginalFilename();
         logger.info("Processing ZIP package upload: {}", fileName);
         
-        List<SoftwarePackage> uploadedPackages = softwarePackagesService.uploadZipPackage(
-            file, isOverwrite, description, xUsername);
-        
-        logger.info("ZIP package upload completed successfully: {}, {} packages uploaded", 
-                   fileName, uploadedPackages.size());
-        
-        String responseMessage = String.format("{\"success\":true,\"message\":\"成功上传ZIP包，包含 %d 个软件包\"}", 
-            uploadedPackages.size());
-        return ResponseEntity.ok(responseMessage);
+        try {
+            List<SoftwarePackage> uploadedPackages = softwarePackagesService.uploadZipPackage(
+                file, isOverwrite, description, xUsername);
+            
+            logger.info("ZIP package upload completed successfully: {}, {} packages uploaded", 
+                       fileName, uploadedPackages.size());
+            
+            String responseMessage = String.format("{\"success\":true,\"message\":\"成功上传ZIP包，包含 %d 个软件包\"}", 
+                uploadedPackages.size());
+            return ResponseEntity.ok(responseMessage);
+        } catch (IOException e) {
+            logger.error("ZIP package upload failed: {}", e.getMessage(), e);
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     /**
@@ -382,12 +384,17 @@ public class FileUploadController {
         String fileName = file.getOriginalFilename();
         logger.info("Processing single package upload: {}", fileName);
         
-        SoftwarePackage softwarePackage = softwarePackagesService.uploadSinglePackage(
-            file, description, isOverwrite, xUsername);
-        
-        logger.info("Single package upload completed successfully: {}", fileName);
-        
-        return ResponseEntity.ok(buildSinglePackageResponse(softwarePackage));
+        try {
+            SoftwarePackage softwarePackage = softwarePackagesService.uploadSinglePackage(
+                file, description, isOverwrite, xUsername);
+            
+            logger.info("Single package upload completed successfully: {}", fileName);
+            
+            return ResponseEntity.ok(buildSinglePackageResponse(softwarePackage));
+        } catch (IOException e) {
+            logger.error("Single package upload failed: {}", e.getMessage(), e);
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     /**
@@ -447,9 +454,6 @@ public class FileUploadController {
         } catch (IllegalArgumentException e) {
             logger.warn("Preprocess rule package upload validation failed: {}", e.getMessage());
             return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (IOException e) {
-            logger.error("Preprocess rule package upload failed", e);
-            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             logger.error("Preprocess rule package upload failed", e);
             return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -500,12 +504,17 @@ public class FileUploadController {
         
         boolean shouldOverwrite = "true".equalsIgnoreCase(forceOverwrite);
         
-        String result = preprocessRuleService.uploadPreprocessRulePackage(
-            file, businessZh, businessEn, description, xUsername, shouldOverwrite);
-        
-        logger.info("Preprocess rule package upload completed successfully: {}", originalFilename);
-        
-        return ResponseEntity.ok(result);
+        try {
+            String result = preprocessRuleService.uploadPreprocessRulePackage(
+                file, businessZh, businessEn, description, xUsername, shouldOverwrite);
+            
+            logger.info("Preprocess rule package upload completed successfully: {}", originalFilename);
+            
+            return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            logger.error("Preprocess rule package upload failed: {}", e.getMessage(), e);
+            return createStringErrorResponse("上传失败: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     // ==================== 私有辅助方法 ====================
