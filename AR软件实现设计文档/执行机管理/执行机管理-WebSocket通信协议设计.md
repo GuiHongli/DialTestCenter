@@ -166,6 +166,7 @@ TlvDecoder --> FieldTag
 
 ### 3.2 认证与会话服务 (Auth & Session Service)
 本通信层不实现业务逻辑，仅回调业务层处理；需业务层实现四阶段CHAP并通过本层回传消息。
+业务层通过DialUserService查询dial_users表获取NTLM Hash进行认证验证。
 
 ### 3.3 执行机服务 (Executor Service)
 同上，由业务层处理状态与UE信息；本层负责可靠收发与DTO解码。
@@ -205,6 +206,13 @@ TlvDecoder --> FieldTag
 
 ### 4.2 数据模型 (数据库表)
 本通信层不涉及数据库表设计（由业务层负责）。
+
+业务层相关表：
+- `dial_users`：执行机用户表，密码字段存储NTLM Hash（32位16进制）用于CHAP认证
+- `executor`：执行机状态表，存储token、状态、最后在线时间等
+- `ue`：UE设备表，存储绑定的执行机、设备信息等
+
+详见：dial_users表统一方案、执行机管理-业务逻辑设计。
 
 ### 4.3 接口定义 (WebSocket 消息)
 
@@ -465,7 +473,7 @@ ScriptUpdate-Notify/Ack、TaskStart-Request/Response、TaskStop-Request/Response
 ## 5. 执行机管理业务核心流程（通信视角）
 
 ### 5.0 执行机本地配置与初始化
-通信层无感；待业务层按约定生成NTLM Hash并完成CHAP使用。
+通信层无感；业务层通过DialUserService管理用户，密码自动转换为NTLM Hash用于CHAP认证。详见：dial_users表统一方案。
 
 ### 5.1 Agent 注册与认证流程
 ```plantuml
@@ -476,7 +484,8 @@ actor "ADCA\nAgent" as Agent
 participant "WSS 网关\n[组件 1]" as Wss
 participant "WssMessageDispatcher" as Dispatcher
 participant "认证服务\n[组件 2]" as AuthService
-participant "持久化服务\n[组件 4]" as Dao
+participant "用户服务\nDialUserService" as UserService
+participant "持久化服务\nExecutorDao" as Dao
 
 Agent -> Wss : 1. 建立 WSS 连接 (OnOpen)
 Agent -> Wss : 2. 发送 Register-Request (0x01)\n(hostname)
@@ -496,8 +505,8 @@ Wss -> Dispatcher : 10. dispatch(0x03, session)
 Dispatcher -> AuthService : 11. handleRegisterResponse(...)
 
 activate AuthService
-    AuthService -> Dao : 12. AgentUserDao.findByUsername(...)
-    Dao --> AuthService : 13. (返回存储的 NTLM-Hash)
+    AuthService -> UserService : 12. DialUserService.findByUsername(...)
+    UserService --> AuthService : 13. (返回DialUser对象，含NTLM-Hash)
     AuthService -> AuthService : 14. 计算 Check =\nMD5(DB-Hash + Challenge)
     AuthService -> AuthService : 15. 对比 Check 与 Response
 
@@ -510,6 +519,13 @@ activate AuthService
 deactivate AuthService
 
 Wss -> Agent : 20. 发送 Register-Result (0x04)\n(result=0, token)
+
+note right of UserService
+  ✅ V3版本变更：
+  使用DialUserService查询dial_users表
+  密码字段为NTLM Hash格式
+  参见：dial_users表统一方案
+end note
 
 @enduml
 ```

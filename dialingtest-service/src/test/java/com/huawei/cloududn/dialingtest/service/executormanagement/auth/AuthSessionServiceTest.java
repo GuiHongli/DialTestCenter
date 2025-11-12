@@ -4,9 +4,9 @@ import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.c
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvDecoder;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvField;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterRequestDto;
-import com.huawei.cloududn.dialingtest.dao.executormanagement.AgentUserDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
-import com.huawei.cloududn.dialingtest.model.AgentUser;
+import com.huawei.cloududn.dialingtest.model.DialUser;
+import com.huawei.cloududn.dialingtest.service.DialUserService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.WssMessageSender;
 
@@ -51,7 +51,7 @@ public class AuthSessionServiceTest {
     private WssMessageSender sender;
 
     @Mock
-    private AgentUserDao agentUserDao;
+    private DialUserService dialUserService;
 
     @Mock
     private ExecutorDao executorDao;
@@ -114,11 +114,11 @@ public class AuthSessionServiceTest {
         // Create decoded message with valid response
         TlvDecoder.DecodedMessage decoded = createValidRegisterResponse();
 
-        // Mock user lookup
-        AgentUser user = new AgentUser();
+        // Mock user lookup from dial_users table
+        DialUser user = new DialUser();
         user.setUsername("testuser");
-        user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char hex string
-        when(agentUserDao.findByUsername("testuser")).thenReturn(user);
+        user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char NTLM Hash hex string
+        when(dialUserService.findByUsername("testuser")).thenReturn(user);
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
@@ -146,7 +146,7 @@ public class AuthSessionServiceTest {
 
         // Create decoded message
         TlvDecoder.DecodedMessage decoded = createValidRegisterResponse();
-        when(agentUserDao.findByUsername("testuser")).thenReturn(null);
+        when(dialUserService.findByUsername("testuser")).thenReturn(null);
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
@@ -228,11 +228,11 @@ public class AuthSessionServiceTest {
         // Create decoded message with invalid response
         TlvDecoder.DecodedMessage decoded = createInvalidRegisterResponse();
 
-        // Mock user lookup
-        AgentUser user = new AgentUser();
+        // Mock user lookup from dial_users table
+        DialUser user = new DialUser();
         user.setUsername("testuser");
-        user.setPassword("0123456789abcdef0123456789abcdef");
-        when(agentUserDao.findByUsername("testuser")).thenReturn(user);
+        user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char NTLM Hash hex string
+        when(dialUserService.findByUsername("testuser")).thenReturn(user);
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
@@ -258,10 +258,10 @@ public class AuthSessionServiceTest {
         requestDto.setHostname("Executor-TokenTest");
 
         // Mock successful authentication
-        AgentUser user = new AgentUser();
+        DialUser user = new DialUser();
         user.setUsername("testuser");
-        user.setPassword("0123456789abcdef0123456789abcdef");
-        when(agentUserDao.findByUsername("testuser")).thenReturn(user);
+        user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char NTLM Hash hex string
+        when(dialUserService.findByUsername("testuser")).thenReturn(user);
 
         TlvDecoder.DecodedMessage decoded = createValidRegisterResponse();
 

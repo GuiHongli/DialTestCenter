@@ -98,6 +98,24 @@ public interface SoftwarePackageDao {
     SoftwarePackageInfo getSoftwarePackageByName(String softwareName);
     
     /**
+     * 根据软件名称查询软件包（含file_content）
+     * 用于APP推送到执行机
+     *
+     * @param softwareName 软件名称
+     * @return 软件包完整信息，包含文件内容
+     */
+    @Select("SELECT * FROM software_package WHERE software_name = #{softwareName}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "softwareName", column = "software_name"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "fileContent", column = "file_content", javaType = byte[].class, jdbcType = org.apache.ibatis.type.JdbcType.BINARY),
+            @Result(property = "fileSha256", column = "file_sha256"),
+            @Result(property = "fileSize", column = "file_size")
+    })
+    SoftwarePackage findBySoftwareName(String softwareName);
+    
+    /**
      * 根据ID获取软件包文件内容（封装对象）
      */
     @Select("SELECT file_content FROM software_package WHERE id = #{id}")

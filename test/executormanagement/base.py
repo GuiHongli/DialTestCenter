@@ -44,6 +44,8 @@ class BaseTestCase(unittest.TestCase):
             cls.db.ensure_schema()
             # 准备刷新接口所需的基础数据
             cls.db.ensure_executor_exists("Executor_PC_001")
+            # 创建测试用户（用于CHAP认证）
+            cls.db.ensure_agent_user_exists(AGENT_USERNAME, AGENT_NTLM_HASH)
         except Exception:
             # 不中断收集；具体用例执行时再报错便于定位
             pass
@@ -111,6 +113,9 @@ class BaseTestCase(unittest.TestCase):
                     print(f"DEBUG: Parsed text as hex: {response_str}")
                 except ValueError:
                     raise ValueError(f"Expected binary message, got unexpected text: {response_str}")
+            elif frame[0] == websocket.ABNF.OPCODE_CLOSE:
+                print(f"DEBUG: Received CLOSE frame from server")
+                raise ConnectionError("WebSocket connection closed by server")
             else:
                 raise ValueError(f"Unexpected frame opcode: {frame[0]}")
 

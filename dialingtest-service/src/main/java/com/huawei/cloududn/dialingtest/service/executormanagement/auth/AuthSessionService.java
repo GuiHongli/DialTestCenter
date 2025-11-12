@@ -13,9 +13,9 @@ import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.d
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterRequestDto;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterResultDto;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.WssMessage;
-import com.huawei.cloududn.dialingtest.dao.executormanagement.AgentUserDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
-import com.huawei.cloududn.dialingtest.model.AgentUser;
+import com.huawei.cloududn.dialingtest.model.DialUser;
+import com.huawei.cloududn.dialingtest.service.DialUserService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.WssMessageSender;
 
@@ -24,11 +24,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.websocket.Session;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -61,7 +59,7 @@ public class AuthSessionService {
     private WssMessageSender wssMessageSender;
 
     @Autowired
-    private AgentUserDao agentUserDao;
+    private DialUserService dialUserService;
 
     @Autowired
     private ExecutorDao executorDao;
@@ -138,8 +136,8 @@ public class AuthSessionService {
             return;
         }
         String response = getText(data, "response");
-        logger.debug("Querying agent user from database, username={}", ctx.username);
-        AgentUser user = agentUserDao.findByUsername(ctx.username);
+        logger.debug("Querying dial user from database, username={}", ctx.username);
+        DialUser user = dialUserService.findByUsername(ctx.username);
         if (user == null) {
             sendAck(session.getId(), false, "user not found", null);
             logger.warn("Auth failed: user not found, username={}", ctx.username);
@@ -191,15 +189,15 @@ public class AuthSessionService {
             return;
         }
         
-        // Query user from database
-        AgentUser user = agentUserDao.findByUsername(username);
+        // Query user from dial_users table via DialUserService
+        DialUser user = dialUserService.findByUsername(username);
         if (user == null) {
             sendRegisterResult(session.getId(), 3, "User not found", null);
             logger.warn("Auth failed: user not found, username={}", username);
             return;
         }
         
-        // Verify CHAP response
+        // Verify CHAP response using NTLM Hash from dial_users table
         byte[] expectedResponse = computeChapResponseV3(user.getPassword(), ctx.challenge);
         logger.debug("Auth verification: username={}, ntlmHash={}, challengeBase64={}",
             username, user.getPassword(), ctx.challenge);

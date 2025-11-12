@@ -7,7 +7,11 @@ package com.huawei.cloududn.dialingtest.service.executormanagement.task;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.DtoTlvConverter;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.codec.TlvDecoder;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.*;
+import com.huawei.cloududn.dialingtest.dao.SoftwarePackageDao;
+import com.huawei.cloududn.dialingtest.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
+import com.huawei.cloududn.dialingtest.entity.SoftwarePackage;
+import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtest.service.executormanagement.ExecutorSelectionService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtest.service.executormanagement.dto.AppInstallRequest;
@@ -56,6 +60,12 @@ public class TaskInterfaceService {
 
     @Autowired
     private TaskOrchestratorService taskOrchestratorService;
+
+    @Autowired
+    private TestCaseSetDao testCaseSetDao;
+
+    @Autowired
+    private SoftwarePackageDao softwarePackageDao;
 
     /**
      * 向指定执行机分发拨测任务
@@ -404,6 +414,119 @@ public class TaskInterfaceService {
             // TODO: 如果需要解析具体的App列表数据，可以在这里处理
         } else {
             logger.warn("Failed to retrieve app list for serialNo: {}, result={}", serialNo, result);
+        }
+    }
+
+    /**
+     * 向指定执行机推送脚本更新（从数据库读取）
+     * V3版本：从test_case_set表读取脚本内容并推送到执行机
+     * 对应设计文档5.6节流程
+     *
+     * @param executorName 执行机名称
+     * @param scriptName 脚本名称
+     * @param version 版本号
+     */
+    public void pushScriptToExecutor(String executorName, String scriptName, String version) {
+        logger.info("Pushing script to executor: executor={}, scriptName={}, version={}", 
+                   executorName, scriptName, version);
+        
+        try {
+            // 1. 从数据库查询脚本数据
+            TestCaseSet testCaseSet = testCaseSetDao.findByNameAndVersion(scriptName, version);
+            if (testCaseSet == null) {
+                logger.warn("Test case set not found: name={}, version={}", scriptName, version);
+                return;
+            }
+            
+            // 2. 获取文件内容和SHA256
+            byte[] fileContent = testCaseSet.getFileContent();
+            if (fileContent == null || fileContent.length == 0) {
+                logger.warn("Test case set file content is empty: name={}, version={}", scriptName, version);
+                return;
+            }
+            
+            String sha256 = testCaseSet.getSha256();
+            
+            // 3. 构造ScriptUpdateRequest对象
+            ScriptUpdateRequest request = new ScriptUpdateRequest();
+            request.setScriptName(scriptName);
+            request.setVersion(version);
+            request.setScriptFile(fileContent);
+            request.setCrc(sha256 != null ? sha256 : "");
+            
+            // 4. 调用现有的sendScriptUpdate方法推送到执行机
+            sendScriptUpdate(executorName, request);
+            
+            logger.info("Script push completed: executor={}, scriptName={}, version={}, size={} bytes", 
+                       executorName, scriptName, version, fileContent.length);
+            
+        } catch (Exception e) {
+            logger.error("Failed to push script to executor: executor={}, scriptName={}, version={}", 
+                       executorName, scriptName, version, e);
+        }
+    }
+
+    /**
+     * 向指定执行机和UE推送APP安装（从数据库读取）
+     * V3版本：从software_package表读取APP文件并推送到执行机
+     * 对应设计文档5.5节流程
+     *
+     * @param executorName 执行机名称
+     * @param serialNo UE序列号
+     * @param appName APP名称
+     * @param taskId 任务ID
+     */
+    public void pushAppToUe(String executorName, String serialNo, String appName, Integer taskId) {
+        logger.info("Pushing app to UE: executor={}, serialNo={}, appName={}, taskId={}", 
+                   executorName, serialNo, appName, taskId);
+        
+        try {
+            // 1. 从数据库查询APP数据
+            SoftwarePackage softwarePackage = softwarePackageDao.findBySoftwareName(appName);
+            if (softwarePackage == null) {
+                logger.warn("Software package not found: appName={}", appName);
+                return;
+            }
+            
+            // 2. 获取文件内容
+            byte[] fileContent = softwarePackage.getFileContent();
+            if (fileContent == null || fileContent.length == 0) {
+                logger.warn("Software package file content is empty: appName={}", appName);
+                return;
+            }
+            
+            // 3. 获取会话ID
+            String sessionId = sessionBindingRegistry.getSessionId(executorName);
+            if (sessionId == null) {
+                logger.error("No session found for executor: {}", executorName);
+                return;
+            }
+            
+            // 4. 构造AppInstallRequestDto并发送
+            AppInstallRequestDto installDto = new AppInstallRequestDto();
+            installDto.setSerialNo(serialNo);
+            installDto.setTaskId(taskId);
+            installDto.setAppName(appName);
+            installDto.setPackageFile(fileContent);
+            
+            // 设置CRC校验值
+            String crc = softwarePackage.getFileSha256();
+            if (crc != null) {
+                installDto.setCrc(crc.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            } else {
+                installDto.setCrc(new byte[0]);
+            }
+            
+            // 5. 发送APP安装请求
+            ByteBuffer buffer = DtoTlvConverter.encodeAppInstallRequest(installDto);
+            wssMessageSender.sendBinary(sessionId, buffer);
+            
+            logger.info("App push completed: executor={}, serialNo={}, appName={}, taskId={}, size={} bytes", 
+                       executorName, serialNo, appName, taskId, fileContent.length);
+            
+        } catch (Exception e) {
+            logger.error("Failed to push app to UE: executor={}, serialNo={}, appName={}, taskId={}", 
+                       executorName, serialNo, appName, taskId, e);
         }
     }
 

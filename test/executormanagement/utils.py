@@ -175,9 +175,9 @@ class DatabaseHelper(BaseDatabaseHelper):
         self.execute_update("DELETE FROM ue WHERE executor_name = %s", (executor_name,))
 
     def get_agent_user(self, username: str) -> Optional[Dict[str, Any]]:
-        """查询Agent用户信息"""
+        """查询Agent用户信息（现在从dial_users表查询）"""
         results = self.execute_query(
-            "SELECT * FROM agent_user WHERE username = %s",
+            "SELECT * FROM dial_users WHERE username = %s",
             (username,)
         )
         return results[0] if results else None
@@ -215,9 +215,11 @@ class DatabaseHelper(BaseDatabaseHelper):
             )
             """
         )
+        # Create dial_users table (unified user management for frontend and executor CHAP auth)
+        # password field stores NTLM Hash format (32-char hex string)
         self.execute_update(
             """
-            CREATE TABLE IF NOT EXISTS agent_user (
+            CREATE TABLE IF NOT EXISTS dial_users (
               id BIGSERIAL PRIMARY KEY,
               username VARCHAR(128) NOT NULL UNIQUE,
               password VARCHAR(256) NOT NULL,
@@ -238,10 +240,10 @@ class DatabaseHelper(BaseDatabaseHelper):
         )
 
     def ensure_agent_user_exists(self, username: str, password_hash: str) -> None:
-        """确保指定的Agent用户存在"""
+        """确保指定的Agent用户存在（现在使用dial_users表存储NTLM Hash）"""
         self.execute_update(
             """
-            INSERT INTO agent_user (username, password)
+            INSERT INTO dial_users (username, password)
             VALUES (%s, %s)
             ON CONFLICT (username) DO NOTHING
             """,

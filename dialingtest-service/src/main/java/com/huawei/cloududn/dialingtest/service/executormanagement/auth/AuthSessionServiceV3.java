@@ -9,9 +9,9 @@ import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.c
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterChallengeDto;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterRequestDto;
 import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.RegisterResultDto;
-import com.huawei.cloududn.dialingtest.dao.executormanagement.AgentUserDao;
 import com.huawei.cloududn.dialingtest.dao.executormanagement.ExecutorDao;
-import com.huawei.cloududn.dialingtest.model.AgentUser;
+import com.huawei.cloududn.dialingtest.model.DialUser;
+import com.huawei.cloududn.dialingtest.service.DialUserService;
 import com.huawei.cloududn.dialingtest.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtest.service.executormanagement.task.WssMessageSender;
 
@@ -61,7 +61,7 @@ public class AuthSessionServiceV3 {
     private WssMessageSender wssMessageSender;
 
     @Autowired
-    private AgentUserDao agentUserDao;
+    private DialUserService dialUserService;
 
     @Autowired
     private ExecutorDao executorDao;
@@ -128,15 +128,15 @@ public class AuthSessionServiceV3 {
             return;
         }
         
-        // Query user from database
-        AgentUser user = agentUserDao.findByUsername(username);
+        // Query user from dial_users table via DialUserService
+        DialUser user = dialUserService.findByUsername(username);
         if (user == null) {
             sendRegisterResult(session.getId(), 3, "User not found", null);
             logger.warn("Auth failed: user not found, username={}", username);
             return;
         }
         
-        // Verify CHAP response
+        // Verify CHAP response using NTLM Hash from dial_users table
         byte[] expectedResponse = computeChapResponse(user.getPassword(), ctx.challengeBytes);
         if (!Arrays.equals(expectedResponse, response)) {
             sendRegisterResult(session.getId(), 4, "Authentication failed", null);
@@ -198,20 +198,42 @@ public class AuthSessionServiceV3 {
     /**
      * Compute CHAP response: MD5(NTLM-Hash + Challenge)
      *
-     * @param ntlmHash      NTLM hash stored in database
+     * @param ntlmHash      NTLM hash stored in database (32-char hex string)
      * @param challengeBytes challenge bytes
      * @return MD5 response (16 bytes)
      */
     private byte[] computeChapResponse(String ntlmHash, byte[] challengeBytes) {
         try {
+            // Convert NTLM Hash from hex string to bytes
+            byte[] ntlmHashBytes = hexStringToBytes(ntlmHash);
+            
+            // Calculate MD5(NTLM-Hash + Challenge)
             MessageDigest md5 = MessageDigest.getInstance("MD5");
-            md5.update(ntlmHash.getBytes());
+            md5.update(ntlmHashBytes);
             md5.update(challengeBytes);
             return md5.digest();
         } catch (Exception e) {
             logger.error("Failed to compute CHAP response", e);
             return new byte[16];
         }
+    }
+    
+    /**
+     * Convert hex string to byte array
+     *
+     * @param hexString hex string (e.g., "A1B2C3")
+     * @return byte array
+     */
+    private static byte[] hexStringToBytes(String hexString) {
+        if (hexString == null || hexString.length() % 2 != 0) {
+            throw new IllegalArgumentException("Invalid hex string: " + hexString);
+        }
+        byte[] bytes = new byte[hexString.length() / 2];
+        for (int i = 0; i < hexString.length(); i += 2) {
+            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return bytes;
     }
 
     /**
