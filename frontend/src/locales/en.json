@@ -78,7 +78,8 @@
     "softwarePackageManagement": "Software Package Management",
     "preprocessRuleManagement": "Preprocess Rule Management",
     "operationManagement": "Operation Management",
-    "operationLogManagement": "Operation Log"
+    "operationLogManagement": "Operation Log",
+    "alarmManagement": "Alarm Management"
   },
   "user": {
     "title": "Executor Account Management",
@@ -576,6 +577,35 @@
       "close": "Close",
       "viewDetail": "View Details",
       "loadDetailFailed": "Failed to load details"
+    }
+  },
+  "alarm": {
+    "title": "Alarm Management",
+    "description": "View and manage system alarms",
+    "create": "Create Alarm",
+    "end": "End Alarm",
+    "currentAlarms": "Current Alarms",
+    "allAlarms": "All Alarms",
+    "id": "ID",
+    "summary": "Summary",
+    "description": "Description",
+    "level": "Level",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "createSuccess": "Alarm created successfully",
+    "createFailed": "Failed to create alarm",
+    "endSuccess": "Alarm ended successfully",
+    "endFailed": "Failed to end alarm",
+    "loadFailed": "Failed to load alarms",
+    "confirmEnd": "Are you sure to end this alarm?",
+    "summaryRequired": "Summary is required",
+    "summaryMaxLength": "Summary cannot exceed 200 characters",
+    "levelRequired": "Level is required",
+    "summaryPlaceholder": "Enter alarm summary",
+    "descriptionPlaceholder": "Enter alarm description (optional)",
+    "levelPlaceholder": "Select alarm level",
+    "table": {
+      "pagination": "Showing {{start}} to {{end}} of {{total}} items"
     }
   },
   "language": {

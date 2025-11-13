@@ -12,6 +12,7 @@ import {
     HistoryOutlined,
     HomeOutlined,
     CaretDownFilled,
+    BellOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
 import React, { useState, useEffect } from 'react'
@@ -130,6 +131,11 @@ const Layout = ({ children }) => {
           key: '/operation-logs',
           icon: <HistoryOutlined />,
           label: translateNavigation('operationLogManagement'),
+        },
+        {
+          key: '/alarms',
+          icon: <BellOutlined />,
+          label: translateNavigation('alarmManagement'),
         },
       ],
     },

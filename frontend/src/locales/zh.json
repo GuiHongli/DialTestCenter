@@ -78,7 +78,8 @@
     "softwarePackageManagement": "软件包管理",
     "preprocessRuleManagement": "预处理规则管理",
     "operationManagement": "运维管理",
-    "operationLogManagement": "操作记录"
+    "operationLogManagement": "操作记录",
+    "alarmManagement": "告警管理"
   },
   "user": {
     "title": "执行机账号管理",
@@ -595,6 +596,35 @@
       "close": "关闭",
       "viewDetail": "查看详情",
       "loadDetailFailed": "加载详情失败"
+    }
+  },
+  "alarm": {
+    "title": "告警管理",
+    "description": "查看和管理系统告警信息",
+    "create": "创建告警",
+    "end": "结束告警",
+    "currentAlarms": "当前告警",
+    "allAlarms": "所有告警",
+    "id": "ID",
+    "summary": "告警概述",
+    "description": "告警描述",
+    "level": "告警等级",
+    "startTime": "发生时间",
+    "endTime": "结束时间",
+    "createSuccess": "告警创建成功",
+    "createFailed": "告警创建失败",
+    "endSuccess": "告警已结束",
+    "endFailed": "结束告警失败",
+    "loadFailed": "加载告警列表失败",
+    "confirmEnd": "确定要结束此告警吗？",
+    "summaryRequired": "告警概述不能为空",
+    "summaryMaxLength": "告警概述长度不能超过200字符",
+    "levelRequired": "告警等级不能为空",
+    "summaryPlaceholder": "请输入告警概述",
+    "descriptionPlaceholder": "请输入告警描述（可选）",
+    "levelPlaceholder": "请选择告警等级",
+    "table": {
+      "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
     }
   },
   "language": {

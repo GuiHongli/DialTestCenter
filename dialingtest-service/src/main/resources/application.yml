@@ -80,6 +80,7 @@ mybatis:
     default-fetch-size: 100
     default-statement-timeout: 30
   type-aliases-package: com.huawei.cloududn.dialingtest.model
+  type-handlers-package: com.huawei.cloududn.dialingtest.dao
 
 # WebSocket配置（V3版本：支持大容量二进制消息）
 websocket:

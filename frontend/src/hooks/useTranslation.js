@@ -52,6 +52,11 @@ export const useTranslation = () => {
     return t(`operationLog.${key}`, options)
   }
 
+  // 告警相关翻译
+  const translateAlarm = (key, options) => {
+    return t(`alarm.${key}`, options)
+  }
+
   // 语言相关翻译
   const translateLanguage = (key, options) => {
     return t(`language.${key}`, options)
@@ -73,6 +78,7 @@ export const useTranslation = () => {
     translateUserRole,
     translateTestCaseSet,
     translateOperationLog,
+    translateAlarm,
     translateLanguage,
     translateFooter,
     language,

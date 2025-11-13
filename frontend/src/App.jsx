@@ -10,6 +10,7 @@ import UserManagementPage from './pages/UserManagement'
 import SoftwarePackageManagementPage from './pages/SoftwarePackageManagement'
 import OperationLogManagementPage from './pages/OperationLogManagement'
 import PreprocessRuleManagementPage from './pages/PreprocessRuleManagement'
+import AlarmManagementPage from './pages/AlarmManagement'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/software-packages" component={SoftwarePackageManagementPage} />
             <Route path="/operation-logs" component={OperationLogManagementPage} />
             <Route path="/preprocess-rules" component={PreprocessRuleManagementPage} />
+            <Route path="/alarms" component={AlarmManagementPage} />
             <Route path="/" exact>
               <Redirect to="/users" />
             </Route>

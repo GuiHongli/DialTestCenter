@@ -1,0 +1,187 @@
+swagger: '2.0'
+info:
+  title: Alarm Management API
+  version: 1.0.0
+  description: 告警管理API接口
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+paths:
+  /alarms:
+    get:
+      operationId: "getAlarms"
+      summary: 查询告警列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码，从0开始
+          required: false
+          type: integer
+          default: 0
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          type: integer
+          default: 20
+        - name: currentOnly
+          in: query
+          description: 是否只查询当前告警（未结束的告警），true表示只查询当前告警，false或不传表示查询所有告警
+          required: false
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/AlarmPageResponse'
+        '400':
+          description: 请求参数错误
+        '500':
+          description: 服务器内部错误
+    post:
+      operationId: "createAlarm"
+      summary: 创建告警
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateAlarmRequest'
+        - name: "X-Csrf-Token"
+          in: "header"
+          required: true
+          type: "string"
+          description: "CSRF防护令牌"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        '201':
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/AlarmResponse'
+        '400':
+          description: 请求参数错误
+        '500':
+          description: 服务器内部错误
+  /alarms/{id}:
+    delete:
+      operationId: "endAlarm"
+      summary: 结束告警（删除告警）
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 告警ID
+          type: integer
+        - name: "X-Csrf-Token"
+          in: "header"
+          required: true
+          type: "string"
+          description: "CSRF防护令牌"
+        - name: "X-Username"
+          in: "header"
+          required: true
+          type: "string"
+          description: "操作用户名"
+      responses:
+        '200':
+          description: 操作成功
+          schema:
+            $ref: '#/definitions/AlarmResponse'
+        '400':
+          description: 请求参数错误
+        '404':
+          description: 告警不存在
+        '500':
+          description: 服务器内部错误
+definitions:
+  Alarm:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: 告警ID
+      alarmSummary:
+        type: string
+        description: 告警概述
+      alarmDescription:
+        type: string
+        description: 告警详细描述
+      alarmLevel:
+        type: string
+        description: 告警等级（Urgent/Important/Minor）
+        enum:
+          - Urgent
+          - Important
+          - Minor
+      startTime:
+        type: string
+        description: 告警发生时间
+      endTime:
+        type: string
+        description: 告警结束时间，为空表示告警未结束
+  CreateAlarmRequest:
+    type: object
+    required:
+      - alarmSummary
+      - alarmLevel
+    properties:
+      alarmSummary:
+        type: string
+        description: 告警概述
+        maxLength: 200
+      alarmDescription:
+        type: string
+        description: 告警详细描述
+      alarmLevel:
+        type: string
+        description: 告警等级（Urgent/Important/Minor）
+        enum:
+          - Urgent
+          - Important
+          - Minor
+  AlarmResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        $ref: '#/definitions/Alarm'
+      message:
+        type: string
+        description: 响应消息
+  AlarmPageResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        description: 操作是否成功
+      data:
+        type: object
+        properties:
+          content:
+            type: array
+            items:
+              $ref: '#/definitions/Alarm'
+          totalElements:
+            type: integer
+            description: 总记录数
+          totalPages:
+            type: integer
+            description: 总页数
+          size:
+            type: integer
+            description: 每页大小
+          number:
+            type: integer
+            description: 当前页码
+      message:
+        type: string
+        description: 响应消息
+
