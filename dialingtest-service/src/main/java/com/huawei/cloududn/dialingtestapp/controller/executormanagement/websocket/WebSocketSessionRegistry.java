@@ -75,9 +75,8 @@ public class WebSocketSessionRegistry {
      *
      * @param sessionId target session id
      * @param buffer    TLV binary buffer
-     * @throws IOException when sending fails
      */
-    public void sendBinary(String sessionId, ByteBuffer buffer) throws IOException {
+    public void sendBinary(String sessionId, ByteBuffer buffer) {
         Session session = sessionMap.get(sessionId);
         if (session == null) {
             logger.warn("Session not found for sessionId={}", sessionId);
@@ -87,6 +86,10 @@ public class WebSocketSessionRegistry {
             logger.warn("Session is closed, sessionId={}", sessionId);
             return;
         }
-        session.getBasicRemote().sendBinary(buffer);
+        try {
+            session.getBasicRemote().sendBinary(buffer);
+        } catch (IOException e) {
+            logger.error("Failed to send binary message to sessionId={}", sessionId, e);
+        }
     }
 }

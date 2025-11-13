@@ -106,17 +106,32 @@ public class AuthSessionServiceTest {
         Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("session-001");
 
-        // Mock pending context (simulate previous handleRegisterRequest call)
-        service.handleRegisterRequest(new RegisterRequestDto("Executor-01"), session);
-
-        // Create decoded message with valid response
-        TlvDecoder.DecodedMessage decoded = createValidRegisterResponse();
-
         // Mock user lookup from dial_users table
         DialUser user = new DialUser();
         user.setUsername("testuser");
         user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char NTLM Hash hex string
         when(dialUserService.findByUsername("testuser")).thenReturn(user);
+
+        // Mock pending context (simulate previous handleRegisterRequest call)
+        service.handleRegisterRequest(new RegisterRequestDto("Executor-01"), session);
+
+        // Get the challenge from the pending context to compute correct response
+        // Note: We need to compute the correct CHAP response
+        byte[] challengeBytes = new byte[16];
+        for (int i = 0; i < 16; i++) {
+            challengeBytes[i] = (byte) i;
+        }
+        
+        // Compute expected response: MD5(NTLM-Hash + Challenge)
+        byte[] ntlmBytes = hexStringToBytes("0123456789abcdef0123456789abcdef");
+        byte[] combined = new byte[ntlmBytes.length + challengeBytes.length];
+        System.arraycopy(ntlmBytes, 0, combined, 0, ntlmBytes.length);
+        System.arraycopy(challengeBytes, 0, combined, ntlmBytes.length, challengeBytes.length);
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] expectedResponse = md.digest(combined);
+
+        // Create decoded message with valid response
+        TlvDecoder.DecodedMessage decoded = createValidRegisterResponseWithChallenge(1, expectedResponse);
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
@@ -247,7 +262,7 @@ public class AuthSessionServiceTest {
      * 测试token生成为8字节long类型
      */
     @Test
-    public void testTokenGeneration_Is8ByteLong() {
+    public void testTokenGeneration_Is8ByteLong() throws NoSuchAlgorithmException {
         // Given
         Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn("session-token-test");
@@ -261,7 +276,19 @@ public class AuthSessionServiceTest {
         user.setPassword("0123456789abcdef0123456789abcdef"); // 32-char NTLM Hash hex string
         when(dialUserService.findByUsername("testuser")).thenReturn(user);
 
-        TlvDecoder.DecodedMessage decoded = createValidRegisterResponse();
+        // Compute correct response
+        byte[] challengeBytes = new byte[16];
+        for (int i = 0; i < 16; i++) {
+            challengeBytes[i] = (byte) i;
+        }
+        byte[] ntlmBytes = hexStringToBytes("0123456789abcdef0123456789abcdef");
+        byte[] combined = new byte[ntlmBytes.length + challengeBytes.length];
+        System.arraycopy(ntlmBytes, 0, combined, 0, ntlmBytes.length);
+        System.arraycopy(challengeBytes, 0, combined, ntlmBytes.length, challengeBytes.length);
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] expectedResponse = md.digest(combined);
+
+        TlvDecoder.DecodedMessage decoded = createValidRegisterResponseWithChallenge(1, expectedResponse);
 
         // When
         service.handleRegisterRequest(requestDto, session);
@@ -275,11 +302,15 @@ public class AuthSessionServiceTest {
     // Helper methods for creating test data
 
     private TlvDecoder.DecodedMessage createValidRegisterResponse() {
+        return createValidRegisterResponseWithChallenge(1, new byte[16]);
+    }
+
+    private TlvDecoder.DecodedMessage createValidRegisterResponseWithChallenge(int challengeId, byte[] response) {
         TlvDecoder.DecodedMessage decoded = Mockito.mock(TlvDecoder.DecodedMessage.class);
 
         // Mock challenge ID field (should match the generated one)
         TlvField challengeIdField = Mockito.mock(TlvField.class);
-        when(challengeIdField.getAsInt()).thenReturn(1);
+        when(challengeIdField.getAsInt()).thenReturn(challengeId);
         when(decoded.getField(FieldTag.CHALLENGE_ID)).thenReturn(challengeIdField);
 
         // Mock username field
@@ -287,13 +318,9 @@ public class AuthSessionServiceTest {
         when(usernameField.getAsString()).thenReturn("testuser");
         when(decoded.getField(FieldTag.USERNAME)).thenReturn(usernameField);
 
-        // Mock valid response bytes (would be computed as MD5(NTLM-Hash + Challenge))
+        // Mock valid response bytes
         TlvField responseField = Mockito.mock(TlvField.class);
-        byte[] mockResponse = new byte[16]; // 16 bytes for MD5
-        for (int i = 0; i < 16; i++) {
-            mockResponse[i] = (byte) i;
-        }
-        when(responseField.getAsBytes()).thenReturn(mockResponse);
+        when(responseField.getAsBytes()).thenReturn(response);
         when(decoded.getField(FieldTag.RESPONSE)).thenReturn(responseField);
 
         return decoded;
@@ -329,5 +356,17 @@ public class AuthSessionServiceTest {
             sb.append(hex);
         }
         return sb.toString();
+    }
+
+    private static byte[] hexStringToBytes(String hexString) {
+        if (hexString == null || hexString.length() % 2 != 0) {
+            throw new IllegalArgumentException("Invalid hex string: " + hexString);
+        }
+        byte[] bytes = new byte[hexString.length() / 2];
+        for (int i = 0; i < hexString.length(); i += 2) {
+            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return bytes;
     }
 }

@@ -7,6 +7,7 @@ package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.FieldTag;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvDecoder;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvField;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartResponseDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopResponseDto;
 import com.huawei.cloududn.dialingtestapp.dao.taskmanagement.TaskExecutorMappingDao;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.SessionBindingRegistry;
@@ -76,18 +77,26 @@ public class TaskInterfaceServiceTest {
         String executorName = "executor-001";
         String sessionId = "session-001";
 
-        // Note: In real implementation, we need to mock the internal map, but for this test we'll focus on the logic
-
+        // First, simulate a task dispatch to create the mapping
         when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(sessionId);
+        
+        // Create and dispatch a task first to populate taskToExecutorMap
+        com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
+            new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
+        request.setTaskId(taskId);
+        request.setExecutorName(executorName);
+        request.setScriptName("test-script");
+        request.setVersion("1.0");
+        request.setSerialNoList(java.util.Arrays.asList("UE001"));
+        taskInterfaceService.dispatchTaskToAgent(request);
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
         // When
         taskInterfaceService.handleTaskStopRequest(taskId);
 
-        // Then
-        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
-        assertNotNull("Should send task stop request buffer", bufferCaptor.getValue());
+        // Then - Verify sendBinary was called twice (once for dispatch, once for stop)
+        verify(wssMessageSender, atLeast(2)).sendBinary(eq(sessionId), bufferCaptor.capture());
     }
 
     /**
@@ -215,11 +224,22 @@ public class TaskInterfaceServiceTest {
 
         ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
 
-        // When - Note: This test focuses on the infrastructure, detailed dispatch logic
-        // would require mocking more internal state
+        // Create dispatch request
+        com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
+            new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
+        request.setTaskId(999);
+        request.setExecutorName(executorName);
+        request.setScriptName("test-script");
+        request.setVersion("1.0");
+        request.setSerialNoList(java.util.Arrays.asList("UE001"));
 
-        // Then - Verify that session lookup is performed
+        // When
+        taskInterfaceService.dispatchTaskToAgent(request);
+
+        // Then
         verify(sessionBindingRegistry).getSessionId(executorName);
+        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
+        assertNotNull("Should send task start buffer", bufferCaptor.getValue());
     }
 
     /**
@@ -271,14 +291,10 @@ public class TaskInterfaceServiceTest {
      */
     @Test
     public void testFileTransfer_Infrastructure() {
-        // Given
-        String sessionId = "session-file-001";
+        // Given - This test verifies that the infrastructure is properly set up
+        // without making actual calls
 
-        // Mock successful message sending for file operations
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // When - Test the infrastructure by checking that binary messages can be sent
-        // Note: Actual file transfer would require more complex setup
+        // When - No action is performed
 
         // Then - Verify infrastructure is in place
         verifyNoMoreInteractions(wssMessageSender); // No unexpected calls
@@ -311,24 +327,14 @@ public class TaskInterfaceServiceTest {
         Session session = mock(Session.class);
         when(session.getId()).thenReturn("session-multi-ue-001");
 
-        TlvDecoder.DecodedMessage decoded = mock(TlvDecoder.DecodedMessage.class);
-
-        // Mock task result fields including sub-results
-        TlvField taskIdField = mock(TlvField.class);
-        when(taskIdField.getAsInt()).thenReturn(111);
-        when(decoded.getField(FieldTag.TASKID)).thenReturn(taskIdField);
-
-        TlvField resultField = mock(TlvField.class);
-        when(resultField.getAsInt()).thenReturn(0); // Success
-        when(decoded.getField(FieldTag.RESULT)).thenReturn(resultField);
-
-        // Mock sub-result field (multi-UE results)
-        TlvField subResultField = mock(TlvField.class);
-        when(subResultField.getAsBytes()).thenReturn("multi-ue-results-data".getBytes());
-        when(decoded.getField(FieldTag.SUB_RESULT)).thenReturn(subResultField);
+        // Create DTO with proper field types (result should be String, not int)
+        TaskStartResponseDto dto = new TaskStartResponseDto();
+        dto.setTaskId(111);
+        dto.setResult("SUCCESS"); // Use String "SUCCESS" instead of int 0
+        dto.setSubResult(new java.util.ArrayList<>()); // Use empty list for sub-results
 
         // When
-        taskInterfaceService.handleTaskStartResponse(decoded, session);
+        taskInterfaceService.handleTaskStartResponse(dto, session);
 
         // Then
         verify(taskOrchestratorService).sendResultEvent(eq(111L), eq(true), any(Map.class));

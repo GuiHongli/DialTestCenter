@@ -93,7 +93,7 @@ public class ExecutorController implements ExecutorsApi {
             if (name == null || name.trim().isEmpty()) {
                 logger.warn("Refresh executor request missing executor name");
                 return ResponseEntity.badRequest()
-                    .body(op(false, "Executor name is required"));
+                    .body(op(false, "Missing executor name"));
             }
 
             // 检查执行机是否存在

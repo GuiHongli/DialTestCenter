@@ -7,13 +7,14 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.DtoTlvConverter;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.MessageType;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvDecoder;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterRequestDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.RegisterRequestDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopResponseDto;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorMgmtService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.auth.AuthSessionService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.task.TaskInterfaceService;
-
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +92,12 @@ public class WssMessageDispatcher {
                 taskInterfaceService.handleScriptUpdateAck(decoded, session);
             } else if (messageType == MessageType.TASK_START_RESPONSE) {
                 // Handle task start response (0x34)
-                taskInterfaceService.handleTaskStartResponse(decoded, session);
+                TaskStartResponseDto dto = DtoTlvConverter.decodeTaskStartResponse(decoded);
+                taskInterfaceService.handleTaskStartResponse(dto, session);
             } else if (messageType == MessageType.TASK_STOP_RESPONSE) {
                 // Handle task stop response (0x36)
-                taskInterfaceService.handleTaskStopResponse(decoded, session);
+                TaskStopResponseDto dto = DtoTlvConverter.decodeTaskStopResponse(decoded);
+                taskInterfaceService.handleTaskStopResponse(dto, session);
             } else {
                 logger.warn("Unknown or unhandled message type: {}(0x{:02X}), sessionId={}", 
                     messageType.getName(), messageType.getId(), session.getId());

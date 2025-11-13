@@ -40,11 +40,7 @@ public class WssMessageSender {
      * @param buffer    TLV binary buffer
      */
     public void sendBinary(String sessionId, ByteBuffer buffer) {
-        try {
-            sessionRegistry.sendBinary(sessionId, buffer);
-        } catch (IOException e) {
-            logger.error("Failed to send binary message to sessionId={}", sessionId, e);
-        }
+        sessionRegistry.sendBinary(sessionId, buffer);
     }
 
     /**
@@ -95,7 +91,7 @@ public class WssMessageSender {
             logger.info("Sent Script-Update to sessionId={}, scriptName={}", sessionId, updateDto.getScriptName());
         } catch (Exception e) {
             logger.error("Failed to send Script-Update to sessionId={}, scriptName={}",
-                sessionId, updateDto.getScriptName(), e);
+                    sessionId, updateDto.getScriptName(), e);
         }
     }
 
@@ -103,7 +99,7 @@ public class WssMessageSender {
      * Send app install message (V3 TLV format).
      * V3版本：使用TLV格式发送App安装消息
      *
-     * @param sessionId target session id
+     * @param sessionId  target session id
      * @param installDto AppInstallRequestDto
      */
     public void sendAppInstallRequest(String sessionId, AppInstallRequestDto installDto) {
@@ -113,7 +109,7 @@ public class WssMessageSender {
             logger.info("Sent App-Install to sessionId={}, serialNo={}", sessionId, installDto.getSerialNo());
         } catch (Exception e) {
             logger.error("Failed to send App-Install to sessionId={}, serialNo={}",
-                sessionId, installDto.getSerialNo(), e);
+                    sessionId, installDto.getSerialNo(), e);
         }
     }
 
@@ -131,7 +127,7 @@ public class WssMessageSender {
             logger.info("Sent App-List-Query to sessionId={}, serialNo={}", sessionId, queryDto.getSerialNo());
         } catch (Exception e) {
             logger.error("Failed to send App-List-Query to sessionId={}, serialNo={}",
-                sessionId, queryDto.getSerialNo(), e);
+                    sessionId, queryDto.getSerialNo(), e);
         }
     }
 
@@ -149,7 +145,7 @@ public class WssMessageSender {
             logger.info("Sent Screencap-Query to sessionId={}, serialNo={}", sessionId, queryDto.getSerialNo());
         } catch (Exception e) {
             logger.error("Failed to send Screencap-Query to sessionId={}, serialNo={}",
-                sessionId, queryDto.getSerialNo(), e);
+                    sessionId, queryDto.getSerialNo(), e);
         }
     }
 }

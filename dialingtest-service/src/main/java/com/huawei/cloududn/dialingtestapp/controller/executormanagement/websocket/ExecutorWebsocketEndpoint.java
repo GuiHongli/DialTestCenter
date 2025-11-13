@@ -83,8 +83,8 @@ public class ExecutorWebsocketEndpoint {
             return;
         }
         try {
-            logger.debug("Received binary WebSocket message, sessionId={}, size={} bytes", 
-                session.getId(), message.remaining());
+            logger.debug("Received binary WebSocket message, sessionId={}, size={} bytes",
+                    session.getId(), message.remaining());
             dispatcher.dispatch(message, session);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to parse TLV message, sessionId={}", session.getId(), e);
@@ -95,7 +95,7 @@ public class ExecutorWebsocketEndpoint {
      * 连接关闭事件
      *
      * @param session WebSocket会话
-     * @param reason 关闭原因
+     * @param reason  关闭原因
      */
     @OnClose
     public void onClose(Session session, CloseReason reason) {
@@ -107,7 +107,7 @@ public class ExecutorWebsocketEndpoint {
     /**
      * 错误事件
      *
-     * @param session WebSocket会话
+     * @param session   WebSocket会话
      * @param throwable 异常信息
      */
     @OnError
@@ -124,15 +124,10 @@ public class ExecutorWebsocketEndpoint {
      * @throws IOException when send fails
      */
     public void sendBinary(String sessionId, ByteBuffer buffer) throws IOException {
-        logger.debug("Sending binary WebSocket message, sessionId={}, size={} bytes", 
-            sessionId, buffer.remaining());
-        try {
-            sessionRegistry.sendBinary(sessionId, buffer);
-            logger.debug("Binary WebSocket message sent successfully, sessionId={}", sessionId);
-        } catch (IOException e) {
-            logger.error("Failed to send binary WebSocket message, sessionId={}", sessionId, e);
-            throw e;
-        }
+        logger.debug("Sending binary WebSocket message, sessionId={}, size={} bytes",
+                sessionId, buffer.remaining());
+        sessionRegistry.sendBinary(sessionId, buffer);
+        logger.debug("Binary WebSocket message sent successfully, sessionId={}", sessionId);
     }
 
     /**

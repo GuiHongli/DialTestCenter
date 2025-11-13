@@ -67,6 +67,9 @@ public class TlvDecoder {
             // Value
             byte[] value = new byte[length];
             if (length > 0) {
+                if (buffer.remaining() < length) {
+                    break; // 数据不足，停止解码
+                }
                 buffer.get(value);
             }
             

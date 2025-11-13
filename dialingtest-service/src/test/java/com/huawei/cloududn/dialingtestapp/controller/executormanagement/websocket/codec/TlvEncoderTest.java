@@ -160,7 +160,7 @@ public class TlvEncoderTest {
     @Test
     public void testToByteArray_BufferConversion_Correct() {
         // Given
-        ByteBuffer buffer = ByteBuffer.allocate(10);
+        ByteBuffer buffer = ByteBuffer.allocate(13);
         buffer.put((byte) 0x01);
         buffer.putInt(42);
         buffer.putLong(123456789L);
@@ -170,7 +170,7 @@ public class TlvEncoderTest {
         byte[] bytes = TlvEncoder.toByteArray(buffer);
 
         // Then
-        assertEquals(10, bytes.length);
+        assertEquals(13, bytes.length);
         assertEquals((byte) 0x01, bytes[0]);
         assertEquals(42, java.nio.ByteBuffer.wrap(bytes, 1, 4).getInt());
         assertEquals(123456789L, java.nio.ByteBuffer.wrap(bytes, 5, 8).getLong());

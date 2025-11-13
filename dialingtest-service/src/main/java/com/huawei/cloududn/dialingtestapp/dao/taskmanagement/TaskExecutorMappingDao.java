@@ -4,7 +4,7 @@
 
 package com.huawei.cloududn.dialingtestapp.dao.taskmanagement;
 
-import com.huawei.cloududn.dialingtestapp.entity.TaskExecutorMapping;
+import com.huawei.cloududn.dialingtestapp.entity.taskmanagement.TaskExecutorMapping;
 
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;

@@ -192,7 +192,7 @@ public class ExecutorControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("required"));
+        assertTrue(response.getBody().getMessage().contains("Missing"));
     }
 
     /**
@@ -280,7 +280,7 @@ public class ExecutorControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().isSuccess());
-        assertTrue(response.getBody().getMessage().contains("required"));
+        assertTrue(response.getBody().getMessage().contains("Missing"));
     }
 
     /**

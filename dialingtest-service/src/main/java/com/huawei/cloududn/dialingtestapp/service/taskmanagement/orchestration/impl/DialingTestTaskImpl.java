@@ -5,7 +5,7 @@
 package com.huawei.cloududn.dialingtestapp.service.taskmanagement.orchestration.impl;
 
 import com.huawei.cloududn.dialingtestapp.dao.taskmanagement.TaskExecutorMappingDao;
-import com.huawei.cloududn.dialingtestapp.entity.TaskExecutorMapping;
+import com.huawei.cloududn.dialingtestapp.entity.taskmanagement.TaskExecutorMapping;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorSelectionService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtestapp.service.taskmanagement.dto.TaskContext;

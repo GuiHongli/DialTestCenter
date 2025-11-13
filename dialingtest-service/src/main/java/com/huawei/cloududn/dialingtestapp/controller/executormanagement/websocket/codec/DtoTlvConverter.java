@@ -255,8 +255,100 @@ public class DtoTlvConverter {
      */
     public static DeRegisterRequestDto decodeDeRegisterRequest(TlvDecoder.DecodedMessage decoded) {
         DeRegisterRequestDto dto = new DeRegisterRequestDto();
-        dto.setToken(decoded.getField(FieldTag.TOKEN).getAsLong());
-        dto.setHostname(decoded.getField(FieldTag.HOSTNAME).getAsString());
+        TlvField tokenField = decoded.getField(FieldTag.TOKEN);
+        if (tokenField != null) {
+            dto.setToken(tokenField.getAsLong());
+        }
+        TlvField hostnameField = decoded.getField(FieldTag.HOSTNAME);
+        if (hostnameField != null) {
+            dto.setHostname(hostnameField.getAsString());
+        }
+        return dto;
+    }
+    
+    /**
+     * 解码TaskStartResponse TLV消息为DTO
+     * V3新增：任务启动应答(0x34)
+     *
+     * @param decoded 解码后的消息
+     * @return TaskStartResponse DTO
+     */
+    public static TaskStartResponseDto decodeTaskStartResponse(TlvDecoder.DecodedMessage decoded) {
+        TaskStartResponseDto dto = new TaskStartResponseDto();
+        
+        TlvField tokenField = decoded.getField(FieldTag.TOKEN);
+        if (tokenField != null) {
+            dto.setToken(tokenField.getAsLong());
+        }
+        
+        TlvField taskIdField = decoded.getField(FieldTag.TASKID);
+        if (taskIdField != null) {
+            dto.setTaskId(taskIdField.getAsInt());
+        }
+        
+        TlvField resultField = decoded.getField(FieldTag.RESULT);
+        if (resultField != null) {
+            dto.setResult(resultField.getAsString());
+        }
+        
+        TlvField blockField = decoded.getField(FieldTag.BLOCK);
+        if (blockField != null) {
+            dto.setBlock(blockField.getAsString());
+        }
+        
+        TlvField descField = decoded.getField(FieldTag.DESCRIPTION);
+        if (descField != null) {
+            dto.setDescription(descField.getAsString());
+        }
+        
+        TlvField fileLenField = decoded.getField(FieldTag.FILELEN);
+        if (fileLenField != null) {
+            dto.setFileLen(fileLenField.getAsInt());
+        }
+        
+        TlvField filesField = decoded.getField(FieldTag.FILES);
+        if (filesField != null) {
+            dto.setFiles(filesField.getAsBytes());
+        }
+        
+        TlvField crcField = decoded.getField(FieldTag.CRC);
+        if (crcField != null) {
+            dto.setCrc(crcField.getAsBytes());
+        }
+        
+        return dto;
+    }
+    
+    /**
+     * 解码TaskStopResponse TLV消息为DTO
+     * V3新增：任务停止应答(0x36)
+     *
+     * @param decoded 解码后的消息
+     * @return TaskStopResponse DTO
+     */
+    public static TaskStopResponseDto decodeTaskStopResponse(TlvDecoder.DecodedMessage decoded) {
+        TaskStopResponseDto dto = new TaskStopResponseDto();
+        
+        TlvField tokenField = decoded.getField(FieldTag.TOKEN);
+        if (tokenField != null) {
+            dto.setToken(tokenField.getAsLong());
+        }
+        
+        TlvField taskIdField = decoded.getField(FieldTag.TASKID);
+        if (taskIdField != null) {
+            dto.setTaskId(taskIdField.getAsInt());
+        }
+        
+        TlvField stateField = decoded.getField(FieldTag.STATE);
+        if (stateField != null) {
+            dto.setState(stateField.getAsInt());
+        }
+        
+        TlvField descField = decoded.getField(FieldTag.DESCRIPTION);
+        if (descField != null) {
+            dto.setDescription(descField.getAsString());
+        }
+        
         return dto;
     }
     

@@ -2,7 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2020-2025. All rights reserved.
  */
 
-package com.huawei.cloududn.dialingtestapp.entity;
+package com.huawei.cloududn.dialingtestapp.entity.taskmanagement;
 
 /**
  * 任务与执行机映射关系实体类

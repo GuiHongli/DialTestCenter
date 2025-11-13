@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -117,6 +117,36 @@ public class ExecutorWebsocketEndpointTest {
         Session session = Mockito.mock(Session.class);
         when(registry.getSession("s2")).thenReturn(session);
         assertSame(session, endpoint.getSession("s2"));
+    }
+
+    @Test
+    public void testOnError_LogsError() {
+        Session session = Mockito.mock(Session.class);
+        when(session.getId()).thenReturn("s1");
+        Throwable throwable = new RuntimeException("Test error");
+
+        endpoint.onError(session, throwable);
+
+        verify(session).getId();
+    }
+
+    @Test
+    public void testOnMessage_InvalidTlvMessage_LogsError() {
+        Session session = Mockito.mock(Session.class);
+        when(session.getId()).thenReturn("s1");
+
+        ByteBuffer buffer = ByteBuffer.allocate(10);
+        buffer.put((byte) 0x01);
+        buffer.putInt(4);
+        buffer.putInt(42);
+        buffer.flip();
+
+        doThrow(new IllegalArgumentException("Invalid TLV message"))
+                .when(dispatcher).dispatch(eq(buffer), eq(session));
+
+        endpoint.onMessage(buffer, session);
+
+        verify(dispatcher).dispatch(eq(buffer), eq(session));
     }
 
     private static void set(Object target, String field, Object value) {

@@ -4,7 +4,7 @@
 
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec;
 
-import com.huawei.cloududn.dialingtest.controller.executormanagement.websocket.dto.*;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.*;
 
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.RegisterRequestDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
@@ -308,9 +308,130 @@ public class DtoTlvConverterTest {
                 case BATTERY:
                     ueItem.setBattery(field.getAsInt());
                     break;
+                default:
+                    break;
             }
         }
 
         return ueItem;
+    }
+
+    @Test
+    public void testEncodeRegisterResult_WithToken_CorrectEncoding() {
+        RegisterResultDto dto = new RegisterResultDto();
+        dto.setResult(0);
+        dto.setDescription("Success");
+        dto.setToken(987654321L);
+
+        ByteBuffer buffer = DtoTlvConverter.encodeRegisterResult(dto);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        assertEquals(MessageType.REGISTER_RESULT, decoded.getMessageType());
+        assertEquals(0, decoded.getField(FieldTag.RESULT).getAsInt());
+        assertEquals(987654321L, decoded.getField(FieldTag.TOKEN).getAsLong());
+    }
+
+    @Test
+    public void testDecodeDeRegisterRequest_WithFields_CorrectDecoding() {
+        java.util.List<TlvField> fields = new java.util.ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, 111111111L));
+        fields.add(TlvField.ofString(FieldTag.HOSTNAME, "Executor_Test"));
+        ByteBuffer buffer = TlvEncoder.encodeMessage(MessageType.DEREGISTER_REQUEST, fields);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        DeRegisterRequestDto dto = DtoTlvConverter.decodeDeRegisterRequest(decoded);
+
+        assertEquals(111111111L, dto.getToken());
+        assertEquals("Executor_Test", dto.getHostname());
+    }
+
+    @Test
+    public void testDecodeTaskStartResponse_WithFields_CorrectDecoding() {
+        java.util.List<TlvField> fields = new java.util.ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, 222222222L));
+        fields.add(TlvField.ofInt(FieldTag.TASKID, 100));
+        fields.add(TlvField.ofString(FieldTag.RESULT, "Success"));
+        ByteBuffer buffer = TlvEncoder.encodeMessage(MessageType.TASK_START_RESPONSE, fields);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        TaskStartResponseDto dto = DtoTlvConverter.decodeTaskStartResponse(decoded);
+
+        assertEquals(222222222L, dto.getToken());
+        assertEquals(100, dto.getTaskId());
+        assertEquals("Success", dto.getResult());
+    }
+
+    @Test
+    public void testDecodeTaskStopResponse_WithFields_CorrectDecoding() {
+        java.util.List<TlvField> fields = new java.util.ArrayList<>();
+        fields.add(TlvField.ofLong(FieldTag.TOKEN, 333333333L));
+        fields.add(TlvField.ofInt(FieldTag.TASKID, 200));
+        fields.add(TlvField.ofInt(FieldTag.STATE, 2));
+        ByteBuffer buffer = TlvEncoder.encodeMessage(MessageType.TASK_STOP_RESPONSE, fields);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        TaskStopResponseDto dto = DtoTlvConverter.decodeTaskStopResponse(decoded);
+
+        assertEquals(333333333L, dto.getToken());
+        assertEquals(200, dto.getTaskId());
+        assertEquals(2, dto.getState());
+    }
+
+    @Test
+    public void testEncodeTaskStart_CorrectEncoding() {
+        TaskStartRequestDto dto = new TaskStartRequestDto();
+        dto.setToken(444444444L);
+        dto.setTaskId(300);
+        dto.setScriptName("test_script.py");
+        dto.setVersion("1.0.0");
+        dto.setProcType(1);
+        dto.setParameters("param1=value1");
+
+        ByteBuffer buffer = DtoTlvConverter.encodeTaskStart(dto);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        assertEquals(MessageType.TASK_START_REQUEST, decoded.getMessageType());
+        assertEquals(444444444L, decoded.getField(FieldTag.TOKEN).getAsLong());
+    }
+
+    @Test
+    public void testEncodeAppInstallRequest_CorrectEncoding() {
+        AppInstallRequestDto dto = new AppInstallRequestDto();
+        dto.setToken(888888888L);
+        dto.setSerialNo("SN_APP002");
+        dto.setTaskId(600);
+        dto.setAppName("TestApp");
+
+        ByteBuffer buffer = DtoTlvConverter.encodeAppInstallRequest(dto);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        assertEquals(MessageType.APP_INSTALL_REQUEST, decoded.getMessageType());
+        assertEquals(888888888L, decoded.getField(FieldTag.TOKEN).getAsLong());
+    }
+
+    @Test
+    public void testEncodeScriptUpdateNotify_CorrectEncoding() {
+        ScriptUpdateNotifyDto dto = new ScriptUpdateNotifyDto();
+        dto.setToken(111222333L);
+        dto.setScriptName("updated_script.py");
+        dto.setVersion("3.0.0");
+        dto.setFileLen(2048);
+        dto.setScriptFile(new byte[]{(byte) 0x77, (byte) 0x88, (byte) 0x99});
+        dto.setCrc(new byte[]{(byte) 0xCC, (byte) 0xDD});
+
+        ByteBuffer buffer = DtoTlvConverter.encodeScriptUpdateNotify(dto);
+
+        TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
+        assertEquals(MessageType.SCRIPT_UPDATE_NOTIFY, decoded.getMessageType());
+        assertEquals(111222333L, decoded.getField(FieldTag.TOKEN).getAsLong());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testDecode_UnsupportedMessageType_ThrowsException() {
+        java.util.List<TlvField> fields = new java.util.ArrayList<>();
+        fields.add(TlvField.ofInt(FieldTag.RESULT, 0));
+        ByteBuffer buffer = TlvEncoder.encodeMessage(MessageType.REGISTER_RESULT, fields);
+
+        DtoTlvConverter.decode(buffer);
     }
 }

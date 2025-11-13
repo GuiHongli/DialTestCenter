@@ -10,30 +10,78 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * 回调控制器测试类
+ *
+ * @author g00940940
+ * @since 2025-11-13
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class CallbackControllerTest {
     @Mock
     private TaskOrchestratorService orchestratorService;
-
     @InjectMocks
-    private CallbackController controller;
+    private CallbackController callbackController;
 
     @Test
-    public void testNotifyResult_Success() {
-        Map<String, Object> body = new HashMap<>();
-        body.put("mainTaskId", 1);
-        body.put("status", "SUCCESS");
-        ResponseEntity<Object> resp = controller.notifyCallback(body);
-        Mockito.verify(orchestratorService).sendResultEvent(1L, true);
-        assertEquals(200, resp.getStatusCodeValue());
+    public void testNotifyCallback_ValidRequest_ReturnsOk() {
+        // Arrange
+        Map<String, Object> request = new HashMap<>();
+        request.put("mainTaskId", 1L);
+        request.put("status", "SUCCESS");
+
+        // Act
+        ResponseEntity<Object> response = callbackController.notifyCallback(request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(orchestratorService).sendResultEvent(eq(1L), eq(true));
+    }
+
+    @Test
+    public void testNotifyCallback_WithResultData_ReturnsOk() {
+        // Arrange
+        Map<String, Object> request = new HashMap<>();
+        request.put("main_task_id", Integer.valueOf(2));
+        request.put("status", "FAILED");
+        request.put("result_data", new HashMap<String, Object>());
+
+        // Act
+        ResponseEntity<Object> response = callbackController.notifyCallback(request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(orchestratorService).sendResultEvent(eq(2L), eq(false), any(Map.class));
+    }
+
+    @Test
+    public void testNotifyCallback_InvalidRequest_ReturnsBadRequest() {
+        // Test null body
+        assertEquals(HttpStatus.BAD_REQUEST, callbackController.notifyCallback(null).getStatusCode());
+        
+        // Test missing mainTaskId
+        Map<String, Object> noId = new HashMap<>();
+        noId.put("status", "SUCCESS");
+        assertEquals(HttpStatus.BAD_REQUEST, callbackController.notifyCallback(noId).getStatusCode());
+        
+        // Test invalid status
+        Map<String, Object> invalidStatus = new HashMap<>();
+        invalidStatus.put("mainTaskId", 1L);
+        invalidStatus.put("status", "INVALID");
+        assertEquals(HttpStatus.BAD_REQUEST, callbackController.notifyCallback(invalidStatus).getStatusCode());
+        
+        verify(orchestratorService, never()).sendResultEvent(anyLong(), anyBoolean());
     }
 }
 
