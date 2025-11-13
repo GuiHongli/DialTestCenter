@@ -2,6 +2,7 @@ package com.huawei.cloududn.dialingtest.service;
 
 import com.huawei.cloududn.dialingtest.dao.DialUserDao;
 import com.huawei.cloududn.dialingtest.model.DialUser;
+import com.huawei.cloududn.dialingtest.util.NtlmHashUtil;
 import com.huawei.cloududn.dialingtest.util.OperationLogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,14 +77,14 @@ public class DialUserService {
     }
     
     /**
-     * 创建用户
+     * 创建用户（密码自动转换为NTLM Hash）
      * 
      * @param username 用户名
-     * @param password 密码
+     * @param password 明文密码，将自动转换为NTLM Hash存储
      * @param operatorUsername 操作用户名
      * @return 创建的用户
-     * @throws IllegalArgumentException 如果用户名已存在
-     * @throws IllegalStateException 如果数据库操作失败
+     * @throws IllegalArgumentException 如果用户名已存在或密码为空
+     * @throws IllegalStateException 如果数据库操作失败或密码转换失败
      */
     public DialUser createUser(String username, String password, String operatorUsername) {
         // 检查用户名是否已存在
@@ -91,10 +92,18 @@ public class DialUserService {
             throw new IllegalArgumentException("用户名已存在: " + username);
         }
         
+        // 验证密码不能为空
+        if (password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("密码不能为空");
+        }
+        
+        // 🔐 核心改动：将明文密码转换为NTLM Hash
+        String ntlmHash = NtlmHashUtil.toNtlmHash(password);
+        
         // 创建新用户
         DialUser user = new DialUser();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(ntlmHash);  // 存储NTLM Hash而非明文
         user.setLastLoginTime(LocalDateTime.now().toString());
         
         int result = dialUserDao.create(user);
@@ -118,15 +127,15 @@ public class DialUserService {
     }
     
     /**
-     * 更新用户
+     * 更新用户（密码自动转换为NTLM Hash）
      * 
      * @param id 用户ID
      * @param username 用户名
-     * @param password 密码
+     * @param password 明文密码（如果不为空，将自动转换为NTLM Hash存储）
      * @param operatorUsername 操作用户名
      * @return 更新后的用户
      * @throws IllegalArgumentException 如果用户不存在或用户名已存在
-     * @throws IllegalStateException 如果数据库操作失败
+     * @throws IllegalStateException 如果数据库操作失败或密码转换失败
      */
     public DialUser updateUser(Integer id, String username, String password, String operatorUsername) {
         // 检查用户是否存在
@@ -148,8 +157,11 @@ public class DialUserService {
         
         // 更新用户信息
         existingUser.setUsername(username);
+        
+        // 🔐 核心改动：如果提供了新密码，转换为NTLM Hash
         if (password != null && !password.trim().isEmpty()) {
-            existingUser.setPassword(password);
+            String ntlmHash = NtlmHashUtil.toNtlmHash(password);
+            existingUser.setPassword(ntlmHash);
         }
         
         int updatedRows = dialUserDao.update(existingUser);

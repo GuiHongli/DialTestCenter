@@ -124,6 +124,32 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>task-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${basedir}/src/main/resources/task-api.yaml</inputSpec>
+                            <language>spring</language>
+                            <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                            <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                            <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>template-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${basedir}/src/main/resources/template-api.yaml</inputSpec>
+                            <language>spring</language>
+                            <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                            <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                            <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>operation-logs-api</id>
                         <goals>
                             <goal>generate</goal>
@@ -191,6 +217,19 @@
                             <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
                         </configuration>
                     </execution>
+                <execution>
+                    <id>executor-api</id>
+                    <goals>
+                        <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                        <inputSpec>${basedir}/src/main/resources/executor-api.yaml</inputSpec>
+                        <language>spring</language>
+                        <apiPackage>com.huawei.cloududn.dialingtest.api</apiPackage>
+                        <modelPackage>com.huawei.cloududn.dialingtest.model</modelPackage>
+                        <ignoreFileOverride>${basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+                    </configuration>
+                </execution>
                 </executions>
             </plugin>
             <!-- Maven Antrun Plugin - 删除不需要的生成文件 -->

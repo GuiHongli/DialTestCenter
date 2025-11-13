@@ -1,0 +1,178 @@
+swagger: '2.0'
+info:
+  title: Executor Management - Northbound API
+  version: 1.0.0
+  description: REST APIs for querying executors and refreshing executor details
+host: localhost:8087
+basePath: /dialingtest/api
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /executors:
+    get:
+      tags:
+        - Executors
+      summary: List executors with pagination and optional filters
+      operationId: listExecutors
+      parameters:
+        - in: query
+          name: page
+          type: integer
+          minimum: 0
+          required: false
+          description: Page index, 0-based
+        - in: query
+          name: size
+          type: integer
+          minimum: 1
+          maximum: 200
+          required: false
+          description: Page size
+        - in: query
+          name: status
+          type: integer
+          required: false
+          description: 0=OFFLINE,1=ONLINE,2=INVALID
+        - in: query
+          name: keyword
+          type: string
+          required: false
+      responses:
+        '200':
+          description: Successful page response
+          schema:
+            $ref: '#/definitions/ExecutorPageResponse'
+        '400':
+          description: Invalid page parameters
+          schema:
+            $ref: '#/definitions/OperationResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/OperationResponse'
+  /executors/refresh:
+    post:
+      tags:
+        - Executors
+      summary: Trigger refresh of executor detailed information via WSS
+      operationId: refreshExecutor
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/RefreshExecutorRequest'
+      responses:
+        '200':
+          description: Refresh command sent
+          schema:
+            $ref: '#/definitions/OperationResponse'
+        '400':
+          description: Missing or invalid executor name
+          schema:
+            $ref: '#/definitions/OperationResponse'
+        '404':
+          description: Executor is not online
+          schema:
+            $ref: '#/definitions/OperationResponse'
+        '500':
+          description: Internal error while sending command
+          schema:
+            $ref: '#/definitions/OperationResponse'
+definitions:
+  AgentUser:
+    type: object
+    properties:
+      id:
+        type: integer
+      username:
+        type: string
+      password:
+        type: string
+        description: NTLM hash string
+      lastLoginTime:
+        type: string
+        description: ISO-8601 datetime string
+  Executor:
+    type: object
+    properties:
+      name:
+        type: string
+      ip:
+        type: string
+      token:
+        type: string
+      proxy:
+        type: string
+      description:
+        type: string
+      status:
+        type: integer
+        description: 0=OFFLINE,1=ONLINE,2=INVALID
+      lastOnlineTime:
+        type: string
+        description: ISO-8601 datetime
+  Ue:
+    type: object
+    properties:
+      msisdn:
+        type: string
+      executorName:
+        type: string
+      vendor:
+        type: string
+      os:
+        type: string
+      info:
+        type: string
+        description: JSON string
+      taskInfo:
+        type: string
+  ExecutorPageData:
+    type: object
+    properties:
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/Executor'
+      totalElements:
+        type: integer
+      totalPages:
+        type: integer
+      size:
+        type: integer
+      number:
+        type: integer
+      first:
+        type: boolean
+      last:
+        type: boolean
+  ExecutorPageResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+      data:
+        $ref: '#/definitions/ExecutorPageData'
+  RefreshExecutorRequest:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+  OperationResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+
+
