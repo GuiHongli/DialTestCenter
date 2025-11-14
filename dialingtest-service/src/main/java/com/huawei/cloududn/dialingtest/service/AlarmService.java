@@ -29,6 +29,11 @@ import java.util.List;
 public class AlarmService {
     private static final Logger logger = LoggerFactory.getLogger(AlarmService.class);
 
+    private static final int MAX_ALARM_SUMMARY_LENGTH = 200;
+    private static final String ALARM_LEVEL_URGENT = "Urgent";
+    private static final String ALARM_LEVEL_IMPORTANT = "Important";
+    private static final String ALARM_LEVEL_MINOR = "Minor";
+
     @Autowired
     private AlarmDao alarmDao;
 
@@ -93,10 +98,8 @@ public class AlarmService {
         Alarm alarm = new Alarm();
         alarm.setAlarmSummary(request.getAlarmSummary());
         alarm.setAlarmDescription(request.getAlarmDescription());
-        // 将枚举类型转换为Alarm的枚举类型
-        // OpenAPI生成的枚举类使用toString()方法获取字符串值
-        String levelValue = request.getAlarmLevel().toString();
-        alarm.setAlarmLevel(Alarm.AlarmLevelEnum.fromValue(levelValue));
+        // alarmLevel现在直接使用String类型
+        alarm.setAlarmLevel(request.getAlarmLevel());
         
         // start_time由数据库默认值自动设置
         // end_time默认为null，表示告警未结束
@@ -175,19 +178,61 @@ public class AlarmService {
      * @param request 创建请求
      */
     private void validateCreateRequest(CreateAlarmRequest request) {
+        validateRequestNotNull(request);
+        validateAlarmSummary(request.getAlarmSummary());
+        validateAlarmLevel(request.getAlarmLevel());
+    }
+
+    /**
+     * 验证请求对象不为空
+     *
+     * @param request 创建请求
+     */
+    private void validateRequestNotNull(CreateAlarmRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Request cannot be null");
         }
-        if (request.getAlarmSummary() == null || request.getAlarmSummary().trim().isEmpty()) {
+    }
+
+    /**
+     * 验证告警概述
+     *
+     * @param alarmSummary 告警概述
+     */
+    private void validateAlarmSummary(String alarmSummary) {
+        if (alarmSummary == null || alarmSummary.trim().isEmpty()) {
             throw new IllegalArgumentException("Alarm summary cannot be empty");
         }
-        if (request.getAlarmSummary().length() > 200) {
-            throw new IllegalArgumentException("Alarm summary length cannot exceed 200 characters");
+        if (alarmSummary.length() > MAX_ALARM_SUMMARY_LENGTH) {
+            throw new IllegalArgumentException("Alarm summary length cannot exceed " + MAX_ALARM_SUMMARY_LENGTH + " characters");
         }
-        if (request.getAlarmLevel() == null) {
+    }
+
+    /**
+     * 验证告警级别
+     *
+     * @param alarmLevel 告警级别
+     */
+    private void validateAlarmLevel(String alarmLevel) {
+        if (alarmLevel == null || alarmLevel.trim().isEmpty()) {
             throw new IllegalArgumentException("Alarm level cannot be empty");
         }
-        // 枚举类型已经由OpenAPI验证，这里只需要检查是否为null
+        String level = alarmLevel.trim();
+        if (!isValidAlarmLevel(level)) {
+            throw new IllegalArgumentException("Alarm level must be one of: Urgent, Important, Minor");
+        }
+    }
+
+    /**
+     * 检查告警级别是否有效
+     *
+     * @param level 告警级别
+     * @return 是否有效
+     */
+    private boolean isValidAlarmLevel(String level) {
+        return ALARM_LEVEL_URGENT.equals(level) 
+            || ALARM_LEVEL_IMPORTANT.equals(level) 
+            || ALARM_LEVEL_MINOR.equals(level);
     }
 }
 
