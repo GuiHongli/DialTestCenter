@@ -189,7 +189,7 @@ public class AlarmControllerTest {
 
         // Act
         ResponseEntity<AlarmResponse> response = alarmController.endAlarm(
-                1, "csrf-token", "username");
+                1, "username");
 
         // Assert
         assertNotNull(response);
@@ -208,7 +208,7 @@ public class AlarmControllerTest {
 
         // Act
         ResponseEntity<AlarmResponse> response = alarmController.endAlarm(
-                999, "csrf-token", "username");
+                999, "username");
 
         // Assert
         assertNotNull(response);
@@ -224,7 +224,7 @@ public class AlarmControllerTest {
 
         // Act
         ResponseEntity<AlarmResponse> response = alarmController.endAlarm(
-                1, "csrf-token", "username");
+                1, "username");
 
         // Assert
         assertNotNull(response);
@@ -240,7 +240,7 @@ public class AlarmControllerTest {
 
         // Act
         ResponseEntity<AlarmResponse> response = alarmController.endAlarm(
-                999, "csrf-token", "username");
+                999, "username");
 
         // Assert
         assertNotNull(response);

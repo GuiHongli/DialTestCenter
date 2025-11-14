@@ -122,14 +122,12 @@ public class AlarmController implements AlarmsApi {
      * 结束告警（删除告警）
      *
      * @param id 告警ID
-     * @param xCsrfToken CSRF防护令牌
      * @param xUsername 操作用户名
      * @return 告警响应
      */
     @Override
     public ResponseEntity<AlarmResponse> endAlarm(
             Integer id,
-            @RequestHeader("X-Csrf-Token") String xCsrfToken,
             @RequestHeader("X-Username") String xUsername) {
         try {
             logger.info("Ending alarm with ID: {}", id);

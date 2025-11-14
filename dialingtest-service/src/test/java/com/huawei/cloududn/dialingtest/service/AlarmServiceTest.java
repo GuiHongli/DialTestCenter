@@ -49,7 +49,7 @@ public class AlarmServiceTest {
         testAlarm.setId(1);
         testAlarm.setAlarmSummary("Test Alarm");
         testAlarm.setAlarmDescription("Test Description");
-        testAlarm.setAlarmLevel(Alarm.AlarmLevelEnum.fromValue("Urgent"));
+        testAlarm.setAlarmLevel("Urgent");
         testAlarm.setStartTime("2025-01-15T10:00:00");
         testAlarm.setEndTime(null);
 
@@ -57,7 +57,7 @@ public class AlarmServiceTest {
         testRequest = new CreateAlarmRequest();
         testRequest.setAlarmSummary("Test Alarm");
         testRequest.setAlarmDescription("Test Description");
-        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Urgent"));
+        testRequest.setAlarmLevel("Urgent");
     }
 
     @Test
@@ -85,7 +85,7 @@ public class AlarmServiceTest {
     @Test
     public void testCreateAlarm_Success_Important() {
         // Arrange
-        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Important"));
+        testRequest.setAlarmLevel("Important");
         when(alarmDao.save(any(Alarm.class))).thenAnswer(invocation -> {
             Alarm alarm = invocation.getArgument(0);
             alarm.setId(1);
@@ -105,7 +105,7 @@ public class AlarmServiceTest {
     @Test
     public void testCreateAlarm_Success_Minor() {
         // Arrange
-        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Minor"));
+        testRequest.setAlarmLevel("Minor");
         when(alarmDao.save(any(Alarm.class))).thenAnswer(invocation -> {
             Alarm alarm = invocation.getArgument(0);
             alarm.setId(1);
@@ -141,6 +141,16 @@ public class AlarmServiceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void testCreateAlarm_EmptyLevel() {
+        // Arrange
+        // 设置空字符串，会在Service层的验证中抛出异常
+        testRequest.setAlarmLevel("");
+
+        // Act
+        alarmService.createAlarm(testRequest);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testCreateAlarm_SummaryTooLong() {
         // Arrange
         StringBuilder sb = new StringBuilder();
@@ -157,16 +167,11 @@ public class AlarmServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCreateAlarm_InvalidLevel() {
         // Arrange
-        // 尝试设置无效的枚举值，这会在fromValue时抛出异常
-        // 如果fromValue没有抛出异常，则会在Service层的验证中抛出
-        try {
-            testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Invalid"));
-            // 如果fromValue没有抛出异常，继续执行Service层验证
-            alarmService.createAlarm(testRequest);
-        } catch (IllegalArgumentException e) {
-            // 预期的异常，测试通过
-            throw e;
-        }
+        // 设置无效的告警级别，会在Service层的验证中抛出异常
+        testRequest.setAlarmLevel("Invalid");
+
+        // Act
+        alarmService.createAlarm(testRequest);
     }
 
     @Test(expected = IllegalStateException.class)
