@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -55,21 +56,21 @@ public class AlarmControllerTest {
         testAlarm.setId(1);
         testAlarm.setAlarmSummary("Test Alarm");
         testAlarm.setAlarmDescription("Test Description");
-        testAlarm.setAlarmLevel(Alarm.AlarmLevelEnum.fromValue("Urgent"));
+        testAlarm.setAlarmLevel("Urgent");
         testAlarm.setStartTime("2025-01-15T10:00:00");
         testAlarm.setEndTime(null);
 
         testCreateRequest = new CreateAlarmRequest();
         testCreateRequest.setAlarmSummary("Test Alarm");
         testCreateRequest.setAlarmDescription("Test Description");
-        testCreateRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Urgent"));
+        testCreateRequest.setAlarmLevel("Urgent");
 
         testPageResponse = new AlarmPageResponse();
         testPageResponse.setSuccess(true);
         testPageResponse.setMessage("Query successful");
 
         AlarmPageResponseData pageData = new AlarmPageResponseData();
-        pageData.setContent(Arrays.asList(testAlarm));
+        pageData.setContent(Collections.singletonList(testAlarm));
         pageData.setTotalElements(1);
         pageData.setTotalPages(1);
         pageData.setSize(20);

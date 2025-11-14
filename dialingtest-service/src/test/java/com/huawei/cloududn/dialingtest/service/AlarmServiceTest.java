@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -250,7 +251,7 @@ public class AlarmServiceTest {
     @Test
     public void testGetAlarms_Success() {
         // Arrange
-        List<Alarm> alarms = Arrays.asList(testAlarm);
+        List<Alarm> alarms = Collections.singletonList(testAlarm);
         when(alarmDao.findAlarmsWithPagination(0, 20, false)).thenReturn(alarms);
         when(alarmDao.countAlarms(false)).thenReturn(1L);
 
@@ -285,7 +286,7 @@ public class AlarmServiceTest {
     @Test
     public void testGetAlarms_InvalidPageSize() {
         // Arrange
-        List<Alarm> alarms = Arrays.asList(testAlarm);
+        List<Alarm> alarms = Collections.singletonList(testAlarm);
         when(alarmDao.findAlarmsWithPagination(0, 20, false)).thenReturn(alarms);
         when(alarmDao.countAlarms(false)).thenReturn(1L);
 
@@ -300,7 +301,7 @@ public class AlarmServiceTest {
     @Test
     public void testGetAlarms_InvalidPageNumber() {
         // Arrange
-        List<Alarm> alarms = Arrays.asList(testAlarm);
+        List<Alarm> alarms = Collections.singletonList(testAlarm);
         when(alarmDao.findAlarmsWithPagination(0, 20, false)).thenReturn(alarms);
         when(alarmDao.countAlarms(false)).thenReturn(1L);
 
@@ -336,7 +337,7 @@ public class AlarmServiceTest {
     @Test
     public void testGetAlarms_OnlyCurrent() {
         // Arrange
-        List<Alarm> alarms = Arrays.asList(testAlarm);
+        List<Alarm> alarms = Collections.singletonList(testAlarm);
         when(alarmDao.findAlarmsWithPagination(0, 20, true)).thenReturn(alarms);
         when(alarmDao.countAlarms(true)).thenReturn(1L);
 
