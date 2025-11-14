@@ -70,6 +70,29 @@ public class WebSocketSessionRegistry {
     }
 
     /**
+     * Send a text message to the given session id.
+     *
+     * @param sessionId target session id
+     * @param message   text message
+     */
+    public void sendText(String sessionId, String message) {
+        Session session = sessionMap.get(sessionId);
+        if (session == null) {
+            logger.warn("Session not found for sessionId={}", sessionId);
+            return;
+        }
+        if (!session.isOpen()) {
+            logger.warn("Session is closed, sessionId={}", sessionId);
+            return;
+        }
+        try {
+            session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            logger.error("Failed to send text message to sessionId={}", sessionId, e);
+        }
+    }
+
+    /**
      * Send a binary TLV message to the given session id.
      * V3版本：使用二进制格式发送
      *

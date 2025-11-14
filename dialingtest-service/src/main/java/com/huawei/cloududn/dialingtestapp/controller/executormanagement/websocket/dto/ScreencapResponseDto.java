@@ -1,100 +1,100 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * ScreanCap-Response (0x26) 消息DTO
  * 方向: ADCA → CloudUDN
  * 说明: 查询UE界面应答
- * 
+ * V4版本：移除content字段，文件内容通过后续的Binary分片传输
+ *
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class ScreencapResponseDto {
-    
-    /**
-     * 会话Token
-     * Tag: 0x0008
-     */
+
+    @JsonProperty("token")
     private long token;
-    
-    /**
-     * 手机序列号
-     * Tag: 0x000A
-     */
+
+    @JsonProperty("serial-no")
     private String serialNo;
-    
-    /**
-     * 错误码：0-OK，非0-异常
-     * Tag: 0x0009
-     */
+
+    @JsonProperty("state")
     private int state;
-    
-    /**
-     * 文件名（screencap_202509111200531.png）
-     * Tag: 0x0026
-     */
+
+    @JsonProperty("filename")
     private String filename;
-    
-    /**
-     * 文件内容（PNG格式二进制数据）
-     * Tag: 0x0027
-     */
-    private byte[] content;
-    
+
+    @JsonProperty("filelen")
+    private Integer filelen;
+
+    @JsonProperty("crc")
+    private String crc;
+
     public ScreencapResponseDto() {
     }
-    
-    public ScreencapResponseDto(long token, String serialNo, int state, String filename, byte[] content) {
+
+    public ScreencapResponseDto(long token, String serialNo, int state, String filename, Integer filelen, String crc) {
         this.token = token;
         this.serialNo = serialNo;
         this.state = state;
         this.filename = filename;
-        this.content = content;
+        this.filelen = filelen;
+        this.crc = crc;
     }
-    
+
     public long getToken() {
         return token;
     }
-    
+
     public void setToken(long token) {
         this.token = token;
     }
-    
+
     public String getSerialNo() {
         return serialNo;
     }
-    
+
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
     }
-    
+
     public int getState() {
         return state;
     }
-    
+
     public void setState(int state) {
         this.state = state;
     }
-    
+
     public String getFilename() {
         return filename;
     }
-    
+
     public void setFilename(String filename) {
         this.filename = filename;
     }
-    
-    public byte[] getContent() {
-        return content;
+
+    public Integer getFilelen() {
+        return filelen;
     }
-    
-    public void setContent(byte[] content) {
-        this.content = content;
+
+    public void setFilelen(Integer filelen) {
+        this.filelen = filelen;
     }
-    
+
+    public String getCrc() {
+        return crc;
+    }
+
+    public void setCrc(String crc) {
+        this.crc = crc;
+    }
+
     public boolean isSuccess() {
         return state == 0;
     }
-    
+
     @Override
     public String toString() {
         return "ScreencapResponseDto{" +
@@ -102,8 +102,8 @@ public class ScreencapResponseDto {
                 ", serialNo='" + serialNo + '\'' +
                 ", state=" + state +
                 ", filename='" + filename + '\'' +
-                ", contentLength=" + (content != null ? content.length : 0) +
+                ", filelen=" + filelen +
+                ", crc='" + crc + '\'' +
                 '}';
     }
 }
-

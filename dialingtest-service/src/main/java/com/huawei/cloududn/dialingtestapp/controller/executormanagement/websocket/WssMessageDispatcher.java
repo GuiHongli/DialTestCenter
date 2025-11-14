@@ -4,17 +4,24 @@
 
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket;
 
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.DtoTlvConverter;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.MessageType;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvDecoder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.MessageType;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.AppInstallResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.AppListResponseDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterRequestDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.JsonMessageEnvelope;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.RegisterRequestDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.RegisterResponseDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ScreencapResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ScriptUpdateAckDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartResponseDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileHandler;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorMgmtService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.auth.AuthSessionService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.task.TaskInterfaceService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,18 +32,23 @@ import java.nio.ByteBuffer;
 import javax.websocket.Session;
 
 /**
- * Dispatch inbound WSS messages by TLV message ID.
- * V3版本：从JSON分发改为TLV消息ID分发
- *
- * <p>Routes to Auth, Executor and Task services based on MessageType (0x01-0x36).</p>
+ * V4 入站消息分发器
+ * 职责：
+ * 1. 解析 JSON 信令并分发给业务层
+ * 2. 将 Binary 分片委托给 InboundFileHandler
  *
  * @author g00940940
- * @since 2025-11-11
+ * @since 2025-11-14
  */
 @Component
 public class WssMessageDispatcher {
-
     private static final Logger logger = LoggerFactory.getLogger(WssMessageDispatcher.class);
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private InboundFileHandler inboundFileHandler;
 
     @Autowired
     private AuthSessionService authSessionService;
@@ -48,62 +60,104 @@ public class WssMessageDispatcher {
     private TaskInterfaceService taskInterfaceService;
 
     /**
-     * Dispatch TLV binary message by message ID.
-     * V3变更：基于TLV消息ID（0x01-0x36）进行路由分发
+     * 分发 JSON 信令
      *
-     * @param buffer  TLV binary buffer
-     * @param session ws session
+     * @param jsonMessage JSON消息字符串
+     * @param session WebSocket会话
+     */
+    public void dispatch(String jsonMessage, Session session) {
+        try {
+            JsonMessageEnvelope envelope = objectMapper.readValue(jsonMessage, JsonMessageEnvelope.class);
+            String messageType = envelope.getType();
+
+            logger.debug("Dispatching JSON message, sessionId={}, type={}", session.getId(), messageType);
+
+            MessageType type = MessageType.fromJsonType(messageType);
+
+            switch (type) {
+                case REGISTER_REQUEST: {
+                    RegisterRequestDto dto = objectMapper.convertValue(envelope.getPayload(), RegisterRequestDto.class);
+                    authSessionService.handleRegisterRequest(dto, session);
+                    break;
+                }
+                case REGISTER_RESPONSE: {
+                    RegisterResponseDto dto = objectMapper.convertValue(envelope.getPayload(), RegisterResponseDto.class);
+                    authSessionService.handleRegisterResponse(dto, session);
+                    break;
+                }
+                case DEREGISTER_REQUEST: {
+                    DeRegisterRequestDto dto = objectMapper.convertValue(envelope.getPayload(), DeRegisterRequestDto.class);
+                    executorMgmtService.handleDeRegisterRequest(dto, session);
+                    break;
+                }
+                case REPORT_MSG: {
+                    ReportMsgDto dto = objectMapper.convertValue(envelope.getPayload(), ReportMsgDto.class);
+                    executorMgmtService.handleReportMsg(dto, session);
+                    break;
+                }
+                case APP_LIST_RESPONSE: {
+                    AppListResponseDto dto = objectMapper.convertValue(envelope.getPayload(), AppListResponseDto.class);
+                    taskInterfaceService.handleAppListResponse(dto, session);
+                    break;
+                }
+                case APP_INSTALL_RESPONSE: {
+                    AppInstallResponseDto dto = objectMapper.convertValue(envelope.getPayload(), AppInstallResponseDto.class);
+                    taskInterfaceService.handleAppInstallResponse(dto, session);
+                    break;
+                }
+                case SCREENCAP_RESPONSE: {
+                    ScreencapResponseDto dto = objectMapper.convertValue(envelope.getPayload(), ScreencapResponseDto.class);
+                    taskInterfaceService.handleScreencapResponse(dto, session);
+                    break;
+                }
+                case SCRIPT_UPDATE_ACK: {
+                    ScriptUpdateAckDto dto = objectMapper.convertValue(envelope.getPayload(), ScriptUpdateAckDto.class);
+                    taskInterfaceService.handleScriptUpdateAck(dto, session);
+                    break;
+                }
+                case TASK_START_RESPONSE: {
+                    TaskStartResponseDto dto = objectMapper.convertValue(envelope.getPayload(), TaskStartResponseDto.class);
+                    taskInterfaceService.handleTaskStartResponse(dto, session);
+                    break;
+                }
+                case TASK_STOP_RESPONSE: {
+                    TaskStopResponseDto dto = objectMapper.convertValue(envelope.getPayload(), TaskStopResponseDto.class);
+                    taskInterfaceService.handleTaskStopResponse(dto, session);
+                    break;
+                }
+                default: {
+                    logger.warn("Unknown or unsupported message type: {}", messageType);
+                    break;
+                }
+            }
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid message type, sessionId={}", session.getId(), e);
+        } catch (Exception e) {
+            logger.error("Failed to dispatch JSON message, sessionId={}", session.getId(), e);
+        }
+    }
+
+    /**
+     * 分发二进制分片
+     *
+     * @param buffer 二进制数据
+     * @param session WebSocket会话
      */
     public void dispatch(ByteBuffer buffer, Session session) {
         try {
-            // Decode TLV message header
-            TlvDecoder.DecodedMessage decoded = TlvDecoder.decodeMessage(buffer);
-            MessageType messageType = decoded.getMessageType();
-            
-            logger.debug("Dispatching TLV message, sessionId={}, messageType={}(0x{:02X})", 
-                session.getId(), messageType.getName(), messageType.getId());
-            
-            // Route based on message type
-            if (messageType == MessageType.REGISTER_REQUEST) {
-                RegisterRequestDto dto = DtoTlvConverter.decodeRegisterRequest(decoded);
-                authSessionService.handleRegisterRequest(dto, session);
-            } else if (messageType == MessageType.REGISTER_RESPONSE) {
-                // Handle register response (0x03)
-                authSessionService.handleRegisterResponse(decoded, session);
-            } else if (messageType == MessageType.DEREGISTER_REQUEST) {
-                // Handle deregister request (0x05)
-                DeRegisterRequestDto dto =
-                    DtoTlvConverter.decodeDeRegisterRequest(decoded);
-                executorMgmtService.handleDeRegisterRequest(dto, session);
-            } else if (messageType == MessageType.REPORT_MSG) {
-                ReportMsgDto dto = DtoTlvConverter.decodeReportMsg(decoded);
-                executorMgmtService.handleReportMsg(dto, session);
-            } else if (messageType == MessageType.APP_LIST_RESPONSE) {
-                // Handle app list response (0x22)
-                taskInterfaceService.handleAppListResponse(decoded, session);
-            } else if (messageType == MessageType.APP_INSTALL_RESPONSE) {
-                // Handle app install response (0x24)
-                taskInterfaceService.handleAppInstallResponse(decoded, session);
-            } else if (messageType == MessageType.SCREENCAP_RESPONSE) {
-                // Handle screencap response (0x26)
-                taskInterfaceService.handleScreencapResponse(decoded, session);
-            } else if (messageType == MessageType.SCRIPT_UPDATE_ACK) {
-                // Handle script update ack (0x32)
-                taskInterfaceService.handleScriptUpdateAck(decoded, session);
-            } else if (messageType == MessageType.TASK_START_RESPONSE) {
-                // Handle task start response (0x34)
-                TaskStartResponseDto dto = DtoTlvConverter.decodeTaskStartResponse(decoded);
-                taskInterfaceService.handleTaskStartResponse(dto, session);
-            } else if (messageType == MessageType.TASK_STOP_RESPONSE) {
-                // Handle task stop response (0x36)
-                TaskStopResponseDto dto = DtoTlvConverter.decodeTaskStopResponse(decoded);
-                taskInterfaceService.handleTaskStopResponse(dto, session);
+            String sessionId = session.getId();
+
+            if (inboundFileHandler.isReceivingFile(sessionId)) {
+                logger.debug("Handling binary chunk for sessionId={}, size={} bytes",
+                        sessionId, buffer.remaining());
+                inboundFileHandler.handleChunk(sessionId, buffer);
             } else {
-                logger.warn("Unknown or unhandled message type: {}(0x{:02X}), sessionId={}", 
-                    messageType.getName(), messageType.getId(), session.getId());
+                logger.warn("Received unexpected binary chunk, sessionId={}", sessionId);
             }
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to decode TLV message, sessionId={}", session.getId(), e);
+
+        } catch (Exception e) {
+            logger.error("Failed to dispatch binary chunk, sessionId={}", session.getId(), e);
         }
     }
 }

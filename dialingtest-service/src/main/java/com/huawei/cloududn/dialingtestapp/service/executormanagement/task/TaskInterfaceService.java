@@ -4,16 +4,18 @@
 
 package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.DtoTlvConverter;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.FieldTag;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvDecoder;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.*;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileCompleteCallback;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileHandler;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileState;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
 import com.huawei.cloududn.dialingtestapp.dao.SoftwarePackageDao;
 import com.huawei.cloududn.dialingtestapp.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtestapp.dao.executormanagement.ExecutorDao;
 import com.huawei.cloududn.dialingtestapp.entity.SoftwarePackage;
 import com.huawei.cloududn.dialingtest.model.TestCaseSet;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorSelectionService;
+import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorSelectionService.ExecutorUeInfo;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.ScriptUpdateRequest;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest;
@@ -24,7 +26,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.ByteBuffer;
+import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,13 +35,13 @@ import javax.websocket.Session;
 
 /**
  * 任务接口服务：作为任务管理模块与执行机管理模块之间的适配器
- * V3版本：支持完整的任务分发、状态上报、环境管理等功能
+ * V4版本：实现InboundFileCompleteCallback接口，支持JSON信令和文件传输
  *
  * @author g00940940
- * @since 2025-11-04
+ * @since 2025-11-14
  */
 @Service
-public class TaskInterfaceService {
+public class TaskInterfaceService implements InboundFileCompleteCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskInterfaceService.class);
 
@@ -47,6 +50,9 @@ public class TaskInterfaceService {
 
     @Autowired
     private WssMessageSender wssMessageSender;
+
+    @Autowired
+    private InboundFileHandler inboundFileHandler;
 
     @Autowired
     private ExecutorDao executorDao;
@@ -65,6 +71,41 @@ public class TaskInterfaceService {
 
     @Autowired
     private SoftwarePackageDao softwarePackageDao;
+
+    /**
+     * 向执行机分发拨测任务（支持自动选择执行机/UE）
+     * V4版本：当请求中未指定执行机时，通过ExecutorSelectionService自动选择
+     *
+     * @param request 任务分发请求
+     */
+    public void dispatchTask(TaskDispatchRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("TaskDispatchRequest must not be null");
+        }
+
+        if (request.getExecutorName() == null || request.getExecutorName().trim().isEmpty()) {
+            logger.info("No executor specified in request, trying to select one automatically for taskId={}", request.getTaskId());
+            ExecutorUeInfo selected = executorSelectionService.selectIdleExecutorAndUe();
+            if (selected == null) {
+                logger.error("No available executor/UE for taskId={}", request.getTaskId());
+                throw new IllegalStateException("No available executor/UE for task " + request.getTaskId());
+            }
+            request.setExecutorName(selected.getExecutor().getName());
+            if (request.getSerialNoList() == null || request.getSerialNoList().isEmpty()) {
+                java.util.List<String> serialList = new java.util.ArrayList<>();
+                if (selected.getUe() != null && selected.getUe().getMsisdn() != null) {
+                    serialList.add(selected.getUe().getMsisdn());
+                }
+                request.setSerialNoList(serialList);
+            }
+            logger.info("Executor auto selected for taskId={}, executor={}, ue={}",
+                    request.getTaskId(),
+                    selected.getExecutor().getName(),
+                    selected.getUe() != null ? selected.getUe().getMsisdn() : null);
+        }
+
+        dispatchTaskToAgent(request);
+    }
 
     /**
      * 向指定执行机分发拨测任务
@@ -92,9 +133,8 @@ public class TaskInterfaceService {
             taskDto.setProcType(request.getProctype() != null ? Integer.valueOf(request.getProctype()) : 1);
             taskDto.setParameters(request.getParameters());
 
-            // 发送任务开始消息
-            ByteBuffer buffer = DtoTlvConverter.encodeTaskStart(taskDto);
-            wssMessageSender.sendBinary(sessionId, buffer);
+            // V4: 发送任务开始消息（JSON格式）
+            wssMessageSender.sendJsonMessage(sessionId, taskDto);
 
             // 记录任务到执行机的映射，用于后续停止操作
             taskToExecutorMap.put(request.getTaskId(), request.getExecutorName());
@@ -111,7 +151,7 @@ public class TaskInterfaceService {
 
     /**
      * 处理任务启动响应
-     * V3版本：处理TaskStart-Response消息，支持sub-result等新字段
+     * V4版本：处理JSON格式的TaskStart-Response消息，支持文件传输
      *
      * @param dto     任务启动响应DTO
      * @param session WebSocket会话
@@ -120,26 +160,42 @@ public class TaskInterfaceService {
         logger.info("Handling task start response: taskId={}, result={}", dto.getTaskId(), dto.getResult());
 
         try {
-            // 通知上层任务管理模块更新任务状态
             boolean isSuccess = "SUCCESS".equalsIgnoreCase(dto.getResult()) ||
                                "success".equalsIgnoreCase(dto.getResult());
 
-            // 构造结果数据
-            java.util.Map<String, Object> resultData = new java.util.HashMap<>();
-            resultData.put("task_id", dto.getTaskId());
-            resultData.put("result", dto.getResult());
-            resultData.put("block", dto.getBlock());
-            resultData.put("sub_results", dto.getSubResult());
-            resultData.put("files", dto.getFiles());
-            resultData.put("crc", dto.getCrc());
-
-            taskOrchestratorService.sendResultEvent((long) dto.getTaskId(), isSuccess, resultData);
-
-            logger.info("Task start response processed successfully: taskId={}, result={}", dto.getTaskId(), dto.getResult());
+            if (dto.getFilelen() > 0) {
+                String tempPath = "/tmp/task_result_" + dto.getTaskId() + ".log";
+                inboundFileHandler.startReceiving(session.getId(), dto.getFilelen(), dto.getCrc(), tempPath, dto);
+                logger.info("Started receiving task result file for taskId={}, size={} bytes",
+                        dto.getTaskId(), dto.getFilelen());
+            } else {
+                processTaskStartResponse(dto);
+            }
 
         } catch (Exception e) {
             logger.error("Failed to handle task start response: taskId={}", dto.getTaskId(), e);
         }
+    }
+
+    private void processTaskStartResponse(TaskStartResponseDto dto) {
+        boolean isSuccess = "SUCCESS".equalsIgnoreCase(dto.getResult()) ||
+                           "success".equalsIgnoreCase(dto.getResult());
+
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("task_id", dto.getTaskId());
+        resultData.put("result", dto.getResult());
+        resultData.put("block", dto.getBlock());
+        resultData.put("sub_results", dto.getSubResult());
+        resultData.put("description", dto.getDescription());
+        if (dto.getFilelen() > 0) {
+            resultData.put("has_file", Boolean.TRUE);
+        } else {
+            resultData.put("has_file", Boolean.FALSE);
+        }
+
+        taskOrchestratorService.sendResultEvent((long) dto.getTaskId(), isSuccess, resultData);
+
+        logger.info("Task start response processed successfully: taskId={}, result={}", dto.getTaskId(), dto.getResult());
     }
 
     /**
@@ -164,8 +220,8 @@ public class TaskInterfaceService {
             if (sessionId != null) {
                 TaskStopRequestDto stopDto = new TaskStopRequestDto();
                 stopDto.setTaskId(taskId);
-                ByteBuffer buffer = DtoTlvConverter.encodeTaskStop(stopDto);
-                wssMessageSender.sendBinary(sessionId, buffer);
+                // V4: 发送任务停止消息（JSON格式）
+                wssMessageSender.sendJsonMessage(sessionId, stopDto);
                 logger.info("Task stop request sent: taskId={}, executor={}", taskId, executorName);
             } else {
                 logger.warn("No session found for task stop request: taskId={}, executor={}", taskId, executorName);
@@ -202,7 +258,7 @@ public class TaskInterfaceService {
 
     /**
      * 发送App列表查询请求
-     * V3版本：查询指定执行机和UE的已安装App列表
+     * V4版本：查询指定执行机和UE的已安装App列表
      *
      * @param executorName 执行机名称
      * @param serialNo UE序列号
@@ -215,8 +271,8 @@ public class TaskInterfaceService {
             if (sessionId != null) {
                 AppListQueryDto queryDto = new AppListQueryDto();
                 queryDto.setSerialNo(serialNo);
-                ByteBuffer buffer = DtoTlvConverter.encodeAppListQuery(queryDto);
-                wssMessageSender.sendBinary(sessionId, buffer);
+                // V4: 发送App列表查询（JSON格式）
+                wssMessageSender.sendJsonMessage(sessionId, queryDto);
                 logger.debug("App list query sent: executor={}, serialNo={}", executorName, serialNo);
             } else {
                 logger.warn("No session found for app list query: executor={}", executorName);
@@ -229,7 +285,7 @@ public class TaskInterfaceService {
 
     /**
      * 发送脚本更新请求
-     * V3版本：向指定执行机推送新的拨测脚本
+     * V4版本：向指定执行机推送新的拨测脚本（JSON信令 + 文件流）
      *
      * @param executorName 执行机名称
      * @param script       脚本更新请求
@@ -243,12 +299,14 @@ public class TaskInterfaceService {
                 ScriptUpdateNotifyDto updateDto = new ScriptUpdateNotifyDto();
                 updateDto.setScriptName(script.getScriptName());
                 updateDto.setVersion(script.getVersion());
-                updateDto.setFileLen(script.getScriptFile().length);
-                updateDto.setScriptFile(script.getScriptFile());
-                updateDto.setCrc(script.getCrc() != null ? script.getCrc().getBytes(java.nio.charset.StandardCharsets.UTF_8) : new byte[0]);
-                ByteBuffer buffer = DtoTlvConverter.encodeScriptUpdateNotify(updateDto);
-                wssMessageSender.sendBinary(sessionId, buffer);
-                logger.debug("Script update sent: executor={}, scriptName={}", executorName, script.getScriptName());
+                updateDto.setFilelen(script.getScriptFile().length);
+                updateDto.setCrc(script.getCrc());
+                
+                // V4: 发送脚本更新（JSON信令 + 文件流）
+                java.io.ByteArrayInputStream fileStream = new java.io.ByteArrayInputStream(script.getScriptFile());
+                wssMessageSender.sendFile(sessionId, updateDto, fileStream);
+                logger.debug("Script update sent: executor={}, scriptName={}, size={} bytes",
+                        executorName, script.getScriptName(), script.getScriptFile().length);
             } else {
                 logger.warn("No session found for script update: executor={}", executorName);
             }
@@ -261,7 +319,7 @@ public class TaskInterfaceService {
 
     /**
      * 发送UE截屏查询请求
-     * V3版本：查询指定执行机和UE的屏幕截图
+     * V4版本：查询指定执行机和UE的屏幕截图（PNG文件通过Binary分片上传）
      *
      * @param executorName 执行机名称
      * @param serialNo UE序列号
@@ -274,8 +332,8 @@ public class TaskInterfaceService {
             if (sessionId != null) {
                 ScreencapQueryDto queryDto = new ScreencapQueryDto();
                 queryDto.setSerialNo(serialNo);
-                ByteBuffer buffer = DtoTlvConverter.encodeScreencapQuery(queryDto);
-                wssMessageSender.sendBinary(sessionId, buffer);
+                // V4: 发送截屏查询（JSON格式）
+                wssMessageSender.sendJsonMessage(sessionId, queryDto);
                 logger.debug("Screencap query sent: executor={}, serialNo={}", executorName, serialNo);
             } else {
                 logger.warn("No session found for screencap query: executor={}", executorName);
@@ -288,133 +346,147 @@ public class TaskInterfaceService {
 
 
     /**
-     * Handle inbound UE screencap response (V3 TLV format).
-     * V3版本：处理TLV格式的UE截屏响应
+     * 处理UE截屏响应
+     * V4版本：处理JSON格式的UE截屏响应，支持文件传输
      *
-     * @param decoded decoded TLV message
-     * @param session ws session
+     * @param dto     截屏响应DTO
+     * @param session WebSocket会话
      */
-    public void handleScreencapResponse(TlvDecoder.DecodedMessage decoded, Session session) {
-        String serialNo = decoded.getField(FieldTag.SERIAL_NO).getAsString();
-        int result = decoded.getField(FieldTag.RESULT).getAsInt();
-        logger.info("Handle screencap_response, serialNo={}, result={}, sessionId={}", serialNo, result, session.getId());
+    public void handleScreencapResponse(ScreencapResponseDto dto, Session session) {
+        logger.info("Handling screencap response: serialNo={}, state={}, filename={}",
+                dto.getSerialNo(), dto.getState(), dto.getFilename());
 
-        // 通知上层模块截屏结果
-        if (result == 0) {
-            logger.info("Screencap completed successfully for serialNo: {}", serialNo);
-        } else {
-            logger.warn("Screencap failed for serialNo: {}, result={}", serialNo, result);
-        }
-        // TODO: 如果需要，可以在这里处理图片数据
-    }
+        try {
+            if (dto.isSuccess() && dto.getFilelen() != null && dto.getFilelen() > 0) {
+                String tempPath = "/tmp/screencap_" + dto.getSerialNo() + "_" + System.currentTimeMillis() + ".png";
+                inboundFileHandler.startReceiving(session.getId(), dto.getFilelen(), dto.getCrc(), tempPath, dto);
+                logger.info("Started receiving screencap file for serialNo={}, size={} bytes",
+                        dto.getSerialNo(), dto.getFilelen());
+            } else {
+                if (!dto.isSuccess()) {
+                    logger.warn("Screencap failed for serialNo: {}, state={}", dto.getSerialNo(), dto.getState());
+                } else {
+                    logger.info("Screencap completed (no file) for serialNo: {}", dto.getSerialNo());
+                }
+            }
 
-    /**
-     * Handle inbound app install response (V3 TLV format).
-     * V3版本：处理TLV格式的App安装响应
-     *
-     * @param decoded decoded TLV message
-     * @param session ws session
-     */
-    public void handleAppInstallResponse(TlvDecoder.DecodedMessage decoded, Session session) {
-        String serialNo = decoded.getField(FieldTag.SERIAL_NO).getAsString();
-        int taskId = decoded.getField(FieldTag.TASKID).getAsInt();
-        int result = decoded.getField(FieldTag.RESULT).getAsInt();
-        logger.info("Handle app_install_response, serialNo={}, taskId={}, result={}, sessionId={}", serialNo, taskId, result, session.getId());
-
-        // 通知上层模块App安装结果
-        if (result == 0) {
-            logger.info("App installation completed successfully: serialNo={}, taskId={}", serialNo, taskId);
-        } else {
-            logger.warn("App installation failed: serialNo={}, taskId={}, result={}", serialNo, taskId, result);
+        } catch (Exception e) {
+            logger.error("Failed to handle screencap response: serialNo={}", dto.getSerialNo(), e);
         }
     }
 
     /**
-     * Handle inbound script update ack (V3 TLV format).
-     * V3版本：处理TLV格式的脚本更新确认
+     * 文件接收完成回调
+     * V4版本：实现InboundFileCompleteCallback接口
      *
-     * @param decoded decoded TLV message
-     * @param session ws session
+     * @param state 文件接收状态
      */
-    public void handleScriptUpdateAck(TlvDecoder.DecodedMessage decoded, Session session) {
-        String scriptName = decoded.getField(FieldTag.SCRIPT_NAME).getAsString();
-        String version = decoded.getField(FieldTag.VERSION).getAsString();
-        int result = decoded.getField(FieldTag.RESULT).getAsInt();
-        logger.info("Handle script_update_ack, scriptName={}, version={}, result={}, sessionId={}", scriptName, version, result, session.getId());
+    @Override
+    public void onInboundFileComplete(InboundFileState state) {
+        logger.info("File receive completed: sessionId={}, filePath={}, size={}/{} bytes",
+                state.getSessionId(), state.getTempFilePath(),
+                state.getReceivedSize(), state.getExpectedSize());
 
-        // 通知上层模块脚本更新结果
-        if (result == 0) {
-            logger.info("Script update completed successfully: scriptName={}, version={}", scriptName, version);
+        if (state.hasError()) {
+            logger.error("File receive failed: sessionId={}, error={}",
+                    state.getSessionId(), state.getError());
+            return;
+        }
+
+        if (!state.verifyCrc()) {
+            logger.error("File CRC verification failed: sessionId={}", state.getSessionId());
+            return;
+        }
+
+        Object businessContext = state.getBusinessContext();
+        if (businessContext instanceof TaskStartResponseDto) {
+            TaskStartResponseDto dto = (TaskStartResponseDto) businessContext;
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("task_id", dto.getTaskId());
+            resultData.put("result", dto.getResult());
+            resultData.put("block", dto.getBlock());
+            resultData.put("sub_results", dto.getSubResult());
+            resultData.put("description", dto.getDescription());
+            resultData.put("log_path", state.getTempFilePath());
+            resultData.put("has_file", Boolean.TRUE);
+            boolean isSuccess = "SUCCESS".equalsIgnoreCase(dto.getResult()) ||
+                    "success".equalsIgnoreCase(dto.getResult());
+            taskOrchestratorService.sendResultEvent((long) dto.getTaskId(), isSuccess, resultData);
+            logger.info("Task result file stored for taskId={}, path={}",
+                    dto.getTaskId(), state.getTempFilePath());
+        } else if (businessContext instanceof ScreencapResponseDto) {
+            ScreencapResponseDto dto = (ScreencapResponseDto) businessContext;
+            logger.info("Screencap file saved: serialNo={}, path={}",
+                    dto.getSerialNo(), state.getTempFilePath());
         } else {
-            logger.warn("Script update failed: scriptName={}, version={}, result={}", scriptName, version, result);
+            logger.warn("Unknown business context type: {}", 
+                    businessContext != null ? businessContext.getClass().getName() : "null");
+        }
+    }
+
+
+    /**
+     * 处理App安装响应
+     * V4版本：处理JSON格式的App安装响应
+     *
+     * @param dto     App安装响应DTO
+     * @param session WebSocket会话
+     */
+    public void handleAppInstallResponse(AppInstallResponseDto dto, Session session) {
+        logger.info("Handling app install response: serialNo={}, taskId={}, state={}",
+                dto.getSerialNo(), dto.getTaskId(), dto.getState());
+
+        if (dto.getState() == 0) {
+            logger.info("App install completed successfully: serialNo={}, taskId={}",
+                    dto.getSerialNo(), dto.getTaskId());
+        } else {
+            logger.warn("App install failed: serialNo={}, taskId={}, state={}",
+                    dto.getSerialNo(), dto.getTaskId(), dto.getState());
         }
     }
 
     /**
-     * Handle inbound task start response (V3 TLV format).
-     * V3版本：处理TLV格式的任务启动响应
+     * 处理App列表响应
+     * V4版本：处理JSON格式的App列表响应
      *
-     * @param decoded decoded TLV message
-     * @param session ws session
+     * @param dto     App列表响应DTO
+     * @param session WebSocket会话
      */
-    public void handleTaskStartResponse(TlvDecoder.DecodedMessage decoded, Session session) {
-        int taskId = decoded.getField(FieldTag.TASKID).getAsInt();
-        String result = decoded.getField(FieldTag.RESULT).getAsString();
-        logger.info("Handle task_start_response, taskId={}, result={}, sessionId={}", taskId, result, session.getId());
+    public void handleAppListResponse(AppListResponseDto dto, Session session) {
+        logger.info("Handling app list response: serialNo={}, state={}, appCount={}",
+                dto.getSerialNo(), dto.getState(),
+                dto.getAppList() != null ? dto.getAppList().size() : 0);
 
-        // 处理任务结果和子结果
-        boolean isSuccess = "SUCCESS".equalsIgnoreCase(result) || "success".equalsIgnoreCase(result);
-
-        java.util.Map<String, Object> resultData = new java.util.HashMap<>();
-        resultData.put("task_id", taskId);
-        resultData.put("result", result);
-
-        taskOrchestratorService.sendResultEvent((long) taskId, isSuccess, resultData);
-
-        logger.info("Task start response processed: taskId={}, result={}", taskId, result);
-    }
-
-    /**
-     * Handle inbound task stop response (V3 TLV format).
-     * V3版本：处理TLV格式的任务停止响应
-     *
-     * @param decoded decoded TLV message
-     * @param session ws session
-     */
-    public void handleTaskStopResponse(TlvDecoder.DecodedMessage decoded, Session session) {
-        int taskId = decoded.getField(FieldTag.TASKID).getAsInt();
-        int result = decoded.getField(FieldTag.RESULT).getAsInt();
-        logger.info("Handle task_stop_response, taskId={}, result={}, sessionId={}", taskId, result, session.getId());
-
-        // 处理任务停止确认
-        taskOrchestratorService.stopTask((long) taskId);
-
-        // 清理任务映射
-        taskToExecutorMap.remove(taskId);
-
-        logger.info("Task stop confirmation processed: taskId={}, result={}", taskId, result);
-    }
-
-    /**
-     * Handle inbound app list response (V3 TLV format).
-     * V3版本：处理TLV格式的App列表响应
-     *
-     * @param decoded decoded TLV message
-     * @param session ws session
-     */
-    public void handleAppListResponse(TlvDecoder.DecodedMessage decoded, Session session) {
-        String serialNo = decoded.getField(FieldTag.SERIAL_NO).getAsString();
-        int result = decoded.getField(FieldTag.RESULT).getAsInt();
-        logger.info("Handle app_list_response, serialNo={}, result={}, sessionId={}", serialNo, result, session.getId());
-
-        // 处理App列表数据
-        if (result == 0) {
-            logger.info("App list retrieved successfully for serialNo: {}", serialNo);
-            // TODO: 如果需要解析具体的App列表数据，可以在这里处理
+        if (dto.getState() == 0) {
+            logger.info("App list query completed successfully for serialNo: {}", dto.getSerialNo());
         } else {
-            logger.warn("Failed to retrieve app list for serialNo: {}, result={}", serialNo, result);
+            logger.warn("App list query failed for serialNo: {}, state={}",
+                    dto.getSerialNo(), dto.getState());
         }
     }
+
+    /**
+     * 处理脚本更新确认
+     * V4版本：处理JSON格式的脚本更新确认
+     *
+     * @param dto     脚本更新确认DTO
+     * @param session WebSocket会话
+     */
+    public void handleScriptUpdateAck(ScriptUpdateAckDto dto, Session session) {
+        logger.info("Handling script update ack: scriptName={}, version={}, state={}",
+                dto.getScriptName(), dto.getVersion(), dto.getState());
+
+        if (dto.getState() == 0) {
+            logger.info("Script update completed successfully: scriptName={}, version={}",
+                    dto.getScriptName(), dto.getVersion());
+        } else {
+            logger.warn("Script update failed: scriptName={}, version={}, state={}",
+                    dto.getScriptName(), dto.getVersion(), dto.getState());
+        }
+    }
+
+
+
 
     /**
      * 向指定执行机推送脚本更新（从数据库读取）
@@ -501,24 +573,18 @@ public class TaskInterfaceService {
                 return;
             }
             
-            // 4. 构造AppInstallRequestDto并发送
+            // 4. 构造AppInstallRequestDto并发送（V4版本）
             AppInstallRequestDto installDto = new AppInstallRequestDto();
             installDto.setSerialNo(serialNo);
             installDto.setTaskId(taskId);
             installDto.setAppName(appName);
-            installDto.setPackageFile(fileContent);
+            installDto.setFilelen(fileContent.length);
+            installDto.setFiletype("package");
+            installDto.setCrc(softwarePackage.getFileSha256());
             
-            // 设置CRC校验值
-            String crc = softwarePackage.getFileSha256();
-            if (crc != null) {
-                installDto.setCrc(crc.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            } else {
-                installDto.setCrc(new byte[0]);
-            }
-            
-            // 5. 发送APP安装请求
-            ByteBuffer buffer = DtoTlvConverter.encodeAppInstallRequest(installDto);
-            wssMessageSender.sendBinary(sessionId, buffer);
+            // 5. 发送APP安装请求（JSON信令 + 文件流）
+            java.io.ByteArrayInputStream fileStream = new java.io.ByteArrayInputStream(fileContent);
+            wssMessageSender.sendFile(sessionId, installDto, fileStream);
             
             logger.info("App push completed: executor={}, serialNo={}, appName={}, taskId={}, size={} bytes", 
                        executorName, serialNo, appName, taskId, fileContent.length);

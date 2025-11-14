@@ -1,19 +1,18 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Register-Request (0x01) 消息DTO
  * 方向: ADCA → CloudUDN
  * 说明: 注册请求消息，内容包括执行机HostName
- * 
+ *
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class RegisterRequestDto {
-    
-    /**
-     * 执行机名称
-     * Tag: 0x0001
-     */
+
+    @JsonProperty("hostname")
     private String hostname;
     
     public RegisterRequestDto() {

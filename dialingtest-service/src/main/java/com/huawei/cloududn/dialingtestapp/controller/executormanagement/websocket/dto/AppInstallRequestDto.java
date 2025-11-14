@@ -1,118 +1,110 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * AppInstall-Request (0x23) 消息DTO
  * 方向: ADCA ← CloudUDN
- * 说明: App安装请求，支持两种场景：
- * 1. 场景1-直接安装：下发package字段（APK文件内容），Agent通过adb命令安装
- * 2. 场景2-脚本安装：下发script字段（airtest脚本），Agent执行脚本从应用市场安装
- * 
+ * 说明: App安装请求
+ * V4版本：移除package/script字段，文件内容通过后续的Binary分片传输
+ *
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class AppInstallRequestDto {
-    
-    /**
-     * 会话Token
-     * Tag: 0x0008
-     */
+
+    @JsonProperty("token")
     private long token;
-    
-    /**
-     * 手机序列号
-     * Tag: 0x000A
-     */
+
+    @JsonProperty("serial-no")
     private String serialNo;
-    
-    /**
-     * 任务ID
-     * Tag: 0x0020
-     */
+
+    @JsonProperty("taskid")
     private int taskId;
-    
-    /**
-     * App名称
-     * Tag: 0x0023
-     */
+
+    @JsonProperty("appname")
     private String appName;
-    
-    /**
-     * Airtest安装脚本内容（场景2使用）
-     * Tag: 0x0024
-     */
-    private byte[] script;
-    
-    /**
-     * APK安装包文件内容（场景1使用）
-     * Tag: 0x0022
-     */
-    private byte[] packageFile;
-    
-    /**
-     * CRC校验值
-     * Tag: 0x0025
-     */
-    private byte[] crc;
-    
+
+    @JsonProperty("filelen")
+    private Integer filelen;
+
+    @JsonProperty("filetype")
+    private String filetype;
+
+    @JsonProperty("crc")
+    private String crc;
+
+
     public AppInstallRequestDto() {
     }
-    
+
+    public AppInstallRequestDto(long token, String serialNo, int taskId, String appName, 
+                                Integer filelen, String filetype, String crc) {
+        this.token = token;
+        this.serialNo = serialNo;
+        this.taskId = taskId;
+        this.appName = appName;
+        this.filelen = filelen;
+        this.filetype = filetype;
+        this.crc = crc;
+    }
+
     public long getToken() {
         return token;
     }
-    
+
     public void setToken(long token) {
         this.token = token;
     }
-    
+
     public String getSerialNo() {
         return serialNo;
     }
-    
+
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
     }
-    
+
     public int getTaskId() {
         return taskId;
     }
-    
+
     public void setTaskId(int taskId) {
         this.taskId = taskId;
     }
-    
+
     public String getAppName() {
         return appName;
     }
-    
+
     public void setAppName(String appName) {
         this.appName = appName;
     }
-    
-    public byte[] getScript() {
-        return script;
+
+    public Integer getFilelen() {
+        return filelen;
     }
-    
-    public void setScript(byte[] script) {
-        this.script = script;
+
+    public void setFilelen(Integer filelen) {
+        this.filelen = filelen;
     }
-    
-    public byte[] getPackageFile() {
-        return packageFile;
+
+    public String getFiletype() {
+        return filetype;
     }
-    
-    public void setPackageFile(byte[] packageFile) {
-        this.packageFile = packageFile;
+
+    public void setFiletype(String filetype) {
+        this.filetype = filetype;
     }
-    
-    public byte[] getCrc() {
+
+    public String getCrc() {
         return crc;
     }
-    
-    public void setCrc(byte[] crc) {
+
+    public void setCrc(String crc) {
         this.crc = crc;
     }
-    
+
     @Override
     public String toString() {
         return "AppInstallRequestDto{" +
@@ -120,8 +112,9 @@ public class AppInstallRequestDto {
                 ", serialNo='" + serialNo + '\'' +
                 ", taskId=" + taskId +
                 ", appName='" + appName + '\'' +
-                ", hasScript=" + (script != null && script.length > 0) +
-                ", hasPackage=" + (packageFile != null && packageFile.length > 0) +
+                ", filelen=" + filelen +
+                ", filetype='" + filetype + '\'' +
+                ", crc='" + crc + '\'' +
                 '}';
     }
 }

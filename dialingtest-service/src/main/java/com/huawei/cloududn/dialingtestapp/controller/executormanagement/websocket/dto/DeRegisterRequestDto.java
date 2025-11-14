@@ -1,51 +1,47 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * DeRegister-Request (0x05) 消息DTO
  * 方向: ADCA → CloudUDN
  * 说明: 去注册请求，内容包括执行机HostName
- * 
+ *
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class DeRegisterRequestDto {
-    
-    /**
-     * 会话Token
-     * Tag: 0x0008
-     */
+
+    @JsonProperty("token")
     private long token;
-    
-    /**
-     * 执行机名称
-     * Tag: 0x0001
-     */
+
+    @JsonProperty("hostname")
     private String hostname;
-    
+
     public DeRegisterRequestDto() {
     }
-    
+
     public DeRegisterRequestDto(long token, String hostname) {
         this.token = token;
         this.hostname = hostname;
     }
-    
+
     public long getToken() {
         return token;
     }
-    
+
     public void setToken(long token) {
         this.token = token;
     }
-    
+
     public String getHostname() {
         return hostname;
     }
-    
+
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }
-    
+
     @Override
     public String toString() {
         return "DeRegisterRequestDto{" +
@@ -54,4 +50,3 @@ public class DeRegisterRequestDto {
                 '}';
     }
 }
-

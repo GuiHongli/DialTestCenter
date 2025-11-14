@@ -24,12 +24,12 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * WebSocket endpoint for agent connections.
- * V3版本：支持TLV二进制协议
+ * V4版本：支持JSON信令（Text）和二进制分片（Binary）混合模式
  *
  * <p>Acts as the single gateway for agent registration, heartbeat and task reporting.</p>
  *
  * @author g00940940
- * @since 2025-11-11
+ * @since 2025-11-14
  */
 @Component
 @ServerEndpoint("/ws/executor")
@@ -70,24 +70,44 @@ public class ExecutorWebsocketEndpoint {
     }
 
     /**
-     * 接收二进制消息（V3版本）
-     * V3变更：从String消息改为ByteBuffer二进制消息
+     * 接收JSON信令（V4新增）
      *
-     * @param message 二进制消息缓冲区
+     * @param message JSON消息字符串
+     * @param session WebSocket会话
+     */
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        if (message == null || message.isEmpty()) {
+            logger.warn("Received empty JSON message, sessionId={}", session.getId());
+            return;
+        }
+        try {
+            logger.debug("Received JSON message, sessionId={}, size={} chars",
+                    session.getId(), message.length());
+            dispatcher.dispatch(message, session);
+        } catch (Exception e) {
+            logger.error("Failed to parse JSON message, sessionId={}", session.getId(), e);
+        }
+    }
+
+    /**
+     * 接收二进制分片（V4：用于文件传输）
+     *
+     * @param message 二进制分片数据
      * @param session WebSocket会话
      */
     @OnMessage
     public void onMessage(ByteBuffer message, Session session) {
         if (message == null || message.remaining() == 0) {
-            logger.warn("Received empty binary message, sessionId={}", session.getId());
+            logger.warn("Received empty binary chunk, sessionId={}", session.getId());
             return;
         }
         try {
-            logger.debug("Received binary WebSocket message, sessionId={}, size={} bytes",
+            logger.debug("Received binary chunk, sessionId={}, size={} bytes",
                     session.getId(), message.remaining());
             dispatcher.dispatch(message, session);
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to parse TLV message, sessionId={}", session.getId(), e);
+        } catch (Exception e) {
+            logger.error("Failed to process binary chunk, sessionId={}", session.getId(), e);
         }
     }
 
@@ -116,18 +136,45 @@ public class ExecutorWebsocketEndpoint {
     }
 
     /**
-     * Send binary TLV message to a specific session.
-     * V3版本：使用二进制格式发送
+     * 发送JSON信令（V4新增）
      *
-     * @param sessionId target session id
-     * @param buffer    TLV binary buffer
-     * @throws IOException when send fails
+     * @param sessionId 目标会话ID
+     * @param jsonMessage JSON消息字符串
      */
-    public void sendBinary(String sessionId, ByteBuffer buffer) throws IOException {
-        logger.debug("Sending binary WebSocket message, sessionId={}, size={} bytes",
-                sessionId, buffer.remaining());
-        sessionRegistry.sendBinary(sessionId, buffer);
-        logger.debug("Binary WebSocket message sent successfully, sessionId={}", sessionId);
+    public void sendText(String sessionId, String jsonMessage) {
+        Session session = sessionRegistry.getSession(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                session.getBasicRemote().sendText(jsonMessage);
+                logger.debug("JSON message sent successfully, sessionId={}, size={} chars",
+                        sessionId, jsonMessage.length());
+            } catch (IOException e) {
+                logger.error("Failed to send JSON message, sessionId={}", sessionId, e);
+            }
+        } else {
+            logger.warn("Session not found or closed, sessionId={}", sessionId);
+        }
+    }
+
+    /**
+     * 发送二进制分片（V4：用于文件传输）
+     *
+     * @param sessionId 目标会话ID
+     * @param buffer 二进制数据
+     */
+    public void sendBinary(String sessionId, ByteBuffer buffer) {
+        Session session = sessionRegistry.getSession(sessionId);
+        if (session != null && session.isOpen()) {
+            try {
+                session.getBasicRemote().sendBinary(buffer);
+                logger.debug("Binary chunk sent successfully, sessionId={}, size={} bytes",
+                        sessionId, buffer.remaining());
+            } catch (IOException e) {
+                logger.error("Failed to send binary chunk, sessionId={}", sessionId, e);
+            }
+        } else {
+            logger.warn("Session not found or closed, sessionId={}", sessionId);
+        }
     }
 
     /**

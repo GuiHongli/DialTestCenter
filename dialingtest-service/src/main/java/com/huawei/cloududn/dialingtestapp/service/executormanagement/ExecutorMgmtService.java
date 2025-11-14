@@ -5,25 +5,23 @@
 package com.huawei.cloududn.dialingtestapp.service.executormanagement;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.DtoTlvConverter;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterAckDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterRequestDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportAckDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.UeItemDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
 import com.huawei.cloududn.dialingtestapp.dao.executormanagement.ExecutorDao;
 import com.huawei.cloududn.dialingtestapp.dao.executormanagement.UeDao;
 import com.huawei.cloududn.dialingtest.model.Executor;
 import com.huawei.cloududn.dialingtest.model.Ue;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.ExecutorDetailDto;
-import com.huawei.cloududn.dialingtestapp.service.executormanagement.task.WssMessageSender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.ByteBuffer;
 import java.time.Instant;
 
 import javax.websocket.Session;
@@ -204,8 +202,7 @@ public class ExecutorMgmtService {
      */
     private void sendReportAck(String sessionId, long token, int state) {
         ReportAckDto ackDto = new ReportAckDto(token, state);
-        ByteBuffer buffer = DtoTlvConverter.encodeReportAck(ackDto);
-        wssMessageSender.sendBinary(sessionId, buffer);
+        wssMessageSender.sendJsonMessage(sessionId, ackDto);
         
         logger.debug("Sent Report-Ack to sessionId={}, token={}, state={}", 
             sessionId, token, state);
@@ -258,8 +255,7 @@ public class ExecutorMgmtService {
      */
     private void sendDeRegisterAck(String sessionId, long token, int resultCode, String description) {
         DeRegisterAckDto ackDto = new DeRegisterAckDto(token, resultCode, description);
-        ByteBuffer buffer = DtoTlvConverter.encodeDeRegisterAck(ackDto);
-        wssMessageSender.sendBinary(sessionId, buffer);
+        wssMessageSender.sendJsonMessage(sessionId, ackDto);
         
         logger.debug("Sent DeRegister-Ack to sessionId={}, token={}, resultCode={}", 
             sessionId, token, resultCode);
@@ -280,6 +276,28 @@ public class ExecutorMgmtService {
             logger.info("Executor disconnected and status updated, name={}", executorName);
         } else {
             logger.debug("No executor binding found for sessionId={}", sessionId);
+        }
+    }
+
+    /**
+     * Handle heartbeat timeout for executor.
+     * V4版本：当在阈值时间内未收到心跳时，将执行机标记为离线
+     *
+     * @param executorName executor name
+     */
+    public void handleHeartbeatTimeout(String executorName) {
+        if (executorName == null || executorName.trim().isEmpty()) {
+            logger.warn("Skip heartbeat timeout handling: executorName is empty");
+            return;
+        }
+        logger.info("Handle heartbeat timeout for executor={}", executorName);
+        executorDao.updateStatus(executorName, 0, Instant.now());
+        String sessionId = registry.getSessionId(executorName);
+        if (sessionId != null) {
+            registry.unbind(sessionId);
+            logger.debug("Executor {} marked OFFLINE due to heartbeat timeout, session unbound", executorName);
+        } else {
+            logger.debug("No session bound for executor={} when handling heartbeat timeout", executorName);
         }
     }
 
@@ -396,8 +414,7 @@ public class ExecutorMgmtService {
     public void sendReportAck(String sessionId, Long token) {
         logger.info("Sending Report-Ack for sessionId={}, token={}", sessionId, token);
         ReportAckDto ackDto = new ReportAckDto(token, 0); // 0=OK
-        ByteBuffer buffer = DtoTlvConverter.encodeReportAck(ackDto);
-        wssMessageSender.sendBinary(sessionId, buffer);
+        wssMessageSender.sendJsonMessage(sessionId, ackDto);
         logger.debug("Sent Report-Ack to sessionId={}", sessionId);
     }
 

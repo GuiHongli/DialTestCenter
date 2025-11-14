@@ -1,5 +1,7 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,65 +9,36 @@ import java.util.List;
  * TaskStart-Response (0x34) 消息DTO
  * 方向: ADCA → CloudUDN
  * 说明: 拨测任务启动应答，上报拨测结果和日志信息
- * 
+ * V4版本：移除files字段，文件内容通过后续的Binary分片传输
+ *
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class TaskStartResponseDto {
-    
-    /**
-     * 会话Token
-     * Tag: 0x0008
-     */
+
+    @JsonProperty("token")
     private long token;
-    
-    /**
-     * 任务ID
-     * Tag: 0x0020
-     */
+
+    @JsonProperty("taskid")
     private int taskId;
-    
-    /**
-     * 脚本执行结果：Success-成功，Fail-执行异常
-     * Tag: 0x0006
-     */
+
+    @JsonProperty("result")
     private String result;
-    
-    /**
-     * VPN阻塞结果（可选）
-     * Tag: 0x002C
-     */
+
+    @JsonProperty("block")
     private String block;
-    
-    /**
-     * 描述信息，异常时可用于定位
-     * Tag: 0x0007
-     */
+
+    @JsonProperty("description")
     private String description;
-    
-    /**
-     * 各UE执行结果容器，包含0~N个sub-result-item
-     * Tag: 0x0104
-     */
+
+    @JsonProperty("sub-result")
     private List<SubResultItemDto> subResult;
-    
-    /**
-     * 日志文件总长度
-     * Tag: 0x0028
-     */
+
+    @JsonProperty("filelen")
     private int fileLen;
-    
-    /**
-     * 执行结果日志等标注信息（多UE统一打包）
-     * Tag: 0x0027
-     */
-    private byte[] files;
-    
-    /**
-     * CRC校验值
-     * Tag: 0x0025
-     */
-    private byte[] crc;
+
+    @JsonProperty("crc")
+    private String crc;
     
     public TaskStartResponseDto() {
         this.subResult = new ArrayList<>();
@@ -123,23 +96,22 @@ public class TaskStartResponseDto {
         return fileLen;
     }
     
+    /**
+     * V4版本：filelen字段的getter（兼容方法）
+     */
+    public int getFilelen() {
+        return fileLen;
+    }
+    
     public void setFileLen(int fileLen) {
         this.fileLen = fileLen;
     }
     
-    public byte[] getFiles() {
-        return files;
-    }
-    
-    public void setFiles(byte[] files) {
-        this.files = files;
-    }
-    
-    public byte[] getCrc() {
+    public String getCrc() {
         return crc;
     }
-    
-    public void setCrc(byte[] crc) {
+
+    public void setCrc(String crc) {
         this.crc = crc;
     }
     
