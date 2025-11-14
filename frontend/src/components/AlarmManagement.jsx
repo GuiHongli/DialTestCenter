@@ -111,53 +111,61 @@ const AlarmManagement = () => {
     setPagination(prev => ({ ...prev, current: 1 }))
   }
 
-  // 表格列定义
-  const columns = [
-    {
-      title: translateAlarm('id') || 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
-    {
-      title: translateAlarm('summary') || 'Summary',
-      dataIndex: 'alarmSummary',
-      key: 'alarmSummary',
-      ellipsis: true,
-    },
-    {
-      title: translateAlarm('description') || 'Description',
-      dataIndex: 'alarmDescription',
-      key: 'alarmDescription',
-      ellipsis: true,
-      render: (text) => text || '-',
-    },
-    {
-      title: translateAlarm('level') || 'Level',
-      dataIndex: 'alarmLevel',
-      key: 'alarmLevel',
-      width: 120,
-      render: (level) => (
-        <Tag color={AlarmUtils.getAlarmLevelColor(level)}>
-          {AlarmUtils.getAlarmLevelText(level, language)}
-        </Tag>
-      ),
-    },
-    {
-      title: translateAlarm('startTime') || 'Start Time',
-      dataIndex: 'startTime',
-      key: 'startTime',
-      width: 180,
-      render: (time) => AlarmUtils.formatAlarmTime(time),
-    },
-    {
-      title: translateAlarm('endTime') || 'End Time',
-      dataIndex: 'endTime',
-      key: 'endTime',
-      width: 180,
-      render: (time) => time ? AlarmUtils.formatAlarmTime(time) : '-',
-    },
-    {
+  // 获取表格列定义
+  const getColumns = (showEndTime = true) => {
+    const baseColumns = [
+      {
+        title: translateAlarm('id') || 'ID',
+        dataIndex: 'id',
+        key: 'id',
+        width: 80,
+      },
+      {
+        title: translateAlarm('summary') || 'Summary',
+        dataIndex: 'alarmSummary',
+        key: 'alarmSummary',
+        ellipsis: true,
+      },
+      {
+        title: translateAlarm('description') || 'Description',
+        dataIndex: 'alarmDescription',
+        key: 'alarmDescription',
+        ellipsis: true,
+        render: (text) => text || '-',
+      },
+      {
+        title: translateAlarm('level') || 'Level',
+        dataIndex: 'alarmLevel',
+        key: 'alarmLevel',
+        width: 120,
+        render: (level) => (
+          <Tag color={AlarmUtils.getAlarmLevelColor(level)}>
+            {AlarmUtils.getAlarmLevelText(level, language)}
+          </Tag>
+        ),
+      },
+      {
+        title: translateAlarm('startTime') || 'Start Time',
+        dataIndex: 'startTime',
+        key: 'startTime',
+        width: 180,
+        render: (time) => AlarmUtils.formatAlarmTime(time),
+      },
+    ]
+
+    // 如果显示结束时间，则添加结束时间列
+    if (showEndTime) {
+      baseColumns.push({
+        title: translateAlarm('endTime') || 'End Time',
+        dataIndex: 'endTime',
+        key: 'endTime',
+        width: 180,
+        render: (time) => time ? AlarmUtils.formatAlarmTime(time) : '-',
+      })
+    }
+
+    // 添加操作列
+    baseColumns.push({
       title: translateCommon('actions') || 'Actions',
       key: 'actions',
       width: 100,
@@ -181,8 +189,10 @@ const AlarmManagement = () => {
           )}
         </Space>
       ),
-    },
-  ]
+    })
+
+    return baseColumns
+  }
 
   return (
     <div style={{ padding: '24px' }}>
@@ -218,7 +228,7 @@ const AlarmManagement = () => {
             key="current"
           >
             <Table
-              columns={columns}
+              columns={getColumns(false)}
               dataSource={alarms}
               rowKey="id"
               loading={loading}
@@ -244,7 +254,7 @@ const AlarmManagement = () => {
             key="all"
           >
             <Table
-              columns={columns}
+              columns={getColumns(true)}
               dataSource={alarms}
               rowKey="id"
               loading={loading}
