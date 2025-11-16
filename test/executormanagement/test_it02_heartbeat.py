@@ -19,23 +19,23 @@ class TestHeartbeatIT02(BaseTestCase):
         ws, token = self._ws_register_and_keep_connection()
         helper = JsonMessageHelper()
         try:
-            # 构造UE设备列表
+            # 构造UE设备列表（字段名严格遵循协议文档）
             ue_list = [
                 {
-                    "msisdn": "86138****0001",
-                    "serial": "SN001",
-                    "vendor": "Huawei",
+                    "serial-no": "86138****0001",
+                    "brand": "Huawei",
                     "model": "P60",
-                    "os-version": "Android 13",
-                    "ip-v4": "192.168.1.10",
+                    "os": "Android",
+                    "version": "13",
+                    "ipv4": "192.168.1.10",
                     "battery": 85,
                 },
                 {
-                    "msisdn": "86139****0002",
-                    "serial": "SN002",
-                    "vendor": "Xiaomi",
+                    "serial-no": "86139****0002",
+                    "brand": "Xiaomi",
                     "model": "Mi 13",
-                    "os-version": "Android 12",
+                    "os": "Android",
+                    "version": "12",
                 },
             ]
 
@@ -62,7 +62,7 @@ class TestHeartbeatIT02(BaseTestCase):
         finally:
             ws.close()
 
-        # 验证 UE 列表已更新到数据库
+        # 验证 UE 列表已更新到数据库（使用 serial-no 作为 msisdn）
         time.sleep(1)  # 等待 UE 数据入库
         ue1 = self.db.get_ue_by_msisdn("86138****0001")
         ue2 = self.db.get_ue_by_msisdn("86139****0002")
@@ -75,13 +75,15 @@ class TestHeartbeatIT02(BaseTestCase):
         if ue1:
             self.assertEqual(ue1.get("msisdn"), "86138****0001", "UE1 MSISDN 应正确")
             self.assertEqual(ue1.get("executor_name"), AGENT_NAME, "UE1 应关联到正确的执行机")
+            self.assertEqual(ue1.get("vendor"), "Huawei", "UE1 vendor 应正确")
             # 验证JSON格式存储的详细信息
             if ue1.get("info"):
                 info = ue1.get("info")
                 if isinstance(info, str):
                     info = json.loads(info)
                 self.assertEqual(info.get("model"), "P60")
-                self.assertEqual(info.get("os_version"), "Android 13")
+                self.assertEqual(info.get("os"), "Android")
+                self.assertEqual(info.get("version"), "13")
 
         if ue2:
             self.assertEqual(ue2.get("msisdn"), "86139****0002", "UE2 MSISDN 应正确")
@@ -93,11 +95,11 @@ class TestHeartbeatIT02(BaseTestCase):
         ws, token = self._ws_register_and_keep_connection()
         helper = JsonMessageHelper()
         try:
-            # 第一次心跳：发送 3 个 UE
+            # 第一次心跳：发送 3 个 UE（字段名遵循协议文档）
             ue_list1 = [
-                {"msisdn": "8613800000101", "serial": "SN_TEST_001", "vendor": "TestVendor1"},
-                {"msisdn": "8613800000102", "serial": "SN_TEST_002", "vendor": "TestVendor2"},
-                {"msisdn": "8613800000103", "serial": "SN_TEST_003", "vendor": "TestVendor3"},
+                {"serial-no": "SN_TEST_001", "brand": "TestVendor1", "model": "Model1"},
+                {"serial-no": "SN_TEST_002", "brand": "TestVendor2", "model": "Model2"},
+                {"serial-no": "SN_TEST_003", "brand": "TestVendor3", "model": "Model3"},
             ]
             env1 = helper.build("ReportMsg", {"token": token, "state": "Normal", "ue-list": ue_list1})
             ws.send_json(env1)
@@ -106,9 +108,9 @@ class TestHeartbeatIT02(BaseTestCase):
 
             # 第二次心跳：修改 SN_TEST_002 状态，新增 SN_TEST_004，删除 SN_TEST_003
             ue_list2 = [
-                {"msisdn": "8613800000101", "serial": "SN_TEST_001", "vendor": "TestVendor1"},
-                {"msisdn": "8613800000102", "serial": "SN_TEST_002", "vendor": "TestVendor2_UPDATED"},
-                {"msisdn": "8613800000104", "serial": "SN_TEST_004", "vendor": "TestVendor4"},
+                {"serial-no": "SN_TEST_001", "brand": "TestVendor1", "model": "Model1"},
+                {"serial-no": "SN_TEST_002", "brand": "TestVendor2_UPDATED", "model": "Model2"},
+                {"serial-no": "SN_TEST_004", "brand": "TestVendor4", "model": "Model4"},
             ]
             env2 = helper.build("ReportMsg", {"token": token, "state": "Normal", "ue-list": ue_list2})
             ws.send_json(env2)
@@ -117,23 +119,20 @@ class TestHeartbeatIT02(BaseTestCase):
         finally:
             ws.close()
 
-        # 验证 UE 变更
-        ue1 = self.db.get_ue_by_msisdn("8613800000101")
-        ue2 = self.db.get_ue_by_msisdn("8613800000102")
-        ue3 = self.db.get_ue_by_msisdn("8613800000103")
-        ue4 = self.db.get_ue_by_msisdn("8613800000104")
+        # 验证 UE 变更（使用 serial-no）
+        ue1 = self.db.get_ue_by_msisdn("SN_TEST_001")
+        ue2 = self.db.get_ue_by_msisdn("SN_TEST_002")
+        ue3 = self.db.get_ue_by_msisdn("SN_TEST_003")
+        ue4 = self.db.get_ue_by_msisdn("SN_TEST_004")
 
         # SN_TEST_001 应保持不变
         self.assertIsNotNone(ue1, "UE1 应该仍然存在")
+        self.assertIsNotNone(ue2, "UE2 应该仍然存在")
+        self.assertIsNotNone(ue4, "UE4 应已新增")
 
         if ue2:
-            # UE2 厂商应已更新（如果有相应字段）
-            vendor = ue2.get("vendor") or (ue2.get("info") or {}).get("vendor") if isinstance(ue2.get("info"), dict) else None
-            if vendor:
-                self.assertEqual(vendor, "TestVendor2_UPDATED", "UE2 厂商应已更新")
-
-        # SN_TEST_004 应已新增
-        self.assertIsNotNone(ue4, "新增的 UE 应该存在于数据库中")
+            # UE2 厂商应已更新
+            self.assertEqual(ue2.get("vendor"), "TestVendor2_UPDATED", "UE2 vendor 应已更新")
 
         # SN_TEST_003 按策略处理（保留或标记删除），这里不做强制断言
         _ = ue3

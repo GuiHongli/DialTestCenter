@@ -7,6 +7,7 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * V4 入站文件处理器
  * 负责管理所有会话的文件接收状态
+ * 文件接收完成后通过 Spring 事件机制通知业务层
  *
  * @author g00940940
  * @since 2025-11-14
@@ -28,8 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InboundFileHandler {
     private static final Logger logger = LoggerFactory.getLogger(InboundFileHandler.class);
 
-    @Autowired(required = false)
-    private InboundFileCompleteCallback callback;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     private final Map<String, InboundFileState> receivingFiles = new ConcurrentHashMap<>();
 
@@ -114,11 +116,9 @@ public class InboundFileHandler {
                     state.setError("CRC mismatch");
                 }
 
-                if (callback != null) {
-                    callback.onInboundFileComplete(state);
-                } else {
-                    logger.warn("No callback registered for file completion");
-                }
+                // 发布文件完成事件
+                eventPublisher.publishEvent(new InboundFileCompleteEvent(this, state));
+                logger.debug("Published InboundFileCompleteEvent for sessionId={}", sessionId);
 
                 receivingFiles.remove(sessionId);
             }
@@ -126,9 +126,8 @@ public class InboundFileHandler {
         } catch (IOException e) {
             logger.error("Failed to handle chunk for sessionId={}", sessionId, e);
             state.setError(e.getMessage());
-            if (callback != null) {
-                callback.onInboundFileComplete(state);
-            }
+            // 即使出错也发布事件，让业务层处理错误
+            eventPublisher.publishEvent(new InboundFileCompleteEvent(this, state));
             receivingFiles.remove(sessionId);
         }
     }

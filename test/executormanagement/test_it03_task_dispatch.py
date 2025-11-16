@@ -6,7 +6,6 @@ from .base import BaseTestCase
 from .config import WS_ENABLE, AGENT_NTLM_HASH
 from .json_message import JsonMessageHelper
 from .binary_codec import BinaryCodec
-from .file_chunks import FileChunks
 
 
 @unittest.skipUnless(WS_ENABLE, "WS测试默认关闭，设置 EXEC_WS_ENABLE=1 以启用")
@@ -214,10 +213,6 @@ class TestTaskDispatchIT03(BaseTestCase):
             )
             ws.send_json(env)
 
-            # 使用 FileChunks 模拟多分片日志上报
-            chunks = FileChunks.split(  # 临时写入文件会更准确，这里直接按内存切片
-                path="",  # 不使用文件路径，手动分片
-            )
             # 简化：手动分片
             size = max(1, len(log_bytes) // 4)
             for i in range(0, len(log_bytes), size):

@@ -66,13 +66,14 @@ class TestRegisterAuthIT01(BaseTestCase):
                 "即使用户名不存在，也应返回 RegisterChallenge 消息",
             )
             challenge_b64 = payload.get("challenge")
+            challenge_id = payload.get("challenge-id", 0)
             self.assertIsNotNone(challenge_b64, "Challenge 不应为空")
 
             # 发送错误 response
             fake_response = "0" * 32
             resp_env = helper.build(
                 "RegisterResponse",
-                {"username": "__not_exists__", "response": fake_response},
+                {"challenge-id": challenge_id, "username": "__not_exists__", "response": fake_response},
             )
             client.send_json(resp_env)
 
@@ -113,13 +114,14 @@ class TestRegisterAuthIT01(BaseTestCase):
             msg_type, _, payload = helper.parse(res_env)
             self.assertIn(msg_type, ("RegisterChallenge", "register_challenge"))
             challenge_b64 = payload.get("challenge")
+            challenge_id = payload.get("challenge-id", 0)
             self.assertIsNotNone(challenge_b64)
 
             # 发送错误的 response（不使用正确 CHAP 计算）
             wrong_response = "0" * 32
             resp_env = helper.build(
                 "RegisterResponse",
-                {"username": AGENT_USERNAME, "response": wrong_response},
+                {"challenge-id": challenge_id, "username": AGENT_USERNAME, "response": wrong_response},
             )
             client.send_json(resp_env)
 
@@ -185,6 +187,7 @@ class TestRegisterAuthIT01(BaseTestCase):
             msg_type, _, payload = helper.parse(res_env)
             self.assertIn(msg_type, ("RegisterChallenge", "register_challenge"))
             challenge_b64 = payload.get("challenge")
+            challenge_id = payload.get("challenge-id", 0)
             self.assertIsNotNone(challenge_b64)
 
             challenge_bytes = BinaryCodec.decode_base64(challenge_b64)
@@ -194,7 +197,7 @@ class TestRegisterAuthIT01(BaseTestCase):
 
             resp_env = helper.build(
                 "RegisterResponse",
-                {"username": AGENT_USERNAME, "response": correct_response},
+                {"challenge-id": challenge_id, "username": AGENT_USERNAME, "response": correct_response},
             )
             client.send_json(resp_env)
 

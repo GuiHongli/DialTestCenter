@@ -93,20 +93,20 @@ public class ExecutorMgmtService {
     }
     
     /**
-     * Handle Report-Msg (0x11): process heartbeat and UE list (V3 TLV version).
-     * V3版本：接收ReportMsgDto，更新数据库，发送ReportAck
+     * Handle ReportMsg (0x11): process heartbeat and UE list (V4 JSON version).
+     * V4版本：接收ReportMsgDto，更新数据库，发送ReportAck
      *
      * @param dto     ReportMsg DTO (包含token、state、ue-list)
      * @param session WebSocket session
      */
     public void handleReportMsg(ReportMsgDto dto, Session session) {
-        logger.info("Received Report-Msg, sessionId={}, token={}, state={}", 
+        logger.info("Received ReportMsg, sessionId={}, token={}, state={}", 
             session.getId(), dto.getToken(), dto.getState());
         
         // Get executor name from session binding
         String executorName = registry.getExecutorName(session.getId());
         if (executorName == null) {
-            logger.warn("Skip Report-Msg: no binding for sessionId={}", session.getId());
+            logger.warn("Skip ReportMsg: no binding for sessionId={}", session.getId());
             sendReportAck(session.getId(), dto.getToken(), 1); // Error: no binding
             return;
         }
@@ -118,7 +118,7 @@ public class ExecutorMgmtService {
         // Process UE list
         if (dto.getUeList() != null && !dto.getUeList().isEmpty()) {
             int ueCount = dto.getUeList().size();
-            logger.debug("Processing UE list from Report-Msg, executor={}, ueCount={}", 
+            logger.debug("Processing UE list from ReportMsg, executor={}, ueCount={}", 
                 executorName, ueCount);
             
             for (UeItemDto ueItem : dto.getUeList()) {
@@ -128,13 +128,13 @@ public class ExecutorMgmtService {
             logger.debug("UE list processed successfully, executor={}, upserted {} records", 
                 executorName, ueCount);
         } else {
-            logger.debug("No UE list in Report-Msg, executor={}", executorName);
+            logger.debug("No UE list in ReportMsg, executor={}", executorName);
         }
         
-        // Send Report-Ack (0x12)
+        // Send ReportAck (0x12)
         sendReportAck(session.getId(), dto.getToken(), 0); // 0=OK
         
-        logger.info("Report-Msg processed successfully, executor={}", executorName);
+        logger.info("ReportMsg processed successfully, executor={}", executorName);
     }
     
     /**
@@ -146,13 +146,33 @@ public class ExecutorMgmtService {
      */
     private void processUeItem(String executorName, UeItemDto ueItem) {
         try {
+            // Validate serial_no (used as msisdn)
+            String serialNo = ueItem.getSerialNo();
+            if (serialNo == null || serialNo.trim().isEmpty() || "null".equalsIgnoreCase(serialNo)) {
+                logger.debug("Skipping UE item with null/empty serial_no, brand={}, model={}", 
+                    ueItem.getBrand(), ueItem.getModel());
+                return;
+            }
+            
             Ue ueModel = new Ue();
             
             // Map UeItemDto to Ue entity
-            ueModel.setMsisdn(ueItem.getSerialNo()); // Use serial_no as msisdn
+            ueModel.setMsisdn(serialNo); // Use serial_no as msisdn
             ueModel.setExecutorName(executorName);
             ueModel.setVendor(ueItem.getBrand());
-            ueModel.setOs(ueItem.getOs() + " " + ueItem.getVersion());
+            
+            // Build OS string, handle null values
+            String os = ueItem.getOs();
+            String version = ueItem.getVersion();
+            if (os != null && version != null) {
+                ueModel.setOs(os + " " + version);
+            } else if (os != null) {
+                ueModel.setOs(os);
+            } else if (version != null) {
+                ueModel.setOs(version);
+            } else {
+                ueModel.setOs("");
+            }
             
             // Store detailed info as JSON in info field
             String infoJson = buildUeInfoJson(ueItem);
@@ -165,6 +185,8 @@ public class ExecutorMgmtService {
                 ueItem.getSerialNo(), ueItem.getBrand(), ueItem.getModel());
         } catch (IllegalArgumentException e) {
             logger.error("Failed to process UE item: serialNo={}", ueItem.getSerialNo(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error processing UE item: serialNo={}", ueItem.getSerialNo(), e);
         }
     }
     
@@ -176,47 +198,63 @@ public class ExecutorMgmtService {
      */
     private String buildUeInfoJson(UeItemDto ueItem) {
         // Simple JSON construction (should use ObjectMapper in production)
+        // Handle null values properly
         return String.format(
             "{\"serial\":\"%s\",\"brand\":\"%s\",\"model\":\"%s\",\"os\":\"%s\"," +
             "\"version\":\"%s\",\"resolution\":\"%s\",\"ipv4\":\"%s\",\"ipv6\":\"%s\"," +
             "\"battery\":%d}",
-            ueItem.getSerialNo(),
-            ueItem.getBrand(),
-            ueItem.getModel(),
-            ueItem.getOs(),
-            ueItem.getVersion(),
-            ueItem.getWmsize(),
-            ueItem.getIpv4() != null ? ueItem.getIpv4() : "",
-            ueItem.getIpv6() != null ? ueItem.getIpv6() : "",
+            nvl(ueItem.getSerialNo(), ""),
+            nvl(ueItem.getBrand(), ""),
+            nvl(ueItem.getModel(), ""),
+            nvl(ueItem.getOs(), ""),
+            nvl(ueItem.getVersion(), ""),
+            nvl(ueItem.getWmsize(), ""),
+            nvl(ueItem.getIpv4(), ""),
+            nvl(ueItem.getIpv6(), ""),
             ueItem.getBattery() != null ? ueItem.getBattery() : 0
         );
     }
     
     /**
-     * Send Report-Ack (0x12).
-     * V3新增：发送心跳应答
+     * Null-safe string converter for JSON.
+     *
+     * @param value input string
+     * @param defaultValue default value if null
+     * @return non-null string
+     */
+    private String nvl(String value, String defaultValue) {
+        if (value == null || value.trim().isEmpty() || "null".equalsIgnoreCase(value.trim())) {
+            return defaultValue;
+        } else {
+            return value;
+        }
+    }
+    
+    /**
+     * Send ReportAck (0x12).
+     * V4版本：发送心跳应答
      *
      * @param sessionId session ID
-     * @param token     token from Report-Msg
+     * @param token     token from ReportMsg
      * @param state     state (0=OK, non-zero=error)
      */
     private void sendReportAck(String sessionId, long token, int state) {
         ReportAckDto ackDto = new ReportAckDto(token, state);
         wssMessageSender.sendJsonMessage(sessionId, ackDto);
         
-        logger.debug("Sent Report-Ack to sessionId={}, token={}, state={}", 
+        logger.debug("Sent ReportAck to sessionId={}, token={}, state={}", 
             sessionId, token, state);
     }
     
     /**
-     * Handle DeRegister-Request (0x05): executor logout (V3 TLV version).
-     * V3新增：处理Agent注销请求
+     * Handle DeRegisterRequest (0x05): executor logout (V4 JSON version).
+     * V4版本：处理Agent注销请求
      *
      * @param dto     DeRegister request DTO
      * @param session WebSocket session
      */
     public void handleDeRegisterRequest(DeRegisterRequestDto dto, Session session) {
-        logger.info("Received DeRegister-Request, sessionId={}, token={}", 
+        logger.info("Received DeRegisterRequest, sessionId={}, token={}", 
             session.getId(), dto.getToken());
         
         // Get executor name from session binding
@@ -245,11 +283,11 @@ public class ExecutorMgmtService {
     }
     
     /**
-     * Send DeRegister-Ack (0x06).
-     * V3新增：发送注销应答
+     * Send DeRegisterAck (0x06).
+     * V4版本：发送注销应答
      *
      * @param sessionId   session ID
-     * @param token       token from DeRegister-Request
+     * @param token       token from DeRegisterRequest
      * @param resultCode  result code (0=OK, non-zero=error)
      * @param description description message
      */
@@ -257,7 +295,7 @@ public class ExecutorMgmtService {
         DeRegisterAckDto ackDto = new DeRegisterAckDto(token, resultCode, description);
         wssMessageSender.sendJsonMessage(sessionId, ackDto);
         
-        logger.debug("Sent DeRegister-Ack to sessionId={}, token={}, resultCode={}", 
+        logger.debug("Sent DeRegisterAck to sessionId={}, token={}, resultCode={}", 
             sessionId, token, resultCode);
     }
 

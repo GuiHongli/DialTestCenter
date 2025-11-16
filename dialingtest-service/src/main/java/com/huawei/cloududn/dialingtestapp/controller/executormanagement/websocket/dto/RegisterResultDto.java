@@ -1,5 +1,6 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author DialTestCenter
  * @version V4
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RegisterResultDto {
 
     @JsonProperty("result")
@@ -60,6 +62,16 @@ public class RegisterResultDto {
     }
 
     public boolean isSuccess() {
+        return result == 0;
+    }
+    
+    /**
+     * Add 'success' field for test compatibility
+     *
+     * @return true if result is 0, false otherwise
+     */
+    @JsonProperty("success")
+    public boolean getSuccess() {
         return result == 0;
     }
 

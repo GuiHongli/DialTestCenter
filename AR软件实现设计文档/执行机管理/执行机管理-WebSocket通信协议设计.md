@@ -4,7 +4,7 @@
 > **关联文档**：
 > - 本文档定义**通信协议层**的设计（WSS连接、JSON编解码、消息队列、文件分片）
 > - 配套文档：[执行机管理-业务逻辑设计.md](./执行机管理-业务逻辑设计.md) 定义**业务逻辑层**的设计（认证、状态管理、任务调度）
-> - **分层边界**：通信层通过 `WssMessageSender` 接口和 `InboundFileCompleteCallback` 回调接口向业务层提供服务，业务层不直接操作WebSocket
+> - **分层边界**：通信层通过 `WssMessageSender` 接口和 Spring 事件机制向业务层提供服务，业务层不直接操作WebSocket
 > 
 > **主要变更**：
 > 
@@ -51,6 +51,7 @@ package "controller.executormanagement.websocket\n(WSS通信层)" as WSS {
         component "WssMessageSender\n(出站消息接口)" as SenderInterface
         component "WssMessageSenderImpl\n(出站队列实现)" as SenderImpl
         component "InboundFileHandler\n(入站文件处理器)" as InboundHandler
+        component "InboundFileCompleteEvent\n(文件完成事件)" as FileEvent
         component "SessionSendQueue\n(高/低优队列)" as Queue
     }
 }
@@ -65,7 +66,9 @@ Endpoint --> Registry : onOpen/onClose (管理会话)
 Endpoint .down.> Dispatcher : onMessage(String json)\nonMessage(ByteBuffer chunk)
 Dispatcher .right.> Biz : (回调) handleXxx(DTO)
 Dispatcher .down.> InboundHandler : handleChunk(chunk)
-Biz .left.> InboundHandler : (回调) startReceiving(fileInfo)
+Biz .left.> InboundHandler : startReceiving(fileInfo)
+InboundHandler ..> FileEvent : (发布事件)
+FileEvent ..> Biz : (@EventListener)
 
 ' 3. 出站流程 (Outbound)
 Biz .left.> SenderInterface : (依赖) sendJsonMessage(dto)\nsendFile(dto, file)
@@ -114,11 +117,12 @@ com.huawei.cloududn.dialingtestapp
 │   │   │                                   // 1. 负责管理所有会话的入站文件状态
 │   │   │                                   // 2. 业务层调用: startReceiving(sessionId, fileInfo)
 │   │   │                                   // 3. Dispatcher调用: handleChunk(sessionId, buffer)
-│   │   │                                   // 4. 回调机制: 通过构造器/setter注入业务层回调接口
-│   │   │                                   //    -> InboundFileCompleteCallback.onComplete(state)
-│   │   │                                   //    -> 由业务层(TaskInterfaceService)实现此接口
-│   │   ├── InboundFileCompleteCallback.java // [V4 新增] (接口) 文件接收完成回调接口
-│   │   │                                   //   -> void onInboundFileComplete(InboundFileState state)
+│   │   │                                   // 4. 事件机制: 文件接收完成后发布 InboundFileCompleteEvent
+│   │   │                                   //    -> 通过 ApplicationEventPublisher 发布事件
+│   │   │                                   //    -> 业务层通过 @EventListener 监听事件
+│   │   ├── InboundFileCompleteEvent.java // [V4 新增] (Spring事件) 文件接收完成事件
+│   │   │                                   //   -> 继承 ApplicationEvent
+│   │   │                                   //   -> 包含 InboundFileState 对象
 │   │   └── InboundFileState.java         // [V4 新增] POJO, 存储单个入站文件的接收状态
 │   │                                       // (expectedSize, receivedSize, crc, tempFilePath, ...)
 │   │

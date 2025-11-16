@@ -3,7 +3,7 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Register-Challenge (0x02) 消息DTO
+ * RegisterChallenge (0x02) 消息DTO
  * 方向: ADCA ← CloudUDN
  * 说明: 注册挑战消息，内容包括ChallengeID、Challenge随机内容
  * V4版本：challenge字段使用Base64编码的字符串

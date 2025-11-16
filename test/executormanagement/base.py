@@ -104,6 +104,7 @@ class BaseTestCase(unittest.TestCase):
             if msg_type not in ("RegisterChallenge", "register_challenge"):
                 self.fail(f"unexpected first response: {res_env}")
             challenge_b64 = payload.get("challenge")
+            challenge_id = payload.get("challenge-id", 0)
             self.assertIsNotNone(challenge_b64)
             challenge_bytes = BinaryCodec.decode_base64(challenge_b64)
 
@@ -111,7 +112,7 @@ class BaseTestCase(unittest.TestCase):
             response_hex = BinaryCodec.compute_chap_response(AGENT_NTLM_HASH, challenge_bytes)
             auth_env = helper.build(
                 "RegisterResponse",
-                {"username": AGENT_USERNAME, "response": response_hex},
+                {"challenge-id": challenge_id, "username": AGENT_USERNAME, "response": response_hex},
             )
             client.send_json(auth_env)
 
@@ -156,6 +157,7 @@ class BaseTestCase(unittest.TestCase):
         if msg_type not in ("RegisterChallenge", "register_challenge"):
             self.fail(f"unexpected first response: {res_env}")
         challenge_b64 = payload.get("challenge")
+        challenge_id = payload.get("challenge-id", 0)
         self.assertIsNotNone(challenge_b64)
         challenge_bytes = BinaryCodec.decode_base64(challenge_b64)
 
@@ -163,7 +165,7 @@ class BaseTestCase(unittest.TestCase):
         response_hex = BinaryCodec.compute_chap_response(AGENT_NTLM_HASH, challenge_bytes)
         auth_env = helper.build(
             "RegisterResponse",
-            {"username": AGENT_USERNAME, "response": response_hex},
+            {"challenge-id": challenge_id, "username": AGENT_USERNAME, "response": response_hex},
         )
         client.send_json(auth_env)
 

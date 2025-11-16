@@ -3,7 +3,7 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Register-Request (0x01) 消息DTO
+ * RegisterRequest (0x01) 消息DTO
  * 方向: ADCA → CloudUDN
  * 说明: 注册请求消息，内容包括执行机HostName
  *

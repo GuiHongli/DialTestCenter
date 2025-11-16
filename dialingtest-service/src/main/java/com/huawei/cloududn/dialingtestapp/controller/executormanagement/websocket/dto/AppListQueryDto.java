@@ -1,12 +1,12 @@
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto;
 
 /**
- * AppList-Query (0x21) 消息DTO
+ * AppListQuery (0x21) 消息DTO
  * 方向: ADCA ← CloudUDN
  * 说明: 查询App清单
  * 
  * @author DialTestCenter
- * @version V3
+ * @version V4
  */
 public class AppListQueryDto {
     

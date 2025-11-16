@@ -6,6 +6,7 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.WebSocketSessionRegistry;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.JsonMessageEnvelope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +42,38 @@ public class WssMessageSenderImpl implements WssMessageSender {
     @Override
     public void sendJsonMessage(String sessionId, Object dto) {
         try {
-            String jsonMessage = objectMapper.writeValueAsString(dto);
+            // Wrap DTO in JsonMessageEnvelope with type field
+            String messageType = getMessageTypeFromDto(dto);
+            JsonMessageEnvelope envelope = new JsonMessageEnvelope(messageType, null, dto);
+            
+            String jsonMessage = objectMapper.writeValueAsString(envelope);
 
             SessionSendQueue queue = getOrCreateQueue(sessionId);
             queue.enqueueHighPriority(jsonMessage);
 
-            logger.debug("JSON message enqueued for sessionId={}", sessionId);
+            logger.debug("JSON message enqueued for sessionId={}, type={}", sessionId, messageType);
 
         } catch (Exception e) {
             logger.error("Failed to send JSON message to sessionId={}", sessionId, e);
+        }
+    }
+    
+    /**
+     * Get message type name from DTO class name.
+     * Removes "Dto" suffix to match MessageType enum names.
+     *
+     * @param dto DTO object
+     * @return message type name
+     */
+    private String getMessageTypeFromDto(Object dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("DTO cannot be null");
+        }
+        String className = dto.getClass().getSimpleName();
+        if (className.endsWith("Dto")) {
+            return className.substring(0, className.length() - 3);
+        } else {
+            return className;
         }
     }
 

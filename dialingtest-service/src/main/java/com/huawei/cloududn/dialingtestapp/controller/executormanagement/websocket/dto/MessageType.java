@@ -14,32 +14,32 @@ package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websock
  */
 public enum MessageType {
     // 注册消息 (0x01-0x06)
-    REGISTER_REQUEST(0x01, "Register-Request", "注册请求", Direction.AGENT_TO_SERVER),
-    REGISTER_CHALLENGE(0x02, "Register-Challenge", "注册挑战", Direction.SERVER_TO_AGENT),
-    REGISTER_RESPONSE(0x03, "Register-Response", "注册应答", Direction.AGENT_TO_SERVER),
-    REGISTER_RESULT(0x04, "Register-Result", "注册结果", Direction.SERVER_TO_AGENT),
-    DEREGISTER_REQUEST(0x05, "DeRegister-Request", "去注册请求", Direction.AGENT_TO_SERVER),
-    DEREGISTER_ACK(0x06, "DeRegister-Ack", "去注册应答", Direction.SERVER_TO_AGENT),
+    REGISTER_REQUEST(0x01, "RegisterRequest", "注册请求", Direction.AGENT_TO_SERVER),
+    REGISTER_CHALLENGE(0x02, "RegisterChallenge", "注册挑战", Direction.SERVER_TO_AGENT),
+    REGISTER_RESPONSE(0x03, "RegisterResponse", "注册应答", Direction.AGENT_TO_SERVER),
+    REGISTER_RESULT(0x04, "RegisterResult", "注册结果", Direction.SERVER_TO_AGENT),
+    DEREGISTER_REQUEST(0x05, "DeRegisterRequest", "去注册请求", Direction.AGENT_TO_SERVER),
+    DEREGISTER_ACK(0x06, "DeRegisterAck", "去注册应答", Direction.SERVER_TO_AGENT),
 
     // 状态报告消息 (0x11-0x12)
-    REPORT_MSG(0x11, "Report-Msg", "状态报告", Direction.AGENT_TO_SERVER),
-    REPORT_ACK(0x12, "Report-Ack", "状态报告应答", Direction.SERVER_TO_AGENT),
+    REPORT_MSG(0x11, "ReportMsg", "状态报告", Direction.AGENT_TO_SERVER),
+    REPORT_ACK(0x12, "ReportAck", "状态报告应答", Direction.SERVER_TO_AGENT),
 
     // UE&App管理消息 (0x21-0x26)
-    APP_LIST_QUERY(0x21, "AppList-Query", "查询App清单", Direction.SERVER_TO_AGENT),
-    APP_LIST_RESPONSE(0x22, "AppList-Response", "App列表信息", Direction.AGENT_TO_SERVER),
-    APP_INSTALL_REQUEST(0x23, "AppInstall-Request", "App安装请求", Direction.SERVER_TO_AGENT),
-    APP_INSTALL_RESPONSE(0x24, "AppInstall-Response", "App安装应答", Direction.AGENT_TO_SERVER),
-    SCREENCAP_QUERY(0x25, "ScreanCap-Query", "查询UE界面", Direction.SERVER_TO_AGENT),
-    SCREENCAP_RESPONSE(0x26, "ScreanCap-Response", "查询UE界面应答", Direction.AGENT_TO_SERVER),
+    APP_LIST_QUERY(0x21, "AppListQuery", "查询App清单", Direction.SERVER_TO_AGENT),
+    APP_LIST_RESPONSE(0x22, "AppListResponse", "App列表信息", Direction.AGENT_TO_SERVER),
+    APP_INSTALL_REQUEST(0x23, "AppInstallRequest", "App安装请求", Direction.SERVER_TO_AGENT),
+    APP_INSTALL_RESPONSE(0x24, "AppInstallResponse", "App安装应答", Direction.AGENT_TO_SERVER),
+    SCREENCAP_QUERY(0x25, "ScreencapQuery", "查询UE界面", Direction.SERVER_TO_AGENT),
+    SCREENCAP_RESPONSE(0x26, "ScreencapResponse", "查询UE界面应答", Direction.AGENT_TO_SERVER),
 
     // 脚本&任务管理消息 (0x31-0x36)
-    SCRIPT_UPDATE_NOTIFY(0x31, "ScriptUpdate-Notify", "更新脚本通知", Direction.SERVER_TO_AGENT),
-    SCRIPT_UPDATE_ACK(0x32, "ScriptUpdate-Ack", "更新脚本应答", Direction.AGENT_TO_SERVER),
-    TASK_START_REQUEST(0x33, "TaskStart-Request", "拨测任务启动请求", Direction.SERVER_TO_AGENT),
-    TASK_START_RESPONSE(0x34, "TaskStart-Response", "拨测任务启动应答", Direction.AGENT_TO_SERVER),
-    TASK_STOP_REQUEST(0x35, "TaskStop-Request", "拨测任务停止请求", Direction.SERVER_TO_AGENT),
-    TASK_STOP_RESPONSE(0x36, "TaskStop-Response", "拨测任务停止应答", Direction.AGENT_TO_SERVER);
+    SCRIPT_UPDATE_NOTIFY(0x31, "ScriptUpdateNotify", "更新脚本通知", Direction.SERVER_TO_AGENT),
+    SCRIPT_UPDATE_ACK(0x32, "ScriptUpdateAck", "更新脚本应答", Direction.AGENT_TO_SERVER),
+    TASK_START_REQUEST(0x33, "TaskStartRequest", "拨测任务启动请求", Direction.SERVER_TO_AGENT),
+    TASK_START_RESPONSE(0x34, "TaskStartResponse", "拨测任务启动应答", Direction.AGENT_TO_SERVER),
+    TASK_STOP_REQUEST(0x35, "TaskStopRequest", "拨测任务停止请求", Direction.SERVER_TO_AGENT),
+    TASK_STOP_RESPONSE(0x36, "TaskStopResponse", "拨测任务停止应答", Direction.AGENT_TO_SERVER);
 
     private final int id;
     private final String name;

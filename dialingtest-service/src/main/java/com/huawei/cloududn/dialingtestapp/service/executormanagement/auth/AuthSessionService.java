@@ -87,7 +87,7 @@ public class AuthSessionService {
     }
     
     /**
-     * Handle Register-Request (0x01): generate and send challenge (V3 TLV version).
+     * Handle RegisterRequest (0x01): generate and send challenge (V4 JSON version).
      * 阶段1→2：接收注册请求，生成并发送挑战
      *
      * @param dto     RegisterRequest DTO
@@ -95,7 +95,7 @@ public class AuthSessionService {
      */
     public void handleRegisterRequest(RegisterRequestDto dto, Session session) {
         String hostname = dto.getHostname();
-        logger.info("Received Register-Request from sessionId={}, hostname={}", 
+        logger.info("Received RegisterRequest from sessionId={}, hostname={}", 
             session.getId(), hostname);
         
         // Generate challenge
@@ -106,13 +106,13 @@ public class AuthSessionService {
         pendingMap.put(session.getId(), 
             new PendingAuthContext("", hostname, Base64.getEncoder().encodeToString(challengeBytes), Instant.now(), challengeId));
         
-        // Send Register-Challenge (V4 JSON format)
+        // Send RegisterChallenge (V4 JSON format)
         RegisterChallengeDto challengeDto = new RegisterChallengeDto(challengeId, 
                 Base64.getEncoder().encodeToString(challengeBytes));
         wssMessageSender.sendJsonMessage(session.getId(), challengeDto);
 
         // DEBUG: Log challenge details
-        logger.info("Sent Register-Challenge to sessionId={}, challengeId={}, hostname={}, challengeBytes.length={}",
+        logger.info("Sent RegisterChallenge to sessionId={}, challengeId={}, hostname={}, challengeBytes.length={}",
             session.getId(), challengeId, hostname, challengeBytes.length);
         logger.debug("Challenge bytes (hex): {}", bytesToHexString(challengeBytes));
         logger.debug("Challenge Base64: {}", Base64.getEncoder().encodeToString(challengeBytes));

@@ -5,7 +5,7 @@
 package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.*;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileCompleteCallback;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileCompleteEvent;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileHandler;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileState;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
@@ -24,6 +24,7 @@ import com.huawei.cloududn.dialingtestapp.service.taskmanagement.orchestration.T
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -35,13 +36,13 @@ import javax.websocket.Session;
 
 /**
  * 任务接口服务：作为任务管理模块与执行机管理模块之间的适配器
- * V4版本：实现InboundFileCompleteCallback接口，支持JSON信令和文件传输
+ * V4版本：通过 Spring 事件机制监听文件完成事件，支持JSON信令和文件传输
  *
  * @author g00940940
  * @since 2025-11-14
  */
 @Service
-public class TaskInterfaceService implements InboundFileCompleteCallback {
+public class TaskInterfaceService {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskInterfaceService.class);
 
@@ -376,13 +377,14 @@ public class TaskInterfaceService implements InboundFileCompleteCallback {
     }
 
     /**
-     * 文件接收完成回调
-     * V4版本：实现InboundFileCompleteCallback接口
+     * 文件接收完成事件监听器
+     * V4版本：通过 Spring 事件机制监听 InboundFileCompleteEvent
      *
-     * @param state 文件接收状态
+     * @param event 文件完成事件
      */
-    @Override
-    public void onInboundFileComplete(InboundFileState state) {
+    @EventListener
+    public void handleFileComplete(InboundFileCompleteEvent event) {
+        InboundFileState state = event.getState();
         logger.info("File receive completed: sessionId={}, filePath={}, size={}/{} bytes",
                 state.getSessionId(), state.getTempFilePath(),
                 state.getReceivedSize(), state.getExpectedSize());
