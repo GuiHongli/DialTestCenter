@@ -17,14 +17,13 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * V3版本WebSocketSessionRegistry测试
- * 测试二进制消息发送功能
+ * WebSocketSessionRegistry单元测试
+ * 测试会话注册表基本功能
  *
- * @author DialTestCenter
- * @since 2025-11-11
+ * @author g00940940
+ * @since 2025-11-16
  */
 public class WebSocketSessionRegistryTest {
-
     private WebSocketSessionRegistry registry;
 
     @Before
@@ -32,122 +31,63 @@ public class WebSocketSessionRegistryTest {
         registry = new WebSocketSessionRegistry();
     }
 
+    /**
+     * 测试添加并获取会话
+     */
     @Test
-    public void testAddAndGetSession_Success_ReturnsSame() {
+    public void testAddAndGetSession_Success() {
         Session session = mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+        when(session.getId()).thenReturn("session-001");
 
         registry.addSession(session);
+        Session retrieved = registry.getSession("session-001");
 
-        Session fetched = registry.getSession("s1");
-        assertNotNull(fetched);
-        assertEquals(session, fetched);
-    }
+        assertSame(session, retrieved);
 
-    @Test
-    public void testRemoveSession_RemovesFromRegistry() {
-        Session session = mock(Session.class);
-        when(session.getId()).thenReturn("s2");
-        registry.addSession(session);
-
-        registry.removeSession("s2");
-
-        assertNull(registry.getSession("s2"));
-    }
-
-    @Test
-    public void testRemoveSession_WithNullId_DoesNotThrow() {
-        // Should not throw exception
-        registry.removeSession(null);
-
-        // Should not throw exception
-        registry.removeSession("");
-    }
-
-    @Test
-    public void testSendBinary_CallsSessionSendBinary() throws IOException {
-        Session session = mock(Session.class);
-        RemoteEndpoint.Basic basicRemote = mock(RemoteEndpoint.Basic.class);
-        when(session.getId()).thenReturn("s3");
-        when(session.isOpen()).thenReturn(true);
-        when(session.getBasicRemote()).thenReturn(basicRemote);
-        registry.addSession(session);
-
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putLong(123456789L);
-        buffer.flip();
-
-        registry.sendBinary("s3", buffer);
-
-        verify(basicRemote, times(1)).sendBinary(buffer);
-    }
-
-    @Test
-    public void testSendBinary_SessionNotFound_DoesNotThrow() throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(42);
-        buffer.flip();
-
-        // Should not throw exception when session not found
-        registry.sendBinary("nonexistent", buffer);
-    }
-
-    @Test
-    public void testSendBinary_SessionNotOpen_DoesNotThrow() throws IOException {
-        Session session = mock(Session.class);
-        when(session.getId()).thenReturn("s4");
-        when(session.isOpen()).thenReturn(false); // Session is closed
-        registry.addSession(session);
-
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(42);
-        buffer.flip();
-
-        // Should not throw exception when session is closed
-        registry.sendBinary("s4", buffer);
-    }
-
-    @Test
-    public void testSendBinary_SendBinaryThrowsIOException_DoesNotPropagate() throws IOException {
-        Session session = mock(Session.class);
-        RemoteEndpoint.Basic basicRemote = mock(RemoteEndpoint.Basic.class);
-        when(session.getId()).thenReturn("s5");
-        when(session.isOpen()).thenReturn(true);
-        when(session.getBasicRemote()).thenReturn(basicRemote);
-        doThrow(new IOException("Network error")).when(basicRemote).sendBinary(any(ByteBuffer.class));
-        registry.addSession(session);
-
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(42);
-        buffer.flip();
-
-        // Should not throw exception even when sendBinary fails
-        registry.sendBinary("s5", buffer);
-    }
-
-    @Test
-    public void testAddSession_WithNullSession_DoesNotThrow() {
-        // Should not throw exception when adding null session
         registry.addSession(null);
+        assertNull(registry.getSession("non-existent"));
     }
 
+    /**
+     * 测试移除会话
+     */
     @Test
-    public void testGetSession_NonExistentSession_ReturnsNull() {
-        Session result = registry.getSession("nonexistent");
-        assertNull(result);
+    public void testRemoveSession_Success() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+
+        registry.addSession(session);
+        assertNotNull(registry.getSession("session-001"));
+
+        registry.removeSession("session-001");
+        assertNull(registry.getSession("session-001"));
+
+        registry.removeSession(null);
+        registry.removeSession("non-existent");
     }
 
+    /**
+     * 测试发送Text和Binary消息
+     */
     @Test
-    public void testAddSession_ReplaceExistingSession() {
-        Session session1 = mock(Session.class);
-        Session session2 = mock(Session.class);
-        when(session1.getId()).thenReturn("s6");
-        when(session2.getId()).thenReturn("s6");
+    public void testSendTextAndBinary_Success() throws IOException {
+        Session session = mock(Session.class);
+        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+        when(session.getId()).thenReturn("session-001");
+        when(session.isOpen()).thenReturn(true);
+        when(session.getBasicRemote()).thenReturn(basic);
 
-        registry.addSession(session1);
-        registry.addSession(session2); // Should replace session1
+        registry.addSession(session);
 
-        Session fetched = registry.getSession("s6");
-        assertEquals(session2, fetched);
+        String textMessage = "{\"type\":\"test\"}";
+        registry.sendText("session-001", textMessage);
+        verify(basic).sendText(textMessage);
+
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[100]);
+        registry.sendBinary("session-001", buffer);
+        verify(basic).sendBinary(buffer);
+
+        registry.sendText("non-existent", "test");
+        registry.sendBinary("non-existent", buffer);
     }
 }

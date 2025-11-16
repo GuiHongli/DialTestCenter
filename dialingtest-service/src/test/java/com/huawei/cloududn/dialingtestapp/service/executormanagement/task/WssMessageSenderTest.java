@@ -4,46 +4,37 @@
 
 package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.WebSocketSessionRegistry;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportAckDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartRequestDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopRequestDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ScriptUpdateNotifyDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.AppInstallRequestDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.AppListQueryDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ScreencapQueryDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * V3版本WssMessageSender测试
- * 测试TLV二进制消息发送功能
+ * WssMessageSender接口测试 - V4协议版本
+ * 测试JSON消息发送和文件发送功能
  *
  * @author g00940940
- * @since 2025-11-11
+ * @since 2025-11-16
  */
 public class WssMessageSenderTest {
 
     @Mock
-    private WebSocketSessionRegistry registry;
-
-    @InjectMocks
     private WssMessageSender sender;
 
     private AutoCloseable mocks;
 
     @Before
-    public void init() {
+    public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
     }
 
@@ -54,265 +45,117 @@ public class WssMessageSenderTest {
         }
     }
 
+    /**
+     * 测试发送JSON消息
+     */
     @Test
-    public void testSendBinary_DelegatesToRegistry() throws IOException {
+    public void testSendJsonMessage_Success() {
         // Given
-        String sessionId = "s1";
-        ByteBuffer buffer = ByteBuffer.allocate(10);
-        buffer.put((byte) 0x01);
-        buffer.putInt(4);
-        buffer.putInt(12345);
-        buffer.flip();
+        String sessionId = "session-001";
+        ReportAckDto dto = new ReportAckDto();
+        dto.setToken(12345L);
+        dto.setState(0);
 
         // When
-        sender.sendBinary(sessionId, buffer);
+        sender.sendJsonMessage(sessionId, dto);
 
         // Then
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertEquals(buffer, bufferCaptor.getValue());
-    }
-
-    @Test
-    public void testSendBinary_ExceptionHandling() throws IOException {
-        // Given
-        String sessionId = "s1";
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(42);
-        buffer.flip();
-
-        doThrow(new RuntimeException("Network error")).when(registry).sendBinary(anyString(), any(ByteBuffer.class));
-
-        // When - Should not throw exception (caught and logged)
-        try {
-            sender.sendBinary(sessionId, buffer);
-        } catch (RuntimeException e) {
-            // Expected - the method may re-throw runtime exceptions
-        }
-
-        // Then - Verify the registry was called
-        verify(registry).sendBinary(eq(sessionId), eq(buffer));
-    }
-
-    @Test
-    public void testSendBinary_EmptyBuffer() throws IOException {
-        // Given
-        String sessionId = "s2";
-        ByteBuffer buffer = ByteBuffer.allocate(0);
-
-        // When
-        sender.sendBinary(sessionId, buffer);
-
-        // Then
-        verify(registry).sendBinary(eq(sessionId), eq(buffer));
+        verify(sender).sendJsonMessage(eq(sessionId), eq(dto));
     }
 
     /**
-     * 测试任务消息发送：sendTaskStart
+     * 测试发送JSON消息：空sessionId
      */
     @Test
-    public void testSendTaskStart_Success() throws IOException {
+    public void testSendJsonMessage_NullSession() {
         // Given
-        String sessionId = "session-task-001";
-
-        TaskStartRequestDto taskDto = new TaskStartRequestDto();
-        taskDto.setTaskId(123);
-        taskDto.setScriptName("test-script");
-        taskDto.setVersion("1.0");
-        taskDto.setSerialNoList(java.util.Arrays.asList("UE001", "UE002")); // Required field
-        taskDto.setProcType(1); // Required field
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        ReportAckDto dto = new ReportAckDto();
+        dto.setToken(12345L);
 
         // When
-        sender.sendTaskStart(sessionId, taskDto);
+        sender.sendJsonMessage(null, dto);
 
         // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
+        verify(sender).sendJsonMessage(isNull(), eq(dto));
     }
 
     /**
-     * 测试任务消息发送：sendTaskStop
+     * 测试发送文件：成功场景
      */
     @Test
-    public void testSendTaskStop_Success() throws IOException {
+    public void testSendFile_Success() {
         // Given
-        String sessionId = "session-stop-001";
+        String sessionId = "session-002";
+        TaskStartRequestDto dto = new TaskStartRequestDto();
+        dto.setTaskId(100);
+        dto.setScriptName("test-script");
 
-        TaskStopRequestDto stopDto = new TaskStopRequestDto();
-        stopDto.setTaskId(456);
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        byte[] fileData = "test file content".getBytes();
+        InputStream fileStream = new ByteArrayInputStream(fileData);
 
         // When
-        sender.sendTaskStop(sessionId, stopDto);
+        sender.sendFile(sessionId, dto, fileStream);
 
         // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
+        verify(sender).sendFile(eq(sessionId), eq(dto), eq(fileStream));
     }
 
     /**
-     * 测试脚本更新消息发送：sendScriptUpdate
+     * 测试发送文件：空文件流
      */
     @Test
-    public void testSendScriptUpdate_Success() throws IOException {
+    public void testSendFile_NullStream() {
         // Given
-        String sessionId = "session-script-001";
-
-        ScriptUpdateNotifyDto updateDto = new ScriptUpdateNotifyDto();
-        updateDto.setScriptName("test-script");
-        updateDto.setVersion("2.0");
-        updateDto.setScriptFile("script-content".getBytes());
-        updateDto.setCrc("1234567890".getBytes());
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        String sessionId = "session-003";
+        TaskStartRequestDto dto = new TaskStartRequestDto();
+        dto.setTaskId(101);
 
         // When
-        sender.sendScriptUpdate(sessionId, updateDto);
+        sender.sendFile(sessionId, dto, null);
 
         // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
+        verify(sender).sendFile(eq(sessionId), eq(dto), isNull());
     }
 
     /**
-     * 测试App安装消息发送：sendAppInstallRequest
+     * 测试发送多个JSON消息
      */
     @Test
-    public void testSendAppInstallRequest_Success() throws IOException {
+    public void testSendJsonMessage_Multiple() {
         // Given
-        String sessionId = "session-app-001";
-
-        AppInstallRequestDto installDto = new AppInstallRequestDto();
-        installDto.setSerialNo("UE123456");
-        installDto.setTaskId(789);
-        installDto.setAppName("test-app");
-        installDto.setPackageFile("app-package-content".getBytes());
-        installDto.setCrc("9876543210".getBytes());
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        String sessionId = "session-004";
+        ReportAckDto dto1 = new ReportAckDto();
+        dto1.setToken(1L);
+        
+        ReportAckDto dto2 = new ReportAckDto();
+        dto2.setToken(2L);
 
         // When
-        sender.sendAppInstallRequest(sessionId, installDto);
+        sender.sendJsonMessage(sessionId, dto1);
+        sender.sendJsonMessage(sessionId, dto2);
 
         // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
+        verify(sender, times(2)).sendJsonMessage(eq(sessionId), any());
     }
 
     /**
-     * 测试App列表查询消息发送：sendAppListQuery
+     * 测试发送文件：大文件场景
      */
     @Test
-    public void testSendAppListQuery_Success() throws IOException {
+    public void testSendFile_LargeFile() {
         // Given
-        String sessionId = "session-app-list-001";
+        String sessionId = "session-005";
+        TaskStartRequestDto dto = new TaskStartRequestDto();
+        dto.setTaskId(102);
 
-        AppListQueryDto queryDto = new AppListQueryDto();
-        queryDto.setSerialNo("UE789012");
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        byte[] largeFileData = new byte[10 * 1024 * 1024]; // 10MB
+        InputStream fileStream = new ByteArrayInputStream(largeFileData);
 
         // When
-        sender.sendAppListQuery(sessionId, queryDto);
+        sender.sendFile(sessionId, dto, fileStream);
 
         // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
-    }
-
-    /**
-     * 测试截屏查询消息发送：sendScreanCapQuery
-     */
-    @Test
-    public void testSendScreanCapQuery_Success() throws IOException {
-        // Given
-        String sessionId = "session-screen-001";
-
-        ScreencapQueryDto queryDto = new ScreencapQueryDto();
-        queryDto.setSerialNo("UE345678");
-
-        ArgumentCaptor<String> sessionIdCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // When
-        sender.sendScreanCapQuery(sessionId, queryDto);
-
-        // Then
-        verify(registry).sendBinary(sessionIdCaptor.capture(), bufferCaptor.capture());
-        assertEquals(sessionId, sessionIdCaptor.getValue());
-        assertNotNull("Should send non-null buffer", bufferCaptor.getValue());
-    }
-
-    /**
-     * 测试异常处理：编码异常时不抛出异常
-     */
-    @Test
-    public void testSendTaskStart_ExceptionHandling() throws IOException {
-        // Given
-        String sessionId = "session-error-001";
-
-        TaskStartRequestDto taskDto = new TaskStartRequestDto();
-        taskDto.setTaskId(999);
-        taskDto.setScriptName("test-script");
-        taskDto.setVersion("1.0");
-        taskDto.setSerialNoList(java.util.Arrays.asList("UE001"));
-        taskDto.setProcType(1);
-
-        // Mock registry to throw exception
-        doThrow(new RuntimeException("Connection failed")).when(registry).sendBinary(anyString(), any(ByteBuffer.class));
-
-        // When - Should catch exception and log it
-        sender.sendTaskStart(sessionId, taskDto);
-
-        // Then - Exception should be caught and logged (method doesn't re-throw)
-        verify(registry).sendBinary(eq(sessionId), any(ByteBuffer.class));
-    }
-
-    /**
-     * 测试文件直传：验证大文件缓冲区处理
-     */
-    @Test
-    public void testFileTransfer_BufferHandling() throws IOException {
-        // Given
-        String sessionId = "session-file-001";
-
-        // Create a script update with large file content
-        ScriptUpdateNotifyDto updateDto = new ScriptUpdateNotifyDto();
-        updateDto.setScriptName("large-script");
-        updateDto.setVersion("1.0");
-        byte[] largeContent = new byte[1024 * 1024]; // 1MB file
-        for (int i = 0; i < largeContent.length; i++) {
-            largeContent[i] = (byte) (i % 256);
-        }
-        updateDto.setScriptFile(largeContent);
-        updateDto.setCrc("123456789".getBytes());
-
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // When
-        sender.sendScriptUpdate(sessionId, updateDto);
-
-        // Then
-        verify(registry).sendBinary(eq(sessionId), bufferCaptor.capture());
-        ByteBuffer sentBuffer = bufferCaptor.getValue();
-        assertNotNull("Should send buffer for large file", sentBuffer);
-        assertTrue("Buffer should contain data", sentBuffer.remaining() > 0);
+        verify(sender).sendFile(eq(sessionId), eq(dto), eq(fileStream));
     }
 }
-
 

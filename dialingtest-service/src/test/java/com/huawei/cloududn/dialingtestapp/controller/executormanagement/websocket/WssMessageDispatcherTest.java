@@ -4,306 +4,198 @@
 
 package com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket;
 
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.FieldTag;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.MessageType;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvEncoder;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvField;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.DeRegisterRequestDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.RegisterRequestDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartResponseDto;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.InboundFileHandler;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.ExecutorMgmtService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.auth.AuthSessionService;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.task.TaskInterfaceService;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
 
 import java.nio.ByteBuffer;
 
 import javax.websocket.Session;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * V3版本WssMessageDispatcher测试
- * 测试TLV消息ID分发功能
+ * WssMessageDispatcher单元测试
+ * 测试JSON消息路由和二进制分片分发
  *
- * @author DialTestCenter
- * @since 2025-11-11
+ * @author g00940940
+ * @since 2025-11-16
  */
 public class WssMessageDispatcherTest {
-
     private WssMessageDispatcher dispatcher;
-    private AuthSessionService auth;
-    private ExecutorMgmtService exec;
-    private TaskInterfaceService task;
+    private ObjectMapper objectMapper;
+    private InboundFileHandler inboundFileHandler;
+    private AuthSessionService authSessionService;
+    private ExecutorMgmtService executorMgmtService;
+    private TaskInterfaceService taskInterfaceService;
 
     @Before
     public void setUp() {
         dispatcher = new WssMessageDispatcher();
-        auth = Mockito.mock(AuthSessionService.class);
-        exec = Mockito.mock(ExecutorMgmtService.class);
-        task = Mockito.mock(TaskInterfaceService.class);
-        set(dispatcher, "authSessionService", auth);
-        set(dispatcher, "executorMgmtService", exec);
-        set(dispatcher, "taskInterfaceService", task);
+        objectMapper = new ObjectMapper();
+        inboundFileHandler = mock(InboundFileHandler.class);
+        authSessionService = mock(AuthSessionService.class);
+        executorMgmtService = mock(ExecutorMgmtService.class);
+        taskInterfaceService = mock(TaskInterfaceService.class);
+
+        setField(dispatcher, "objectMapper", objectMapper);
+        setField(dispatcher, "inboundFileHandler", inboundFileHandler);
+        setField(dispatcher, "authSessionService", authSessionService);
+        setField(dispatcher, "executorMgmtService", executorMgmtService);
+        setField(dispatcher, "taskInterfaceService", taskInterfaceService);
     }
 
+    /**
+     * 测试分发RegisterRequest消息
+     */
     @Test
-    public void testDispatch_RegisterRequest_RoutedToAuthService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+    public void testDispatch_JsonMessage_RegisterRequest() throws Exception {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create Register-Request TLV message
-        ByteBuffer buffer = createRegisterRequestBuffer("Executor_PC_001");
+        String jsonMessage = "{\"type\":\"RegisterRequest\",\"payload\":{\"hostname\":\"agent-01\"}}";
 
-        dispatcher.dispatch(buffer, session);
-        verify(auth).handleRegisterRequest(any(RegisterRequestDto.class), eq(session));
+        dispatcher.dispatch(jsonMessage, session);
+
+        ArgumentCaptor<RegisterRequestDto> captor = ArgumentCaptor.forClass(RegisterRequestDto.class);
+        verify(authSessionService).handleRegisterRequest(captor.capture(), eq(session));
+        assertEquals("agent-01", captor.getValue().getHostname());
     }
 
+    /**
+     * 测试分发ReportMsg消息
+     */
     @Test
-    public void testDispatch_RegisterResponse_RoutedToAuthService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s2");
+    public void testDispatch_JsonMessage_ReportMsg() throws Exception {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create Register-Response TLV message
-        ByteBuffer buffer = createRegisterResponseBuffer(1, "username", "response");
+        String jsonMessage = "{\"type\":\"ReportMsg\",\"token\":12345,\"payload\":{\"state\":\"Normal\"}}";
 
-        dispatcher.dispatch(buffer, session);
-        verify(auth).handleRegisterResponse(any(), eq(session));
+        dispatcher.dispatch(jsonMessage, session);
+
+        verify(executorMgmtService).handleReportMsg(any(ReportMsgDto.class), eq(session));
     }
 
+    /**
+     * 测试分发DeRegisterRequest消息
+     */
     @Test
-    public void testDispatch_DeRegisterRequest_RoutedToExecutorService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s3");
+    public void testDispatch_JsonMessage_DeRegisterRequest() throws Exception {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create DeRegister-Request TLV message
-        ByteBuffer buffer = createDeRegisterRequestBuffer("Executor_PC_001");
+        String jsonMessage = "{\"type\":\"DeRegisterRequest\",\"token\":12345,\"payload\":{}}";
 
-        dispatcher.dispatch(buffer, session);
-        verify(exec).handleDeRegisterRequest(any(), eq(session));
+        dispatcher.dispatch(jsonMessage, session);
+
+        verify(executorMgmtService).handleDeRegisterRequest(any(DeRegisterRequestDto.class), eq(session));
     }
 
+    /**
+     * 测试分发任务类消息（批量测试）
+     */
     @Test
-    public void testDispatch_ReportMsg_RoutedToExecutorService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s4");
+    public void testDispatch_JsonMessage_TaskMessages() throws Exception {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create Report-Msg TLV message
-        ByteBuffer buffer = createReportMsgBuffer(123456789L, "Normal");
+        String appListResponse = "{\"type\":\"AppListResponse\",\"payload\":{\"serialNo\":\"123456\"}}";
+        dispatcher.dispatch(appListResponse, session);
+        verify(taskInterfaceService).handleAppListResponse(any(), eq(session));
 
-        dispatcher.dispatch(buffer, session);
-        verify(exec).handleReportMsg(any(), eq(session));
+        String scriptUpdateAck = "{\"type\":\"ScriptUpdateAck\",\"payload\":{\"scriptName\":\"test.py\"}}";
+        dispatcher.dispatch(scriptUpdateAck, session);
+        verify(taskInterfaceService).handleScriptUpdateAck(any(), eq(session));
     }
 
+    /**
+     * 测试未知消息类型
+     */
     @Test
-    public void testDispatch_AppListResponse_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s5");
+    public void testDispatch_JsonMessage_UnknownType() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create AppList-Response TLV message
-        ByteBuffer buffer = createAppListResponseBuffer("SN001", 0);
+        String jsonMessage = "{\"type\":\"UnknownMessageType\",\"payload\":{}}";
 
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleAppListResponse(any(), eq(session));
+        dispatcher.dispatch(jsonMessage, session);
+
+        verifyNoInteractions(authSessionService);
+        verifyNoInteractions(executorMgmtService);
+        verifyNoInteractions(taskInterfaceService);
     }
 
+    /**
+     * 测试无效JSON格式
+     */
     @Test
-    public void testDispatch_AppInstallResponse_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s6");
+    public void testDispatch_JsonMessage_InvalidJson() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
 
-        // Create AppInstall-Response TLV message
-        ByteBuffer buffer = createAppInstallResponseBuffer("SN001", 1001, 0);
+        String invalidJson = "{invalid json}";
 
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleAppInstallResponse(any(), eq(session));
+        dispatcher.dispatch(invalidJson, session);
+
+        verifyNoInteractions(authSessionService);
+        verifyNoInteractions(executorMgmtService);
+        verifyNoInteractions(taskInterfaceService);
     }
 
+    /**
+     * 测试接收状态下处理二进制分片
+     */
     @Test
-    public void testDispatch_ScreencapResponse_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s7");
+    public void testDispatch_BinaryChunk_WithReceivingState() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+        when(inboundFileHandler.isReceivingFile("session-001")).thenReturn(true);
 
-        // Create Screencap-Response TLV message
-        ByteBuffer buffer = createScreencapResponseBuffer("SN001", 0, "screenshot.png", "imagedata".getBytes());
-
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleScreencapResponse(any(), eq(session));
-    }
-
-    @Test
-    public void testDispatch_ScriptUpdateAck_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s8");
-
-        // Create ScriptUpdate-Ack TLV message
-        ByteBuffer buffer = createScriptUpdateAckBuffer("test_script", "1.0", 0);
-
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleScriptUpdateAck(any(), eq(session));
-    }
-
-    @Test
-    public void testDispatch_TaskStartResponse_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s9");
-
-        // Create TaskStart-Response TLV message
-        ByteBuffer buffer = createTaskStartResponseBuffer(1001, "Success");
-
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleTaskStartResponse(any(TaskStartResponseDto.class), eq(session));
-    }
-
-    @Test
-    public void testDispatch_TaskStopResponse_RoutedToTaskService() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s10");
-
-        // Create TaskStop-Response TLV message
-        ByteBuffer buffer = createTaskStopResponseBuffer(1001, 0);
-
-        dispatcher.dispatch(buffer, session);
-        verify(task).handleTaskStopResponse(any(TaskStopResponseDto.class), eq(session));
-    }
-
-    @Test
-    public void testDispatch_UnknownMessageType_LoggedAndIgnored() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s11");
-
-        // Create unknown message type
-        ByteBuffer buffer = ByteBuffer.allocate(5);
-        buffer.put((byte) 0xFF); // Unknown message type
-        buffer.putInt(0);        // Empty body
+        ByteBuffer buffer = ByteBuffer.allocate(100);
+        buffer.put(new byte[100]);
         buffer.flip();
 
-        // Should not throw exception, just log warning
         dispatcher.dispatch(buffer, session);
 
-        // Verify no services were called
-        verify(auth, never()).handleRegisterRequest(any(RegisterRequestDto.class), any(Session.class));
-        verify(exec, never()).handleReportMsg(any(), any());
-        verify(task, never()).handleAppListResponse(any(), any());
+        verify(inboundFileHandler).handleChunk("session-001", buffer);
     }
 
+    /**
+     * 测试非接收状态时收到二进制分片
+     */
     @Test
-    public void testDispatch_InvalidTlvMessage_ThrowsException() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s12");
+    public void testDispatch_BinaryChunk_NoReceivingState() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+        when(inboundFileHandler.isReceivingFile("session-001")).thenReturn(false);
 
-        // Create invalid TLV message (too short)
-        ByteBuffer buffer = ByteBuffer.allocate(2);
-        buffer.put((byte) 0x01);
+        ByteBuffer buffer = ByteBuffer.allocate(100);
+        buffer.put(new byte[100]);
         buffer.flip();
 
-        // Should throw IllegalArgumentException
+        dispatcher.dispatch(buffer, session);
+
+        verify(inboundFileHandler, never()).handleChunk(anyString(), any(ByteBuffer.class));
+    }
+
+    private static void setField(Object target, String fieldName, Object value) {
         try {
-            dispatcher.dispatch(buffer, session);
-        } catch (IllegalArgumentException e) {
-            // Expected
-        }
-    }
-
-    // Helper methods to create TLV messages
-    private ByteBuffer createRegisterRequestBuffer(String hostname) {
-        return TlvEncoder.encodeMessage(MessageType.REGISTER_REQUEST,
-            java.util.Arrays.asList(TlvField.ofString(FieldTag.HOSTNAME, hostname)));
-    }
-
-    private ByteBuffer createRegisterResponseBuffer(int challengeId, String username, String response) {
-        return TlvEncoder.encodeMessage(MessageType.REGISTER_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofInt(FieldTag.CHALLENGE_ID, challengeId),
-                TlvField.ofString(FieldTag.USERNAME, username),
-                TlvField.ofBytes(FieldTag.RESPONSE, response.getBytes())
-            ));
-    }
-
-    private ByteBuffer createDeRegisterRequestBuffer(String hostname) {
-        return TlvEncoder.encodeMessage(MessageType.DEREGISTER_REQUEST,
-            java.util.Arrays.asList(TlvField.ofString(FieldTag.HOSTNAME, hostname)));
-    }
-
-    private ByteBuffer createReportMsgBuffer(long token, String state) {
-        return TlvEncoder.encodeMessage(MessageType.REPORT_MSG,
-            java.util.Arrays.asList(
-                TlvField.ofLong(FieldTag.TOKEN, token),
-                TlvField.ofString(FieldTag.STATE, state),
-                TlvField.ofContainer(FieldTag.UE_LIST, new byte[0])
-            ));
-    }
-
-    private ByteBuffer createAppListResponseBuffer(String serialNo, int result) {
-        return TlvEncoder.encodeMessage(MessageType.APP_LIST_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofString(FieldTag.SERIAL_NO, serialNo),
-                TlvField.ofInt(FieldTag.RESULT, result)
-            ));
-    }
-
-    private ByteBuffer createAppInstallResponseBuffer(String serialNo, int taskId, int result) {
-        return TlvEncoder.encodeMessage(MessageType.APP_INSTALL_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofString(FieldTag.SERIAL_NO, serialNo),
-                TlvField.ofInt(FieldTag.TASKID, taskId),
-                TlvField.ofInt(FieldTag.RESULT, result)
-            ));
-    }
-
-    private ByteBuffer createScreencapResponseBuffer(String serialNo, int result, String filename, byte[] content) {
-        return TlvEncoder.encodeMessage(MessageType.SCREENCAP_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofString(FieldTag.SERIAL_NO, serialNo),
-                TlvField.ofInt(FieldTag.RESULT, result),
-                TlvField.ofString(FieldTag.FILENAME, filename),
-                TlvField.ofBytes(FieldTag.CONTENT, content)
-            ));
-    }
-
-    private ByteBuffer createScriptUpdateAckBuffer(String scriptName, String version, int result) {
-        return TlvEncoder.encodeMessage(MessageType.SCRIPT_UPDATE_ACK,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofString(FieldTag.SCRIPT_NAME, scriptName),
-                TlvField.ofString(FieldTag.VERSION, version),
-                TlvField.ofInt(FieldTag.RESULT, result)
-            ));
-    }
-
-    private ByteBuffer createTaskStartResponseBuffer(int taskId, String result) {
-        return TlvEncoder.encodeMessage(MessageType.TASK_START_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofInt(FieldTag.TASKID, taskId),
-                TlvField.ofString(FieldTag.RESULT, result)
-            ));
-    }
-
-    private ByteBuffer createTaskStopResponseBuffer(int taskId, int result) {
-        return TlvEncoder.encodeMessage(MessageType.TASK_STOP_RESPONSE,
-            java.util.Arrays.asList(
-                TlvField.ofString(FieldTag.TOKEN, "dummy_token"),
-                TlvField.ofInt(FieldTag.TASKID, taskId),
-                TlvField.ofInt(FieldTag.RESULT, result)
-            ));
-    }
-
-    private static void set(Object target, String field, Object value) {
-        try {
-            java.lang.reflect.Field f = target.getClass().getDeclaredField(field);
-            f.setAccessible(true);
-            f.set(target, value);
+            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to set field: " + fieldName, e);
         }
     }
 }

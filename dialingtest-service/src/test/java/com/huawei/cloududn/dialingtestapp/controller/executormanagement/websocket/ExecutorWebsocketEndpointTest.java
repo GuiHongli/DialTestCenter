@@ -14,20 +14,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.websocket.CloseReason;
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * V3版本ExecutorWebsocketEndpoint测试
- * 测试TLV二进制消息接收和发送功能
+ * V4版本ExecutorWebsocketEndpoint测试
+ * 测试JSON信令(Text)和二进制分片(Binary)混合模式
  *
- * @author DialTestCenter
- * @since 2025-11-11
+ * @author g00940940
+ * @since 2025-11-16
  */
 public class ExecutorWebsocketEndpointTest {
-
     private ExecutorWebsocketEndpoint endpoint;
     private WebSocketSessionRegistry registry;
     private WssMessageDispatcher dispatcher;
@@ -39,123 +39,129 @@ public class ExecutorWebsocketEndpointTest {
         registry = Mockito.mock(WebSocketSessionRegistry.class);
         dispatcher = Mockito.mock(WssMessageDispatcher.class);
         execService = Mockito.mock(ExecutorMgmtService.class);
-        set(endpoint, "sessionRegistry", registry);
-        set(endpoint, "dispatcher", dispatcher);
-        set(endpoint, "executorMgmtService", execService);
+        setField(endpoint, "sessionRegistry", registry);
+        setField(endpoint, "dispatcher", dispatcher);
+        setField(endpoint, "executorMgmtService", execService);
     }
 
+    /**
+     * 测试连接建立成功
+     */
     @Test
-    public void testOnOpen_AddsSession() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+    public void testOnOpen_Success() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+
         endpoint.onOpen(session);
+
         verify(registry).addSession(session);
     }
 
+    /**
+     * 测试接收有效JSON消息
+     */
     @Test
-    public void testOnMessage_EmptyBuffer_NoDispatch() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+    public void testOnMessage_JsonMessage_Success() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+        String jsonMessage = "{\"type\":\"RegisterRequest\",\"payload\":{\"hostname\":\"agent-01\"}}";
+
+        endpoint.onMessage(jsonMessage, session);
+
+        verify(dispatcher).dispatch(eq(jsonMessage), eq(session));
+    }
+
+    /**
+     * 测试接收空或null JSON消息
+     */
+    @Test
+    public void testOnMessage_JsonMessage_EmptyOrNull() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+
+        endpoint.onMessage("", session);
+        verify(dispatcher, never()).dispatch(anyString(), eq(session));
+
+        endpoint.onMessage((String) null, session);
+        verify(dispatcher, never()).dispatch(anyString(), eq(session));
+    }
+
+    /**
+     * 测试接收有效Binary分片
+     */
+    @Test
+    public void testOnMessage_BinaryChunk_Success() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+        ByteBuffer buffer = ByteBuffer.allocate(100);
+        buffer.put(new byte[100]);
+        buffer.flip();
+
+        endpoint.onMessage(buffer, session);
+
+        verify(dispatcher).dispatch(eq(buffer), eq(session));
+    }
+
+    /**
+     * 测试接收空或null Binary分片
+     */
+    @Test
+    public void testOnMessage_BinaryChunk_EmptyOrNull() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+
         ByteBuffer emptyBuffer = ByteBuffer.allocate(0);
         endpoint.onMessage(emptyBuffer, session);
         verify(dispatcher, never()).dispatch(any(ByteBuffer.class), eq(session));
-    }
 
-    @Test
-    public void testOnMessage_NullBuffer_NoDispatch() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
-        endpoint.onMessage(null, session);
+        endpoint.onMessage((ByteBuffer) null, session);
         verify(dispatcher, never()).dispatch(any(ByteBuffer.class), eq(session));
     }
 
+    /**
+     * 测试连接关闭
+     */
     @Test
-    public void testOnMessage_ValidBuffer_DispatchesToDispatcher() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
-
-        // Create a valid TLV buffer (Register-Request message)
-        ByteBuffer buffer = ByteBuffer.allocate(10);
-        buffer.put((byte) 0x01); // MessageType.REGISTER_REQUEST
-        buffer.putInt(4);        // Body length
-        buffer.putInt(42);       // Sample data
-        buffer.flip();
-
-        endpoint.onMessage(buffer, session);
-        verify(dispatcher).dispatch(eq(buffer), eq(session));
-    }
-
-    @Test
-    public void testOnClose_RemovesAndNotifiesDisconnect() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
-        CloseReason reason = Mockito.mock(CloseReason.class);
+    public void testOnClose_Success() {
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-001");
+        CloseReason reason = mock(CloseReason.class);
         when(reason.getReasonPhrase()).thenReturn("Normal closure");
+
         endpoint.onClose(session, reason);
-        verify(registry).removeSession("s1");
-        verify(execService).handleExecutorDisconnect("s1");
+
+        verify(registry).removeSession("session-001");
+        verify(execService).handleExecutorDisconnect("session-001");
     }
 
+    /**
+     * 测试发送Text和Binary消息
+     */
     @Test
-    public void testSendBinary_DelegatesToRegistry() throws IOException {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+    public void testSendText_AndSendBinary_Success() throws IOException {
+        Session session = mock(Session.class);
+        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+        when(session.getId()).thenReturn("session-001");
+        when(session.isOpen()).thenReturn(true);
+        when(session.getBasicRemote()).thenReturn(basic);
+        when(registry.getSession("session-001")).thenReturn(session);
 
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putLong(123456789L);
-        buffer.flip();
-
-        // Mock registry.getSession to return the session
-        when(registry.getSession("s1")).thenReturn(session);
-
-        endpoint.sendBinary("s1", buffer);
-        verify(registry).sendBinary("s1", buffer);
-    }
-
-    @Test
-    public void testGetSession_DelegatesToRegistry() {
-        Session session = Mockito.mock(Session.class);
-        when(registry.getSession("s2")).thenReturn(session);
-        assertSame(session, endpoint.getSession("s2"));
-    }
-
-    @Test
-    public void testOnError_LogsError() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
-        Throwable throwable = new RuntimeException("Test error");
-
-        endpoint.onError(session, throwable);
-
-        verify(session).getId();
-    }
-
-    @Test
-    public void testOnMessage_InvalidTlvMessage_LogsError() {
-        Session session = Mockito.mock(Session.class);
-        when(session.getId()).thenReturn("s1");
+        String jsonMessage = "{\"type\":\"RegisterChallenge\"}";
+        endpoint.sendText("session-001", jsonMessage);
+        verify(basic).sendText(jsonMessage);
 
         ByteBuffer buffer = ByteBuffer.allocate(10);
-        buffer.put((byte) 0x01);
-        buffer.putInt(4);
-        buffer.putInt(42);
-        buffer.flip();
-
-        doThrow(new IllegalArgumentException("Invalid TLV message"))
-                .when(dispatcher).dispatch(eq(buffer), eq(session));
-
-        endpoint.onMessage(buffer, session);
-
-        verify(dispatcher).dispatch(eq(buffer), eq(session));
+        endpoint.sendBinary("session-001", buffer);
+        verify(basic).sendBinary(buffer);
     }
 
-    private static void set(Object target, String field, Object value) {
+    private static void setField(Object target, String fieldName, Object value) {
         try {
-            java.lang.reflect.Field f = target.getClass().getDeclaredField(field);
-            f.setAccessible(true);
-            f.set(target, value);
+            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to set field: " + fieldName, e);
         }
     }
 }

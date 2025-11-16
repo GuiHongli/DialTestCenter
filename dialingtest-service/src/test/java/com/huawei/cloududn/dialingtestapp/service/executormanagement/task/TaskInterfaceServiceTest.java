@@ -4,11 +4,9 @@
 
 package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.FieldTag;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvDecoder;
-import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.codec.TlvField;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStartResponseDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.TaskStopResponseDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
 import com.huawei.cloududn.dialingtestapp.dao.taskmanagement.TaskExecutorMappingDao;
 import com.huawei.cloududn.dialingtestapp.service.executormanagement.SessionBindingRegistry;
 import com.huawei.cloududn.dialingtestapp.service.taskmanagement.orchestration.TaskOrchestratorService;
@@ -16,25 +14,20 @@ import com.huawei.cloududn.dialingtestapp.service.taskmanagement.orchestration.T
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.nio.ByteBuffer;
-import java.util.Map;
-
 import javax.websocket.Session;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * TaskInterfaceService单元测试 - V3协议版本
+ * TaskInterfaceService单元测试 - V4协议版本
  * 测试任务下发、停止、结果上报等功能
  *
  * @author g00940940
- * @since 2025-11-11
+ * @since 2025-11-16
  */
 public class TaskInterfaceServiceTest {
 
@@ -77,10 +70,8 @@ public class TaskInterfaceServiceTest {
         String executorName = "executor-001";
         String sessionId = "session-001";
 
-        // First, simulate a task dispatch to create the mapping
         when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(sessionId);
-        
-        // Create and dispatch a task first to populate taskToExecutorMap
+
         com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
             new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
         request.setTaskId(taskId);
@@ -90,253 +81,180 @@ public class TaskInterfaceServiceTest {
         request.setSerialNoList(java.util.Arrays.asList("UE001"));
         taskInterfaceService.dispatchTaskToAgent(request);
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // When
-        taskInterfaceService.handleTaskStopRequest(taskId);
-
-        // Then - Verify sendBinary was called twice (once for dispatch, once for stop)
-        verify(wssMessageSender, atLeast(2)).sendBinary(eq(sessionId), bufferCaptor.capture());
-    }
-
-    /**
-     * 测试handleTaskStopRequest：无执行机映射时跳过
-     */
-    @Test
-    public void testHandleTaskStopRequest_NoExecutorMapping() {
-        // Given
-        Integer taskId = 456;
-
-        // Mock no executor mapping found
         // When
         taskInterfaceService.handleTaskStopRequest(taskId);
 
         // Then
-        verify(wssMessageSender, never()).sendBinary(anyString(), any(ByteBuffer.class));
+        verify(wssMessageSender, atLeast(2)).sendJsonMessage(eq(sessionId), any());
     }
 
     /**
-     * 测试handleTaskStopRequest：无会话连接时跳过
+     * 测试handleTaskStopRequest：任务不存在
      */
     @Test
-    public void testHandleTaskStopRequest_NoSessionFound() {
+    public void testHandleTaskStopRequest_TaskNotFound() {
         // Given
-        Integer taskId = 789;
-        String executorName = "executor-002";
-
-        // Mock executor found but no session
-        when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(null);
+        Integer taskId = 999;
 
         // When
         taskInterfaceService.handleTaskStopRequest(taskId);
 
         // Then
-        verify(wssMessageSender, never()).sendBinary(anyString(), any(ByteBuffer.class));
+        verify(wssMessageSender, never()).sendJsonMessage(anyString(), any());
     }
 
     /**
-     * 测试handleTaskStopResponse：处理任务停止响应DTO
+     * 测试handleTaskStartResponse：任务启动成功
+     */
+    @Test
+    public void testHandleTaskStartResponse_Success() {
+        // Given
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-002");
+
+        TaskStartResponseDto responseDto = new TaskStartResponseDto();
+        responseDto.setTaskId(100);
+        responseDto.setResult("SUCCESS");
+        responseDto.setSubResult(new java.util.ArrayList<>());
+
+        // When
+        taskInterfaceService.handleTaskStartResponse(responseDto, session);
+
+        // Then
+        verify(taskOrchestratorService).sendResultEvent(eq(100L), eq(true), any());
+    }
+
+    /**
+     * 测试handleTaskStartResponse：任务启动失败
+     */
+    @Test
+    public void testHandleTaskStartResponse_Failure() {
+        // Given
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("session-003");
+
+        TaskStartResponseDto responseDto = new TaskStartResponseDto();
+        responseDto.setTaskId(101);
+        responseDto.setResult("FAILED");
+        responseDto.setSubResult(new java.util.ArrayList<>());
+
+        // When
+        taskInterfaceService.handleTaskStartResponse(responseDto, session);
+
+        // Then
+        verify(taskOrchestratorService).sendResultEvent(eq(101L), eq(false), any());
+    }
+
+    /**
+     * 测试handleTaskStopResponse：任务停止成功
      */
     @Test
     public void testHandleTaskStopResponse_Success() {
         // Given
         Session session = mock(Session.class);
-        when(session.getId()).thenReturn("session-stop-001");
+        when(session.getId()).thenReturn("session-004");
 
-        TaskStopResponseDto dto = new TaskStopResponseDto();
-        dto.setTaskId(123);
-        dto.setState(0); // Success
+        TaskStopResponseDto responseDto = new TaskStopResponseDto();
+        responseDto.setTaskId(102);
+        responseDto.setState(0);
 
         // When
-        taskInterfaceService.handleTaskStopResponse(dto, session);
+        taskInterfaceService.handleTaskStopResponse(responseDto, session);
 
         // Then
-        verify(taskOrchestratorService).stopTask(123L);
-        // Note: Task mapping cleanup would be verified if we could access the internal map
+        verify(taskOrchestratorService).stopTask(eq(102L));
     }
 
     /**
-     * 测试handleTaskStopResponse：处理TLV格式的任务停止响应
+     * 测试handleTaskStopResponse：任务停止失败
      */
     @Test
-    public void testHandleTaskStopResponse_TlvFormat_Success() {
+    public void testHandleTaskStopResponse_Failure() {
         // Given
         Session session = mock(Session.class);
-        when(session.getId()).thenReturn("session-tlv-stop-001");
+        when(session.getId()).thenReturn("session-005");
 
-        TlvDecoder.DecodedMessage decoded = mock(TlvDecoder.DecodedMessage.class);
-
-        // Mock TASKID field
-        TlvField taskIdField = mock(TlvField.class);
-        when(taskIdField.getAsInt()).thenReturn(456);
-        when(decoded.getField(FieldTag.TASKID)).thenReturn(taskIdField);
-
-        // Mock RESULT field
-        TlvField resultField = mock(TlvField.class);
-        when(resultField.getAsInt()).thenReturn(0); // Success
-        when(decoded.getField(FieldTag.RESULT)).thenReturn(resultField);
+        TaskStopResponseDto responseDto = new TaskStopResponseDto();
+        responseDto.setTaskId(103);
+        responseDto.setState(1);
 
         // When
-        taskInterfaceService.handleTaskStopResponse(decoded, session);
+        taskInterfaceService.handleTaskStopResponse(responseDto, session);
 
         // Then
-        verify(taskOrchestratorService).stopTask(456L);
+        verify(taskOrchestratorService).stopTask(eq(103L));
     }
 
     /**
-     * 测试handleTaskStopResponse：TLV格式处理失败状态
-     */
-    @Test
-    public void testHandleTaskStopResponse_TlvFormat_Failed() {
-        // Given
-        Session session = mock(Session.class);
-        when(session.getId()).thenReturn("session-tlv-stop-002");
-
-        TlvDecoder.DecodedMessage decoded = mock(TlvDecoder.DecodedMessage.class);
-
-        // Mock TASKID field
-        TlvField taskIdField = mock(TlvField.class);
-        when(taskIdField.getAsInt()).thenReturn(789);
-        when(decoded.getField(FieldTag.TASKID)).thenReturn(taskIdField);
-
-        // Mock RESULT field (failure)
-        TlvField resultField = mock(TlvField.class);
-        when(resultField.getAsInt()).thenReturn(1); // Failed
-        when(decoded.getField(FieldTag.RESULT)).thenReturn(resultField);
-
-        // When
-        taskInterfaceService.handleTaskStopResponse(decoded, session);
-
-        // Then
-        verify(taskOrchestratorService).stopTask(789L);
-    }
-
-    /**
-     * 测试任务分发功能：dispatchTaskToAgent
+     * 测试dispatchTaskToAgent：成功下发任务
      */
     @Test
     public void testDispatchTaskToAgent_Success() {
         // Given
-        String executorName = "executor-dispatch-001";
-        String sessionId = "session-dispatch-001";
+        String executorName = "executor-002";
+        String sessionId = "session-006";
 
         when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(sessionId);
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // Create dispatch request
         com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
             new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
-        request.setTaskId(999);
+        request.setTaskId(104);
         request.setExecutorName(executorName);
         request.setScriptName("test-script");
         request.setVersion("1.0");
-        request.setSerialNoList(java.util.Arrays.asList("UE001"));
+        request.setSerialNoList(java.util.Arrays.asList("UE001", "UE002"));
 
         // When
         taskInterfaceService.dispatchTaskToAgent(request);
 
         // Then
-        verify(sessionBindingRegistry).getSessionId(executorName);
-        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
-        assertNotNull("Should send task start buffer", bufferCaptor.getValue());
+        verify(wssMessageSender).sendJsonMessage(eq(sessionId), any());
     }
 
     /**
-     * 测试环境管理功能：sendAppListQuery
+     * 测试dispatchTaskToAgent：会话不存在
+     */
+    @Test(expected = RuntimeException.class)
+    public void testDispatchTaskToAgent_SessionNotFound() {
+        // Given
+        String executorName = "executor-003";
+
+        when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(null);
+
+        com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
+            new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
+        request.setTaskId(105);
+        request.setExecutorName(executorName);
+        request.setScriptName("test-script");
+        request.setVersion("1.0");
+
+        // When & Then - 期望抛出 RuntimeException（因为执行机未连接）
+        taskInterfaceService.dispatchTaskToAgent(request);
+    }
+
+    /**
+     * 测试dispatchTaskToAgent：空UE列表
      */
     @Test
-    public void testSendAppListQuery_Success() {
+    public void testDispatchTaskToAgent_EmptyUeList() {
         // Given
-        String executorName = "executor-app-001";
-        String sessionId = "session-app-001";
-        String serialNo = "UE123456";
+        String executorName = "executor-004";
+        String sessionId = "session-007";
 
         when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(sessionId);
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+        com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest request = 
+            new com.huawei.cloududn.dialingtestapp.service.executormanagement.dto.TaskDispatchRequest();
+        request.setTaskId(106);
+        request.setExecutorName(executorName);
+        request.setScriptName("test-script");
+        request.setVersion("1.0");
+        request.setSerialNoList(java.util.Collections.emptyList());
 
         // When
-        taskInterfaceService.sendAppListQuery(executorName, serialNo);
+        taskInterfaceService.dispatchTaskToAgent(request);
 
         // Then
-        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
-        assertNotNull("Should send app list query buffer", bufferCaptor.getValue());
-    }
-
-    /**
-     * 测试环境管理功能：sendScreanCapQuery
-     */
-    @Test
-    public void testSendScreanCapQuery_Success() {
-        // Given
-        String executorName = "executor-screen-001";
-        String sessionId = "session-screen-001";
-        String serialNo = "UE789012";
-
-        when(sessionBindingRegistry.getSessionId(executorName)).thenReturn(sessionId);
-
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        // When
-        taskInterfaceService.sendScreanCapQuery(executorName, serialNo);
-
-        // Then
-        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
-        assertNotNull("Should send screen cap query buffer", bufferCaptor.getValue());
-    }
-
-    /**
-     * 测试文件直传功能的基础设施
-     */
-    @Test
-    public void testFileTransfer_Infrastructure() {
-        // Given - This test verifies that the infrastructure is properly set up
-        // without making actual calls
-
-        // When - No action is performed
-
-        // Then - Verify infrastructure is in place
-        verifyNoMoreInteractions(wssMessageSender); // No unexpected calls
-    }
-
-    /**
-     * 测试异常处理：handleTaskStopRequest异常情况
-     */
-    @Test
-    public void testHandleTaskStopRequest_ExceptionHandling() {
-        // Given
-        Integer taskId = 999;
-
-        // Mock an exception during processing
-        doThrow(new RuntimeException("Test exception")).when(sessionBindingRegistry).getSessionId(anyString());
-
-        // When
-        taskInterfaceService.handleTaskStopRequest(taskId);
-
-        // Then - Should not throw exception, should handle gracefully
-        // The method should log the error and continue
-    }
-
-    /**
-     * 测试多UE结果处理：验证sub-result字段处理
-     */
-    @Test
-    public void testMultiUeResultProcessing() {
-        // Given
-        Session session = mock(Session.class);
-        when(session.getId()).thenReturn("session-multi-ue-001");
-
-        // Create DTO with proper field types (result should be String, not int)
-        TaskStartResponseDto dto = new TaskStartResponseDto();
-        dto.setTaskId(111);
-        dto.setResult("SUCCESS"); // Use String "SUCCESS" instead of int 0
-        dto.setSubResult(new java.util.ArrayList<>()); // Use empty list for sub-results
-
-        // When
-        taskInterfaceService.handleTaskStartResponse(dto, session);
-
-        // Then
-        verify(taskOrchestratorService).sendResultEvent(eq(111L), eq(true), any(Map.class));
+        verify(wssMessageSender).sendJsonMessage(eq(sessionId), any());
     }
 }

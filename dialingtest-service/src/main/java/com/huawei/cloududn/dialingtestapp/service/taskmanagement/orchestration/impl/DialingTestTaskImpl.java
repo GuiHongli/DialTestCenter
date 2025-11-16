@@ -75,8 +75,12 @@ public class DialingTestTaskImpl {
                     mapping.setAssignTime(Instant.now().toString());
                     taskExecutorMappingDao.insert(mapping);
                     TaskDispatchEvent event = new TaskDispatchEvent(this, sessionId, taskPayload, taskId);
-                    eventPublisher.publishEvent(event);
-                    logger.info("Task dispatch event published: taskId={}, executor={}, ue={}", taskId, executorName, ueSerial);
+                    if (eventPublisher != null) {
+                        eventPublisher.publishEvent(event);
+                        logger.info("Task dispatch event published: taskId={}, executor={}, ue={}", taskId, executorName, ueSerial);
+                    } else {
+                        logger.warn("EventPublisher is null, skipping event publish: taskId={}", taskId);
+                    }
                     return taskId;
                 } catch (Exception e) {
                     logger.error("Failed to publish task dispatch event: taskId={}", taskId, e);

@@ -4,6 +4,7 @@
 
 package com.huawei.cloududn.dialingtestapp.service.executormanagement.task;
 
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
 import com.huawei.cloududn.dialingtestapp.dao.SoftwarePackageDao;
 import com.huawei.cloududn.dialingtestapp.dao.TestCaseSetDao;
 import com.huawei.cloududn.dialingtestapp.entity.SoftwarePackage;
@@ -158,7 +159,7 @@ public class TaskInterfaceServicePushTest {
         // Then
         verify(softwarePackageDao).findBySoftwareName(appName);
         verify(sessionBindingRegistry).getSessionId(executorName);
-        verify(wssMessageSender).sendBinary(eq(sessionId), any());
+        verify(wssMessageSender).sendFile(eq(sessionId), any(), any());
     }
 
     /**
@@ -290,7 +291,7 @@ public class TaskInterfaceServicePushTest {
         // Then
         verify(softwarePackageDao).findBySoftwareName(appName);
         verify(sessionBindingRegistry).getSessionId(executorName);
-        verify(wssMessageSender).sendBinary(eq(sessionId), any());
+        verify(wssMessageSender).sendFile(eq(sessionId), any(), any());
     }
 }
 

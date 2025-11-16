@@ -2,9 +2,9 @@ package com.huawei.cloududn.dialingtestapp.service.executormanagement;
 
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.ReportMsgDto;
 import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.dto.UeItemDto;
+import com.huawei.cloududn.dialingtestapp.controller.executormanagement.websocket.flow.WssMessageSender;
 import com.huawei.cloududn.dialingtestapp.dao.executormanagement.ExecutorDao;
 import com.huawei.cloududn.dialingtestapp.dao.executormanagement.UeDao;
-import com.huawei.cloududn.dialingtestapp.service.executormanagement.task.WssMessageSender;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -88,16 +87,13 @@ public class ExecutorMgmtServiceTest {
 
         reportMsg.setUeList(Arrays.asList(ueItem));
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         service.handleReportMsg(reportMsg, session);
 
         // Then
         verify(executorDao).updateStatus(eq("Executor-01"), eq(1), any(Instant.class));
         verify(ueDao).upsert(any()); // UE should be upserted
-        verify(wssMessageSender).sendBinary(eq("session-001"), bufferCaptor.capture());
-        assertNotNull("Should send Report-Ack", bufferCaptor.getValue());
+        verify(wssMessageSender).sendJsonMessage(eq("session-001"), any());
     }
 
     /**
@@ -115,16 +111,13 @@ public class ExecutorMgmtServiceTest {
         reportMsg.setState("Normal");
         reportMsg.setUeList(Arrays.asList());
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         service.handleReportMsg(reportMsg, session);
 
         // Then
         verify(executorDao, never()).updateStatus(anyString(), anyInt(), any(Instant.class));
         verify(ueDao, never()).upsert(any());
-        verify(wssMessageSender).sendBinary(eq("session-002"), bufferCaptor.capture());
-        assertNotNull("Should send error Report-Ack", bufferCaptor.getValue());
+        verify(wssMessageSender).sendJsonMessage(eq("session-002"), any());
     }
 
     /**
@@ -142,15 +135,13 @@ public class ExecutorMgmtServiceTest {
         reportMsg.setState("Normal");
         reportMsg.setUeList(Arrays.asList()); // Empty list
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         service.handleReportMsg(reportMsg, session);
 
         // Then
         verify(executorDao).updateStatus(eq("Executor-02"), eq(1), any(Instant.class));
         verify(ueDao, never()).upsert(any()); // No UE to upsert
-        verify(wssMessageSender).sendBinary(eq("session-003"), bufferCaptor.capture());
+        verify(wssMessageSender).sendJsonMessage(eq("session-003"), any());
     }
 
     /**
@@ -168,15 +159,13 @@ public class ExecutorMgmtServiceTest {
         reportMsg.setState("Normal");
         reportMsg.setUeList(null); // Null list
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         service.handleReportMsg(reportMsg, session);
 
         // Then
         verify(executorDao).updateStatus(eq("Executor-03"), eq(1), any(Instant.class));
         verify(ueDao, never()).upsert(any()); // No UE to upsert
-        verify(wssMessageSender).sendBinary(eq("session-004"), bufferCaptor.capture());
+        verify(wssMessageSender).sendJsonMessage(eq("session-004"), any());
     }
 
     /**
@@ -206,15 +195,13 @@ public class ExecutorMgmtServiceTest {
 
         reportMsg.setUeList(Arrays.asList(ue1, ue2));
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         service.handleReportMsg(reportMsg, session);
 
         // Then
         verify(executorDao).updateStatus(eq("Executor-04"), eq(1), any(Instant.class));
         verify(ueDao, Mockito.times(2)).upsert(any()); // Two UEs should be upserted
-        verify(wssMessageSender).sendBinary(eq("session-005"), bufferCaptor.capture());
+        verify(wssMessageSender).sendJsonMessage(eq("session-005"), any());
     }
 
     /**
@@ -259,11 +246,9 @@ public class ExecutorMgmtServiceTest {
         long token = 98765L;
         int state = 0; // OK
 
-        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
         // When
         // Note: sendReportAck is private, so we test it through public methods
-        // This test verifies the integration by checking that handleReportMsg calls sendBinary
+        // This test verifies the integration by checking that handleReportMsg calls sendJsonMessage
         Session session = Mockito.mock(Session.class);
         when(session.getId()).thenReturn(sessionId);
         when(registry.getExecutorName(sessionId)).thenReturn("Executor-Ack");
@@ -276,8 +261,7 @@ public class ExecutorMgmtServiceTest {
         service.handleReportMsg(reportMsg, session);
 
         // Then
-        verify(wssMessageSender).sendBinary(eq(sessionId), bufferCaptor.capture());
-        assertNotNull("Should send Report-Ack buffer", bufferCaptor.getValue());
+        verify(wssMessageSender).sendJsonMessage(eq(sessionId), any());
     }
 
     /**

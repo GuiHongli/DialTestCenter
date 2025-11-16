@@ -46,8 +46,12 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(), request.getMethod(), e.getMessage(), e);
         
         StringBuilder errorMessage = new StringBuilder("参数验证失败: ");
-        e.getBindingResult().getFieldErrors().forEach(error -> 
-                errorMessage.append(error.getField()).append(" ").append(error.getDefaultMessage()).append("; "));
+        if (e.getBindingResult() != null && e.getBindingResult().getFieldErrors() != null) {
+            e.getBindingResult().getFieldErrors().forEach(error -> 
+                    errorMessage.append(error.getField()).append(" ").append(error.getDefaultMessage()).append("; "));
+        } else {
+            errorMessage.append("验证失败");
+        }
         
         Map<String, Object> response = createErrorResponse("VALIDATION_ERROR", errorMessage.toString(), 400);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
