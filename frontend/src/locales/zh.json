@@ -77,6 +77,8 @@
     "testCaseSetManagement": "用例集管理",
     "softwarePackageManagement": "软件包管理",
     "preprocessRuleManagement": "预处理规则管理",
+    "sampleImport": "样本导入",
+    "networkElementModel": "网元模型",
     "operationManagement": "运维管理",
     "operationLogManagement": "操作记录",
     "alarmManagement": "告警管理"
@@ -751,6 +753,43 @@
         "ruleName": "规则名称",
         "all": "全部"
       }
+    }
+  },
+  "sampleImport": {
+    "title": "样本导入",
+    "uploadSample": "导入样本",
+    "downloadSuccess": "下载成功",
+    "downloadFailed": "下载失败",
+    "deleteSuccess": "删除成功",
+    "deleteFailed": "删除失败",
+    "loadFailed": "获取样本列表失败",
+    "uploadSuccess": "上传成功",
+    "confirmDelete": "确认删除",
+    "deleteDescription": "确定要删除样本\"{{name}}_{{version}}\"吗？",
+    "table": {
+      "name": "样本名称",
+      "description": "描述",
+      "fileSize": "文件大小",
+      "createdTime": "创建时间",
+      "actions": "操作",
+      "download": "下载",
+      "delete": "删除",
+      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+    },
+    "upload": {
+      "title": "导入样本",
+      "selectFile": "选择文件",
+      "dragTip": "点击或拖拽文件到此区域上传",
+      "supportFormat": "支持ZIP格式文件"
+    }
+  },
+  "networkElementModel": {
+    "title": "网元模型",
+    "table": {
+      "name": "网元名称",
+      "formalModel": "正式模型",
+      "testModel": "测试模型",
+      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
     }
   }
 }

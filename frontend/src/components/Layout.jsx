@@ -13,6 +13,8 @@ import {
     HomeOutlined,
     CaretDownFilled,
     BellOutlined,
+    InboxOutlined,
+    DatabaseOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
 import React, { useState, useEffect } from 'react'
@@ -106,11 +108,6 @@ const Layout = ({ children }) => {
       label: translateNavigation('configManagement'),
       children: [
         {
-          key: '/test-case-sets',
-          icon: <FileZipOutlined />,
-          label: translateNavigation('testCaseSetManagement'),
-        },
-        {
           key: '/software-packages',
           icon: <AppstoreOutlined />,
           label: translateNavigation('softwarePackageManagement'),
@@ -119,6 +116,21 @@ const Layout = ({ children }) => {
           key: '/preprocess-rules',
           icon: <FileTextOutlined />,
           label: translateNavigation('preprocessRuleManagement'),
+        },
+        {
+          key: '/test-case-sets',
+          icon: <FileZipOutlined />,
+          label: translateNavigation('testCaseSetManagement'),
+        },
+        {
+          key: '/sample-import',
+          icon: <InboxOutlined />,
+          label: translateNavigation('sampleImport'),
+        },
+        {
+          key: '/network-element-model',
+          icon: <DatabaseOutlined />,
+          label: translateNavigation('networkElementModel'),
         },
       ],
     },

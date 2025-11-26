@@ -77,6 +77,8 @@
     "testCaseSetManagement": "Test Case Set Management",
     "softwarePackageManagement": "Software Package Management",
     "preprocessRuleManagement": "Preprocess Rule Management",
+    "sampleImport": "Sample Import",
+    "networkElementModel": "Network Element Model",
     "operationManagement": "Operation Management",
     "operationLogManagement": "Operation Log",
     "alarmManagement": "Alarm Management"
@@ -699,6 +701,43 @@
         "ruleName": "Rule Name",
         "all": "All"
       }
+    }
+  },
+  "sampleImport": {
+    "title": "Sample Import",
+    "uploadSample": "Import Sample",
+    "downloadSuccess": "Download successful",
+    "downloadFailed": "Download failed",
+    "deleteSuccess": "Delete successful",
+    "deleteFailed": "Delete failed",
+    "loadFailed": "Failed to load sample list",
+    "uploadSuccess": "Upload successful",
+    "confirmDelete": "Confirm Delete",
+    "deleteDescription": "Are you sure you want to delete sample \"{{name}}_{{version}}\"?",
+    "table": {
+      "name": "Sample Name",
+      "description": "Description",
+      "fileSize": "File Size",
+      "createdTime": "Created Time",
+      "actions": "Actions",
+      "download": "Download",
+      "delete": "Delete",
+      "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "upload": {
+      "title": "Import Sample",
+      "selectFile": "Select File",
+      "dragTip": "Click or drag file to this area to upload",
+      "supportFormat": "Support ZIP format files"
+    }
+  },
+  "networkElementModel": {
+    "title": "Network Element Model",
+    "table": {
+      "name": "Network Element Name",
+      "formalModel": "Formal Model",
+      "testModel": "Test Model",
+      "pagination": "{{start}}-{{end}} of {{total}} items"
     }
   }
 }

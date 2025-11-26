@@ -67,6 +67,16 @@ export const useTranslation = () => {
     return t(`footer.${key}`, options)
   }
 
+  // 样本导入相关翻译
+  const translateSampleImport = (key, options) => {
+    return t(`sampleImport.${key}`, options)
+  }
+
+  // 网元模型相关翻译
+  const translateNetworkElementModel = (key, options) => {
+    return t(`networkElementModel.${key}`, options)
+  }
+
   return {
     t,
     translate,
@@ -81,6 +91,8 @@ export const useTranslation = () => {
     translateAlarm,
     translateLanguage,
     translateFooter,
+    translateSampleImport,
+    translateNetworkElementModel,
     language,
     isReady
   }
