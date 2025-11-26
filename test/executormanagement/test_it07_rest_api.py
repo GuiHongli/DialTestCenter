@@ -1,7 +1,8 @@
 import unittest
 
 from .base import BaseTestCase
-from .config import API_ENDPOINTS, AGENT_NAME
+from .config import API_ENDPOINTS, AGENT_NAME, AGENT_NTLM_HASH, WS_ENABLE
+from .json_message import JsonMessageHelper
 
 
 class TestRestAPIIT07(BaseTestCase):
@@ -23,7 +24,8 @@ class TestRestAPIIT07(BaseTestCase):
     def test_it_07_002_list_executors_with_data(self):
         """IT-07-002: 查询执行机列表（有数据）"""
         # 确保有一个执行机在线
-        token = self._ws_register_and_get_token_tlv()
+        if WS_ENABLE and AGENT_NTLM_HASH:
+            _ = self._ws_register_and_get_token()
 
         try:
             response = self.api.get(API_ENDPOINTS['LIST_EXECUTORS'])
@@ -103,17 +105,24 @@ class TestRestAPIIT07(BaseTestCase):
     def test_it_07_006_executor_detail_fields(self):
         """IT-07-006: 执行机详细信息字段验证"""
         # 注册执行机并发送心跳以设置详细信息
-        ws, token = self._ws_register_and_keep_connection_tlv()
+        ws, token = self._ws_register_and_keep_connection()
         try:
             # 发送心跳包含UE信息
-            from .tlv_codec import encode_heartbeat
+            helper = JsonMessageHelper()
             ue_list = [
-                {'msisdn': '8613800010001', 'serial': 'SN_DETAIL_001', 'vendor': 'Huawei', 'model': 'P60'}
+                {
+                    'msisdn': '8613800010001',
+                    'serial': 'SN_DETAIL_001',
+                    'vendor': 'Huawei',
+                    'model': 'P60'
+                }
             ]
-            heartbeat_msg = encode_heartbeat(token, 1, ue_list)
-            self._ws_send_recv_tlv(ws, heartbeat_msg)
+            hb_env = helper.build(
+                "ReportMsg",
+                {"token": token, "state": "Normal", "ue-list": ue_list},
+            )
+            ws.send_json(hb_env)
 
-            # 等待数据处理
             import time
             time.sleep(1)
 

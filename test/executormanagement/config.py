@@ -1,5 +1,13 @@
 import os
+import sys
 from datetime import datetime
+from pathlib import Path
+
+# 确保 test 目录在 Python 路径中
+test_dir = Path(__file__).parent.parent
+if str(test_dir) not in sys.path:
+    sys.path.insert(0, str(test_dir))
+
 from common.config import (
     get_log_dir,
     build_logging_config,

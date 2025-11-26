@@ -7,7 +7,7 @@
 
     <groupId>com.huawei.cloududn</groupId>
     <artifactId>dialingtest-interface</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>DialingTest Interface</name>
