@@ -231,6 +231,9 @@ public class SoftwarePackagesService {
     public List<SoftwarePackage> uploadZipPackage(MultipartFile file, boolean overwrite, String description, String operatorUsername) throws IOException {
         logger.info("Starting ZIP package upload: {}, overwrite: {}", file.getOriginalFilename(), overwrite);
         
+        // 验证ZIP包总大小
+        validateZipPackageSize(file.getSize());
+        
         List<SoftwarePackage> uploadedPackages = new ArrayList<>();
         
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
@@ -436,17 +439,28 @@ public class SoftwarePackagesService {
     }
     
     /**
-     * 验证文件大小
+     * 验证文件大小（单个软件包）
      */
     private void validateFileSize(long fileSize) {
-        final long MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+        final long MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
         
         if (fileSize <= 0) {
             throw new IllegalArgumentException("文件大小不能为0");
         }
         
         if (fileSize > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("文件大小超过限制（100MB）");
+            throw new IllegalArgumentException("文件大小超过限制（500MB）");
+        }
+    }
+    
+    /**
+     * 验证ZIP包总大小
+     */
+    private void validateZipPackageSize(long zipSize) {
+        final long MAX_ZIP_SIZE = 1024 * 1024 * 1024; // 1GB
+        
+        if (zipSize > MAX_ZIP_SIZE) {
+            throw new IllegalArgumentException("ZIP包大小超过限制（1GB）");
         }
     }
     

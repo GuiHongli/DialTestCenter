@@ -72,7 +72,7 @@
   "navigation": {
     "userManagement": "User Management",
     "userList": "Execution Machine Account Management",
-    "roleManagement": "Role Management",
+    "roleManagement": "User Role Management",
     "configManagement": "Dial Management",
     "testCaseSetManagement": "Test Case Set Management",
     "softwarePackageManagement": "Software Package Management",
@@ -160,8 +160,8 @@
       "description": "Description",
       "descriptionPlaceholder": "Please enter software package description (optional)",
       "uploadText": "Click or drag file to this area to upload",
-      "uploadHintSingle": "Support .apk and .ipa file upload, maximum 100MB per file",
-      "uploadHintZip": "Support .zip file upload, ZIP package should contain .apk or .ipa files, maximum 100MB per ZIP file"
+      "uploadHintSingle": "Support .apk and .ipa file upload, maximum 500MB per file",
+      "uploadHintZip": "Support .zip file upload, ZIP package should contain .apk or .ipa files, maximum 1GB per ZIP file"
     },
     "messages": {
       "loadFailed": "Failed to load software package list",
@@ -278,7 +278,11 @@
       "edit": "Edit",
       "delete": "Delete",
       "viewTestCases": "View Test Cases",
-      "pagination": "{{start}}-{{end}} of {{total}} items"
+      "pagination": "{{start}}-{{end}} of {{total}} items",
+      "statusAvailable": "Available",
+      "statusUnavailable": "Unavailable",
+      "statusAvailableTooltip": "Test Case Set Status: Available (Match Rate: {{matchRate}}%)",
+      "statusUnavailableTooltip": "Test Case Set Status: Unavailable (Match Rate: {{matchRate}}%)"
     },
     "details": {
       "title": "Test Case Details",
@@ -624,7 +628,7 @@
   },
   "preprocessRule": {
     "management": {
-      "title": "Preprocess Rule Management",
+      "title": "Preprocess Rule",
       "packagesTab": "ZIP Package Management",
       "rulesTab": "Preprocess Rule List"
     },

@@ -16,9 +16,6 @@ import {
   Popconfirm,
   Tag,
   Tooltip,
-  Card,
-  Row,
-  Col,
   Typography
 } from 'antd';
 import {
@@ -27,13 +24,14 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   FileTextOutlined,
-  InboxOutlined
+  InboxOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { preprocessRuleService } from '../services/preprocessRuleService.js';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useTranslation } from '../hooks/useTranslation.js';
 import { usePermission, PagePermission } from '../hooks/usePermission.js';
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Dragger } = Upload;
 const { TextArea } = Input;
 
@@ -51,7 +49,6 @@ const PreprocessRulePackageManagement = () => {
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [searchKeyword, setSearchKeyword] = useState('');
   
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploadForm] = Form.useForm();
@@ -60,15 +57,14 @@ const PreprocessRulePackageManagement = () => {
 
   useEffect(() => {
     loadPackages();
-  }, [currentPage, pageSize, searchKeyword]);
+  }, [currentPage, pageSize]);
 
   const loadPackages = async () => {
     try {
       setLoading(true);
       const response = await preprocessRuleService.getPreprocessRulePackages({
         page: currentPage,
-        pageSize,
-        keyword: searchKeyword
+        pageSize
       });
       
       // handlePagedApiResponse 已经返回了 result.data，所以直接使用
@@ -438,23 +434,17 @@ const PreprocessRulePackageManagement = () => {
         alignItems: 'center', 
         marginBottom: '24px' 
       }}>
-        <div style={{ textAlign: 'left' }}>
-          <Title level={2} style={{ margin: 0, textAlign: 'left' }}>
+        <div>
+          <Title level={2} style={{ margin: 0 }}>
             <FileTextOutlined style={{ marginRight: '8px' }} />
-            {t('preprocessRule.management.packagesTab')}
+            {t('preprocessRule.management.title')}
           </Title>
-          <Text type="secondary" style={{ fontSize: '14px', textAlign: 'left' }}>
-            {language === 'en' 
-              ? 'Manage preprocess rule ZIP package files, support upload, download and delete operations'
-              : '管理预处理规则ZIP包文件，支持上传、下载和删除操作'
-            }
-          </Text>
         </div>
         <Space>
           <PagePermission pageId="preprocess-rule-management" operation="create">
             <Button
               type="primary"
-              icon={<UploadOutlined />}
+              icon={<PlusOutlined />}
               onClick={() => setUploadModalVisible(true)}
             >
               {t('preprocessRule.package.upload')}
@@ -468,63 +458,6 @@ const PreprocessRulePackageManagement = () => {
           </Button>
         </Space>
       </div>
-
-      {/* 搜索筛选器 */}
-      <Card style={{ marginBottom: '16px' }}>
-        <Row gutter={[16, 16]} style={{ textAlign: 'left' }}>
-          <Col xs={24} sm={8} md={6}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              height: '100%',
-              paddingRight: '12px'
-            }}>
-              <span style={{ 
-                fontSize: '14px', 
-                color: '#262626',
-                fontWeight: 500,
-                whiteSpace: 'nowrap'
-              }}>
-                {t('preprocessRule.package.name')}:
-              </span>
-            </div>
-          </Col>
-          <Col xs={24} sm={16} md={14}>
-            <Input
-              placeholder={t('preprocessRule.package.searchPlaceholder')}
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              allowClear
-              onPressEnter={() => {
-                setCurrentPage(1);
-                loadPackages();
-              }}
-              size="middle"
-              style={{ 
-                borderRadius: '8px',
-                border: '1px solid #d9d9d9'
-              }}
-            />
-          </Col>
-          <Col xs={24} sm={8} md={4}>
-              <Button
-                type="primary"
-                onClick={() => {
-                  setCurrentPage(1);
-                  loadPackages();
-                }}
-                size="middle"
-                style={{ 
-                  borderRadius: '8px',
-                  minWidth: '100px',
-                  boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
-                }}
-              >
-                {translateCommon('search')}
-              </Button>
-          </Col>
-        </Row>
-      </Card>
 
       {/* 表格 */}
       <Table

@@ -63,7 +63,7 @@ public class AlarmControllerTest {
         testCreateRequest = new CreateAlarmRequest();
         testCreateRequest.setAlarmSummary("Test Alarm");
         testCreateRequest.setAlarmDescription("Test Description");
-        testCreateRequest.setAlarmLevel("Urgent");
+        testCreateRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Urgent"));
 
         testPageResponse = new AlarmPageResponse();
         testPageResponse.setSuccess(true);

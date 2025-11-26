@@ -72,7 +72,7 @@
   "navigation": {
     "userManagement": "用户管理",
     "userList": "执行机账号管理",
-    "roleManagement": "角色管理",
+    "roleManagement": "用户角色管理",
     "configManagement": "拨测管理",
     "testCaseSetManagement": "用例集管理",
     "softwarePackageManagement": "软件包管理",
@@ -160,8 +160,8 @@
       "description": "描述",
       "descriptionPlaceholder": "请输入软件包描述（可选）",
       "uploadText": "点击或拖拽文件到此区域上传",
-      "uploadHintSingle": "支持.apk和.ipa文件上传，单个文件最大100MB",
-      "uploadHintZip": "支持.zip文件上传，ZIP包中应包含.apk或.ipa文件，单个ZIP文件最大100MB"
+      "uploadHintSingle": "支持.apk和.ipa文件上传，单个文件最大500MB",
+      "uploadHintZip": "支持.zip文件上传，ZIP包中应包含.apk或.ipa文件，单个ZIP文件最大1GB"
     },
     "messages": {
       "loadFailed": "加载软件包列表失败",
@@ -278,7 +278,11 @@
       "edit": "编辑",
       "delete": "删除",
       "viewTestCases": "查看测试用例",
-      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+      "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条",
+      "statusAvailable": "可用",
+      "statusUnavailable": "不可用",
+      "statusAvailableTooltip": "用例集状态：可用（匹配率：{{matchRate}}%）",
+      "statusUnavailableTooltip": "用例集状态：不可用（匹配率：{{matchRate}}%）"
     },
     "details": {
       "title": "测试用例详情",
@@ -643,7 +647,7 @@
   },
   "preprocessRule": {
     "management": {
-      "title": "预处理规则管理",
+      "title": "预处理规则",
       "packagesTab": "ZIP包管理",
       "rulesTab": "预处理规则列表"
     },

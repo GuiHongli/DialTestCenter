@@ -58,7 +58,7 @@ public class AlarmServiceTest {
         testRequest = new CreateAlarmRequest();
         testRequest.setAlarmSummary("Test Alarm");
         testRequest.setAlarmDescription("Test Description");
-        testRequest.setAlarmLevel("Urgent");
+        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Urgent"));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class AlarmServiceTest {
     @Test
     public void testCreateAlarm_Success_Important() {
         // Arrange
-        testRequest.setAlarmLevel("Important");
+        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Important"));
         when(alarmDao.save(any(Alarm.class))).thenAnswer(invocation -> {
             Alarm alarm = invocation.getArgument(0);
             alarm.setId(1);
@@ -106,7 +106,7 @@ public class AlarmServiceTest {
     @Test
     public void testCreateAlarm_Success_Minor() {
         // Arrange
-        testRequest.setAlarmLevel("Minor");
+        testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Minor"));
         when(alarmDao.save(any(Alarm.class))).thenAnswer(invocation -> {
             Alarm alarm = invocation.getArgument(0);
             alarm.setId(1);
@@ -145,7 +145,8 @@ public class AlarmServiceTest {
     public void testCreateAlarm_EmptyLevel() {
         // Arrange
         // 设置空字符串，会在Service层的验证中抛出异常
-        testRequest.setAlarmLevel("");
+        // 注意：fromValue 可能不接受空字符串，这里先设置为 null，验证会在 Service 层进行
+        testRequest.setAlarmLevel(null);
 
         // Act
         alarmService.createAlarm(testRequest);
@@ -168,11 +169,17 @@ public class AlarmServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCreateAlarm_InvalidLevel() {
         // Arrange
-        // 设置无效的告警级别，会在Service层的验证中抛出异常
-        testRequest.setAlarmLevel("Invalid");
-
-        // Act
-        alarmService.createAlarm(testRequest);
+        // 设置无效的告警级别
+        // 如果 fromValue 不接受无效值会抛出异常，测试会在这里失败（这是预期的）
+        // 如果 fromValue 接受无效值，Service 层的验证会抛出异常
+        try {
+            testRequest.setAlarmLevel(CreateAlarmRequest.AlarmLevelEnum.fromValue("Invalid"));
+            // 如果 fromValue 不抛出异常，继续执行 Service 层验证
+            alarmService.createAlarm(testRequest);
+        } catch (IllegalArgumentException e) {
+            // 无论是 fromValue 还是 Service 层抛出的异常，都符合预期
+            throw e;
+        }
     }
 
     @Test(expected = IllegalStateException.class)
@@ -271,7 +278,7 @@ public class AlarmServiceTest {
     @Test
     public void testGetAlarms_EmptyResult() {
         // Arrange
-        when(alarmDao.findAlarmsWithPagination(0, 20, true)).thenReturn(Arrays.asList());
+        when(alarmDao.findAlarmsWithPagination(0, 20, true)).thenReturn(Collections.emptyList());
         when(alarmDao.countAlarms(true)).thenReturn(0L);
 
         // Act

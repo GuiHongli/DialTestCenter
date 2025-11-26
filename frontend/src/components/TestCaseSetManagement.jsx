@@ -205,13 +205,22 @@ const TestCaseSetManagement = () => {
           </span>
           <Tag color="blue">{record.version}</Tag>
           {record.matchRate !== undefined && record.matchRate !== null && (
-            <Tooltip title={translateTestCaseSet('details.matchRate')}>
+            <Tooltip 
+              title={
+                record.matchRate === 100 
+                  ? translateTestCaseSet('table.statusAvailableTooltip', { matchRate: Number(record.matchRate).toFixed(2) })
+                  : translateTestCaseSet('table.statusUnavailableTooltip', { matchRate: Number(record.matchRate).toFixed(2) })
+              }
+            >
               <Tag 
-                color={record.matchRate === 100 ? 'success' : 'warning'}
+                color={record.matchRate === 100 ? 'success' : 'error'}
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleViewDetails(record)}
               >
-                {translateTestCaseSet('details.matchRate')}: {Number(record.matchRate).toFixed(2)}%
+                {record.matchRate === 100 
+                  ? translateTestCaseSet('table.statusAvailable')
+                  : translateTestCaseSet('table.statusUnavailable')
+                }
               </Tag>
             </Tooltip>
           )}

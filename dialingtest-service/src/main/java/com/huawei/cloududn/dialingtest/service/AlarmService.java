@@ -98,8 +98,8 @@ public class AlarmService {
         Alarm alarm = new Alarm();
         alarm.setAlarmSummary(request.getAlarmSummary());
         alarm.setAlarmDescription(request.getAlarmDescription());
-        // alarmLevel现在直接使用String类型
-        alarm.setAlarmLevel(request.getAlarmLevel());
+        // 将枚举类型转换为字符串
+        alarm.setAlarmLevel(request.getAlarmLevel() != null ? request.getAlarmLevel().toString() : null);
         
         // start_time由数据库默认值自动设置
         // end_time默认为null，表示告警未结束
@@ -211,13 +211,13 @@ public class AlarmService {
     /**
      * 验证告警级别
      *
-     * @param alarmLevel 告警级别
+     * @param alarmLevel 告警级别（枚举类型）
      */
-    private void validateAlarmLevel(String alarmLevel) {
-        if (alarmLevel == null || alarmLevel.trim().isEmpty()) {
+    private void validateAlarmLevel(CreateAlarmRequest.AlarmLevelEnum alarmLevel) {
+        if (alarmLevel == null) {
             throw new IllegalArgumentException("Alarm level cannot be empty");
         }
-        String level = alarmLevel.trim();
+        String level = alarmLevel.toString();
         if (!isValidAlarmLevel(level)) {
             throw new IllegalArgumentException("Alarm level must be one of: Urgent, Important, Minor");
         }

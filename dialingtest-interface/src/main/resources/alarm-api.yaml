@@ -110,10 +110,6 @@ definitions:
       alarmLevel:
         type: string
         description: 告警等级（Urgent/Important/Minor）
-        enum:
-          - Urgent
-          - Important
-          - Minor
       startTime:
         type: string
         description: 告警发生时间

@@ -671,6 +671,17 @@ const SoftwarePackageManagement = () => {
               accept={uploadType === 'single' ? '.apk,.ipa' : '.zip'}
               fileList={fileList}
               beforeUpload={(file) => {
+                // 文件大小验证
+                const maxSingleSize = 500 * 1024 * 1024; // 500MB
+                const maxZipSize = 1024 * 1024 * 1024; // 1GB
+                const maxSize = uploadType === 'single' ? maxSingleSize : maxZipSize;
+                const maxSizeText = uploadType === 'single' ? '500MB' : '1GB';
+                
+                if (file.size > maxSize) {
+                  message.error(`文件大小不能超过${maxSizeText}`);
+                  return false;
+                }
+                
                 const newFileList = [file];
                 setFileList(newFileList);
                 return false; // 阻止自动上传
