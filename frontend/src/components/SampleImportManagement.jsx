@@ -4,6 +4,7 @@ import {
   FileZipOutlined,
   PlusOutlined,
   ReloadOutlined,
+  UploadOutlined,
 } from '@ant-design/icons'
 import {
   Button,
@@ -242,13 +243,21 @@ const SampleImportManagement = () => {
           </Title>
         </div>
         <Space>
+          <Button
+            type="primary"
+            icon={<UploadOutlined />}
+            onClick={() => {
+              message.info(translateSampleImport('featureDeveloping'))
+            }}
+          >
+            {translateSampleImport('uploadSample')}
+          </Button>
           <PagePermission pageId="sample-import" operation="upload">
             <Button
-              type="primary"
               icon={<PlusOutlined />}
               onClick={() => setUploadVisible(true)}
             >
-              {translateSampleImport('uploadSample')}
+              {translateSampleImport('importSample')}
             </Button>
           </PagePermission>
           <Button
