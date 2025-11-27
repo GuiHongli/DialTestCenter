@@ -6,7 +6,7 @@ import {
   Button, 
   Input, 
   Space, 
-  Drawer, 
+  Modal, 
   Descriptions, 
   Tag, 
   Statistic, 
@@ -78,7 +78,7 @@ const ExecutorStatus = () => {
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedExecutor, setSelectedExecutor] = useState(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 加载数据
   const loadData = () => {
@@ -97,11 +97,11 @@ const ExecutorStatus = () => {
   // 处理查看详情
   const handleViewDetail = (record) => {
     setSelectedExecutor(record);
-    setDrawerVisible(true);
+    setIsModalOpen(true);
   };
 
-  const handleCloseDrawer = () => {
-    setDrawerVisible(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
     setSelectedExecutor(null);
   };
 
@@ -262,12 +262,12 @@ const ExecutorStatus = () => {
         />
       </Card>
 
-      <Drawer
+      <Modal
         title={t('executorStatus.detail.title')}
-        placement="right"
-        width={800}
-        onClose={handleCloseDrawer}
-        open={drawerVisible}
+        width={1200}
+        onCancel={handleCloseModal}
+        open={isModalOpen}
+        footer={null}
       >
         {selectedExecutor && (
           <>
@@ -302,7 +302,7 @@ const ExecutorStatus = () => {
             </div>
           </>
         )}
-      </Drawer>
+      </Modal>
     </div>
   );
 };

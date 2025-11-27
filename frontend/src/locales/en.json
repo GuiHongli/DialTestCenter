@@ -104,24 +104,18 @@
       "brandModel": "Brand/Model",
       "os": "OS Version",
       "battery": "Battery",
+      "actions": "Actions",
+      "viewDetails": "View Details",
       "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
-    }
-  },
-  "ueStatus": {
-    "title": "UE Status Monitor",
-    "description": "Real-time monitoring of all UE devices",
-    "refresh": "Refresh Status",
-    "searchPlaceholder": "Search MSISDN or Executor",
-    "table": {
-      "msisdn": "MSISDN",
-      "executor": "Belonging Executor",
-      "status": "Connection Status",
-      "runningStatus": "Running Status",
-      "taskId": "Task ID",
-      "brandModel": "Brand/Model",
-      "os": "OS Version",
-      "battery": "Battery",
-      "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+    },
+    "detail": {
+      "title": "UE Device Details",
+      "basicInfo": "Basic Information",
+      "installedApps": "Installed Applications",
+      "appName": "App Name",
+      "packageName": "Package Name",
+      "version": "Version",
+      "installTime": "Install Time"
     }
   },
   "executorStatus": {
