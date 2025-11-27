@@ -718,6 +718,7 @@
     "deleteDescription": "Are you sure you want to delete sample \"{{name}}_{{version}}\"?",
     "table": {
       "name": "Sample Name",
+      "business": "Business Type",
       "description": "Description",
       "fileSize": "File Size",
       "createdTime": "Created Time",

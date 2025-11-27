@@ -770,6 +770,7 @@
     "deleteDescription": "确定要删除样本\"{{name}}_{{version}}\"吗？",
     "table": {
       "name": "样本名称",
+      "business": "业务类型",
       "description": "描述",
       "fileSize": "文件大小",
       "createdTime": "创建时间",

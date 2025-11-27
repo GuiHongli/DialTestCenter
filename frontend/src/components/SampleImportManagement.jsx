@@ -53,6 +53,7 @@ const SampleImportManagement = () => {
           version: 'v1.0',
           fileSize: 1024000,
           description: '测试样本包1',
+          business: 'VPN阻断',
           createdTime: '2024-01-01 10:00:00',
         },
         {
@@ -61,6 +62,7 @@ const SampleImportManagement = () => {
           version: 'v1.1',
           fileSize: 2048000,
           description: '测试样本包2',
+          business: 'VPN阻断',
           createdTime: '2024-01-02 11:00:00',
         },
         {
@@ -69,6 +71,7 @@ const SampleImportManagement = () => {
           version: 'v2.0',
           fileSize: 3072000,
           description: '测试样本包3',
+          business: 'VPN阻断',
           createdTime: '2024-01-03 12:00:00',
         },
       ]
@@ -171,6 +174,12 @@ const SampleImportManagement = () => {
           <span style={{ color: '#999' }}>{record.version}</span>
         </Space>
       ),
+    },
+    {
+      title: translateSampleImport('table.business'),
+      dataIndex: 'business',
+      key: 'business',
+      width: 120,
     },
     {
       title: translateSampleImport('table.description'),
