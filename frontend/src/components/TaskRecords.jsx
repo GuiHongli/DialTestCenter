@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Table, Button, Modal, Form, Input, Select, Space, Tag, message, Descriptions, Tabs, Badge, Divider, Switch, DatePicker, InputNumber, Row, Col } from 'antd';
-import { PlusOutlined, ReloadOutlined, StopOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined, CloseCircleOutlined, ClockCircleOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Typography, Table, Button, Modal, Form, Input, Select, Space, Tag, message, Descriptions, Tabs, Badge, Divider } from 'antd';
+import { PlusOutlined, ReloadOutlined, StopOutlined, EyeOutlined, CheckCircleOutlined, SyncOutlined, CloseCircleOutlined, ClockCircleOutlined, DownloadOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from '../hooks/useTranslation';
 import moment from 'moment';
 
@@ -15,7 +15,6 @@ const TaskRecords = () => {
   const [data, setData] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const [isScheduled, setIsScheduled] = useState(false);
   
   // Detail Modal State
   const [detailVisible, setDetailVisible] = useState(false);
@@ -34,11 +33,13 @@ const TaskRecords = () => {
     const mockDialingData = Array.from({ length: 5 }).map((_, i) => ({
       key: i,
       id: `${subTask.id}-D${i + 1}`,
-      target: 'http://example.com/api/test',
-      ueInfo: `UE-${100 + i} (IMSI: 46000...)`,
+      scriptName: `test_script_${i + 1}.py`,
+      ueInfo: `18600000${100 + i}`,
+      executorInfo: `Executor-${10 + i}`,
+      startTime: moment().subtract(10 - i, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
+      endTime: moment().subtract(10 - i - 1, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
       status: i === 3 ? 'FAILED' : 'COMPLETED',
-      latency: `${100 + Math.floor(Math.random() * 50)}ms`,
-      result: i === 3 ? 'Timeout' : '200 OK'
+      blockingResult: i === 3 ? 'Failed' : 'Success',
     }));
     setDialingDetailData(mockDialingData);
     setDialingDetailVisible(true);
@@ -46,11 +47,13 @@ const TaskRecords = () => {
 
   const dialingDetailColumns = [
     { title: t('dialTask.detail.dialing.id') || 'ID', dataIndex: 'id', key: 'id' },
+    { title: t('dialTask.detail.dialing.scriptName') || 'Dial Test Script', dataIndex: 'scriptName', key: 'scriptName' },
     { title: t('dialTask.detail.dialing.ueInfo') || 'UE Info', dataIndex: 'ueInfo', key: 'ueInfo' },
-    { title: t('dialTask.detail.dialing.target') || 'Target', dataIndex: 'target', key: 'target' },
+    { title: t('dialTask.detail.dialing.executorInfo') || 'Executor Info', dataIndex: 'executorInfo', key: 'executorInfo' },
+    { title: t('dialTask.detail.dialing.startTime') || 'Start Time', dataIndex: 'startTime', key: 'startTime' },
+    { title: t('dialTask.detail.dialing.endTime') || 'End Time', dataIndex: 'endTime', key: 'endTime' },
     { title: t('dialTask.detail.dialing.status') || 'Status', dataIndex: 'status', key: 'status', render: renderStatusTag },
-    { title: t('dialTask.detail.dialing.latency') || 'Latency', dataIndex: 'latency', key: 'latency' },
-    { title: t('dialTask.detail.dialing.result') || 'Result', dataIndex: 'result', key: 'result' },
+    { title: t('dialTask.detail.dialing.blockingResult') || 'Blocking Result', dataIndex: 'blockingResult', key: 'blockingResult' },
   ];
 
   // Generate mock data on component mount
@@ -105,7 +108,7 @@ const TaskRecords = () => {
       setTimeout(() => {
         const newTask = {
           key: data.length,
-          id: `${values.isScheduled ? 'SCHD' : 'ONCE'}-${20231100 + data.length}`,
+          id: `ONCE-${20231100 + data.length}`,
           taskName: values.taskName,
           creator: 'CurrentUser',
           startTime: new Date().toLocaleString(),
@@ -128,7 +131,6 @@ const TaskRecords = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setIsScheduled(false);
   };
 
   const handleViewDetails = (record) => {
@@ -277,11 +279,22 @@ const TaskRecords = () => {
 
   const renderTypeTag = (text) => <Tag color="blue">{t(`dialTask.types.${text}`) || text}</Tag>;
 
+  const PureCircleIcon = () => (
+    <span role="img" aria-label="circle" className="anticon">
+      <svg viewBox="0 0 1024 1024" focusable="false" data-icon="circle" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+        <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" />
+      </svg>
+    </span>
+  );
+
   const columns = [
     {
       title: t('dialTask.table.taskId') || 'Task ID',
       dataIndex: 'id',
       key: 'id',
+      render: (text, record) => (
+        <a onClick={() => handleViewDetails(record)}>{text}</a>
+      ),
     },
     {
       title: t('dialTask.table.taskName') || 'Task Name',
@@ -300,7 +313,7 @@ const TaskRecords = () => {
       render: isScheduled => (
         isScheduled ? 
         <Tag icon={<ClockCircleOutlined />} color="processing">{t('dialTask.mode.scheduled') || '定时'}</Tag> : 
-        <Tag icon={<PlusOutlined />} color="default">{t('dialTask.mode.once') || '单次'}</Tag>
+        <Tag icon={<PureCircleIcon />} color="default">{t('dialTask.mode.once') || '单次'}</Tag>
       )
     },
     {
@@ -438,62 +451,13 @@ const TaskRecords = () => {
           <Form.Item
             name="type"
             label={t('dialTask.form.type') || 'Task Type'}
+            initialValue="VPN_BLOCK"
             rules={[{ required: true, message: t('dialTask.form.typePlaceholder') || 'Please select task type' }]}
           >
             <Select placeholder={t('dialTask.form.typePlaceholder') || 'Please select task type'}>
               <Option value="VPN_BLOCK">{t('dialTask.types.VPN_BLOCK') || 'VPN Block'}</Option>
             </Select>
           </Form.Item>
-
-          <Form.Item
-            name="isScheduled"
-            label={t('dialTask.form.isScheduled') || 'Scheduled Execution'}
-            valuePropName="checked"
-          >
-            <Switch onChange={(checked) => setIsScheduled(checked)} />
-          </Form.Item>
-
-          {isScheduled && (
-            <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-              <Title level={5} style={{ marginTop: 0 }}>{t('dialTask.form.scheduleConfig') || 'Schedule Config'}</Title>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="startTime"
-                    label={t('dialTask.form.startTime') || 'First Start Time'}
-                    rules={[{ required: true, message: t('dialTask.form.startTimePlaceholder') || 'Select start time' }]}
-                    initialValue={moment()}
-                  >
-                    <DatePicker showTime style={{ width: '100%' }} format="YYYY-MM-DD HH:mm:ss" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label={t('dialTask.form.interval') || 'Interval'}>
-                    <Input.Group compact>
-                      <Form.Item
-                        name="intervalValue"
-                        noStyle
-                        rules={[{ required: true, message: t('dialTask.form.intervalPlaceholder') || 'Enter value' }]}
-                      >
-                        <InputNumber style={{ width: '60%' }} min={1} placeholder="1" />
-                      </Form.Item>
-                      <Form.Item
-                        name="intervalUnit"
-                        noStyle
-                        rules={[{ required: true, message: t('dialTask.form.intervalUnitPlaceholder') || 'Select unit' }]}
-                        initialValue="HOUR"
-                      >
-                        <Select style={{ width: '40%' }}>
-                          <Option value="HOUR">{t('dialTask.form.units.HOUR') || 'Hour'}</Option>
-                          <Option value="DAY">{t('dialTask.form.units.DAY') || 'Day'}</Option>
-                        </Select>
-                      </Form.Item>
-                    </Input.Group>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </div>
-          )}
         </Form>
       </Modal>
 
@@ -507,7 +471,7 @@ const TaskRecords = () => {
             {t('common.close') || 'Close'}
           </Button>
         ]}
-        width={1000}
+        width={1200}
         bodyStyle={{ maxHeight: '80vh', overflowY: 'auto' }}
       >
         {currentTask && (
@@ -563,7 +527,7 @@ const TaskRecords = () => {
             {t('common.close') || 'Close'}
           </Button>
         ]}
-        width={900}
+        width={1200}
       >
         <Table
           dataSource={dialingDetailData}

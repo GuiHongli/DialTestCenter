@@ -158,6 +158,9 @@ const DialTaskManagement = () => {
       dataIndex: 'id',
       key: 'id',
       width: 150,
+      render: (text, record) => (
+        <a onClick={() => handleEdit(record)}>{text}</a>
+      ),
     },
     {
       title: t('dialTask.table.name') || 'Name',
@@ -187,11 +190,11 @@ const DialTaskManagement = () => {
       )
     },
     {
-      title: t('dialTask.table.isEnabled') || 'Is Scheduled',
+      title: t('dialTask.table.isEnabled') || 'Enabled',
       dataIndex: 'isEnabled',
       key: 'isEnabled',
       render: isEnabled => (
-        <Switch checked={isEnabled} disabled />
+        <span>{isEnabled ? (t('common.yes') || 'Yes') : (t('common.no') || 'No')}</span>
       )
     },
     {
@@ -280,20 +283,12 @@ const DialTaskManagement = () => {
           <Form.Item
             name="type"
             label={t('dialTask.form.type') || 'Task Type'}
+            initialValue="VPN_BLOCK"
             rules={[{ required: true, message: t('dialTask.form.typePlaceholder') || 'Please select task type' }]}
           >
             <Select placeholder={t('dialTask.form.typePlaceholder') || 'Please select task type'}>
               <Option value="VPN_BLOCK">{t('dialTask.types.VPN_BLOCK') || 'VPN Block'}</Option>
             </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="isEnabled"
-            label={t('dialTask.form.isScheduled') || 'Is Scheduled'}
-            valuePropName="checked"
-            initialValue={true}
-          >
-            <Switch />
           </Form.Item>
 
           <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
@@ -336,6 +331,15 @@ const DialTaskManagement = () => {
               </Col>
             </Row>
           </div>
+
+          <Form.Item
+            name="isEnabled"
+            label={t('dialTask.form.isScheduled') || 'Enabled'}
+            valuePropName="checked"
+            initialValue={true}
+          >
+            <Switch />
+          </Form.Item>
         </Form>
       </Modal>
     </div>
