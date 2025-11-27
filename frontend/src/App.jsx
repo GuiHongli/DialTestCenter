@@ -13,6 +13,10 @@ import PreprocessRuleManagementPage from './pages/PreprocessRuleManagement'
 import AlarmManagementPage from './pages/AlarmManagement'
 import SampleImportManagementPage from './pages/SampleImportManagement'
 import NetworkElementModelManagementPage from './pages/NetworkElementModelManagement'
+import DialTaskManagementPage from './pages/DialTaskManagementPage'
+import TaskRecordsPage from './pages/TaskRecordsPage'
+import UeStatusPage from './pages/UeStatusPage'
+import ExecutorStatusPage from './pages/ExecutorStatusPage'
 
 function App() {
   return (
@@ -29,6 +33,10 @@ function App() {
             <Route path="/alarms" component={AlarmManagementPage} />
             <Route path="/sample-import" component={SampleImportManagementPage} />
             <Route path="/network-element-model" component={NetworkElementModelManagementPage} />
+            <Route path="/dial-tasks" component={DialTaskManagementPage} />
+            <Route path="/task-records" component={TaskRecordsPage} />
+            <Route path="/ue-status" component={UeStatusPage} />
+            <Route path="/executor-status" component={ExecutorStatusPage} />
             <Route path="/" exact>
               <Redirect to="/users" />
             </Route>
