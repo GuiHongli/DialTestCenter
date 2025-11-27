@@ -281,7 +281,7 @@ export class OperationLogUtils {
       USER: '执行机账号',
       USER_ROLE: '角色管理',
       TEST_CASE_SET: '测试用例集',
-      SOFTWARE_PACKAGE: '软件包',
+      SOFTWARE_PACKAGE: '应用',
       PREPROCESS_RULE_PACKAGE: '预处理规则包',
       SYSTEM: '系统',
       LOGIN: '系统登录',
@@ -292,8 +292,9 @@ export class OperationLogUtils {
       '用户管理': '执行机账号', // 兼容旧的用户管理
       '角色管理': '角色管理',
       '测试用例集': '测试用例集',
-      '软件包管理': '软件包', // 兼容旧的软件包管理
-      '软件包': '软件包',
+      '软件包管理': '应用', // 兼容旧的软件包管理
+      '应用管理': '应用',
+      '软件包': '应用',
       '预处理规则包': '预处理规则包',
       '系统': '系统',
       '系统登录': '系统登录',
@@ -304,7 +305,7 @@ export class OperationLogUtils {
       USER: 'User Management',
       USER_ROLE: 'Role Management',
       TEST_CASE_SET: 'Test Case Set',
-      SOFTWARE_PACKAGE: 'Software Package',
+      SOFTWARE_PACKAGE: 'Application',
       PREPROCESS_RULE_PACKAGE: 'Preprocess Rule Package',
       SYSTEM: 'System',
       LOGIN: 'System Login',

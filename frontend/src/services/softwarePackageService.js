@@ -1,5 +1,5 @@
 /**
- * 软件包管理服务
+ * 应用管理服务
  */
 
 import { createApiRequestConfig, createFileUploadConfig, getXUsername } from '../utils/apiUtils.js';
@@ -10,7 +10,7 @@ const UPLOAD_API_URL = '/dialingtest/api/software-packages';
 // 注意：现在使用 createApiRequestConfig 函数，它会自动从 cookie 中获取用户名
 
 /**
- * 获取软件包列表
+ * 获取应用列表
  */
 export const getSoftwarePackages = async (params = {}) => {
   const searchParams = new URLSearchParams();
@@ -22,7 +22,7 @@ export const getSoftwarePackages = async (params = {}) => {
   const response = await fetch(`${API_BASE_URL}?${searchParams.toString()}`, createApiRequestConfig('GET', undefined, false));
   
   if (!response.ok) {
-    throw new Error(`Failed to fetch software packages: ${response.statusText}`);
+    throw new Error(`Failed to fetch applications: ${response.statusText}`);
   }
   
   const result = await response.json();
@@ -38,13 +38,13 @@ export const getSoftwarePackages = async (params = {}) => {
 };
 
 /**
- * 获取软件包详情
+ * 获取应用详情
  */
 export const getSoftwarePackage = async (id) => {
   const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('GET', undefined, false));
   
   if (!response.ok) {
-    throw new Error(`Failed to fetch software package: ${response.statusText}`);
+    throw new Error(`Failed to fetch application: ${response.statusText}`);
   }
   
   const result = await response.json();
@@ -52,7 +52,7 @@ export const getSoftwarePackage = async (id) => {
 };
 
 /**
- * 上传单个软件包
+ * 上传单个应用
  */
 export const uploadSoftwarePackage = async (file, description, overwrite = false) => {
   const formData = new FormData();
@@ -76,7 +76,7 @@ export const uploadSoftwarePackage = async (file, description, overwrite = false
 
   if (!response.ok) {
     // 解析后端返回的具体错误消息
-    const errorMessage = result.message || `Failed to upload software package: ${response.statusText}`;
+    const errorMessage = result.message || `Failed to upload application: ${response.statusText}`;
     throw new Error(errorMessage);
   }
 
@@ -127,12 +127,12 @@ export const uploadZipPackage = async (file, overwrite = false, description) => 
   return {
     success: result.success,
     message: message,
-    count: message.includes('个软件包') ? parseInt((matchResult && matchResult[0]) || '0') : 0
+    count: message.includes('个应用') || message.includes('个软件包') ? parseInt((matchResult && matchResult[0]) || '0') : 0
   };
 };
 
 /**
- * 下载软件包（单个或批量）
+ * 下载应用（单个或批量）
  */
 export const downloadSoftwarePackage = async (ids, zipFileName) => {
   // 确保 X-Username 可用
@@ -140,11 +140,11 @@ export const downloadSoftwarePackage = async (ids, zipFileName) => {
 
   const response = await fetch(`${API_BASE_URL}/download`, createApiRequestConfig('POST', {
     packageIds: ids,
-    zipFileName: zipFileName || 'software_packages_batch'
+    zipFileName: zipFileName || 'applications_batch'
   }, true));
   
   if (!response.ok) {
-    throw new Error(`Failed to download software package: ${response.statusText}`);
+    throw new Error(`Failed to download application: ${response.statusText}`);
   }
 
   const blob = await response.blob();
@@ -173,18 +173,18 @@ export const downloadSoftwarePackage = async (ids, zipFileName) => {
 };
 
 /**
- * 删除软件包
+ * 删除应用
  */
 export const deleteSoftwarePackage = async (id) => {
   const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('DELETE'));
 
   if (!response.ok) {
-    throw new Error(`Failed to delete software package: ${response.statusText}`);
+    throw new Error(`Failed to delete application: ${response.statusText}`);
   }
 };
 
 /**
- * 更新软件包信息（仅更新描述）
+ * 更新应用信息（仅更新描述）
  */
 export const updateSoftwarePackage = async (id, params) => {
   const response = await fetch(`${API_BASE_URL}/${id}`, createApiRequestConfig('PUT', {
@@ -192,7 +192,7 @@ export const updateSoftwarePackage = async (id, params) => {
   }));
 
   if (!response.ok) {
-    throw new Error(`Failed to update software package: ${response.statusText}`);
+    throw new Error(`Failed to update application: ${response.statusText}`);
   }
 
   const result = await response.json();
@@ -200,7 +200,7 @@ export const updateSoftwarePackage = async (id, params) => {
 };
 
 /**
- * 获取软件包统计信息（模拟实现）
+ * 获取应用统计信息（模拟实现）
  */
 export const getSoftwarePackageStatistics = async () => {
   try {

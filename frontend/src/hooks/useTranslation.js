@@ -32,7 +32,7 @@ export const useTranslation = () => {
     return t(`user.${key}`, options)
   }
 
-  // 软件包相关翻译
+  // 应用相关翻译
   const translateSoftwarePackage = (key, options) => {
     return t(`softwarePackage.${key}`, options)
   }

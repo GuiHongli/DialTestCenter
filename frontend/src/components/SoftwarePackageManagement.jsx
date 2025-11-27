@@ -1,5 +1,5 @@
 /**
- * 软件包管理组件
+ * 应用管理组件
  */
 
 import React, { useState, useEffect } from 'react';
@@ -73,7 +73,7 @@ const SoftwarePackageManagement = () => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
-  // 加载软件包列表
+  // 加载应用列表
   const loadSoftwarePackages = async (params = {}) => {
     setLoading(true);
     try {
@@ -92,7 +92,7 @@ const SoftwarePackageManagement = () => {
       }));
     } catch (error) {
       message.error(translateSoftwarePackage('messages.loadFailed'));
-      console.error('Error loading software packages:', error);
+      console.error('Error loading applications:', error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ const SoftwarePackageManagement = () => {
     loadSoftwarePackages();
   }, []);
 
-  // 删除软件包
+  // 删除应用
   const handleDelete = async (id) => {
     try {
       await deleteSoftwarePackage(id);
@@ -121,25 +121,25 @@ const SoftwarePackageManagement = () => {
       loadSoftwarePackages();
     } catch (error) {
       message.error(translateSoftwarePackage('messages.deleteFailed'));
-      console.error('Error deleting software package:', error);
+      console.error('Error deleting application:', error);
     }
   };
 
-  // 下载软件包（单个）
+  // 下载应用（单个）
   const handleDownload = async (record) => {
     try {
       await downloadSoftwarePackage([record.id], record.softwareName);
       message.success(translateSoftwarePackage('messages.downloadSuccess'));
     } catch (error) {
       message.error(translateSoftwarePackage('messages.downloadFailed'));
-      console.error('Error downloading software package:', error);
+      console.error('Error downloading application:', error);
     }
   };
 
-  // 批量下载软件包
+  // 批量下载应用
   const handleBatchDownload = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning(translateSoftwarePackage('messages.selectPackagesToDownload') || '请选择要下载的软件包');
+      message.warning(translateSoftwarePackage('messages.selectPackagesToDownload') || '请选择要下载的应用');
       return;
     }
     
@@ -152,18 +152,18 @@ const SoftwarePackageManagement = () => {
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      const zipFileName = `software_packages_${year}${month}${day}${hours}${minutes}${seconds}`;
+      const zipFileName = `applications_${year}${month}${day}${hours}${minutes}${seconds}`;
       
       await downloadSoftwarePackage(selectedRowKeys, zipFileName);
-      message.success(translateSoftwarePackage('messages.batchDownloadSuccess') || `成功下载 ${selectedRowKeys.length} 个软件包`);
+      message.success(translateSoftwarePackage('messages.batchDownloadSuccess') || `成功下载 ${selectedRowKeys.length} 个应用`);
       setSelectedRowKeys([]);
     } catch (error) {
       message.error(translateSoftwarePackage('messages.batchDownloadFailed') || '批量下载失败');
-      console.error('Error batch downloading software packages:', error);
+      console.error('Error batch downloading applications:', error);
     }
   };
 
-  // 编辑软件包
+  // 编辑应用
   const handleEdit = (record) => {
     setEditingPackage(record);
     form.setFieldsValue({
@@ -188,7 +188,7 @@ const SoftwarePackageManagement = () => {
       }
     } catch (error) {
       message.error(translateSoftwarePackage('messages.updateFailed'));
-      console.error('Error updating software package:', error);
+      console.error('Error updating application:', error);
     }
   };
 
@@ -225,8 +225,8 @@ const SoftwarePackageManagement = () => {
         } catch (error) {
           // 检查是否是重复上传错误
           if (error.message && (error.message.includes('已存在的软件名称') || error.message.includes('软件名称已存在'))) {
-            // 提取软件包名称
-            let packageName = '该软件包';
+            // 提取应用名称
+            let packageName = '该应用';
             if (error.message.includes('软件名称已存在:')) {
               const parts = error.message.split('软件名称已存在: ');
               if (parts.length > 1) {
@@ -285,8 +285,8 @@ const SoftwarePackageManagement = () => {
         } catch (error) {
           // 检查是否是重复上传错误
           if (error.message && (error.message.includes('已存在的软件名称') || error.message.includes('ZIP包中包含已存在的软件名称'))) {
-            // 提取软件包名称
-            let packageName = '该软件包';
+            // 提取应用名称
+            let packageName = '该应用';
             if (error.message.includes('ZIP包中包含已存在的软件名称:')) {
               const parts = error.message.split('ZIP包中包含已存在的软件名称: ');
               if (parts.length > 1) {
@@ -533,7 +533,7 @@ const SoftwarePackageManagement = () => {
         </Space>
       </div>
 
-      {/* 软件名称搜索筛选器 */}
+      {/* 应用名称搜索筛选器 */}
       <Card style={{ marginBottom: '16px' }}>
         <Row gutter={[16, 16]} style={{ textAlign: 'left' }}>
           <Col xs={24} sm={8} md={6}>
@@ -587,7 +587,7 @@ const SoftwarePackageManagement = () => {
         </Row>
       </Card>
 
-      {/* 软件包列表 */}
+      {/* 应用列表 */}
       <Card>
         <Table
           columns={columns}

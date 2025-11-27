@@ -139,11 +139,6 @@ const Layout = ({ children }) => {
       label: translateNavigation('configManagement'),
       children: [
         {
-          key: '/test-case-sets',
-          icon: <FileZipOutlined />,
-          label: translateNavigation('testCaseSetManagement'),
-        },
-        {
           key: '/software-packages',
           icon: <AppstoreOutlined />,
           label: translateNavigation('softwarePackageManagement'),
