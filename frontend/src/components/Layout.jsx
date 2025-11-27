@@ -15,6 +15,10 @@ import {
     BellOutlined,
     InboxOutlined,
     DatabaseOutlined,
+    ScheduleOutlined,
+    ExperimentOutlined,
+    MonitorOutlined,
+    MobileOutlined,
 } from '@ant-design/icons'
 import { Layout as AntLayout, Button, Menu, Typography, Dropdown } from 'antd'
 import React, { useState, useEffect } from 'react'
@@ -86,6 +90,33 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     {
+      key: 'task',
+      icon: <ScheduleOutlined />,
+      label: translateNavigation('taskManagement'),
+      children: [
+        {
+          key: '/task-records',
+          icon: <FileTextOutlined />,
+          label: translateNavigation('taskRecords'),
+        },
+        {
+          key: '/dial-tasks',
+          icon: <ExperimentOutlined />,
+          label: translateNavigation('dialTask'),
+        },
+        {
+          key: '/ue-status',
+          icon: <MobileOutlined />,
+          label: translateNavigation('ueStatus'),
+        },
+        {
+          key: '/executor-status',
+          icon: <MonitorOutlined />,
+          label: translateNavigation('executorStatus'),
+        },
+      ],
+    },
+    {
       key: 'user',
       icon: <TeamOutlined />,
       label: translateNavigation('userManagement'),
@@ -107,6 +138,11 @@ const Layout = ({ children }) => {
       icon: <SettingOutlined />,
       label: translateNavigation('configManagement'),
       children: [
+        {
+          key: '/test-case-sets',
+          icon: <FileZipOutlined />,
+          label: translateNavigation('testCaseSetManagement'),
+        },
         {
           key: '/software-packages',
           icon: <AppstoreOutlined />,

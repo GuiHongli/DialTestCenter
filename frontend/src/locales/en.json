@@ -62,7 +62,9 @@
     "admin": "Admin",
     "operator": "Operator",
     "browser": "Browser",
-    "executor": "Executor"
+    "executor": "Executor",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "app": {
     "title": "Dial Test Center",
@@ -71,6 +73,11 @@
   },
   "navigation": {
     "userManagement": "User Management",
+    "taskManagement": "Task Management",
+    "dialTask": "Task Configuration",
+    "taskRecords": "Execution Records",
+    "ueStatus": "UE Status",
+    "executorStatus": "Executor Status",
     "userList": "Execution Machine Account Management",
     "roleManagement": "User Role Management",
     "configManagement": "Dial Configuration",
@@ -82,6 +89,86 @@
     "operationManagement": "Operation Management",
     "operationLogManagement": "Operation Log",
     "alarmManagement": "Alarm Management"
+  },
+  "ueStatus": {
+    "title": "UE Status Monitor",
+    "description": "Real-time monitoring of all UE devices",
+    "refresh": "Refresh Status",
+    "searchPlaceholder": "Search MSISDN or Executor",
+    "table": {
+      "msisdn": "MSISDN",
+      "executor": "Belonging Executor",
+      "status": "Connection Status",
+      "runningStatus": "Running Status",
+      "taskId": "Task ID",
+      "brandModel": "Brand/Model",
+      "os": "OS Version",
+      "battery": "Battery",
+      "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+    }
+  },
+  "ueStatus": {
+    "title": "UE Status Monitor",
+    "description": "Real-time monitoring of all UE devices",
+    "refresh": "Refresh Status",
+    "searchPlaceholder": "Search MSISDN or Executor",
+    "table": {
+      "msisdn": "MSISDN",
+      "executor": "Belonging Executor",
+      "status": "Connection Status",
+      "runningStatus": "Running Status",
+      "taskId": "Task ID",
+      "brandModel": "Brand/Model",
+      "os": "OS Version",
+      "battery": "Battery",
+      "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+    }
+  },
+  "executorStatus": {
+    "title": "Executor Status Monitor",
+    "description": "Real-time monitoring of executors and their managed devices",
+    "refresh": "Refresh Status",
+    "searchPlaceholder": "Search Executor Name or IP",
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "invalid": "Invalid",
+      "all": "All Status"
+    },
+    "table": {
+      "name": "Executor Name",
+      "ip": "IP Address",
+      "status": "Status",
+      "ueSummary": "UE Online Count",
+      "lastHeartbeat": "Last Heartbeat",
+      "description": "Description",
+      "proxy": "Proxy",
+      "actions": "Actions",
+      "viewDetail": "View Details",
+      "ueCountFormat": "{{online}} / {{total}}",
+      "pagination": "Showing {{start}} to {{end}} of {{total}} entries"
+    },
+    "detail": {
+      "title": "Executor Details",
+      "basicInfo": "Basic Information",
+      "ueList": "Managed Device List",
+      "token": "Token",
+      "ueTable": {
+        "msisdn": "MSISDN",
+        "brandModel": "Brand/Model",
+        "os": "OS Version",
+        "status": "Connection Status",
+        "runningStatus": "Running Status",
+        "taskId": "Task ID",
+        "battery": "Battery",
+        "network": "Network Info",
+        "online": "Online",
+        "offline": "Offline",
+        "unknown": "Unknown",
+        "running": "Running",
+        "idle": "Idle"
+      }
+    }
   },
   "user": {
     "title": "Executor Account Management",
@@ -731,6 +818,118 @@
       "selectFile": "Select File",
       "dragTip": "Click or drag file to this area to upload",
       "supportFormat": "Support ZIP format files"
+    }
+  },
+
+
+  "dialTask": {
+    "title": "Dial Task Management",
+    "description": "Manage dial test tasks, support creating, viewing task status and results",
+    "configDescription": "Manage scheduled task templates and configurations",
+    "newTemplate": "New Template",
+    "createTemplate": "Create Task Template",
+    "editTemplate": "Edit Task Template",
+    "confirmDelete": "Are you sure you want to delete this task template?",
+    "runNow": "Run Now",
+    "confirmRunNow": "Are you sure you want to run this task immediately?",
+    "runSuccess": "Task started successfully",
+    "newTask": "New Task",
+    "createTask": "Create Dial Task",
+    "createSuccess": "Task created successfully",
+    "createFailed": "Failed to create task",
+    "scheduledTask": "Scheduled Task",
+    "stopTask": "Stop Task",
+    "downloadReport": "Download Report",
+    "table": {
+      "id": "Template ID",
+      "taskId": "Task ID",
+      "templateId": "Template ID",
+      "templateName": "Template Name",
+      "report": "Task Report",
+      "name": "Template Name",
+      "taskName": "Task Name",
+      "type": "Task Type",
+      "schedule": "Schedule Rule",
+      "status": "Status",
+      "creator": "Creator",
+      "actions": "Actions",
+      "executionMode": "Execution Mode",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "isEnabled": "Is Scheduled",
+      "viewDetails": "View Details",
+      "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "RUNNING": "Running",
+      "COMPLETED": "Completed",
+      "FAILED": "Failed"
+    },
+    "form": {
+      "taskName": "Task Name",
+      "taskNamePlaceholder": "Please enter task name",
+      "type": "Task Type",
+      "typePlaceholder": "Please select task type",
+      "target": "Test Target",
+      "targetPlaceholder": "Please enter test target (e.g. URL or IP)",
+      "config": "Task Config",
+      "configPlaceholder": "Enter configuration",
+      "preprocessRule": "Preprocess Rule",
+      "preprocessRulePlaceholder": "Select preprocess rule",
+      "isScheduled": "Scheduled Execution",
+      "scheduleConfig": "Schedule Config",
+      "startTime": "First Start Time",
+      "startTimePlaceholder": "Select start time",
+      "interval": "Interval",
+      "intervalPlaceholder": "Enter interval value",
+      "intervalUnit": "Unit",
+      "intervalUnitPlaceholder": "Select unit",
+      "units": {
+        "HOUR": "Hour",
+        "DAY": "Day"
+      }
+    },
+    "types": {
+      "VPN_BLOCK": "VPN Block"
+    },
+    "mode": {
+      "scheduled": "Scheduled",
+      "once": "Once"
+    },
+    "steps": {
+      "preparation": "Preparation",
+      "execution": "Execution",
+      "preprocessing": "Data Preprocessing",
+      "training": "Training",
+      "grayValidation": "Gray Validation",
+      "release": "Release"
+    },
+    "detail": {
+      "title": "Task Details",
+      "basicInfo": "Basic Information",
+      "subtasks": "Subtasks Execution",
+      "dialing": {
+        "title": "Dialing Execution Details",
+        "id": "Task ID",
+        "ueInfo": "UE Info",
+        "target": "Target",
+        "status": "Status",
+        "latency": "Latency",
+        "result": "Result"
+      },
+      "config": "Configuration (Input)",
+      "output": "Result (Output)",
+      "noOutput": "No output available",
+      "table": {
+        "id": "Subtask ID",
+        "stepName": "Task Step",
+        "executor": "Executor",
+        "status": "Status",
+        "latency": "Latency",
+        "result": "Result",
+        "errorReason": "Error Reason"
+      }
     }
   },
   "networkElementModel": {
