@@ -158,11 +158,6 @@ const Layout = ({ children }) => {
           icon: <InboxOutlined />,
           label: translateNavigation('sampleImport'),
         },
-        {
-          key: '/network-element-model',
-          icon: <DatabaseOutlined />,
-          label: translateNavigation('networkElementModel'),
-        },
       ],
     },
     {
@@ -170,6 +165,11 @@ const Layout = ({ children }) => {
       icon: <ToolOutlined />,
       label: translateNavigation('operationManagement'),
       children: [
+        {
+          key: '/network-element-model',
+          icon: <DatabaseOutlined />,
+          label: translateNavigation('networkElementModel'),
+        },
         {
           key: '/operation-logs',
           icon: <HistoryOutlined />,

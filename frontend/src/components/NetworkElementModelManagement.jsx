@@ -1,12 +1,14 @@
 import {
   ReloadOutlined,
   DatabaseOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import {
   Button,
   Space,
   Table,
   Typography,
+  message,
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation.js'
@@ -33,30 +35,35 @@ const NetworkElementModelManagement = () => {
         {
           id: 1,
           name: '网元设备_001',
+          businessType: 'VPN阻断',
           formalModel: '正式模型_v1.0',
           testModel: '测试模型_v1.0',
         },
         {
           id: 2,
           name: '网元设备_002',
+          businessType: 'VPN阻断',
           formalModel: '正式模型_v1.1',
           testModel: '测试模型_v1.1',
         },
         {
           id: 3,
           name: '网元设备_003',
+          businessType: 'VPN阻断',
           formalModel: '正式模型_v2.0',
           testModel: '测试模型_v2.0',
         },
         {
           id: 4,
           name: '网元设备_004',
+          businessType: 'VPN阻断',
           formalModel: '正式模型_v2.1',
           testModel: '测试模型_v2.1',
         },
         {
           id: 5,
           name: '网元设备_005',
+          businessType: 'VPN阻断',
           formalModel: '正式模型_v3.0',
           testModel: '测试模型_v3.0',
         },
@@ -84,6 +91,11 @@ const NetworkElementModelManagement = () => {
     loadNetworkElements(newPagination.current, newPagination.pageSize)
   }
 
+  // 处理报告详情点击
+  const handleViewReport = (record) => {
+    message.info(translateNetworkElementModel('messages.featureDeveloping'))
+  }
+
   // 表格列定义
   const columns = [
     {
@@ -91,6 +103,12 @@ const NetworkElementModelManagement = () => {
       dataIndex: 'name',
       key: 'name',
       width: 200,
+    },
+    {
+      title: translateNetworkElementModel('table.businessType'),
+      dataIndex: 'businessType',
+      key: 'businessType',
+      width: 150,
     },
     {
       title: translateNetworkElementModel('table.formalModel'),
@@ -103,6 +121,22 @@ const NetworkElementModelManagement = () => {
       dataIndex: 'testModel',
       key: 'testModel',
       width: 200,
+    },
+    {
+      title: translateNetworkElementModel('table.actions'),
+      key: 'actions',
+      width: 150,
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            type="link"
+            icon={<FileTextOutlined />}
+            onClick={() => handleViewReport(record)}
+          >
+            {translateNetworkElementModel('table.viewReport')}
+          </Button>
+        </Space>
+      ),
     },
   ]
 

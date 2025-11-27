@@ -810,6 +810,7 @@
       "fileSize": "File Size",
       "createdTime": "Created Time",
       "actions": "Actions",
+      "edit": "Edit",
       "download": "Download",
       "delete": "Delete",
       "pagination": "{{start}}-{{end}} of {{total}} items"
@@ -937,9 +938,15 @@
     "title": "Network Element Model",
     "table": {
       "name": "Network Element Name",
+      "businessType": "Business Type",
       "formalModel": "Formal Model",
       "testModel": "Test Model",
+      "actions": "Actions",
+      "viewReport": "Report Details",
       "pagination": "{{start}}-{{end}} of {{total}} items"
+    },
+    "messages": {
+      "featureDeveloping": "Feature under development"
     }
   }
 }

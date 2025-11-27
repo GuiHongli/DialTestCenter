@@ -862,6 +862,7 @@
       "fileSize": "文件大小",
       "createdTime": "创建时间",
       "actions": "操作",
+      "edit": "编辑",
       "download": "下载",
       "delete": "删除",
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
@@ -987,9 +988,15 @@
     "title": "网元模型",
     "table": {
       "name": "网元名称",
+      "businessType": "业务类型",
       "formalModel": "正式模型",
       "testModel": "测试模型",
+      "actions": "操作",
+      "viewReport": "报告详情",
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
+    },
+    "messages": {
+      "featureDeveloping": "功能开发中"
     }
   }
 }

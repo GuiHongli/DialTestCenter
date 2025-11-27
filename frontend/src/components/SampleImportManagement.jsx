@@ -1,6 +1,7 @@
 import {
   DeleteOutlined,
   DownloadOutlined,
+  EditOutlined,
   FileZipOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -113,6 +114,11 @@ const SampleImportManagement = () => {
     }
   }
 
+  // 编辑样本
+  const handleEdit = (record) => {
+    message.info(translateSampleImport('featureDeveloping'))
+  }
+
   // 删除样本
   const handleDelete = (record) => {
     if (!canDelete) {
@@ -209,9 +215,16 @@ const SampleImportManagement = () => {
     {
       title: translateSampleImport('table.actions'),
       key: 'action',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Tooltip title={translateSampleImport('table.edit')}>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
           <PagePermission pageId="sample-import" operation="download">
             <Tooltip title={translateSampleImport('table.download')}>
               <Button
