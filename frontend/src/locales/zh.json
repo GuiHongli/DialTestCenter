@@ -74,7 +74,7 @@
   "navigation": {
     "userManagement": "用户管理",
     "taskManagement": "任务管理",
-    "dialTask": "任务配置",
+    "dialTask": "定时任务配置",
     "taskRecords": "执行记录",
     "ueStatus": "UE状态",
     "executorStatus": "执行机状态",
@@ -104,24 +104,18 @@
       "brandModel": "品牌/型号",
       "os": "系统版本",
       "battery": "电量",
+      "actions": "操作",
+      "viewDetails": "查看详情",
       "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
-    }
-  },
-  "ueStatus": {
-    "title": "UE状态监控",
-    "description": "实时监控所有UE设备的运行状态",
-    "refresh": "刷新状态",
-    "searchPlaceholder": "搜索MSISDN或执行机",
-    "table": {
-      "msisdn": "MSISDN",
-      "executor": "所属执行机",
-      "status": "连接状态",
-      "runningStatus": "运行状态",
-      "taskId": "任务ID",
-      "brandModel": "品牌/型号",
-      "os": "系统版本",
-      "battery": "电量",
-      "pagination": "显示第 {{start}} 到 {{end}} 条记录，共 {{total}} 条"
+    },
+    "detail": {
+      "title": "UE设备详情",
+      "basicInfo": "基本信息",
+      "installedApps": "已安装应用列表",
+      "appName": "应用名称",
+      "packageName": "包名",
+      "version": "版本",
+      "installTime": "安装时间"
     }
   },
   "executorStatus": {
@@ -885,7 +879,7 @@
     "runNow": "立即运行",
     "confirmRunNow": "确定要立即运行此任务吗？",
     "runSuccess": "任务已成功启动",
-    "newTask": "新建任务",
+    "newTask": "新建单次任务",
     "createTask": "创建拨测任务",
     "createSuccess": "任务创建成功",
     "createFailed": "任务创建失败",
@@ -908,7 +902,7 @@
       "executionMode": "执行模式",
       "startTime": "开始时间",
       "endTime": "结束时间",
-      "isEnabled": "是否定时执行",
+      "isEnabled": "是否启用",
       "viewDetails": "查看详情",
       "pagination": "第 {{start}}-{{end}} 条/共 {{total}} 条"
     },
@@ -929,7 +923,7 @@
       "configPlaceholder": "请输入配置内容",
       "preprocessRule": "预处理规则",
       "preprocessRulePlaceholder": "请选择预处理规则",
-      "isScheduled": "是否定时执行",
+      "isScheduled": "是否启用",
       "scheduleConfig": "定时配置",
       "startTime": "首次启动时间",
       "startTimePlaceholder": "选择启动时间",
@@ -964,11 +958,13 @@
       "dialing": {
         "title": "拨测执行详情",
         "id": "任务ID",
+        "scriptName": "拨测脚本",
         "ueInfo": "UE信息",
-        "target": "测试目标",
-        "status": "状态",
-        "latency": "延迟",
-        "result": "结果"
+        "executorInfo": "执行机信息",
+        "startTime": "开始时间",
+        "endTime": "结束时间",
+        "status": "任务状态",
+        "blockingResult": "阻断结果"
       },
       "config": "任务配置 (Input)",
       "output": "执行结果 (Output)",

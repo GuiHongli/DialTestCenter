@@ -104,16 +104,6 @@ const Layout = ({ children }) => {
           icon: <ExperimentOutlined />,
           label: translateNavigation('dialTask'),
         },
-        {
-          key: '/ue-status',
-          icon: <MobileOutlined />,
-          label: translateNavigation('ueStatus'),
-        },
-        {
-          key: '/executor-status',
-          icon: <MonitorOutlined />,
-          label: translateNavigation('executorStatus'),
-        },
       ],
     },
     {
@@ -179,6 +169,16 @@ const Layout = ({ children }) => {
           key: '/alarms',
           icon: <BellOutlined />,
           label: translateNavigation('alarmManagement'),
+        },
+        {
+          key: '/ue-status',
+          icon: <MobileOutlined />,
+          label: translateNavigation('ueStatus'),
+        },
+        {
+          key: '/executor-status',
+          icon: <MonitorOutlined />,
+          label: translateNavigation('executorStatus'),
         },
       ],
     },
