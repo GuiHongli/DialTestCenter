@@ -62,18 +62,28 @@ const TaskRecords = () => {
     setLoading(true);
     // Simulate API call delay
     setTimeout(() => {
-      const mockData = Array.from({ length: 7 }).map((_, i) => ({
-        key: i,
-        id: `ONCE-${1000 + i}`,
-        taskName: `Task-${1000 + i}`,
-        creator: `User ${i + 1}`,
-        isScheduled: false,
-        startTime: `2023-11-25 10:${i < 10 ? '0' + i : i}:00`,
-        endTime: `2023-11-25 10:${i < 10 ? '0' + i : i}:30`,
-        type: 'VPN_BLOCK',
-        status: ['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'][i % 4],
-        result: i % 4 === 2 ? 'Success' : (i % 4 === 3 ? 'Timeout' : '-'),
-      }));
+      const mockData = Array.from({ length: 7 }).map((_, i) => {
+        let result = '-';
+        if (i % 4 === 2) {
+          result = 'Success';
+        } else if (i % 4 === 3) {
+          result = 'Timeout';
+        } else {
+          result = '-';
+        }
+        return {
+          key: i,
+          id: `ONCE-${1000 + i}`,
+          taskName: `Task-${1000 + i}`,
+          creator: `User ${i + 1}`,
+          isScheduled: false,
+          startTime: `2023-11-25 10:${i < 10 ? '0' + i : i}:00`,
+          endTime: `2023-11-25 10:${i < 10 ? '0' + i : i}:30`,
+          type: 'VPN_BLOCK',
+          status: ['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'][i % 4],
+          result: result,
+        };
+      });
 
       const scheduledTasks = Array.from({ length: 3 }).map((_, i) => ({
         key: 10 + i,
